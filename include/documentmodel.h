@@ -650,11 +650,28 @@ extern void recorder_recordAutoInsertFunction(FTABLE* fp, int p);
  */
 extern void string_formatDate(char* szDbuf, EDTIME* ltime);
 
+/* Flags for EdEditFile */
+typedef enum {
+	OPEN_LINEAL = 0x1,
+	OPEN_NOLINFN = 0x20,
+	OPEN_DIRGIVEN = 0x40,
+	OPEN_NOFN = 0x80,
+	OPEN_HISTORY = 0x100
+} OPEN_WINDOW_FLAGS;
+
 /*------------------------------------------------------------
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
  */
-extern long long EdEditFile(long editflags, char* filename);
+extern long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char* filename);
+
+/* Flags for EdSaveFile */
+typedef enum {
+	SAV_SAVE = 0x1,
+	SAV_QUIT = 0x2,
+	SAV_AS = 0x4,
+	SAV_FORCED = 0x8
+} SAVE_WINDOW_FLAGS;
 
 /*------------------------------------------------------------
  * EdSaveFile()
@@ -662,7 +679,7 @@ extern long long EdEditFile(long editflags, char* filename);
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-extern long long  EdSaveFile(int flg);
+extern long long EdSaveFile(SAVE_WINDOW_FLAGS flags);
 
 /*--------------------------------------------------------------------------
  * EdFileAbandon()
@@ -670,11 +687,18 @@ extern long long  EdSaveFile(int flg);
  */
 extern long long EdFileAbandon(WINFO* wp);
 
+/* Flags for ínserting a new line into the text */
+typedef enum {
+	RET_PLUS = 0x1,
+	RET_MINUS = 0x2,
+	RET_SOFT = 0x4
+} RETURN_ACTION_FLAGS;
+
 /*--------------------------------------------------------------------------
  * EdLineSplit()
  * do cr+lf-Actions
  */
-extern long long  EdLineSplit(WINFO* wp, int flags);
+extern long long  EdLineSplit(WINFO* wp, RETURN_ACTION_FLAGS flags);
 
 /*--------------------------------------------------------------------------
  * ln_insertIndent()

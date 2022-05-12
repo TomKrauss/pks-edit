@@ -60,6 +60,11 @@ extern ARRAY_LIST* arraylist_cloneStringList(ARRAY_LIST* pList);
 extern size_t arraylist_size(ARRAY_LIST* pList);
 
 /*---------------------------
+ * Insert one element into the array list (at a given index).
+ */
+extern void arraylist_insertAt(ARRAY_LIST* pList, void* pElement, int nIndex);
+
+/*---------------------------
  * Adds one element to the array list (at the end).
  */
 extern void arraylist_add(ARRAY_LIST* pList, void* pElement);

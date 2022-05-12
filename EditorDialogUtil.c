@@ -670,6 +670,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 					if (!regex_compileWithError((LPSTR)ip)) {
 						return FALSE;
 					}
+					hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 					hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
 				}
 				if ( idCtrl == IDOK && 

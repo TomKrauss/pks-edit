@@ -162,7 +162,7 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 		pHighlighter->h_lastLine = nLine;
 		LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
 		int nElements = grammar_parse(pHighlighter->h_grammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
-		int bShowControl = wp->dispmode & SHOWCONTROL;
+		int bShowControl = wp->dispmode & SHOW_CONTROL_CHARS;
 		if (nElements == 0) {
 			for (int i = 0; i < lp->len; i++) {
 				unsigned char c = lp->lbuf[i];

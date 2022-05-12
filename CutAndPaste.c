@@ -23,6 +23,7 @@
 #include "iccall.h"
 #include "editorconfiguration.h"
 #include "errordialogs.h"
+#include "publicapi.h"
 #include "clipboard.h"
 #include "fileselector.h"
 #include "markpositions.h"

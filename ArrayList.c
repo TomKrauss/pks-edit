@@ -135,6 +135,22 @@ void arraylist_add(ARRAY_LIST* pList, void* pElement) {
 	(*pBuffer)[pList->li_size++] = pElement;
 }
 
+/*---------------------------
+ * Insert one element into the array list (at a given index).
+ */
+void arraylist_insertAt(ARRAY_LIST* pList, void* pElement, int nIndex) {
+	arraylist_ensureFits(pList, pList->li_size);
+	buf_t* pBuffer = pList->li_buffer;
+	if (nIndex >= 0 && nIndex < pList->li_size) {
+		memmove(&(*pBuffer)[nIndex + 1], &(*pBuffer)[nIndex], (pList->li_size - nIndex)*sizeof pElement);
+		(*pBuffer)[nIndex] = pElement;
+	}
+	else {
+		(*pBuffer)[pList->li_size] = pElement;
+	}
+	pList->li_size++;
+}
+
 /*
  * Remove one element from the array list at a given offset into the array list
  * the array lists capacity is not shrinked.

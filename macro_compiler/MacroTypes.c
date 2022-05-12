@@ -30,32 +30,31 @@
 static PKS_TYPE_DESCRIPTOR* _typeDescriptors[MAX_TYPES];
 static int _maxTypeIndex;
 
+static void types_destroyDescriptorProperties(PKS_TYPE_DESCRIPTOR* pType) {
+	TYPE_PROPERTY_DESCRIPTOR* pDescriptors = pType->ptd_elements.ptd_properties;
+	// This hack assumes, that PARAMETER_ENUM_VALUEs have almost the same structure
+	// as TYPE_PROPERTY_DESCRIPTORs - a documentation and a name field - both allocated
+	// and both at the same structure offset.
+	PARAMETER_ENUM_VALUE* pTd = pType->ptd_elements.ptd_enumValues;
+	if (pTd) {
+		for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
+			free((char*)pTd[nProp].pev_documentation);
+			free((char*)pTd[nProp].pev_name);
+		}
+	}
+	free(pDescriptors);
+	pType->ptd_elements.ptd_properties = 0;
+	pType->ptd_numberOfProperties = 0;
+}
+
 /*
- * Destroy a type descriptor created with ...register...
+ * Destroy a type descriptor with all allocated dependent objects.
  */
-static void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType) {
+void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType) {
 	if(!pType) {
 		return;
 	}
-	if (pType->ptd_isEnumType) {
-		PARAMETER_ENUM_VALUE* pTd = pType->ptd_elements.ptd_enumValues;
-		if (pTd) {
-			for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
-				free((char*)pTd[nProp].pev_description);
-				free((char*)pTd[nProp].pev_name);
-			}
-			free(pTd);
-		}
-	}
-	else {
-		TYPE_PROPERTY_DESCRIPTOR* pDescriptors = pType->ptd_elements.ptd_properties;
-		if (pDescriptors) {
-			for (int nProp = 0; nProp < pType->ptd_numberOfProperties; nProp++) {
-				free((char*)pDescriptors[nProp].tpd_name);
-			}
-			free(pDescriptors);
-		}
-	}
+	types_destroyDescriptorProperties(pType);
 	free((char*)pType->ptd_name);
 	free((char*)pType->ptd_documentation);
 	free(pType);
@@ -124,14 +123,16 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
 	}
+	types_destroyDescriptorProperties(pDescriptor);
+	pDescriptor->ptd_numberOfProperties = pTemplate->ptd_numberOfProperties;
 	if (pTemplate->ptd_isEnumType) {
 		if (pTemplate->ptd_elements.ptd_enumValues) {
 			pDescriptor->ptd_elements.ptd_enumValues = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_enumValues);
 			PARAMETER_ENUM_VALUE* pSource = pTemplate->ptd_elements.ptd_enumValues;
 			PARAMETER_ENUM_VALUE* pTarget = pDescriptor->ptd_elements.ptd_enumValues;
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
-				if (pSource->pev_description) {
-					pTarget->pev_description = _strdup(pSource->pev_description);
+				if (pSource->pev_documentation) {
+					pTarget->pev_documentation  = _strdup(pSource->pev_documentation);
 				}
 				if (pSource->pev_name) {
 					pTarget->pev_name = _strdup(pSource->pev_name);
@@ -149,8 +150,13 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		if (pTemplate->ptd_elements.ptd_properties) {
 			pDescriptor->ptd_elements.ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_properties);
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
-				pDescriptor->ptd_elements.ptd_properties[i].tpd_type = pTemplate->ptd_elements.ptd_properties[i].tpd_type;
-				pDescriptor->ptd_elements.ptd_properties[i].tpd_name = _strdup(pTemplate->ptd_elements.ptd_properties[i].tpd_name);
+				TYPE_PROPERTY_DESCRIPTOR* pSource = &pTemplate->ptd_elements.ptd_properties[i];
+				TYPE_PROPERTY_DESCRIPTOR* pTarget = &pDescriptor->ptd_elements.ptd_properties[i];
+				pTarget->tpd_type = pSource->tpd_type;
+				pTarget->tpd_name = _strdup(pSource->tpd_name);
+				if (pSource->tpd_documentation) {
+					pTarget->tpd_documentation = _strdup(pSource->tpd_documentation);
+				}
 			}
 		}
 	}
@@ -338,14 +344,40 @@ const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex) {
 }
 
 /*
- * Returns the "simple" documentation for a type.
+ * Returns the "type descriptor" for the named type.
  */
-const char* types_getDocumentationFor(const char* pszTypeName) {
+PKS_TYPE_DESCRIPTOR* types_getTypeDescriptor(const char* pszTypeName) {
 	char* unused;
 	SYMBOL s = sym_find(sym_getKeywordContext(), pszTypeName, &unused);
 	if (s.s_type != S_TYPE_IDENTIFIER) {
 		return 0;
 	}
 	PKS_VALUE_TYPE t = s.s.symbol.s_valueType;
-	return _typeDescriptors[t]->ptd_documentation;
+	return _typeDescriptors[t];
 }
+
+/*
+ * Returns the enum value table for a PKSMacroC enum type plus the respective size. The type is searched,
+ * where the enzm values start with a given prefix.
+ */
+int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType) {
+	PKS_VALUE_TYPE t;
+
+	for (t = VT_FILE; t < _maxTypeIndex; t++) {
+		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
+		if (pDescriptor != 0 && pDescriptor->ptd_isEnumType && pDescriptor->ptd_numberOfProperties > 0) {
+			if (string_startsWith(pDescriptor->ptd_elements.ptd_enumValues[0].pev_name, pszPrefix)) {
+				*pCount = pDescriptor->ptd_numberOfProperties;
+				*pValues = pDescriptor->ptd_elements.ptd_enumValues;
+				*pType = t;
+				return 1;
+
+			}
+		}
+	}
+	return 0;
+}
+
+
+
+

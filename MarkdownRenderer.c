@@ -910,6 +910,8 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	int x = pBounds->left + pMargins->m_left;
 	int y = pBounds->top + pMargins->m_top;
 	if (!pParams->rfp_measureOnly) {
+		THEME_DATA* pTheme = theme_getCurrent();
+		font_setDefaultTextColors(hdc, pTheme);
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
 			TextOutW(hdc, x - 15, y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
@@ -2901,7 +2903,7 @@ static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, LI
 }
 
 static int mdr_supportsMode(int aMode) {
-	if (aMode == SHOWCARET_LINE_HIGHLIGHT || aMode == SHOWLINENUMBERS || aMode == SHOWRULER) {
+	if (aMode == SHOW_CARET_LINE_HIGHLIGHT || aMode == SHOW_LINENUMBERS || aMode == SHOW_RULER) {
 		return 0;
 	}
 	return 1;

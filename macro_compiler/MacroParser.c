@@ -21,9 +21,6 @@
 extern HINSTANCE	hInst;
 extern void yyerror(const char* s, ...);
 
-BOOLEAN string_startsWith(const char* pszString, const char* pszPrefix) {
-	return strncmp(pszPrefix, pszString, strlen(pszPrefix)) == 0;
-}
 /*--------------------------------------------------------------------------
  * function_initializeFunctionsAndTypes()
  */
@@ -31,8 +28,6 @@ int function_initializeFunctionsAndTypes(void) {
 	static int initialized;
 	NATIVE_FUNCTION	*		ep;
 	NATIVE_FUNCTION *		epend;
-	PARAMETER_ENUM_VALUE *		enp;
-	PARAMETER_ENUM_VALUE *		enpend;
 	char *			pszCopy;
 	int				idx = 0;
 
@@ -50,20 +45,11 @@ int function_initializeFunctionsAndTypes(void) {
 			return 0;
 		}
 	}
-
-	for (enp = _parameterEnumValueTable, enpend = enp+_parameterEnumValueTableSize; enp < enpend; enp++) {
-		if (enp->pev_name == 0 || !sym_createSymbol(sym_getKeywordContext(), (char*)enp->pev_name, S_ENUM, 0, (GENERIC_DATA) {
-			.val = (intptr_t)enp
-		}, 0)) {
-			return 0;
-		}
-	}
-
 	return 1;
 }
 
 /*
- * Returns the enum value with the given name in the given enum type.
+ * Returns the enum value with the given name in the given enum nPksValueType.
  */
 PARAMETER_ENUM_VALUE* function_getParameterEnumValue(const char* pszEnumType, const char* pszEnumName) {
 	char* unused;
@@ -120,7 +106,7 @@ int function_getParameterCount(NATIVE_FUNCTION* ep) {
 
 /*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
- * starts with 1, parameter type 0 is the return type of the function.
+ * starts with 1, parameter nPksValueType 0 is the return nPksValueType of the function.
  */
 PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* ep, int nParamIdx) {
 	char* pT = ep->nf_paramTypes;
@@ -139,6 +125,7 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* e
 		pT++;
 	}
 	PARAMETER_TYPE tType = *pT;
+	PKS_VALUE_TYPE nPksValueType;
 	if (tType == PARAM_TYPE_ENUM || tType == PARAM_TYPE_BITSET) {
 		char szPrefix[20];
 		char* pszDest = szPrefix;
@@ -150,27 +137,28 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* e
 			}
 		}
 		*pszDest = 0;
-		PARAMETER_ENUM_VALUE* pMatch = 0;
-		int pFirst = -1;
-		for (int i = 0; i < _parameterEnumValueTableSize; i++) {
-			const char* pszValueName = _parameterEnumValueTable[i].pev_name;
-			if (string_startsWith(pszValueName, szPrefix)) {
-				if (!pMatch) {
-					pMatch = &_parameterEnumValueTable[i];
-					pFirst = i;
-				}
-			} else if (pMatch) {
-				return (PARAMETER_TYPE_DESCRIPTOR) {
-					.pt_type = tType,
-					.pt_enumVal = pMatch,
-					.pt_enumFirstIndex = pFirst,
-					.pt_enumCount = (int) (&_parameterEnumValueTable[i] - pMatch)
-				};
-			}
+		PARAMETER_ENUM_VALUE* pMatch;
+		int nCount;
+
+		if (types_getEnumDescriptorForEnumPrefix(szPrefix, &pMatch, &nCount, &nPksValueType)) {
+			return (PARAMETER_TYPE_DESCRIPTOR) {
+				.pt_type = tType,
+				.pt_valueType = nPksValueType,
+				.pt_enumVal = pMatch,
+				.pt_enumCount = nCount
+			};
 		}
 	}
 notfound:
-	return (PARAMETER_TYPE_DESCRIPTOR) {.pt_type = tType};
+	switch (tType) {
+	case PARAM_TYPE_EDITOR_WINDOW: nPksValueType = VT_EDITOR_HANDLE; break;
+	case PARAM_TYPE_INT: nPksValueType = VT_NUMBER; break;
+	default: nPksValueType = VT_STRING; break;
+	}
+	return (PARAMETER_TYPE_DESCRIPTOR) {
+		.pt_type = tType,
+		.pt_valueType = nPksValueType
+	};
 }
 
 /*
@@ -189,24 +177,6 @@ int function_parameterIsFormStart(NATIVE_FUNCTION *ep, int parno) {
 		return 0;
 	PARAMETER_TYPE_DESCRIPTOR ptd = function_getParameterTypeDescriptor(ep, parno);
 	return ptd.pt_enumVal && (string_startsWith(ptd.pt_enumVal->pev_name, "FORM_"));
-}
-
-/*
- * Register an enum value including its descripton.
- */
-int function_registerEnum(const char* pszEnumType, const char* pszEnumValue, int nValue, const char* pszDescription) {
-	for (int i = 0; i < _parameterEnumValueTableSize; i++) {
-		PARAMETER_ENUM_VALUE* pValue = &_parameterEnumValueTable[i];
-		if (strcmp(pszEnumValue, pValue->pev_name) == 0) {
-			free(pValue->pev_description);
-			if (pszDescription) {
-				pValue->pev_description = _strdup(pszDescription);
-			}
-			pValue->pev_val = nValue;
-			return 1;
-		}
-	}
-	return 0;
 }
 
 /*

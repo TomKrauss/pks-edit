@@ -330,6 +330,9 @@
     <ClCompile Include="Streams.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="macro_compiler\MacroDocumentation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">

@@ -24,6 +24,7 @@
 #include "linkedlist.h"
 #include "grammar.h"
 #include "formatting.h"
+#include "findandreplace.h"
 
 #include "pksedit.h"
 #include "mouseutil.h"

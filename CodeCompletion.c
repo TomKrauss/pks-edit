@@ -105,6 +105,7 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 
 static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
+static char* _pszMatch;
 
 static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), 
 		const char* (*fGetHelpForLinkCB)(const char* pszUrl), void* nParam, BOOL bAlloc) {
@@ -122,7 +123,14 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const 
 	pCurrent->ca_getHyperlinkHelp = fGetHelpForLinkCB;
 	pCurrent->ca_object = nParam;
 	hashmap_put(_suggestions, pszCopy, (intptr_t)pCurrent);
-	arraylist_add(_actionList, pCurrent);
+	// TODO: we should calculate a score for sorting matches 
+	// for now we will always add completely matching suggestions at the beginning
+	// of the completion list and all other matches in some analyzer dependent order.
+	if (_pszMatch && strcmp(_pszMatch, pszCopy) == 0) {
+		arraylist_insertAt(_actionList, pCurrent, 0);
+	} else {
+		arraylist_add(_actionList, pCurrent);
+	}
 	return pCurrent;
 }
 
@@ -146,7 +154,6 @@ static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
  * The current identifier under the cursor. 
  */
 static char szIdent[100];
-static char* _pszMatch;
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
@@ -463,7 +470,7 @@ static void codecompletehelp_displayHelpText(HWND hwnd, HWND hwndHelp, CODE_COMP
 		}
 		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndHelp);
 	}
-	codecomplete_updateHelpWindowPosition(hwndHelp);
+	codecomplete_updateHelpWindowPosition(hwnd);
 	codecomplete_setHelpContents(hwndHelp, pParam, pszHelp);
 	InvalidateRect(hwndHelp, NULL, FALSE);
 

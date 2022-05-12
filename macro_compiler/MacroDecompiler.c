@@ -1,5 +1,5 @@
 /*
- * DecompileMacros.c
+ * MacroDecompiler.c
  *
  * decompile macros
  *

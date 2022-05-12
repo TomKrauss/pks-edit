@@ -99,6 +99,22 @@ typedef struct tagPRTPARAMS {	// print params
  */
 extern PRTPARAM* config_getPrintConfiguration();
 
+/* Flags for printing */
+typedef enum {
+	PRT_CURRWI = 0x1,
+	PRT_FILE = 0x2,
+	PRT_CURRBLK = 0x3,
+	PRT_CLIP = 0x4,
+	PRT_TRASH = 0x5,
+	PRT_TYPES = (1 | 2 | 3 | 4 | 5)
+} PRINT_FLAGS;
+
+/*------------------------------------------------------------
+ * Print a file with a given name or the current file or selection.
+ */
+int EdPrint(PRINT_FLAGS what, const char* fname);
+
+
 #define	_PRINTING_H
 
 #endif

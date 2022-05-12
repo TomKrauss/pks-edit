@@ -22,8 +22,17 @@ extern void error_showErrorById(int nId, ...);
  */
 extern long long error_setShowMessages(BOOL aFlag);
 
+typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS, OP_FILEFLAG } OP_FLAGTYPE;
+
+#define	OPT_WMODE			(((long)OP_EDIT_MODE)<<16)
+#define	OPT_DMODE			(((long)OP_DISPLAY_MODE)<<16)
+#define	OPT_GLOBSET			(((long)OP_OPTIONS)<<16L)
+#define OPT_RECORD			(((long)OP_MACRO)<<16L)
+
 /**
- * 
+ * Toggle one of the configuratión options of PKS-Edit.
+ * The parameter option is an int-wise combination with a high word of the option as given above and the corresponding
+ * option in the respective category.
  */
 extern long long EdOptionToggle(long option);
 
@@ -106,105 +115,24 @@ extern void ln_errorLineTooLong(void);
 #define	WIN_DESKICON		-6
 #define  WIN_HOR			-7
 #define  WIN_PAIRS		     -8
-          
+
 /* Select Window specials */
 #define	SEL_CYCLE			-100
 
-/* Cursor Motion */
-#define	MOT_SINGLE		1
-#define	MOT_TOEND			2
-#define	MOT_WORD			3
-#define	MOT_PAGE			3
-#define	MOT_SCREEN		4
-#define	MOT_UNTILC		4
-#define	MOT_PGRPH			4
-#define	MOT_FILE			4           // move to begin / end of file
-#define	MOT_SPACE			5           // move to next space
-#define	MOT_CENTER		    5           // move to center of page
-#define	MOT_XTNDBLOCK		0x100
-
-/* Flags for EdFileClose */
-#define	SAV_SAVE			0x1
-#define	SAV_QUIT			0x2
-#define	SAV_AS			0x4
-#define	SAV_FORCED		0x8
-
-/* Flags for EdFileEdit */
-#define	OPEN_LINEAL		0x1
-#define	OPEN_NOLINFN		0x20
-#define	OPEN_DIRGIVEN		0x40
-#define	OPEN_NOFN			0x80
-#define	OPEN_HISTORY		0x100
-
-/* Flags for printing */
-#define	PRT_CURRWI		0x1
-#define	PRT_FILE			0x2
-#define	PRT_CURRBLK		0x3
-#define	PRT_CLIP			0x4
-#define	PRT_TRASH			0x5
-#define	PRT_TYPES			(1|2|3|4|5)
-
-/* Flags for return */
-#define	RET_PLUS			0x1
-#define	RET_MINUS			0x2
-#define	RET_SOFT			0x4
-
-/* Flags for Listops */
-#define	LIST_START		0
-#define	LIST_PREV			1
-#define	LIST_CURR			2
-#define	LIST_NEXT			3
-#define	LIST_END			4
-#define	LIST_USETOPWINDOW	0x100
-
-/* Flags for align */
-#define	AL_CPOS		0x1	/* alle vor Cursorposition ignorieren */
-#define	AL_FIX			0x2	/* alle auf fest auf Cursorposition alignen */
-#define	AL_END			0x4	/* align Ende Suchmuster */
-
-/* Flags for EdBlockPaste */
-#define	PASTE_QUERYID	0x100
-#define	PASTE_CLIP		0x200
-#define	PASTE_UNDO		0x400
-#define	PASTE_ICON		0x1000
-
-/* Flags for Cut&EdBlockPaste */
-#define	CUT_QUERYID		0x100
-#define	CUT_APPND		0x200
-#define	CUT_USEPP		0x400
-#define	CUT_DELETE		0x800
-
-/* Flags for EdMacroRecorded */
-#define	MAC_AUTO			-1
-#define	MAC_LASTREC		-2
-
-/* Flags for formatblk */
 #define	FMT_TYPEMASK		(0|1|2|3)
-#define	FMT_MARKBLK		0x4
-#define	FMT_PRGRPH		0x8
-#define	FMT_TXTBLK		0x10
-#define	FMT_DIALOG		0x80
-#define	FMT_STOPIFDONE		0x100
 
-/* flags for mark block (EdSyncSelectionWithCaret) */
-#define	MARK_START		3
-#define	MARK_END			4
-#define	MARK_ALL			5
-#define	MARK_COLUMN		0x80		/* for internal use only */
-#define	MARK_RECALCULATE	0x100	/* recalculate start/end relationship */
-#define	MARK_NO_HIDE	0x200	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
-
-#define	SO_SKIPSEPS	 	0x1	/* skip multiple Token Seperators */
-#define	SO_CLUSTERLINES 	0x2	/* sort records rather than lines */
-#define	SO_REVERSE	 	0x4  /* reverse the order of sorting */
-#define	SO_NOSELECT	 	0x8  /* sort all lines */
-#define	SO_TOKENIZE	 	0x10	/* at least one token key field */
-
-
-#define	LIST_MACROS		0x1
-#define	LIST_KEYS			0x2
-#define	LIST_MICE			0x4
-#define	LIST_MENUS		0x8
+/* Flags for operations changing the selection in PKS-EDIT (EdSyncSelectionWithCaret) */
+typedef enum {
+	MARK_START =	 3,
+	MARK_END =		 4,
+	MARK_ALL =		 5,
+	/* for internal use only */
+	MARK_COLUMN =	 0x80		,
+	/* recalculate start/end relationship */
+	MARK_RECALCULATE = 0x100	,
+	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
+	MARK_NO_HIDE = 0x200
+} MARK_SELECTION_OPTION;
 
 #define	NULLP			(void *)0
 

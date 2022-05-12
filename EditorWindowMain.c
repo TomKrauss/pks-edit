@@ -123,7 +123,7 @@ static int ww_createOrDestroyChildWindowOfEditor(
 }
 
 static int ruler_getLeft(WINFO* wp) {
-	if ((wp->dispmode & SHOWLINENUMBERS) == 0 && wp->comparisonLink == NULL) {
+	if ((wp->dispmode & SHOW_LINENUMBERS) == 0 && wp->comparisonLink == NULL) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
@@ -164,7 +164,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pRuler->y = 0;
 	pRuler->h = rh;
 
-	rulerVisible = (h > rh && ww_useDisplayMode(wp, SHOWRULER));
+	rulerVisible = (h > rh && ww_useDisplayMode(wp, SHOW_RULER));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS,
 		rulerVisible, &wp->ru_handle, szRulerClass, pRuler, wp)) {
@@ -175,7 +175,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
-	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOWLINENUMBERS) || wp->comparisonLink != NULL));
+	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOW_LINENUMBERS) || wp->comparisonLink != NULL));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
@@ -586,13 +586,13 @@ static void ww_assignRenderer(WINFO* wp) {
 	RENDERER* pOld = wp->renderer;
 	RENDERER* pNew = NULL;
 	FTABLE* fp = wp->fp;
-	if (wp->dispmode & SHOWWYSIWYG) {
+	if (wp->dispmode & SHOW_WYSIWYG_DISPLAY) {
 		const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
 		if (pRenderer) {
 			pNew = (RENDERER*)hashmap_get(_renderers, pRenderer);
 		}
 	}
-	if (!pNew && wp->dispmode & SHOWHEX) {
+	if (!pNew && wp->dispmode & SHOW_HEX_DISPLAY) {
 		pNew = (RENDERER*)hashmap_get(_renderers, "hex");
 	}
 	if (!pNew) {

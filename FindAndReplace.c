@@ -544,7 +544,7 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 					break;
 				}
 			}
-			continue;
+			break;
 		} else {
 			col++;
 		}
@@ -630,7 +630,7 @@ static void find_modifyTextSection(WINFO *wp, LINE *(*func)(WINFO *wp, LINE *lp,
 /*--------------------------------------------------------------------------
  * find_selectRangeWithMarkers()
  */
-int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
+int find_selectRangeWithMarkers(RANGE_TYPE rngdefault, MARK** mps, MARK** mpe)
 {
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -645,7 +645,7 @@ int find_selectRangeWithMarkers(int rngdefault, MARK** mps, MARK** mpe)
  * flg = 1 : expand TABS to SPACES
  * flg = 0 : comp SPACES to TABS
  */
-int find_replaceTabsWithSpaces(int scope, int flg)
+int find_replaceTabsWithSpaces(RANGE_TYPE scope, CT_OPTION flg)
 {	long nt=0L,nl=0L;
 	MARK *mps,*mpe;
 
@@ -730,9 +730,6 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	find_initializeReplaceByExpression(pszReplaceWith);
 	newlen = _currentReplacementPattern.preparedReplacementString ? (long)strlen(_currentReplacementPattern.preparedReplacementString) : 0;
 
-	/* call before assigning firstline	*/
-	hist_getSessionData()->sd_searchAndReplaceOptions = nOptions;
-	hist_saveString(SEARCH_AND_REPLACE, pszReplaceWith);
 	undo_startModification(fp);
 	caret_saveLastPosition();
 
@@ -937,7 +934,7 @@ endrep:
  * 
  * Select a range of text in the file identified by fp.
  */
-int find_setTextSelection(WINFO *wp, int rngetype, MARK **markstart, MARK **markend) {
+int find_setTextSelection(WINFO *wp, RANGE_TYPE rngetype, MARK **markstart, MARK **markend) {
 	LINE *lps,*lpe;
 	int  ofs,ofe;
 	FTABLE* fp = wp->fp;

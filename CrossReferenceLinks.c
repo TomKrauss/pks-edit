@@ -26,6 +26,7 @@
 #include "pksedit.h"
 #include "customcontrols.h"
 #include "editorconfiguration.h"
+#include "publicapi.h"
 #include "edierror.h"
 #include "errordialogs.h"
 #include "xdialog.h"

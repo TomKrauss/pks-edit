@@ -318,6 +318,7 @@
     <ClCompile Include="MacroMemory.c" />
     <ClCompile Include="MacroRecorder.c" />
     <ClCompile Include="MacroDebugger.c" />
+    <ClCompile Include="macro_compiler\MacroDocumentation.c" />
     <ClCompile Include="macro_compiler\MacroTypes.c" />
     <ClCompile Include="MarkdownRenderer.c" />
     <ClCompile Include="JsonParser.c" />

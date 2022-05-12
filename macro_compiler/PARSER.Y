@@ -217,30 +217,44 @@ static void parser_flushBuffer(int aLevel) {
 
 static void parser_startTypeDescriptor(int bEnum) {
 	_currentTypeDescriptor = calloc(1, sizeof *_currentTypeDescriptor);
-	_currentTypeDescriptor->td_isEnum = bEnum;
-	_currentTypeDescriptor->td_documentation = _yyCurrentComment;
+	_currentTypeDescriptor->ptd_isEnumType = bEnum;
+	_currentTypeDescriptor->ptd_documentation = _yyCurrentComment;
+	_currentTypeDescriptor->ptd_elements.ptd_properties = calloc(MAX_TYPE_PROPERTIES, sizeof (PARAMETER_ENUM_VALUE));
 	_yyCurrentComment = 0;
 }
 
 static void parser_finalizeTypeDescriptor(char* pszTypename) {
-	_currentTypeDescriptor->td_name = pszTypename;
-	PKS_TYPE_DESCRIPTOR descriptor = {
-		.ptd_name = pszTypename,
-		.ptd_documentation = _currentTypeDescriptor->td_documentation,
-		.ptd_isEnumType = _currentTypeDescriptor->td_isEnum
-	};
-	types_register(-1, &descriptor);
+	_currentTypeDescriptor->ptd_name = pszTypename;
+	types_register(-1, _currentTypeDescriptor);
 	int nParams = 4;
 	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszTypename});
-	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_currentTypeDescriptor->td_documentation});
-	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->td_isEnum});
-	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->td_numberOfProperties});
+	YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=(char*)_currentTypeDescriptor->ptd_documentation});
+	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->ptd_isEnumType});
+	YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_currentTypeDescriptor->ptd_numberOfProperties});
+	for (int i = 0; i < _currentTypeDescriptor->ptd_numberOfProperties; i++) {
+		TYPE_PROPERTY_DESCRIPTOR* pDescriptor = &_currentTypeDescriptor->ptd_elements.ptd_properties[i];
+		YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=(char*)pDescriptor->tpd_name});
+		YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=(char*)pDescriptor->tpd_documentation});
+		YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.longValue=(long)pDescriptor->tpd_type});
+		nParams += 3;
+	}
 	_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 			C_0FUNC, (GENERIC_DATA){ FUNC_RegisterType}, nParams);
-	free(_currentTypeDescriptor->td_name);
-	free(_currentTypeDescriptor->td_documentation);
-	free(_currentTypeDescriptor);
+	types_destroyDescriptor(_currentTypeDescriptor);
 	_currentTypeDescriptor = 0;
+}
+
+static void parser_addTypeProperty(char* pszName, int nValue) {
+	if (_currentTypeDescriptor->ptd_numberOfProperties >= MAX_TYPE_PROPERTIES) {
+		yyerror("Type too complex - to many struct elements / enum values.");
+		return;
+	}
+	int i = _currentTypeDescriptor->ptd_numberOfProperties++;
+	TYPE_PROPERTY_DESCRIPTOR* pDescriptor = &_currentTypeDescriptor->ptd_elements.ptd_properties[i];
+	pDescriptor->tpd_name = pszName;
+	pDescriptor->tpd_documentation = _yyCurrentComment;
+	_yyCurrentComment = 0;
+	pDescriptor->tpd_type = nValue;
 }
 
 static void parser_emitAssignment(struct tagPARSE_IDENTIFIER* pIdent) {
@@ -414,9 +428,7 @@ struct_element_definitions: struct_element
 			| struct_element struct_element_definitions
 
 struct_element: type_name variable_identifier ';' {
-				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
-				}
+				parser_addTypeProperty($2.ident.s, (long)$1.num);
 			}
 
 enum_value_definitions: 
@@ -426,15 +438,7 @@ enum_values: enum_value
 			| enum_value ',' enum_values
 
 enum_value:	T_IDENT opt_enum_assignment {
-				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=""});
-				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
-				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=(int)$2.num});
-				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
-				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
-						C_0FUNC, (GENERIC_DATA){ FUNC_RegisterEnumValue}, 4);
-				// register right away as well, so we can use it.
-				function_registerEnum((const char*) 0, $1.ident.s, (int)$2.num, _yyCurrentComment);
-				free($1.ident.s);
+				parser_addTypeProperty($1.ident.s, (long)$2.num);
 			}
 
 opt_enum_assignment: 

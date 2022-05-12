@@ -68,7 +68,7 @@ int sl_size(WINFO *wp) {
 		return 0;
 	}
 
-	if (wp->dispmode & SHOWHIDEVSLIDER) {
+	if (wp->dispmode & SHOW_HIDE_VSLIDER) {
 		n = screenTop = 0;
 	} else {
 		screenTop = wp->minln;
@@ -77,7 +77,7 @@ int sl_size(WINFO *wp) {
 	}
 	SetWin32ScrollInfo(wp, SB_VERT, screenTop, wp->maxln - wp->minln + 1, n);
 
-	if (wp->dispmode & SHOWHIDEHSLIDER) {
+	if (wp->dispmode & SHOW_HIDE_HSLIDER) {
 		n = 0;
 	} else {
 		if (wp->maxVisibleLineLen < 0) {
@@ -89,7 +89,7 @@ int sl_size(WINFO *wp) {
 		}
 	}
 	int visibleColumns = wp->maxcol - wp->mincol + 1;
-	SetWin32ScrollInfo(wp, SB_HORZ, n, visibleColumns, (wp->dispmode & SHOWHIDEHSLIDER) ? 0 : wp->maxVisibleLineLen);
+	SetWin32ScrollInfo(wp, SB_HORZ, n, visibleColumns, (wp->dispmode & SHOW_HIDE_HSLIDER) ? 0 : wp->maxVisibleLineLen);
 	return 1;
 }
 

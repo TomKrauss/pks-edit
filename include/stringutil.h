@@ -261,6 +261,12 @@ extern void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResu
  */
 extern char* string_getVariableWithDefaults(const char* pVar);
 
+/*
+ * Check, whether a strings starts with a given prefix. Returns 1 if this
+ * is the case and 0 otherwise.
+ */
+int string_startsWith(const char* pszString, const char* pszPrefix);
+
 extern char _pksVersion[];
 
 #define STRINGUTIL_H

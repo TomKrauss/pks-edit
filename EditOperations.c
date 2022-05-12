@@ -15,6 +15,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include "alloc.h"
 #include <windows.h>
 #include "trace.h"
 #include "funcdef.h"
@@ -33,6 +34,7 @@
 #include "publicapi.h"
 #include "codecompletion.h"
 #include "formatting.h"
+#include "findandreplace.h"
 
 #define	SWAP(a,b)			{	a ^= b, b ^=a, a ^= b;  }
 #define	D_EBUG(x)		{/*error_showErrorById(x); render_repaintAllForFile(fp);*/}
@@ -430,7 +432,7 @@ static int edit_breakline(WINFO* wp, CARET* pCaret, int soft)
 /*
  * Split one line at the given caret position.
  */
-static int edit_splitLine(WINFO* wp, CARET* pCaret, int flags) {
+static int edit_splitLine(WINFO* wp, CARET* pCaret, RETURN_ACTION_FLAGS flags) {
 	int control;
 	FTABLE* fp;
 	LINE* lp;
@@ -1068,7 +1070,7 @@ long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op) {
  * EdLineSplit()
  * do cr+lf-Actions
  */
-long long EdLineSplit(WINFO* wp, int flags) {
+long long EdLineSplit(WINFO* wp, RETURN_ACTION_FLAGS flags) {
 	int nRet = 1;
 
 	CARET* pCaret = &wp->caret;

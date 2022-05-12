@@ -740,7 +740,7 @@ void yywarning(const char* s, ...) {
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 char * _yyCurrentComment;
-TYPE_DESCRIPTOR* _currentTypeDescriptor;
+PKS_TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
 void yyrequire(const char* pszNamespace) {
 	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
@@ -1378,7 +1378,7 @@ YY_RULE_SETUP
 case 16:
 YY_RULE_SETUP
 #line 466 "scanner.l"
-{	if (IS_IN_ENUM_DEFINITION) {
+{	if (_currentTypeDescriptor) {
 					if (!_yyCurrentComment) {
 						_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
 					}

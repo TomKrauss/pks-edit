@@ -23,36 +23,55 @@
 
 #define DEFAULT_CONFIG_FILE_NAME			"pkseditini.json"
 
- /*----- Option Flags assignable to EDITOR_CONFIGURATION.options --------------*/
+/* Option Flags assignable to EDITOR_CONFIGURATION.options */
+typedef enum {
+	// if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc...
+	// Auto-save files to a temporary directory.
+	O_AUTOSAVE_TO_TEMP = 0x1,
+	// Play a warning sound on errors
+	O_ERROR_TONE = 0x2,
+	// flash window, rather playing an error sound
+	O_ERROR_FLASH_WINDOW  = 0x4,
+	// lock opened files 
+	O_LOCKFILES = 0x8,
+	// Restore previously opened files
+	O_AUTO_OPEN_HISTORY = 0x10,
+	// Save the PKS Edit settings on exit
+	O_SAVE_SETTINGS_ON_EXIT = 0x20,
+	// Automatically save all macros recorded / compiled when exiting
+	O_SAVE_MACROS_ON_EXIT = 0x40,
+	// Unlink temporary autosave files if not needed any more
+	O_DELETE_AUTOSAVE_FILES = 0x80,
+	// Automatically save changed files when closing editor / exiting PKS-Edit.
+	O_AUTOSAVE_FILES_ON_EXIT = 0x100,
+	// whether dialogs are opened close to the mouse.
+	O_FORMFOLLOW = 0x200,
+	O_CREATE_BACKUP_IN_TEMP_PATH= 0x400,
+	// display error messages in a popup window / snackbar
+	O_SHOW_MESSAGES_IN_SNACKBAR = 0x800,
+	// hide block marks on caret movement
+	O_HIDE_BLOCK_ON_CARET_MOVE = 0x1000,
+	// undo enabled
+	O_UNDOENABLED = 0x2000,
+	// save and restore named clipboards when 
+	O_SAVE_CLIPBOARDS_ON_EXIT = 0x4000,
+	// whether a history of the clipboard contents is automatically maintained
+	O_SAVE_CLIPBOARD_HISTORY = 0x8000
+} CONFIGURATION_FLAG;
 
- /* if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc... */
-#define	O_AUTOSAVE_TO_TEMP			0x1			// Auto-save files to a temporary directory.
-#define	O_ERROR_TONE				0x2			// Play a warning sound on errors
-#define	O_ERROR_FLASH_WINDOW 		0x4		 	// flash window, rather playing an error sound
-#define	O_LOCKFILES					0x8			// lock opened files 
-
-#define	O_AUTO_OPEN_HISTORY			0x10		// Restore previously opened files
-#define	O_SAVE_SETTINGS_ON_EXIT		0x20		// Save the PKS Edit settings on exit
-#define	O_SAVE_MACROS_ON_EXIT		0x40		// Automatically save all macros recorded / compiled when exiting
-#define	O_DELETE_AUTOSAVE_FILES		0x80		// Unlink temporary autosave files if not needed any more
-
-#define	O_AUTOSAVE_FILES_ON_EXIT	0x100		// Automatically save changed files when closing editor / exiting PKS-Edit.
-#define	O_FORMFOLLOW				0x200		// whether dialogs are opened close to the mouse.
-#define	O_CREATE_BACKUP_IN_TEMP_PATH 0x400
-#define	O_SHOW_MESSAGES_IN_SNACKBAR	 0x800		// display error messages in a popup window / snackbar
-
-#define	O_HIDE_BLOCK_ON_CARET_MOVE	0x1000		// hide block marks on caret movement
-#define	O_UNDOENABLED				0x2000		// undo enabled
-#define	O_SAVE_CLIPBOARDS_ON_EXIT	0x4000		// save and restore named clipboards when 
-#define O_SAVE_CLIPBOARD_HISTORY	0x8000		// whether a history of the clipboard contents is automatically maintained
-
- /*----- Option Flags assignable to EDITOR_CONFIGURATION.layoutoptions --------------*/
-/* layout options: fkeys, optionbar, statusline */
-#define	OL_OPTIONBAR		0x1			// option bar below function keys
-#define OL_FKEYS			0x2			// show function keyboard
-#define	OL_SHOWSTATUS		0x4			// show status line
-#define	OL_TOOLBAR			0x8			// show tool bar
-#define OL_COMPACT_TABS		0x10		// show compact editor tabs (filename only - not full path)
+/* Editor configuration layout options: fkeys, optionbar, statusline */
+typedef enum {
+	// option bar below function keys
+	OL_OPTIONBAR = 0x1,
+	// show function keyboard
+	OL_FKEYS = 0x2,
+	// show status line
+	OL_SHOWSTATUS = 0x4,
+	// show tool bar
+	OL_TOOLBAR = 0x8,
+	// show compact editor tabs (filename only - not full path)
+	OL_COMPACT_TABS = 0x10
+} CONFIGURATION_LAYOUT_FLAG;
 
 typedef enum { ICS_SMALL, ICS_MEDIUM, ICS_BIG, ICS_LARGE } ICONSIZE;
 

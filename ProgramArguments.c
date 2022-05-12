@@ -68,7 +68,7 @@ static int arguments_parsePhase2(char *arg)
 			break;
 		case 'w':	// to open the just opened file in wysiwyg mode.
 			if (wp != NULL) {
-				ww_changeDisplayMode(wp, wp->dispmode|SHOWWYSIWYG);
+				ww_changeDisplayMode(wp, wp->dispmode|SHOW_WYSIWYG_DISPLAY);
 			}
 			break;
 		case 'c':

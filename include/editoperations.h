@@ -44,19 +44,41 @@ extern long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION 
 long long edit_replaceSelectedRange(WINFO* wp, long nLineFrom, long nLineTo, ARRAY_LIST* pLines);
 #endif
 
+/*
+ * Types of operations to convert the spellling of characters
+ * in a range of text.
+ */
+typedef enum { 
+	// Toggle upper/lower case spelling of all selected characters 
+	CC_TOGGLE,
+	// Make all selected characters upper case
+	CC_UPPER, 
+	// Make all selected characters lower case
+	CC_LOWER }
+CC_OPERATION;
+
  /*--------------------------------------------------------------------------
   * edit_convertCharacterCase()
   * Map lower characters to upper, upper to lowers and toggle case depending on
   * the passed operation flag.
   */
-typedef enum { CC_TOGGLE, CC_UPPER, CC_LOWER} CC_OPERATION;
 extern long long edit_convertCharacterCase(WINFO* wp, CC_OPERATION operation);
 
 /*--------------------------------------------------------------------------
  * edit_insertLine()
  * create newline and insert it
  */
-typedef enum {ELO_CARET_STAYS = 0, ELO_CARET_FOLLOWS = 1, ELO_APPEND = 0x200} EDIT_LINE_OPTIONS;
+/*
+ * Options for inserting and deleting lines 
+ */
+typedef enum {
+	// Caret does not change during insert
+	ELO_CARET_STAYS = 0, 
+	// Caret follows the inserted line
+	ELO_CARET_FOLLOWS = 1,
+	// Line is appended
+	ELO_APPEND = 0x200
+} EDIT_LINE_OPTIONS;
 extern long long edit_insertLine(WINFO* wp, EDIT_LINE_OPTIONS control);
 
 #define EDIT_OPERATIONS_H

@@ -23,6 +23,7 @@
 #include "trace.h"
 #include "documentmodel.h"
 #include "caretmovement.h"
+#include "publicapi.h"
 #include "winfo.h"
 #include "winterf.h"
 #include "pksedit.h"

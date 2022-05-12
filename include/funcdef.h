@@ -16,10 +16,12 @@
 # ifndef FUNCDEF_H
 #define	FUNCDEF_H
 
+#include "pksmacrocvm.h"
+
 typedef struct tagPARAMETER_ENUM_VALUE {
 	const char* pev_name;
+	char*		pev_documentation;
 	long		pev_val;
-	char*		pev_description;
 } PARAMETER_ENUM_VALUE;
 
 typedef enum {
@@ -38,8 +40,8 @@ typedef enum {
 
 typedef struct tagPARAMETER_TYPE_DESCRIPTOR {
 	PARAMETER_TYPE			pt_type;
+	PKS_VALUE_TYPE			pt_valueType;		// The corresponding PKS value type
 	PARAMETER_ENUM_VALUE*	pt_enumVal;			// for enum and bitset type parameters the first enum value
-	int						pt_enumFirstIndex;	// Index of the first enum value in the enum value table.
 	int						pt_enumCount;		// for enum and bitset type parameters the number of enum values
 } PARAMETER_TYPE_DESCRIPTOR;
 
@@ -84,11 +86,6 @@ extern int function_registerNativeFunction(const char* pszMacroCName, const char
 		const char* pszModule, const char* pszSignature, const char* pszDescription, const char* pszParameters);
 
 /*
- * Register an enum value including its descripton.
- */
-extern int function_registerEnum(const char* pszEnumType, const char* pszEnumValue, int nValue, const char* pszDescription);
-
-/*
  * Returns the parameter descriptor for a function for the n-th parameter. Parameter count
  * starts with 1, parameter type 0 is the return type of the function.
  */
@@ -116,9 +113,6 @@ extern NATIVE_FUNCTION	_functionTable[];
  */
 extern int function_getNumberOfStaticallyDefinedFunctions();
 
-extern int		_parameterEnumValueTableSize;
-extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
-
 #define 	FUNC_EdBlockCopy				2
 #define 	FUNC_EdBlockMove				6
 #define 	FUNC_EdKeycodeInsert			16
@@ -128,8 +122,7 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define		FUNC_CreateMap					168
 #define 	FUNC_Foreach					139
 #define 	FUNC_RegisterNative				158
-#define 	FUNC_RegisterEnumValue			169
-#define 	FUNC_RegisterType				170
+#define 	FUNC_RegisterType				169
 
 #define CMD_OPEN_FILE	0 
 #define CMD_OPEN_NEW_FILE	1 
@@ -382,13 +375,6 @@ extern PARAMETER_ENUM_VALUE	_parameterEnumValueTable[];
 #define CMD_MOVE_SELECTION_UP	253
 #define CMD_MOVE_SELECTION_DOWN 	254
 
-
-typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS, OP_FILEFLAG } OP_FLAGTYPE;
-
-#define	OPT_WMODE			(((long)OP_EDIT_MODE)<<16)
-#define	OPT_DMODE			(((long)OP_DISPLAY_MODE)<<16)
-#define	OPT_GLOBSET			(((long)OP_OPTIONS)<<16L)
-#define  OPT_RECORD			(((long)OP_MACRO)<<16L)
 
 # endif	/* FUNCDEF_H */
 

@@ -19,13 +19,15 @@
 #include "caretmovement.h"
 #include "winfo.h"
 #include "regexp.h"
+#include "publicapi.h"
+#include "findandreplace.h"
 #include "edierror.h"
 #include "pksedit.h"
 
 /*---------------------------------*/
 /* align_text()					*/
 /*---------------------------------*/
-EXPORT int align_text(char *pszSearch, int scope, char filler, int flags)
+EXPORT int align_text(char *pszSearch, int scope, char filler, ALIGN_FLAGS flags)
 {	int  col,firstcol,aligncol = -1,
 		firsti,besti,bestcol,nchars,ret;
 	long i;

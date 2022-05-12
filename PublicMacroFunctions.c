@@ -56,7 +56,7 @@
  */
 extern BOOL find_replacementHadBeenPerformed();
 
-extern int 		align_text(char *pszSearch, int scope, char filler, int flags);
+extern int 		align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAGS flags);
 extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern int 		EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
@@ -67,7 +67,7 @@ extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected
 
 extern long		_multiplier;
 
-static int		_scope = RNG_BLOCK;
+static RANGE_TYPE _scope = RNG_BLOCK;
 
 /*------------------------------------------------------------
  * EdExit()
@@ -103,49 +103,33 @@ void EdAlert(char *s)
 /*--------------------------------------------------------------------------
  * EdCursorLeft()
  */
-long long EdCursorLeft(WINFO* wp, int mtype)
+long long EdCursorLeft(WINFO* wp, CARET_MOVEMENT_OPTTION mtype)
 {
-	return caret_moveLeftRight(wp, -1, mtype);
+	return caret_moveLeftRight(wp, DIR_LEFT, mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorRight()
  */
-long long EdCursorRight(WINFO* wp, int mtype)
+long long EdCursorRight(WINFO* wp, CARET_MOVEMENT_OPTTION mtype)
 {
-	return caret_moveLeftRight(wp, 1, mtype);
+	return caret_moveLeftRight(wp, DIR_RIGHT, mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorUp()
  */
-long long EdCursorUp(WINFO* wp, int mtype)
+long long EdCursorUp(WINFO* wp, CARET_MOVEMENT_OPTTION mtype)
 {
-	return caret_moveUpOrDown(wp, -1,mtype);
+	return caret_moveUpOrDown(wp, DIR_BACKWARD,mtype);
 }
 
 /*--------------------------------------------------------------------------
  * EdCursorDown()
  */
-long long EdCursorDown(WINFO* wp, int mtype)
+long long EdCursorDown(WINFO* wp, CARET_MOVEMENT_OPTTION mtype)
 {
-	return caret_moveUpOrDown(wp, 1,mtype);
-}
-
-/*--------------------------------------------------------------------------
- * EdChapterGotoBegin()
- */
-long long EdChapterGotoBegin(WINFO* wp, int dir)
-{
-	return caret_advanceSection(wp, dir,1);
-}
-
-/*--------------------------------------------------------------------------
- * EdChapterGotoEnd()
- */
-long long EdChapterGotoEnd(WINFO* wp, int dir)
-{
-	return caret_advanceSection(wp, dir,0);
+	return caret_moveUpOrDown(wp, DIR_FORWARD,mtype);
 }
 
 /*--------------------------------------------------------------------------
@@ -1197,15 +1181,15 @@ int dlg_configureEditorModes(void) {
 		IDD_FONTSEL2COLOR,	0,			&dlist,
 		IDD_INT1,		sizeof tabsize,	&tabsize,
 		IDD_INT2,		sizeof rmargin,	&rmargin,
-		IDD_OPT1,		SHOWCONTROL,		&dispmode,
-		IDD_OPT4,		SHOWHEX,			&dispmode,
-		IDD_OPT5,		SHOWRULER,			&dispmode,
-		IDD_OPT6,		SHOWWYSIWYG,		&dispmode,
+		IDD_OPT1,		SHOW_CONTROL_CHARS,		&dispmode,
+		IDD_OPT4,		SHOW_HEX_DISPLAY,			&dispmode,
+		IDD_OPT5,		SHOW_RULER,			&dispmode,
+		IDD_OPT6,		SHOW_WYSIWYG_DISPLAY,		&dispmode,
 		IDD_OPT7,		SHOW_SYNTAX_HIGHLIGHT,& dispmode,
-		IDD_OPT8,		SHOWHIDEVSLIDER,	&dispmode,
-		IDD_OPT9,		SHOWHIDEHSLIDER,	&dispmode,
-		IDD_OPT10,		SHOWLINENUMBERS,	&dispmode,
-		IDD_OPT11,		SHOWCARET_LINE_HIGHLIGHT, &dispmode,
+		IDD_OPT8,		SHOW_HIDE_VSLIDER,	&dispmode,
+		IDD_OPT9,		SHOW_HIDE_HSLIDER,	&dispmode,
+		IDD_OPT10,		SHOW_LINENUMBERS,	&dispmode,
+		IDD_OPT11,		SHOW_CARET_LINE_HIGHLIGHT, &dispmode,
 		0
 	};
 	char createActionName[sizeof(((EDIT_CONFIGURATION*)NULL)->saveActionName)];
@@ -1218,7 +1202,7 @@ int dlg_configureEditorModes(void) {
 		IDD_INT4,		sizeof scrollmin,	&scrollmin,
 		IDD_OPT1,		SC_THUMBTRACK,		&flags,
 		IDD_OPT2,		SC_CURSORCATCH,		&flags,
-		IDD_OPT3,		SHOWCARET_PRESERVE_COLUMN,& dispmode,
+		IDD_OPT3,		SHOW_CARET_PRESERVE_COLUMN,& dispmode,
 		IDD_RADIO1,	CP_POSLOW - CP_POSTOP,&cursafter,
 		0
 	};
@@ -1386,7 +1370,7 @@ int EdReplace(void)
 		return 0;
 	}
 
-	return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern, 
+	return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern,
 		_currentSearchAndReplaceParams.replaceWith, _currentSearchAndReplaceParams.options, _scope,ret);
 }
 
@@ -1395,14 +1379,14 @@ int EdReplace(void)
  */
 static int _dir = 1;
 int EdFind(void)
-{	static ITEMS	_i   =  	{ 
+{	ITEMS	_i   =  	{ 
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_dir   },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
-	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
+	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	DIALPARS _d[] = {
 		IDD_RADIO1,	1,				&_dir,
 		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
@@ -1411,7 +1395,7 @@ int EdFind(void)
 		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	_currentSearchAndReplaceParams.searchPattern,
 		0
 	};
-	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+	DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
 		0
 	};
@@ -1424,7 +1408,6 @@ int EdFind(void)
 	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
 	}
-	hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 
 	if (_dir == 0)
 		_dir = -1;
@@ -1590,28 +1573,28 @@ int EdCompileMacros(int bShowList)
 /*--------------------------------------------------------------------------
  * EdListBindings()
  */
-int EdListBindings(long lWhich)
+int EdListBindings(LIST_BINDING_OPTION lWhich)
 {
-	if (lWhich & LIST_MACROS) {
+	if (lWhich & LISTB_MACROS) {
 		if (decompile_saveMacrosAndDisplay((char*)0, DM_CODE) == 0) {
 			return 0;
 		}
 	}
 
-	if (lWhich & LIST_KEYS) {
+	if (lWhich & LISTB_KEYS) {
 		if (print_saveKeyBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
 
-	if (lWhich & LIST_MICE) {
+	if (lWhich & LISTB_MICE) {
 		if (print_saveMouseBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
-	if (lWhich & LIST_MENUS) {
+	if (lWhich & LISTB_MENUS) {
 		if (print_saveMenuBindingsAndDisplay() == 0) {
 			return 0;
 		}

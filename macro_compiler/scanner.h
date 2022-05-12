@@ -48,26 +48,10 @@ typedef union yytype {
 	unsigned char	needsPop;
 } _YYSTYPE;
 
-typedef struct tagTYPE_PROPERTY {
-	char* tp_name;
-	char* tp_documentation;
-	int   tp_value;					// for enum values
-	int	  tp_type;					// for struct members
-} TYPE_PROPERTY;
-
 #define MAX_TYPE_PROPERTIES			32	// cannot declare enums with more enum values and structs with more properties for now.
+extern PKS_TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
-typedef struct tagTYPE_DESCRIPTOR {
-	char* td_name;					// name of the type
-	char* td_documentation;
-	int   td_isEnum;				// for enum types
-	int   td_numberOfProperties;
-	TYPE_PROPERTY td_properties[MAX_TYPE_PROPERTIES];
-} TYPE_DESCRIPTOR;
-
-extern TYPE_DESCRIPTOR* _currentTypeDescriptor;
-
-#define IS_IN_ENUM_DEFINITION		(_currentTypeDescriptor && _currentTypeDescriptor->td_isEnum)
+#define IS_IN_ENUM_DEFINITION		(_currentTypeDescriptor && _currentTypeDescriptor->ptd_isEnumType)
 
 extern _YYSTYPE	yylval;
 

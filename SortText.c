@@ -25,8 +25,10 @@
 #include "pksedit.h"
 #include "pksmacro.h"
 #include "edierror.h"
+#include "findandreplace.h"
 #include "stringutil.h"
 #include "regexp.h"
+#include "publicapi.h"
 
 #define	MAXARG			128
 #define	MAXKEYS			8
@@ -79,7 +81,7 @@ typedef struct strvec {
 #define	MAXREC		5000
 
 static long		_nlines;
-static int		_sortflags;
+static SORT_OPTION_FLAGS _sortflags;
 static RECORD*	_rectab;
 
 extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);

@@ -295,7 +295,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
-	if (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT && wp->renderer->r_supportsMode(SHOWCARET_LINE_HIGHLIGHT)) {
+	if (wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT && wp->renderer->r_supportsMode(SHOW_CARET_LINE_HIGHLIGHT)) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}
@@ -393,7 +393,7 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	}
 
 	i = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = o});
-	if (!updateVirtualOffset && i != wp->caret.virtualOffset && (wp->dispmode & SHOWCARET_PRESERVE_COLUMN))
+	if (!updateVirtualOffset && i != wp->caret.virtualOffset && (wp->dispmode & SHOW_CARET_PRESERVE_COLUMN))
 		o = caret_screen2lineOffset(wp, &(CARET) {
 		.linePointer = lp, .offset = wp->caret.virtualOffset
 		});
@@ -615,7 +615,7 @@ static int caret_gotoParagraphStart(LINE *lp)
  * caret_advanceSectionUsing()
  * advance one section (depending on func)
  */
-static void caret_advanceSectionUsing(WINFO* wp, long *ln,int dir,int start,
+static void caret_advanceSectionUsing(WINFO* wp, long *ln, DIRECTION_OPTION dir,int start,
 					int (*func1)(),int (*func2)())
 					/* caret_gotoParagraphStart,caret_gotoParagraphEnd for advancing paragraphs */
 					/* equaltabed(line) for advancing sections */
@@ -651,7 +651,7 @@ nextblk:	;
  * caret_advanceParagraph()
  * Advance the cursor starting from a line by one paragraph.
  */
-EXPORT long caret_advanceParagraph(WINFO* wp, long ln,int dir,int start)
+EXPORT long caret_advanceParagraph(WINFO* wp, long ln, DIRECTION_OPTION dir,int start)
 {
 	caret_advanceSectionUsing(wp, &ln,dir,start,caret_gotoParagraphStart,caret_gotoParagraphEnd);
 	if (!start) ln--;
@@ -661,7 +661,7 @@ EXPORT long caret_advanceParagraph(WINFO* wp, long ln,int dir,int start)
 /*--------------------------------------------------------------------------
  * caret_advanceParagraphFromCurrentLine()
  */
-EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir,int start)
+EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, DIRECTION_OPTION dir,int start)
 {	long ln;
 
 	ln = caret_advanceParagraph(wp, wp->caret.ln,dir,start);
@@ -672,7 +672,7 @@ EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir,int start)
  * caret_advanceSection()
  * Advances the cursor by one "section".
  */
-EXPORT int caret_advanceSection(WINFO* wp, int dir,int start)
+EXPORT int caret_advanceSection(WINFO* wp, DIRECTION_OPTION dir,int start)
 {	long ln;
 
 	caret_saveLastPosition();
@@ -695,7 +695,7 @@ static void caret_removeSecondaryCaret(WINFO* wp, CARET* pCaret) {
  * Find the caret with the highest / lowest line number. If dir < 0 find the one with the lowest line number (most top to the beginning of the file),
  * otherwise the one most down.
  */
-static CARET* caret_findMostUpDown(CARET* pCaret, int dir) {
+static CARET* caret_findMostUpDown(CARET* pCaret, DIRECTION_OPTION dir) {
 	int nMax = -1;
 	CARET* pFound = pCaret;
 
@@ -783,7 +783,7 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
  * general cursor advancing in
  * vertical direction
  */
-long long caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
+long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPTTION mtype)
 {
 	BOOL	bXtnd;
 	int		nRet;
@@ -792,14 +792,14 @@ long long caret_moveUpOrDown(WINFO* wp, int dir, int mtype)
 
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;
-	if (mtype & MOT_XTNDBLOCK) {
+	if (mtype & MOT_EXTEND_SELECTION) {
 		wp->bXtndBlock = TRUE;
 	}
 	caret_hideSelectionOnMove(wp);
 
 	col = wp->caret.offset;
 	ln = wp->caret.ln;
-	switch(mtype & (~MOT_XTNDBLOCK)) {
+	switch(mtype & (~MOT_EXTEND_SELECTION)) {
 		case MOT_SINGLE:
 			ln += (dir * _multiplier);
 			break;
@@ -838,7 +838,7 @@ err:
  * cursor advance one word
  */
 static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
-	int (*iswfunc)(unsigned char c),int dir, int bNo)
+	int (*iswfunc)(unsigned char c), DIRECTION_OPTION dir, int bNo)
 {	register unsigned char *p;
 	register long l;
 	register int c,len;
@@ -894,7 +894,7 @@ static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
 /*--------------------------------------------------------------------------
  * caret_advanceWordOnly()
  */
-EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,DIRECTION_OPTION dir)
 {
 	return caret_nextWord(lp,ln,col,char_isNospace,dir,0);
 }
@@ -902,15 +902,31 @@ EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,int dir)
 /*--------------------------------------------------------------------------
  * caret_gotoIdentifierSkipSpace()
  */
-EXPORT LINE *caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir)
 {
 	return caret_nextWord(lp,ln,col, char_isIdentifier,dir,1);
 }
 
 /*--------------------------------------------------------------------------
+ * EdChapterGotoBegin()
+ */
+long long EdChapterGotoBegin(WINFO* wp, DIRECTION_OPTION dir)
+{
+	return caret_advanceSection(wp, dir, 1);
+}
+
+/*--------------------------------------------------------------------------
+ * EdChapterGotoEnd()
+ */
+long long EdChapterGotoEnd(WINFO* wp, DIRECTION_OPTION dir)
+{
+	return caret_advanceSection(wp, dir, 0);
+}
+
+/*--------------------------------------------------------------------------
  * caret_gotoIdentifierEnd()
  */
-EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir)
+EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir)
 {
 	return caret_nextWord(lp,ln,col,char_isIdentifier,dir,0);
 }
@@ -919,7 +935,7 @@ EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir)
  * caret_advanceCharacter()
  * cursor advance to char
  */
-static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col,int dir,unsigned char match)
+static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir,unsigned char match)
 {	register long l;
 	register int c;
 
@@ -981,10 +997,10 @@ EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 
 /*--------------------------------------------------------------------------
  * caret_moveLeftRight()
- * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK
+ * Move the caret to the left or right. If motionFlags contains MOT_EXTEND_SELECTION
  * the selection is extended.
  */
-EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
+EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVEMENT_OPTTION motionFlags) {
 	FTABLE *fp;
 	long  	ln;
 	long 	col;
@@ -1003,13 +1019,13 @@ EXPORT int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags) {
 	ln = wp->caret.ln;
 	bXtnd = wp->bXtndBlock;
 	nRet = 0;
-	if (motionFlags & MOT_XTNDBLOCK) {
+	if (motionFlags & MOT_EXTEND_SELECTION) {
 		wp->bXtndBlock = TRUE;
 	}
 
 	caret_hideSelectionOnMove(wp);
 
-	moving = direction * (motionFlags & (~MOT_XTNDBLOCK));
+	moving = direction * (motionFlags & (~MOT_EXTEND_SELECTION));
 
 	switch(moving) {
 		case MOT_WORD:    case -MOT_WORD:

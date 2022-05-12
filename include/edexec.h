@@ -16,30 +16,40 @@
 
 #ifndef EDEXEC_H
 
- /*
- * options for execution
+/*
+ * Options/flags for executing an external process
+ * from within PKS-Edit
  */
-#define	EX_RDIN		0x1
-#define	EX_RDOUT		0x2
-#define	EX_DELBLK		0x4
-#define	EX_WAIT		0x8
-#define	EX_CLOSEWI		0x10
-#define	EX_CLEARSCR		0x20
-#define	EX_TEXTCURS		0x40
-#define	EX_SHOWMOUSE	0x80
-#define	EX_READERR		0x100	/* read errorfile (like -E ... ) */
-#define	EX_DEBUG		0x200	/* dont execute, debug only */
-#define	EX_PROMPT		0x400	/* prompt for parameters */
-#define	EX_SETPATH		0x800	/* cd before exec */
-#define	EX_ACC			0x1000	/* Applikation call */
-#define	EX_NOSAVE		0x2000	/* dont ask, whether to save files */
-#define	EX_WCLIP		0x4000	/* write GEM clipboard before exec */
-#define	EX_RCLIP		0x8000	/* read GEM Clipboard after exec */
-#define	EX_SYMBOL		0x1
-#define	EX_CD			0x4
-#define	EX_RDNONE		0x10
-#define	EX_RDCONV		0x80
-
+typedef enum {
+EX_RDIN = 0x1,
+EX_RDOUT = 0x2,
+EX_DELBLK = 0x4,
+EX_WAIT = 0x8,
+EX_CLOSEWI = 0x10,
+EX_CLEARSCR = 0x20,
+EX_TEXTCURS = 0x40,
+EX_SHOWMOUSE = 0x80,
+/* read errorfile (like -E ... ) */
+EX_READERR = 0x100,
+/* dont execute, debug only */
+EX_DEBUG = 0x200,
+/* prompt for parameters */
+EX_PROMPT = 0x400,
+/* cd before exec */
+EX_SETPATH = 0x800,
+/* Applikation call */
+EX_ACC = 0x1000,
+/* dont ask, whether to save files */
+EX_NOSAVE = 0x2000,
+/* write GEM clipboard before exec */
+EX_WCLIP = 0x4000,
+/* read GEM Clipboard after exec */
+EX_RCLIP = 0x8000,
+EX_SYMBOL = 0x1,
+EX_CD = 0x4,
+EX_RDNONE = 0x10,
+EX_RDCONV = 0x80
+} EXEC_FLAGS;
 
 #define	EX_NEEDSFILE	(EX_RCLIP|EX_WCLIP|EX_RDIN|EX_RDOUT|EX_DELBLK)
 

@@ -163,7 +163,7 @@ void yywarning(const char* s, ...) {
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
 char * _yyCurrentComment;
-TYPE_DESCRIPTOR* _currentTypeDescriptor;
+PKS_TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
 void yyrequire(const char* pszNamespace) {
 	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
@@ -463,7 +463,7 @@ WS		[ \t]
 				return bFloat ? T_FLOATING_POINT_NUMBER : T_NUM;
 			}
 #[^\n]*		{	;	}
-\/\/[^\n]*	{	if (IS_IN_ENUM_DEFINITION) {
+\/\/[^\n]*	{	if (_currentTypeDescriptor) {
 					if (!_yyCurrentComment) {
 						_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
 					}

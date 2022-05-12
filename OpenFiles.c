@@ -517,8 +517,8 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 	}
 	if (nOldWindows == 1) {
 		WINFO* wp = ww_getWinfoForHwnd(hwndNew);
-		if (wp && wp->renderer->r_supportsMode(SHOWWYSIWYG)) {
-			ww_changeDisplayMode(wp, wp->dispmode | SHOWWYSIWYG);
+		if (wp && wp->renderer->r_supportsMode(SHOW_WYSIWYG_DISPLAY)) {
+			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
 		}
 	}
 	return 1;
@@ -777,7 +777,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
  */
-long long EdEditFile(long editflags, char *filename) {
+long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 	int		nEntry;
 
 	if ((editflags & OPEN_DIRGIVEN) && filename) {
@@ -916,11 +916,11 @@ long long EdSaveAllFiles() {
  * this may require the user to enter a file name or to do nothing (if the file
  * is unchanged) etc...
  */
-long long EdSaveFile(int flg) {
+long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 	FTABLE *fp;
 
 #ifdef	DEMO
-	if (flg & ~SAV_QUIT) {
+	if (flags & ~SAV_QUIT) {
 		error_displayAlertDialog("Demoversion\nSichern nicht möglich");
 		return 0;
 	}
@@ -928,11 +928,11 @@ long long EdSaveFile(int flg) {
 	if ((fp = ft_getCurrentDocument()) == 0) 
 		return(0);	 		/* currently no File open */
 
-	if (flg != SAV_QUIT && ft_checkReadonlyWithError(fp)) {
+	if (flags != SAV_QUIT && ft_checkReadonlyWithError(fp)) {
 		return 0;
 	}
 
-	if ((flg & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
+	if ((flags & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[512];
 		EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 		string_splitFilename(fp->fname,newname,_txtfninfo.fname);
@@ -973,13 +973,13 @@ long long EdSaveFile(int flg) {
 		}
 	}
 
-	if (flg & SAV_FORCED)
+	if (flags & SAV_FORCED)
 		ft_setFlags(fp, fp->flags | F_WFORCED);  /* force to write even if 
 							   not edited */
 
-	if ((flg & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
+	if ((flags & SAV_SAVE) && !ft_writeFileWithAlternateName(fp)) return 0;
 
-	if (flg & SAV_QUIT) {
+	if (flags & SAV_QUIT) {
 		// Close only one of the cloned windows.
 		// B.t.w.: do not use ft_forAllWindows(close....) -> won't work, as ft_forAll cannot handle the case windows are added or closed
 		// while iterating.

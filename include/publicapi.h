@@ -5,7 +5,7 @@
  *
  * purpose:
  * defines all macro callable editor API functions.
- * 
+ *
  *
  * 										created: 20.02.87
  * 										last modified:
@@ -20,49 +20,89 @@
 
 #define PUBLICAPI_H
 
-#define	QUERY_CLIPBOARDAVAIL		0
-#define	QUERY_HAS_SELECTION_START			1
-#define	QUERY_HAS_SELECTION_END			2
-#define	QUERY_HAS_SELECTION			3
-#define	QUERY_CURRENTFILE			4
-#define	QUERY_OPTIONS				5
-#define	QUERY_LAYOUTOPTIONS			6
-#define	QUERY_WORKMODE				7
-#define	QUERY_DISPLAYMODE			8
-#define QUERY_FILEMODIFIED			9
-#define QUERY_BLOCKXTNDMODE			10
+ /* Flags for Listing operations (navigation along search result lists etc. */
+typedef enum {
+	LIST_START = 0,
+	LIST_PREV = 1,
+	LIST_CURR = 2,
+	LIST_NEXT = 3,
+	LIST_END = 4,
+	LIST_USETOPWINDOW = 0x100
+} LIST_OPERATION_FLAGS;
 
-#if defined (_WINFO_H)
- /*--------------------------------------------------------------------------
-  * EdCursorLeft()
-  */
-extern long long EdCursorLeft(WINFO* wp, int mtype);
-
-/*--------------------------------------------------------------------------
- * EdCursorRight()
+/*
+ * Used in list binding to define which type of binding should be displayed.
  */
-extern long long EdCursorRight(WINFO* wp, int mtype);
+typedef enum {
+	LISTB_MACROS = 0x1,
+	LISTB_KEYS = 0x2,
+	LISTB_MICE = 0x4,
+	LISTB_MENUS = 0x8
+} LIST_BINDING_OPTION;
 
-/*--------------------------------------------------------------------------
- * EdCursorUp()
+/* Option flags for sorting text */
+typedef enum {
+	/* skip multiple Token Seperators */
+	SO_SKIPSEPS = 0x1,
+	/* sort records rather than lines */
+	SO_CLUSTERLINES = 0x2,
+	/* reverse the order of sorting */
+	SO_REVERSE = 0x4,
+	/* sort all lines */
+	SO_NOSELECT = 0x8,
+	/* at least one token key field */
+	SO_TOKENIZE = 0x10
+} SORT_OPTION_FLAGS;
+
+/* Flags for align operations */
+typedef enum {
+	// Ignore all characters in front of caret position
+	AL_CPOS = 0x1,
+	// Align straight to caret position
+	AL_FIX = 0x2,
+	// Align to end of search pattern match
+	AL_END = 0x4
+} ALIGN_FLAGS;
+
+/* Flags for EdBlockPaste */
+typedef enum {
+	PASTE_QUERYID = 0x100,
+	PASTE_CLIP = 0x200,
+	PASTE_UNDO = 0x400,
+	PASTE_ICON = 0x1000
+} PASTE_FLAGS;
+
+/* Flags for Cut&EdBlockPaste */
+typedef enum {
+	CUT_QUERYID = 0x100,
+	CUT_APPND = 0x200,
+	CUT_USEPP = 0x400,
+	CUT_DELETE = 0x800
+} CUT_FLAGS;
+
+/* Flags for EdMacroRecorded */
+typedef enum {
+	MAC_AUTO = 1,
+	MAC_LASTREC = 2
+} RECORD_MACRO_OPTION;
+
+/*
+ * Option to be used to query various internal states of PKS-Edit
+ * from within PKSMacroC.
  */
-extern long long EdCursorUp(WINFO* wp, int mtype);
+typedef enum {
+	QUERY_CLIPBOARDAVAIL = 0,
+	QUERY_HAS_SELECTION_START = 1,
+	QUERY_HAS_SELECTION_END = 2,
+	QUERY_HAS_SELECTION = 3,
+	QUERY_CURRENTFILE = 4,
+	QUERY_OPTIONS = 5,
+	QUERY_LAYOUTOPTIONS = 6,
+	QUERY_WORKMODE = 7,
+	QUERY_DISPLAYMODE = 8,
+	QUERY_FILEMODIFIED = 9,
+	QUERY_BLOCKXTNDMODE = 10
+} QUERY_EDITOR_OPTION;
 
-/*--------------------------------------------------------------------------
- * EdCursorDown()
- */
-extern long long EdCursorDown(WINFO* wp, int mtype);
-
-/*--------------------------------------------------------------------------
- * EdChapterGotoBegin()
- */
-extern long long EdChapterGotoBegin(WINFO* wp, int dir);
-
-/*--------------------------------------------------------------------------
- * EdChapterGotoEnd()
- */
-extern long long EdChapterGotoEnd(WINFO* wp, int dir);
-
-#endif
 
 #endif

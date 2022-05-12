@@ -76,12 +76,60 @@ extern long long find_initiateIncrementalSearch();
 typedef enum { FIF_SEARCH,  FIF_REPLACE} FIND_IN_FILES_ACTION;
 extern int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParam, FIND_IN_FILES_ACTION fAction);
 
+/* valid working range types */
+typedef enum {
+    // an invalid range
+    RNG_INVALID = -1,
+    // perform once / search once, replace once, ...
+    RNG_ONCE = 0,
+    // perform in line containing caret
+    RNG_LINE = 1,
+    // perform in a "chapter"
+    RNG_CHAPTER = 2,
+    // perform in the currently selected range of text
+    RNG_BLOCK = 3,
+    // perform from begin of file to the current caret
+    RNG_TOCURS = 4,
+    // perform from current caret to the end of the file
+    RNG_FROMCURS = 5,
+    // perform globally in the current file
+    RNG_GLOBAL = 6,
+    // currently not really used
+    RNG_FREE = 7,
+    /* the current selection, but for the purpose of applying an operation one a list of lines(e.g.toggle - comment or shift - lines).
+     * In this case the last selected line is treated as "not selected", if the column is 0.
+     */
+     RNG_BLOCK_LINES = 8
+} RANGE_TYPE;
+
+/*
+ * Option to expand tabs to spaces or vice versa
+ */
+typedef enum {
+    CT_EXPAND = 1,
+    CT_COMPRESS = 0,
+} CT_OPTION;
+
 /*--------------------------------------------------------------------------
  * find_replaceTabsWithSpaces()
  * flg = 1 : expand TABS to SPACES
  * flg = 0 : comp SPACES to TABS
  */
-extern int find_replaceTabsWithSpaces(int scope, int flg);
+extern int find_replaceTabsWithSpaces(RANGE_TYPE scope, CT_OPTION flg);
+
+typedef struct tagWINFO WINFO;
+
+/*--------------------------------------------------------------------------
+ * find_setTextSelection()
+ *
+ * Select a range of text in the file identified by fp. For rangeType constants, see above.
+ */
+extern int find_setTextSelection(WINFO* wp, RANGE_TYPE rangeType, MARK** markstart, MARK** markend);
+
+/*--------------------------------------------------------------------------
+ * find_selectRangeWithMarkers()
+ */
+extern int find_selectRangeWithMarkers(RANGE_TYPE rangeType, MARK** mps, MARK** mpe);
 
 /*--------------------------------------------------------------------------
  * edit_replaceText()

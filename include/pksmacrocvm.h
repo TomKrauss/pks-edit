@@ -41,6 +41,10 @@
 
 typedef struct tagOBJECT_DATA OBJECT_DATA;
 
+typedef struct tagNATIVE_FUNCTION NATIVE_FUNCTION;
+
+typedef struct tagMACRO MACRO;
+
 typedef union uGENERIC_DATA {
 	unsigned char	uchar;
 	intptr_t		val;
@@ -96,9 +100,11 @@ typedef struct tagTYPE_CALLBACKS {
 													// containing the actual handle object.
 } TYPE_CALLBACKS;
 
+// Note, that this structure has currently identical fields (and better should have) as type PARAMETER_ENUM_VALUE
 typedef struct tagTYPE_PROPERTY_DESCRIPTOR {
-	PKS_VALUE_TYPE	tpd_type;
 	const char*		tpd_name;
+	const char*		tpd_documentation;
+	PKS_VALUE_TYPE	tpd_type;
 } TYPE_PROPERTY_DESCRIPTOR;
 
 typedef struct tagPARAMETER_ENUM_VALUE PARAMETER_ENUM_VALUE;
@@ -171,14 +177,14 @@ extern int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* p
 extern T_FINALIZER types_getFinalizer(PKS_VALUE_TYPE vType);
 
 /*
+ * Returns the "type descriptor" for the named type.
+ */
+PKS_TYPE_DESCRIPTOR* types_getTypeDescriptor(const char* pszTypeName);
+
+/*
  * Answer true, if the passed type exists.
  */
 extern int types_existsType(PKS_VALUE_TYPE t);
-
-/*
- * Returns the "simple" documentation for a type.
- */
-extern const char* types_getDocumentationFor(const char* pszTypeName);
 
 /*
  * Register one type in the MacroC type registry. If 'nPreferredIndex is greater or equals 0
@@ -206,6 +212,17 @@ extern BOOL types_hasDefaultValue(PKS_VALUE_TYPE vType);
  * Returns the name of a given PKSMacroC value type.
  */
 extern const char* types_nameFor(PKS_VALUE_TYPE t);
+
+/*
+ * Destroy a type descriptor with all allocated dependent objects.
+ */
+extern void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType);
+
+/*
+ * Returns the enum value table for a PKSMacroC enum type plus the respective size. The type is searched,
+ * where the enzm values start with a given prefix.
+ */
+int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType);
 
 /*
  * Returns the name of a property of a structured object given the type index and the property index.
@@ -302,9 +319,19 @@ typedef enum {
 
 #define	C_NONE			0xFF
 
-#define	FORM_SHOW		0x40		// form should be opened 
-#define	FORM_INIT		0x1			// form " and be prefilled
-#define	FORM_REDRAW		0x2			// force redraw 
+/*
+ * Option to be passed to a MacroC function, which will in interactive mode open a dialog.
+ * Defines, what to do with the dialog, when the corresponding function is executed as part
+ * of runnning a MacroC macro.
+ */
+typedef enum {
+	// form should be opened 
+	FORM_SHOW = 0x40,
+	// form " and be prefilled
+	FORM_INIT = 0x1,
+	// force redraw 
+	FORM_REDRAW= 0x2
+} FORM_PARAMETER_OPTION;
 
 /*
  * interpreter_getParameterSize()
@@ -590,6 +617,36 @@ extern int types_getObjectSize(PKS_VALUE_TYPE t);
  * Returns true, if the passed value type is a "structured" type.
  */
 extern BOOL types_isStructuredType(PKS_VALUE_TYPE t);
+
+/*
+ * Returns the pointer to an allocated string containing the HTML formatted
+ * help for a native PKSMacroC function.
+ */
+extern const char* macrodoc_helpForNativeFunction(const char* pszName, NATIVE_FUNCTION* pFunc);
+
+/*
+ * Returns the pointer to an allocated string containing the HTML formatted
+ * help for an enum value.
+ */
+extern const char* macrodoc_helpForEnumValue(const char* pszName, PARAMETER_ENUM_VALUE* pEnumValue);
+
+/*
+ * Returns the pointer to an allocated string containing the HTML formatted
+ * help for a user defined macro.
+ */
+extern const char* macrodoc_helpForMacro(const char* pszName, MACRO* pMacro);
+
+/*
+ * Returns the pointer to an allocated string containing the documentation for
+ * a PKSMacroC type with the given name 'pszType'.
+ */
+extern const char* macrodoc_helpForType(const char* pszType, void* pszUnused);
+
+/*
+ * Returns a pointer to an allocated string containing the contents of the documentation
+ * "pointer to" by a macrodoc hyperlink reference (macroref://typename or the like).
+ */
+extern const char* macrodoc_helpForHyperlink(const char* pszUrl);
 
 #define PKSMACROCVM_H
 #endif

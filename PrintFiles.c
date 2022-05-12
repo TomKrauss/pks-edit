@@ -916,9 +916,9 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 
 
 /*------------------------------------------------------------
- * EdPrint()
+ * Print a file with a given name or the current file or selection.
  */
-int EdPrint(long what, long p1, LPSTR fname) {
+int EdPrint(PRINT_FLAGS what, const char* fname) {
 	BOOL			bFileRead = FALSE;
 	HDC 			hdcPrn;
 	int 			ret = 0;
@@ -967,7 +967,7 @@ int EdPrint(long what, long p1, LPSTR fname) {
 		_currentPrintScope.lp = fp->firstl;
 		_currentPrintScope.lplast = fp->lastl->prev;
 		if (fp->documentDescriptor) {
-			BOOL showLineNumbers = wp->dispmode & SHOWLINENUMBERS;
+			BOOL showLineNumbers = wp->dispmode & SHOW_LINENUMBERS;
 			if (showLineNumbers) {
 				pp->options |= PRTO_LINE_NUMBERS;
 			}

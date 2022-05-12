@@ -13,12 +13,14 @@
  * created: 11/89
  */
 
+#include "alloc.h"
 #include <string.h>
 #include <windows.h>
 #include <setjmp.h>
 
 #include "winfo.h"
 #include "edierror.h"
+#include "publicapi.h"
 #include "errordialogs.h"
 #include "stringutil.h"
 
@@ -231,13 +233,30 @@ PKS_VALUE interpreter_registerType(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValu
 		interpreter_raiseError("Illegal type registration - not enough parameters");
 		return NIL;
 	}
+	int nProps = pValues[3].pkv_data.intValue;
+	int nIdx = 4;
+	if (nIdx + nProps * 3 != nArgs) {
+		interpreter_raiseError("Illegal type registration - wrong number of params");
+		return NIL;
+	}
 	PKS_TYPE_DESCRIPTOR descriptor = {
 		.ptd_name = memory_accessString(pValues[0]),
 		.ptd_documentation = memory_accessString(pValues[1]),
 		.ptd_isEnumType = pValues[2].pkv_data.booleanValue,
-		.ptd_numberOfProperties = pValues[2].pkv_data.intValue
+		.ptd_numberOfProperties = nProps
 	};
+	if (nProps) {
+		descriptor.ptd_elements.ptd_enumValues = calloc(nProps, sizeof(*descriptor.ptd_elements.ptd_enumValues));
+		for (int i = 0; i < nProps; i++) {
+			PARAMETER_ENUM_VALUE* pDescriptor = &descriptor.ptd_elements.ptd_enumValues[i];
+			pDescriptor->pev_name = (char*)memory_accessString(pValues[nIdx++]);
+			pDescriptor->pev_documentation = (char*)memory_accessString(pValues[nIdx++]);
+			pDescriptor->pev_val = (long)pValues[nIdx].pkv_data.longValue;
+			nIdx++;
+		}
+	}
 	types_register(-1, &descriptor);
+	free(descriptor.ptd_elements.ptd_enumValues);
 	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1 };
 }
 /*

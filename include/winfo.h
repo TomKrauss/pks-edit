@@ -22,34 +22,46 @@
 
 /*----- display modes --------------*/
 
-#define	SHOWCONTROL		            0x1
-#define	SHOWCARET_PRESERVE_COLUMN	0x2
-#define	SHOWHEX			            0x4
-#define	SHOWRULER			        0x8
-#define	SHOWHIDEHSLIDER	            0x100
-#define	SHOWHIDEVSLIDER	            0x200
-#define SHOWWYSIWYG                0x400
-#define	SHOWLINENUMBERS		        0x800
-#define	SHOWCARET_LINE_HIGHLIGHT	0x1000
-#define	SHOW_SYNTAX_HIGHLIGHT       0x2000
+/*
+ * Define the way, text is being displayed in PKS-Edit.
+ */
+typedef enum {
+	SHOW_CONTROL_CHARS = 0x1,
+	SHOW_CARET_PRESERVE_COLUMN = 0x2,
+	SHOW_HEX_DISPLAY = 0x4,
+	SHOW_RULER = 0x8,
+	SHOW_HIDE_HSLIDER = 0x100,
+	SHOW_HIDE_VSLIDER = 0x200,
+	SHOW_WYSIWYG_DISPLAY = 0x400,
+	SHOW_LINENUMBERS = 0x800,
+	SHOW_CARET_LINE_HIGHLIGHT = 0x1000,
+	SHOW_SYNTAX_HIGHLIGHT = 0x2000,
+} DISPLAY_WINDOW_FLAGS;
 
-#define	PLAINCONTROL(mode)	(((mode) & SHOWCONTROL) && !((mode) & SHOWRULER))
+#define	PLAINCONTROL(mode)	(((mode) & SHOW_CONTROL_CHARS) && !((mode) & SHOW_RULER))
 
 /*----- working modes --------------*/
 
-#define	WM_INSERT		    0x1
-#define	WM_SHOWMATCH	    0x2
-#define	WM_ABBREV		    0x4
-#define	WM_AUTOWRAP	        0x8
-#define	WM_AUTOINDENT	    0x10
-#define	WM_WATCH_LOGFILE    0x40
-#define	WM_LINE_SELECTION	0x80
-#define	WM_AUTOFORMAT	    0x100
-#define	WM_COLUMN_SELECTION	0x400
-#define	WM_OEMMODE	        0x800
-#define WM_DELETE_MULTIPLE_SPACES  0x2000   // optimize delete and backspace operations to handle spaces as if they were tabs.
-#define WM_STICKY			0x4000		    // window should not be automatically closed, when the number 
-                                            // of open windows exceeds the maximum configured.
+/*
+ * Working modes / editor modes affecting the way editing in an open editor in PKS-Edit works.
+ */
+typedef enum {
+	WM_INSERT = 0x1,
+	WM_SHOWMATCH = 0x2,
+	WM_ABBREV = 0x4,
+	WM_AUTOWRAP = 0x8,
+	WM_AUTOINDENT = 0x10,
+	WM_WATCH_LOGFILE = 0x40,
+	WM_LINE_SELECTION = 0x80,
+	WM_AUTOFORMAT = 0x100,
+	WM_COLUMN_SELECTION = 0x400,
+	WM_OEMMODE = 0x800,
+	// optimize delete and backspace operations to handle spaces as if they were tabs.
+	WM_DELETE_MULTIPLE_SPACES = 0x2000,
+	// window should not be automatically closed, when the number
+	// of open windows exceeds the maximum configured.
+	WM_STICKY = 0x4000
+} WORKING_MODE_FLAG;
 
 /*--- Fill styles for marked text ----*/
 
@@ -118,7 +130,7 @@ typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
 /*
  * Invoked, when the cursor is positioned using slider or mouse to update the
- * caret position. 
+ * caret position.
  */
 typedef int (*CARET_MOUSE_CLICKED_FUNCTION)(WINFO* wp, long* ln, long* col, int updateVirtualColumn);
 
@@ -127,7 +139,7 @@ typedef struct line LINE;
 typedef long (*CALCULATE_MAX_COL_FUNCTION)(WINFO* wp, long ln, LINE* lp);
 
 typedef struct tagINTERNAL_BUFFER_POS {
-    LINE* ibp_lp;                       // The line pointer 
+    LINE* ibp_lp;                       // The line pointer
     int   ibp_lineOffset;               // The offset into the buffer in the line
     int   ibp_logicalColumnInLine;      // The "logical" column on the screen.
     long  ibp_byteOffset;               // The "byte offset" of the position relative to the beginning of the file.
@@ -174,7 +186,7 @@ typedef struct tagRENDERER {
     const RENDERER_CREATE r_create;                               // Called, when the renderer is created. Returns the internal data structure r_data. May be null.
     const RENDERER_DESTROY r_destroy;                             // Called when the renderer is destroy. Frees the internal data structure r_data. If null, free is called by default to release the structure.
     const RENDERER_SCROLL r_scroll;
-    const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the 
+    const RENDERER_SCROLL_SET_BOUNDS r_adjustScrollBounds;        // Set the new minimum and maximum line and columns used when navigating the caret if the
                                                                   // caret does not fit in the current window.
     const RENDERER_CARET_UPDATE_UI r_updateCaretUI;               // Set x and y coordinates of the caret depending on the line and column.
     const RENDERER_SUPPORTS_MODE r_supportsMode;
@@ -213,7 +225,7 @@ extern int indent_calculateNextTabStop(int col, INDENTATION* l);
 extern void indent_toggleTabStop(INDENTATION* indentation, int col);
 
 /*
- * Used to "synchronize" two files to be compared with each other. 
+ * Used to "synchronize" two files to be compared with each other.
  */
 typedef struct tagCOMPARISON_LINK {
     struct tagWINFO* cl_wpLeft;
@@ -232,7 +244,7 @@ typedef struct tagWINFO {
 	struct tagWINFO *next;
 	int		win_id;
     HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
-     
+
     int     dispmode;				// Display options: see edierror.h...
     int     charset;                // a special charset to use or 0 for now particular charset.
     int     workmode;
@@ -240,18 +252,18 @@ typedef struct tagWINFO {
     int		scrollflags;
     int		cursaftersearch;
     int		tabDisplayFillCharacter;// Tab fill char
-     
-    CARET caret; 		            // the caret - to be moved to the view 
+
+    CARET caret; 		            // the caret - to be moved to the view
     CARET secondaryCaret;           // A "secondary caret" - used to mark places on the screen like matching brackets.
     int   secondaryCaretWidth;      // the width of the secondary caret (measured in columns)
     MARK* fmark;
     MARK* blstart, * blend;   	    // Marks for Block Operations
     int   blcol1, blcol2;		    // column for Blockmarks
-    
+
     char*  statusline;			    // status line format, if a special format  should be used - otherwise NULL.
     int    cx,cy,cmx,cmy,cheight,cwidth;
     int    ctype;        	        // caret - type
-    
+
 	int		vscroll,hscroll;		// # of lines and columns to scroll
 	int		scroll_dx,			    // distance cursor-window border
 			scroll_dy;			    // for scrolling
@@ -261,7 +273,7 @@ typedef struct tagWINFO {
     RENDERER* renderer;
     HIGHLIGHTER* highlighter;
     LINE*     lpMinln;              // caching line pointer allowing us, to quickly access the line pointer for the minimum line.
-    long      cachedLineIndex;      // line index of the caching line pointer.      
+    long      cachedLineIndex;      // line index of the caching line pointer.
     long      minln,maxln,mincursln,maxcursln,
               mincol,maxcol,mincurscol,maxcurscol;
     long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
@@ -272,44 +284,6 @@ typedef struct tagWINFO {
      void* r_data;                  // optionally used by the renderer for internal book keeping
      char actionContext[32];        // allows us to have window specific key-, mouse- and other action bindings.
 } WINFO;
-
-/* valid working range types */
-typedef enum {
-    // an invalid range
-    RNG_INVALID = -1,
-    // perform once / search once, replace once, ...
-    RNG_ONCE = 0,
-    // perform in line containing caret
-    RNG_LINE = 1,
-    // perform in a "chapter"
-    RNG_CHAPTER = 2,
-    // perform in the currently selected range of text
-    RNG_BLOCK = 3,
-    // perform from begin of file to the current caret
-    RNG_TOCURS = 4,
-    // perform from current caret to the end of the file
-    RNG_FROMCURS = 5,
-    // perform globally in the current file
-    RNG_GLOBAL = 6,
-    // currently not really used
-    RNG_FREE = 7,
-    /* the current selection, but for the purpose of applying an operation one a list of lines(e.g.toggle - comment or shift - lines).
-     * In this case the last selected line is treated as "not selected", if the column is 0.
-     */
-    RNG_BLOCK_LINES = 8
-} RANGE_TYPE;
-
-/*--------------------------------------------------------------------------
- * find_setTextSelection()
- *
- * Select a range of text in the file identified by fp. For rangeType constants, see above.
- */
-extern int find_setTextSelection(WINFO* wp, int rangeType, MARK** markstart, MARK** markend);
-
-/*--------------------------------------------------------------------------
- * find_selectRangeWithMarkers()
- */
-extern int find_selectRangeWithMarkers(int rangeType, MARK** mps, MARK** mpe);
 
 /*------------------------------------------------------------
  * render_paintWindow()

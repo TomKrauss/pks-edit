@@ -170,7 +170,7 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	startColumn = wp->mincol;
 	endColumn = wp->maxcol+1;
 	flags = wp->dispmode;
-	showcontrol = flags & SHOWCONTROL;
+	showcontrol = flags & SHOW_CONTROL_CHARS;
 	showSyntaxHighlighting = flags & SHOW_SYNTAX_HIGHLIGHT;
 	textlen = endColumn-startColumn;
 	if (showcontrol) {
@@ -371,7 +371,7 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 				hBrush = hBrushCompareAddedColor;
 			} else if (lp->lflg & LN_COMPARE_DELETED) {
 				hBrush = hBrushCompareDeletedColor;
-			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+			} else if (lp == wp->caret.linePointer && (wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
 			}
 			r.left = rect.left; 

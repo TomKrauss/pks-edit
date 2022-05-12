@@ -1,14 +1,41 @@
 
 /*
- * Sample for the definition of a custom structured type in PKSMacroC.
- * Not yet fully supported.
+ * Represents tuples of data contained in a HASHMAP, which can be retrieved
+ * from a Map using the MapEntries API.
+ *
+ * @see HASHMAP
+ * @see MapEntries
  */
 typedef struct {
-	int t_start;							// 0-based start of the lexical token
-	int	t_end;								// 0-based start end of	the	lexical	token
-	int	t_type;								// logical type	of the lexical token
-	string t_text;							// The text	of the token.
-} TOKEN;
+	/*
+	 * The key in the map - currently always of type string.
+	 */
+	string key;
+
+	/*
+	 * Values in a map have arbitrary type.
+	 */
+	auto value;
+} MAP_ENTRY;
+
+/*
+ * Handle type data structure to read from and write into files.
+ */
+typedef native FILE;
+
+/*
+ * Data structure in PKSMacroC for fast hashed lookup of data. Currently only keys of type string are supported.
+ * The most convenient way to add elements to or lookup elements from a hashmap is by using the array operator as
+ * in these examples <code>x = myMap[key];</code> or <code>myMap['a'] = 1;</code>.
+ */
+typedef native map;
+
+/*
+ * Handle to be passed <b>optionally</b> to perform an operation in the context of
+ * an open editor window. If the <code>EDITOR</code> parameter is not passed, the
+ * currently active editor is used as an argument.
+ */
+typedef native EDITOR;
 
 /*
  * Primitive type in PKSMacroC used to express signed integer type numbers in the range between
@@ -33,11 +60,44 @@ typedef native float;
 typedef native boolean;
 
 /*
- * Handle to be passed <b>optionally</b> to perform an operation in the context of
- * an open editor window. If the <code>EDITOR</code> parameter is not passed, the
- * currently active editor is used as an argument.
+ * Option to be passed to a MacroC function, which will in interactive mode open a dialog.
+ * Defines, what to do with the dialog, when the corresponding function is executed as part
+ * of runnning a MacroC macro.
  */
-typedef native EDITOR;
+typedef enum {
+	// form should be opened
+	FORM_SHOW = 0x40,
+	// form " and be prefilled
+	FORM_INIT = 0x1,
+	// force redraw
+	FORM_REDRAW= 0x2
+} FORM_PARAMETER_OPTION;
+
+/* Describes options for moving the caret */
+typedef enum {
+    // Move a single character left right or a single line up down
+    MOT_SINGLE = 1,
+    // Move the caret to the end of the line / file
+    MOT_TOEND = 2,
+    // Move the caret by a number of words
+    MOT_WORD = 3,
+    // Move the caret up down page wise
+    MOT_PAGE = 3,
+    // Move the caret up down to the end of the screen
+    MOT_SCREEN = 4,
+    // Move the caret left right to a given character
+    MOT_UNTILC = 4,
+    // Move the caret up down by a paragraph (text)
+    MOT_PGRPH = 4,
+    // move to begin / end of file
+    MOT_FILE = 4,
+    // move to next space
+    MOT_SPACE = 5,
+    // move to center of page
+    MOT_CENTER = 5,
+    // If added to another option - extend the current selection
+    MOT_EXTEND_SELECTION = 0x100
+} CARET_MOVEMENT_OPTTION;
 
 /*
  * Describes options for copying and cutting text from the curring selection.
@@ -51,7 +111,80 @@ typedef enum {
 	CUT_USEPP=0x400,
 	// Delete the selection after copying the data to the clipboard.
 	CUT_DELETE=0x800
-} CUT_ENUM;
+} CUT_OPTION;
+
+/*
+ * MessageBox() Flags
+ */
+typedef enum {
+	MB_OK = 0x00000000,
+	MB_OKCANCEL = 0x00000001,
+	MB_ABORTRETRYIGNORE= 0x00000002,
+	MB_YESNOCANCEL = 0x00000003,
+	MB_YESNO = 0x00000004,
+	MB_RETRYCANCEL= 0x00000005,
+	MB_CANCELTRYCONTINUE = 0x00000006,
+
+	// Icon type to display: hand symbol
+	MB_ICONHAND = 0x00000010,
+	// Icon type to display: question mark
+	MB_ICONQUESTION = 0x00000020,
+	// Icon type to display: exclamation mark
+	MB_ICONEXCLAMATION = 0x00000030,
+	// Icon type to display: asterisc
+	MB_ICONASTERISK = 0x00000040
+} MESSAGE_BOX_FLAG;
+
+/* Option Flags assignable to EDITOR_CONFIGURATION.options */
+typedef enum {
+	// if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc...
+	// Auto-save files to a temporary directory.
+	O_AUTOSAVE_TO_TEMP = 0x1,
+	// Play a warning sound on errors
+	O_ERROR_TONE = 0x2,
+	// flash window, rather playing an error sound
+	O_ERROR_FLASH_WINDOW  = 0x4,
+	// lock opened files
+	O_LOCKFILES = 0x8,
+	// Restore previously opened files
+	O_AUTO_OPEN_HISTORY = 0x10,
+	// Save the PKS Edit settings on exit
+	O_SAVE_SETTINGS_ON_EXIT = 0x20,
+	// Automatically save all macros recorded / compiled when exiting
+	O_SAVE_MACROS_ON_EXIT = 0x40,
+	// Unlink temporary autosave files if not needed any more
+	O_DELETE_AUTOSAVE_FILES = 0x80,
+	// Automatically save changed files when closing editor / exiting PKS-Edit.
+	O_AUTOSAVE_FILES_ON_EXIT = 0x100,
+	// whether dialogs are opened close to the mouse.
+	O_FORMFOLLOW = 0x200,
+	// Create backup files in the PKS-Edit temp path rather than in the directory of the source file
+	O_CREATE_BACKUP_IN_TEMP_PATH= 0x400,
+	// display error messages in a popup window / snackbar
+	O_SHOW_MESSAGES_IN_SNACKBAR = 0x800,
+	// hide block marks on caret movement
+	O_HIDE_BLOCK_ON_CARET_MOVE = 0x1000,
+	// Undo enabled
+	O_UNDOENABLED = 0x2000,
+	// Save and restore named clipboards when closing PKS-Edit
+	O_SAVE_CLIPBOARDS_ON_EXIT = 0x4000,
+	// whether a history of the clipboard contents is automatically maintained
+	O_SAVE_CLIPBOARD_HISTORY = 0x8000
+} CONFIGURATION_FLAG;
+
+/* Editor configuration layout options: fkeys, optionbar, statusline */
+typedef enum {
+	// option bar below function keys
+	OL_OPTIONBAR = 0x1,
+	// show function keyboard
+	OL_FKEYS = 0x2,
+	// show status line
+	OL_SHOWSTATUS = 0x4,
+	// show tool bar
+	OL_TOOLBAR = 0x8,
+	// show compact editor tabs (filename only - not full path)
+	OL_COMPACT_TABS = 0x10
+} CONFIGURATION_LAYOUT_FLAG;
 
 /*
  * Describes options for searching and replacing text in PKS-EDIT in particular related to the use
@@ -90,6 +223,9 @@ typedef enum {
     RE_WRAPSCAN = 0x2000
 } REGEX_OPTION;
 
+/*
+ * Flag type for operations to be applied on a <em>range</em> of text.
+ */
 typedef enum {
     // an invalid range
     RNG_INVALID = -1,
@@ -114,6 +250,290 @@ typedef enum {
      */
     RNG_BLOCK_LINES = 8
 } RANGE_TYPE;
+
+/*
+ * Actual action to be performed during "find and replace"
+ */
+typedef enum {
+	// really replace the text
+	REP_REPLACE	= 1,
+	// mark lines with matching occurences
+	REP_MARK = 2,
+	// count occurrences
+	REP_COUNT = 3,
+	// search only - do not really replace
+	REP_FIND = 4
+} REPLACE_TEXT_ACTION;
+
+/*
+ * Options for inserting and deleting lines
+ */
+typedef enum {
+	// Caret does not change during insert
+	ELO_CARET_STAYS = 0,
+	// Caret follows the inserted line
+	ELO_CARET_FOLLOWS = 1,
+	// Line is appended
+	ELO_APPEND = 0x200
+} EDIT_LINE_OPTIONS;
+
+/* Flags for align operations */
+typedef enum {
+    // Ignore all characters in front of caret position
+    AL_CPOS = 0x1,
+    // Align straight to caret position
+    AL_FIX = 0x2,
+    // Align to end of search pattern match
+    AL_END = 0x4
+} ALIGN_FLAGS;
+
+/* Option flags for sorting text */
+typedef enum {
+    /* skip multiple Token Seperators */
+    SO_SKIPSEPS = 0x1,
+    /* sort records rather than lines */
+    SO_CLUSTERLINES = 0x2,
+    /* reverse the order of sorting */
+    SO_REVERSE = 0x4,
+    /* sort all lines */
+    SO_NOSELECT = 0x8,
+    /* at least one token key field */
+    SO_TOKENIZE= 0x10
+} SORT_OPTION_FLAGS;
+
+/* Flags for formatting text */
+typedef enum {
+    FMT_MARKBLK = 0x4,
+    FMT_PRGRPH = 0x8,
+    FMT_TXTBLK = 0x10,
+    FMT_DIALOG = 0x80,
+    FMT_STOPIFDONE = 0x100
+} FORMATTING_FLAGS;
+
+/*
+ * Options/flags for executing an external process
+ * from within PKS-Edit
+ */
+typedef enum {
+	EX_RDIN = 0x1,
+	EX_RDOUT = 0x2,
+	EX_DELBLK = 0x4,
+	EX_WAIT = 0x8,
+	EX_CLOSEWI = 0x10,
+	EX_CLEARSCR = 0x20,
+	EX_TEXTCURS = 0x40,
+	EX_SHOWMOUSE = 0x80,
+	// read errorfile (like -E ... )
+	EX_READERR = 0x100,
+	// dont execute, debug only
+	EX_DEBUG = 0x200,
+	// prompt for parameters
+	EX_PROMPT = 0x400,
+	// cd before exec
+	EX_SETPATH = 0x800,
+	/* Applikation call */
+	EX_ACC = 0x1000,
+	/* dont ask, whether to save files */
+	EX_NOSAVE = 0x2000,
+	/* write GEM clipboard before exec */
+	EX_WCLIP = 0x4000,
+	/* read GEM Clipboard after exec */
+	EX_RCLIP = 0x8000,
+	EX_SYMBOL = 0x1,
+	EX_CD = 0x4,
+	EX_RDNONE = 0x10,
+	EX_RDCONV = 0x80
+} EXEC_FLAGS;
+
+/*
+ * Working modes / editor modes affecting the way editing in an open editor in PKS-Edit works.
+ */
+typedef enum {
+	WM_INSERT = 0x1,
+	WM_SHOWMATCH = 0x2,
+	WM_ABBREV = 0x4,
+	WM_AUTOWRAP = 0x8,
+	WM_AUTOINDENT = 0x10,
+	WM_WATCH_LOGFILE = 0x40,
+	WM_LINE_SELECTION = 0x80,
+	WM_AUTOFORMAT = 0x100,
+	WM_COLUMN_SELECTION = 0x400,
+	WM_OEMMODE = 0x800,
+	// optimize delete and backspace operations to handle spaces as if they were tabs.
+	WM_DELETE_MULTIPLE_SPACES = 0x2000,
+	// window should not be automatically closed, when the number
+	// of open windows exceeds the maximum configured.
+	WM_STICKY = 0x4000
+} WORKING_MODE_FLAG;
+
+/*
+ * Define the way, text is being displayed in PKS-Edit.
+ */
+typedef enum {
+	SHOW_CONTROL_CHARS = 0x1,
+	SHOW_CARET_PRESERVE_COLUMN = 0x2,
+	SHOW_HEX_DISPLAY = 0x4,
+	SHOW_RULER = 0x8,
+	SHOW_HIDE_HSLIDER = 0x100,
+	SHOW_HIDE_VSLIDER = 0x200,
+	SHOW_WYSIWYG_DISPLAY = 0x400,
+	SHOW_LINENUMBERS = 0x800,
+	SHOW_CARET_LINE_HIGHLIGHT = 0x1000,
+	SHOW_SYNTAX_HIGHLIGHT = 0x2000
+} DISPLAY_WINDOW_FLAGS;
+
+/* Flags for EdFileClose */
+typedef enum {
+	SAV_SAVE = 0x1,
+	SAV_QUIT = 0x2,
+	SAV_AS = 0x4,
+	SAV_FORCED = 0x8
+} SAVE_WINDOW_FLAGS;
+
+/* Flags for EdFileEdit */
+typedef enum {
+	OPEN_LINEAL = 0x1,
+	OPEN_EXISTING = 3,
+	OPEN_ALWAYS = 4,
+	OPEN_NOLINFN = 0x20,
+	OPEN_DIRGIVEN = 0x40,
+	OPEN_NOFN = 0x80,
+	OPEN_HISTORY = 0x100
+} OPEN_WINDOW_FLAGS;
+
+/* Flags for printing */
+typedef enum {
+	PRT_CURRWI = 0x1,
+	PRT_FILE = 0x2,
+	PRT_CURRBLK = 0x3,
+	PRT_CLIP = 0x4,
+	PRT_TRASH = 0x5,
+	PRT_TYPES = 0x7
+} PRINT_FLAGS;
+
+/* Flags for ínserting a new line into the text */
+typedef enum {
+	RET_PLUS = 0x1,
+	RET_MINUS = 0x2,
+	RET_SOFT = 0x4
+} RETURN_ACTION_FLAGS;
+
+/* Flags for Listing operations (navigation along search result lists etc. */
+typedef enum {
+	LIST_START = 0,
+	LIST_PREV = 1,
+	LIST_CURR = 2,
+	LIST_NEXT = 3,
+	LIST_END = 4,
+	LIST_USETOPWINDOW = 0x100
+} LIST_OPERATION_FLAGS;
+
+/*
+ * Option to be used to query various internal states of PKS-Edit
+ * from within PKSMacroC.
+ */
+typedef enum {
+	QUERY_CLIPBOARDAVAIL = 0,
+	QUERY_HAS_SELECTION_START = 1,
+	QUERY_HAS_SELECTION_END = 2,
+	QUERY_HAS_SELECTION = 3,
+	QUERY_CURRENTFILE = 4,
+	QUERY_OPTIONS = 5,
+	QUERY_LAYOUTOPTIONS = 6,
+	QUERY_WORKMODE = 7,
+	QUERY_DISPLAYMODE = 8,
+	QUERY_FILEMODIFIED = 9,
+	QUERY_BLOCKXTNDMODE = 10
+} QUERY_EDITOR_OPTION;
+
+/*
+ * Used in list binding to define which type of binding should be displayed.
+ */
+typedef enum {
+	LISTB_MACROS = 0x1,
+	LISTB_KEYS = 0x2,
+	LISTB_MICE = 0x4,
+	LISTB_MENUS = 0x8
+} LIST_BINDING_OPTION;
+
+/* Flags for EdBlockPaste */
+typedef enum {
+	PASTE_QUERYID = 0x100,
+	PASTE_CLIP = 0x200,
+	PASTE_UNDO = 0x400,
+	PASTE_ICON = 0x1000
+} PASTE_FLAGS;
+
+/* Flags for Cut&EdBlockPaste */
+typedef enum {
+	CUT_QUERYID = 0x100,
+	CUT_APPND = 0x200,
+	CUT_USEPP = 0x400,
+	CUT_DELETE = 0x800
+} CUT_FLAGS;
+
+/* Flags for EdMacroRecorded */
+typedef enum {
+	MAC_AUTO = 1,
+	MAC_LASTREC = 2
+} RECORD_MACRO_OPTION;
+
+/* Flags for operations changing the selection in PKS-EDIT (EdSyncSelectionWithCaret) */
+typedef enum {
+	MARK_START = 3,
+	MARK_END = 4,
+	MARK_ALL = 5,
+	/* for internal use only */
+	MARK_COLUMN = 0x80		,
+	/* recalculate start/end relationship */
+	MARK_RECALCULATE = 0x100	,
+	/* do not hide the selection, if start mark is placed before an end mark - used internally only */
+	MARK_NO_HIDE = 0x200
+} MARK_SELECTION_OPTION;
+
+/*
+ * Enum type to define a direction of a movement etc...
+ */
+typedef enum {
+	DIR_NONE = 0,
+	DIR_FORWARD = 1,
+	DIR_BACKWARD = -1 ,
+	DIR_LEFT = -1,
+	DIR_RIGHT = 1
+} DIRECTION_OPTION;
+
+/*
+ * Option to expand tabs to spaces or vice versa
+ */
+typedef enum {
+	CT_EXPAND = 1,
+	CT_COMPRESS = 0
+} CT_OPTION;
+
+/*
+ * Types of operations to convert the spellling of characters
+ * in a range of text.
+ */
+typedef enum {
+	// Toggle upper/lower case spelling of all selected characters
+	CC_TOGGLE,
+	// Make all selected characters upper case
+	CC_UPPER,
+	// Make all selected characters lower case
+	CC_LOWER
+} CC_OPERATION;
+
+/*
+ * Operations to manage the PKS-Edit editor docks available
+ */
+typedef enum {
+	// Add / ensure, that a horizontal split exists
+	MD_ADD_HORIZONTAL,
+	// Add / ensure, that a vertical split exists
+	MD_ADD_VERTICAL,
+	// Ensure, that the main docking area is visible
+	MD_ENSURE_DEFAULT
+} MANAGE_DOCKS_TYPE;
 
 /*
  * Abondon all changes in the given editor.
@@ -1000,12 +1420,16 @@ native int GetLastError();
 
 /*
  * Read one line from the input file specified and return the string excluding the terminating newline.
+ * @see FileClose
+ * @see FileOpen
  */
 @Method(name="FileReadLine", signature="P")
 native string macroc_fileReadLine(FILE file);
 
 /*
  * Write one one line from the input file specified and including the terminating newline.
+ * @see FileClose
+ * @see FileOpen
  */
 @Method(name="FileWriteLine", signature="P")
 native string macroc_fileWriteLine(FILE file, string line);
@@ -1017,6 +1441,17 @@ native string macroc_fileWriteLine(FILE file, string line);
  */
 @Method(name="FileClose", signature="P")
 native string macroc_fileClose(FILE file);
+
+
+/*
+ * Open the file with the given name in the given mode. <code>mode</code> is one of "r" (read-only) "w" (for reading) and "w+" (for appending).
+ * @see FileClose
+ * @see FileTest
+ * @see FileWriteLine
+ * @see FileReadLine
+ */
+@Method(name="FileOpen", signature="P")
+native FILE macroc_fileOpen(string filename, string mode);
 
 /*
  * Test a number of flags to check the type/mode of a file.
@@ -1081,6 +1516,25 @@ native boolean ww_selectWindow(EDITOR anEditor);
  */
 @Method(name="EditorGetAll", signature="P")
 native EDITOR[] edit_getAllEditors();
+
+/*
+ * Returns the values contained in a map
+ */
+@Method(name="MapValues", signature="P")
+native auto[] memory_mapValues(map hashMap);
+
+/*
+ * Returns the map entries - the tuples of key and value - contained in a map.
+ * @see MAP_ENTRY
+ */
+@Method(name="MapEntries", signature="P")
+native MAP_ENTRY[] memory_mapEntries(map hashMap);
+
+/*
+ * Returns the map keys - all strings used as keys in a map.
+ */
+@Method(name="MapKeys", signature="P")
+native string[] memory_mapKeys(map hashMap);
 
 /*
  * Returns the file name of the editor passed with the editor handle. Note, that

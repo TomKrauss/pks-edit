@@ -64,7 +64,17 @@ int mainframe_messageLoop();
  */
 int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam);
 
-typedef enum { MD_ADD_HORIZONTAL, MD_ADD_VERTICAL, MD_ENSURE_DEFAULT } MANAGE_DOCKS_TYPE;
+/*
+ * Operations to manage the PKS-Edit editor docks available
+ */
+typedef enum {
+	// Add / ensure, that a horizontal split exists
+	MD_ADD_HORIZONTAL, 
+	// Add / ensure, that a vertical split exists
+	MD_ADD_VERTICAL,
+	// Ensure, that the main docking area is visible
+	MD_ENSURE_DEFAULT
+} MANAGE_DOCKS_TYPE;
 
 #define DOCK_NAME_RIGHT				"rightSlot"
 #define DOCK_NAME_BOTTOM			"bottomSlot"

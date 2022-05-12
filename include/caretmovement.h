@@ -18,12 +18,79 @@
 
 #include "documentmodel.h"
 
+ /* Describes options for moving the caret */
+typedef enum {
+    // Move a single character left right or a single line up down
+    MOT_SINGLE = 1,
+    // Move the caret to the end of the line / file
+    MOT_TOEND = 2,
+    // Move the caret by a number of words
+    MOT_WORD = 3,
+    // Move the caret up down page wise
+    MOT_PAGE = 3,
+    // Move the caret up down to the end of the screen
+    MOT_SCREEN = 4,
+    // Move the caret left right to a given character
+    MOT_UNTILC = 4,
+    // Move the caret up down by a paragraph (text)
+    MOT_PGRPH = 4,
+    // move to begin / end of file
+    MOT_FILE = 4,
+    // move to next space
+    MOT_SPACE = 5,
+    // move to center of page
+    MOT_CENTER = 5,
+    // If added to another option - extend the current selection
+    MOT_EXTEND_SELECTION = 0x100
+} CARET_MOVEMENT_OPTTION;
+
+/*
+ * Enum type to define a direction of a movement etc...
+ */
+typedef enum {
+    DIR_NONE = 0,
+    DIR_FORWARD = 1,
+    DIR_BACKWARD = -1,
+    DIR_LEFT = -1,
+    DIR_RIGHT = 1
+} DIRECTION_OPTION;
+
 /*--------------------------------------------------------------------------
  * caret_moveLeftRight()
- * Move the caret to the left or right. If motionFlags contains MOT_XTNDBLOCK
+ * Move the caret to the left or right. If motionFlags contains MOT_EXTEND_SELECTION
  * the selection is extended.
  */
-extern int caret_moveLeftRight(WINFO* wp, int direction, int motionFlags);
+extern int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVEMENT_OPTTION motionFlags);
+
+/*--------------------------------------------------------------------------
+ * EdCursorLeft()
+ */
+extern long long EdCursorLeft(WINFO* wp, CARET_MOVEMENT_OPTTION mtype);
+
+/*--------------------------------------------------------------------------
+ * EdCursorRight()
+ */
+extern long long EdCursorRight(WINFO* wp, CARET_MOVEMENT_OPTTION mtype);
+
+/*--------------------------------------------------------------------------
+ * EdCursorUp()
+ */
+extern long long EdCursorUp(WINFO* wp, CARET_MOVEMENT_OPTTION mtype);
+
+/*--------------------------------------------------------------------------
+ * EdCursorDown()
+ */
+extern long long EdCursorDown(WINFO* wp, CARET_MOVEMENT_OPTTION mtype);
+
+/*--------------------------------------------------------------------------
+ * EdChapterGotoBegin()
+ */
+extern long long EdChapterGotoBegin(WINFO* wp, DIRECTION_OPTION dir);
+
+/*--------------------------------------------------------------------------
+ * EdChapterGotoEnd()
+ */
+extern long long EdChapterGotoEnd(WINFO* wp, DIRECTION_OPTION dir);
 
 /*
  * Move the caret to add one or more secondary carets.
@@ -198,7 +265,7 @@ extern int caret_advanceSection(WINFO* wp, int dir, int start);
  * general cursor advancing in
  * vertical direction
  */
-extern long long caret_moveUpOrDown(WINFO* wp, int dir, int mtype);
+extern long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPTTION mtype);
 
 /*--------------------------------------------------------------------------
  * caret_moveToCurrentMousePosition()

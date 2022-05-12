@@ -278,7 +278,7 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 				}
 				break;
 			}
-			if (ln == pData->nCaretLine && (wp->dispmode & SHOWCARET_LINE_HIGHLIGHT)) {
+			if (ln == pData->nCaretLine && (wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT)) {
 				hBrush = hBrushCaretLine;
 			} else {
 				hBrush = hBrushBg;
@@ -455,7 +455,7 @@ static void hex_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 }
 
 static int hex_rendererSupportsMode(int aMode) {
-	if (aMode == SHOWRULER) {
+	if (aMode == SHOW_RULER) {
 		return 0;
 	}
 	return 1;

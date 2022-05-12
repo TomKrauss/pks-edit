@@ -68,7 +68,7 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 		}
 		s = (long)(strlen(data.string) + sizeof(COM_MAC));
 	} else {
-		s = interpreter_getParameterSize(typ, data.string);
+		s = interpreter_getParameterSize(typ, data.string ? data.string: "");
 	}
 	if ((spret = sp+s) > pBuffer->bb_end) {
 		yyerror(/*STR*/"Code generation buffer overflow. Macro to big.");

@@ -55,6 +55,7 @@
           "keywords": [
             "auto",
             "void",
+            "map",
             "do",
             "if",
             "enum",
@@ -81,7 +82,6 @@
             "string",
             "long",
             "boolean",
-            "map",
             "require",
             "new",
             "true",

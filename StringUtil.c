@@ -414,3 +414,10 @@ void stringbuf_truncate(STRING_BUF* pBuf, size_t nNewSize) {
 int stringbuf_getLineNumber(STRING_BUF* pBuf) {
 	return pBuf->sb_lineNumber;
 }
+
+/*
+ * Check, whether a strings starts with a given prefix. 
+ */
+int string_startsWith(const char* pszString, const char* pszPrefix) {
+	return strncmp(pszPrefix, pszString, strlen(pszPrefix)) == 0;
+}

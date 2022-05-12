@@ -45,7 +45,7 @@ static int help_open(char *szFile) {
 	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_RIGHT, -1 })) != NULL) {
 		WINFO* wp = fp ? WIPOI(fp) : ww_getCurrentEditorWindow();
 		if (wp) {
-			ww_changeDisplayMode(wp, wp->dispmode | SHOWWYSIWYG);
+			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
 		}
 		return 1;
 	}
