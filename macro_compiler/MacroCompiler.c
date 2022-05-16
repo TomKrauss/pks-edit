@@ -97,7 +97,7 @@ static int compile_lineInputNext(COMPILER_INPUT_STREAM* pStream) {
  * Invoke a callback to generate the contents of a file with
  * the given file name. If successful, open the file in PKS Edit.
  */
-BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
+BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp), int bWysiwyg) {
 	char tmpfn[EDMAXPATHLEN];
 	FILE *fp;
 
@@ -115,6 +115,9 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp)) {
 			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, &(FT_OPEN_OPTIONS) { 0, CP_ACP });
 			if (fpTable != NULL) {
 				fpTable->flags |= F_TRANSIENT;
+				if (bWysiwyg) {
+					ww_changeDisplayMode(WIPOI(fpTable), SHOW_WYSIWYG_DISPLAY);
+				}
 			}
 		}
 	} else {

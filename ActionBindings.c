@@ -734,3 +734,17 @@ KEYCODE bindings_addModifierKeysToKeycode(KEYCODE key)
 	return key;
 }
 
+/*
+ * Retrieve all action binding context identifiers available.
+ * Returns the number of existing bindings.
+ */
+int bindings_getBindingContexts(char* ppszContexts[20]) {
+	ACTION_BINDINGS* pBindings = _actionBindings;
+	int i = 0;
+	while (pBindings && i < 20) {
+		ppszContexts[i] = pBindings->ab_context;
+		pBindings = pBindings->ab_next;
+		i++;
+	}
+	return i;
+}

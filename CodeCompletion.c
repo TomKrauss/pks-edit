@@ -253,52 +253,7 @@ static void codecomplete_paintHelp(HWND hwnd) {
 static void codecomplete_helpWindowUpdateScrollbar(HWND hwnd, int bScrollChanged, WPARAM wParam) {
 	MARKDOWN_RENDERER_DATA* pData = codecompletehelp_getData(hwnd);
 	if (pData) {
-		RECT rect;
-		GetClientRect(hwnd, &rect);
-		SIZE size;
-		mdr_getViewpartsExtend(pData, &size, -1);
-		SCROLLINFO info = {
-			.cbSize = sizeof info,
-			.fMask = SIF_RANGE | SIF_PAGE | SIF_POS 
-		};
-		GetScrollInfo(hwnd, SB_VERT, &info);
-		info.nMin = 0;
-		info.nPage = rect.bottom;
-		info.nMax = size.cy;
-		if (bScrollChanged) {
-			int nCode = LOWORD(wParam);
-			if (nCode == SB_LINEUP) {
-				info.nPos--;
-			}
-			else if (nCode == SB_LINEDOWN) {
-				info.nPos++;
-			}
-			else if (nCode == SB_PAGEDOWN) {
-				info.nPos += 20;
-			}
-			else if (nCode == SB_PAGEUP) {
-				info.nPos -= 20;
-			}
-			else if (nCode == SB_TOP) {
-				info.nPos = 0;
-			}
-			else if (nCode == SB_BOTTOM) {
-				info.nPos = rect.bottom - size.cy;
-			}
-			else if (nCode == SB_ENDSCROLL) {
-				return;
-			}
-			else {
-				info.nPos = HIWORD(wParam);
-			}
-			if (info.nPos < 0) {
-				info.nPos = 0;
-			}
-		}
-		SetScrollInfo(hwnd, SB_VERT, &info, TRUE);
-		if (bScrollChanged) {
-			InvalidateRect(hwnd, 0, 0);
-		}
+		mdr_scrolled(hwnd, pData, wParam, bScrollChanged);
 	}
 }
 

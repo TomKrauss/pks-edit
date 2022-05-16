@@ -44,7 +44,7 @@ static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
 	char			*s;
 
-	s = bindings_printModifier(b,(KEYCODE)(shift<<8));
+	s = bindings_printModifier(b,(KEYCODE)shift);
 	if (button & MBUT_L) {
 		strcpy(s,"MLeft+");
 		s += 5;
@@ -61,63 +61,45 @@ static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 	return b;
 }
 
-/*--------------------------------------------------------------------------
- * print_commandDelimiter()
- */
-static char *print_commandDelimiter(char *d,char *command,char delim)
-{
-	sprintf(d,"%s%c",command,delim);
-	return d;
-}
+static void print_getNameAndComment(MACROREF macroref, char* comment, char* command) {
+	int findex = macroref.index;
+	MACRO* macp;
 
-/*--------------------------------------------------------------------------
- * print_comment()
- */
-static char *print_comment(char *d, const char *comment)
-{
-	if (!comment)
-		return "";
-	sprintf(d,"# %s",comment);
-	return d;
-}
-
-/*--------------------------------------------------------------------------
- * print_keybinding()
- * print one key binding in the following manner
- * KEYCODE | FUNCTION+PARS | REMARK
- */
-static void print_keybinding(FILE *fp, KEY_BINDING *kp, char delim)
-{
-	char 	comment[100],command[128],n1[100],n2[100];
-	int  		findex;
-	MACRO	*macp;
-
-	if (kp->keycode == 0 || kp->keycode == K_DELETED)
-		return;
-
-	findex = kp->macref.index;
 	comment[0] = 0;
 
 	/* prepare for invalid entries */
 
-	switch(kp->macref.typ) {
-		case CMD_MACRO:
-			if ((macp = macro_getByIndex(findex)) != 0)
-				strcpy(comment,MAC_COMMENT(macp)); 
-			break;
-		case CMD_CMDSEQ:
-			command_getTooltipAndLabel(kp->macref, comment, command);
-			break;
-		default:
-			strcpy(comment,"garbagge.."); 
-			findex = -1;
-			break;
+	switch (macroref.typ) {
+	case CMD_MACRO:
+		if ((macp = macro_getByIndex(findex)) != 0)
+			strcpy(comment, MAC_COMMENT(macp));
+		break;
+	case CMD_CMDSEQ:
+		command_getTooltipAndLabel(macroref, comment, command);
+		break;
+	default:
+		strcpy(comment, "illegal macro type");
+		findex = -1;
+		break;
 	}
-	mac_name(command, findex, (MACROREFTYPE)kp->macref.typ);
+	mac_name(command, findex, (MACROREFTYPE)macroref.typ);
+}
 
- 	fprintf(fp,"%-25s= %-25s%s\n",
-		bindings_keycodeToString(kp->keycode),print_commandDelimiter(n1,command,delim),
-		print_comment(n2,comment));
+/*--------------------------------------------------------------------------
+ * print_keybinding()
+ * print one key binding as an HTML table row
+ */
+static void print_keybinding(FILE *fp, KEY_BINDING *kp)
+{
+	char 	comment[MAC_COMMENTLEN],command[128];
+
+	if (kp->keycode == 0 || kp->keycode == K_DELETED)
+		return;
+
+	print_getNameAndComment(kp->macref, comment, command);
+ 	fprintf(fp,"<tr><td><code>%s</code></td><td><em>%s</em></td><td>%s</td></tr>\n",
+		bindings_keycodeToString(kp->keycode),command,
+		comment ? comment : "");
 }
 
 /*
@@ -156,33 +138,34 @@ static int print_collectKeybindings(KEY_BINDING* kp, void* pParam) {
 static int print_keyBindingsCallback(FILE *fp)
 {
 	KEY_BINDING *		kpd;
-	int	    		i,n;
+	int	    			n;
 	struct tagCOLLECTED_KEYBINDS collected;
+	char* szContexts[20];
 
-	char* pszContext = "default";
-	collected.nElements = 0;
-	collected.nCapacity = 300;
-	collected.table = calloc(collected.nCapacity, sizeof (KEY_BINDING));
-	bindings_forAllKeyBindingsDo(pszContext, print_collectKeybindings, &collected);
-	kpd = collected.table;
-	n = collected.nElements;
+	fprintf(fp, "<h3>Keyboard Bindings</h3>\n");
+	int nContext = bindings_getBindingContexts(szContexts);
+	for (int i = 0; i < nContext; i++) {
+		char* pszContext = szContexts[i];
+		collected.nElements = 0;
+		collected.nCapacity = 300;
+		collected.table = calloc(collected.nCapacity, sizeof(KEY_BINDING));
+		bindings_forAllKeyBindingsDo(pszContext, print_collectKeybindings, &collected);
+		kpd = collected.table;
+		n = collected.nElements;
 
-	qsort(kpd,n,sizeof *kpd,(int (*)(const void*, const void*))print_compareKeyBindings);
-	fprintf(fp, "\n\n//----------------------------------------\n");
-	fprintf(fp, "// This file contains the PKS Edit keyboard bindings\n");
-	fprintf(fp, "// To change the bindings\n");
-	fprintf(fp, "//   - add the keyboard shortcut (if in doubt use the insert shortcut function from the menu)\n");
-	fprintf(fp, "//   - add the command to bind to (code completion available)\n");
-	fprintf(fp, "//   - press F10 to compile this file\n");
-	fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
-	fprintf(fp,"//----------------------------------------\n");
-	fprintf(fp,"\n\noverride KEYS %s	# total %d bindings\n\n", pszContext, n);
+		qsort(kpd, n, sizeof * kpd, (int (*)(const void*, const void*))print_compareKeyBindings);
+		fprintf(fp, "<h4>Context %s</h4>\n", pszContext);
+		fprintf(fp, "<table style=\"width: 80%%\">\n");
+		fprintf(fp, "<tr><th>Key Combination</th><th>Binding</th><th>Description</th></tr>\n");
 
-	for (i = 0; i < n; i++) {
-		print_keybinding(fp, &kpd[i], i < n-1 ? ',' : ';');
+		for (int k = 0; k < n; k++) {
+			print_keybinding(fp, &kpd[k]);
+		}
+		fprintf(fp, "</table>\n");
+		free(kpd);
+
 	}
 
-	free(kpd);
 	return 1;
 }
 
@@ -190,7 +173,7 @@ static int print_keyBindingsCallback(FILE *fp)
  * print_saveKeyBindingsAndDisplay
  */
 int print_saveKeyBindingsAndDisplay(void) {
-	return macro_createFileAndDisplay("keys", print_keyBindingsCallback);
+	return macro_createFileAndDisplay("keys.html", print_keyBindingsCallback, 1);
 }
 
 
@@ -198,15 +181,15 @@ int print_saveKeyBindingsAndDisplay(void) {
  * print_mousebinding()
  * command clicks button shift comment
  */
-static void print_mousebinding(FILE *fp, MOUSE_EVENT_BINDING *mp, char delim)
+static void print_mousebinding(FILE *fp, MOUSE_EVENT_BINDING *mp)
 {
-	char 	command[128],button[30],b2[128],b3[128];
+	char 	command[128],button[64],comment[MAC_COMMENTLEN];
 
-	mac_name(command,mp->macref.index,mp->macref.typ);
+	print_getNameAndComment(mp->macref, comment, command);
 	print_buttonEvent(button,mp->button,mp->shift,mp->nclicks);
- 	fprintf(fp,"%-25s= %c %-25s%s\n",
-		button, ' ',
-		print_commandDelimiter(b2,command,delim),print_comment(b3,mp->msg.bt_text));
+ 	fprintf(fp,"<tr><td><code>%s</code></td><td>%s</td><td>%s</td></tr>\n",
+		button, 
+		command, mp->msg.bt_text ? mp->msg.bt_text : comment);
 }
 
 /*
@@ -245,31 +228,32 @@ static int print_collectMousebindings(MOUSE_EVENT_BINDING* mp, void* pParam) {
  */
 static int print_mouseBindingCallback(FILE *fp) {
 	MOUSE_EVENT_BINDING* mpd;
-	int	    	i, n;
+	int	    	n;
 	struct tagCOLLECTED_MOUSEBINDS collected;
+	char *szContexts[20];
 
-	char* pszContext = "default";
-	collected.nElements = 0;
-	collected.nCapacity = 300;
-	collected.table = calloc(collected.nCapacity, sizeof(struct tagCOLLECTED_MOUSEBINDS));
-	bindings_forAllMouseBindingsDo(pszContext, print_collectMousebindings, &collected);
-	mpd = collected.table;
-	n = collected.nElements;
-	qsort(mpd,n,sizeof *mpd,(int (*)(const void*, const void*))print_compareMousebindings);
-	fprintf(fp, "// This file contains the PKS Edit mouse bindings\n");
-	fprintf(fp, "// To change the bindings\n");
-	fprintf(fp, "//   - add the mouse click specification\n");
-	fprintf(fp, "//   - add the command to bind to (code completion available)\n");
-	fprintf(fp, "//   - press F10 to compile this file\n");
-	fprintf(fp, "//   - save the new keyboard bindings using Save Macros...\n");
-	fprintf(fp,"\n\n//----------------------------------------\n");
-	fprintf(fp,"\n\noverride MOUSE %s	# total %d bindings\n\n", pszContext, n);
+	int nContext = bindings_getBindingContexts(szContexts);
+	fprintf(fp, "<h3>Mouse Bindings</h3>\n");
+	for (int i = 0; i < nContext; i++) {
+		char* pszContext = szContexts[i];
+		collected.nElements = 0;
+		collected.nCapacity = 300;
+		collected.table = calloc(collected.nCapacity, sizeof(struct tagCOLLECTED_MOUSEBINDS));
+		bindings_forAllMouseBindingsDo(pszContext, print_collectMousebindings, &collected);
+		mpd = collected.table;
+		n = collected.nElements;
+		qsort(mpd, n, sizeof * mpd, (int (*)(const void*, const void*))print_compareMousebindings);
+		fprintf(fp, "<h4>Context %s</h4>\n", pszContext);
+		fprintf(fp, "<table style=\"width: 80%%\">\n");
+		fprintf(fp, "<tr><th>Mouse Button Combination</th><th>Binding</th><th>Description</th></tr>\n");
 
-	for (i = 0; i < n; i++) {
-		print_mousebinding(fp, &mpd[i], i < n-1 ? ',' : ';');
+		for (int m = 0; m < n; m++) {
+			print_mousebinding(fp, &mpd[m]);
+		}
+		fprintf(fp, "</table>\n");
+
+		free(mpd);
 	}
-
-	free(mpd);
 	return 1;
 }
 
@@ -278,7 +262,7 @@ static int print_mouseBindingCallback(FILE *fp) {
  */
 int print_saveMouseBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("mouse", print_mouseBindingCallback);
+	return macro_createFileAndDisplay("mouse.html", print_mouseBindingCallback,1);
 }
 
 static void print_indent(FILE* fp, int nIndent) {
@@ -370,7 +354,7 @@ static int print_menuCallback(FILE *fp)
  */
 int print_saveMenuBindingsAndDisplay(void)
 {
-	return macro_createFileAndDisplay("menu", print_menuCallback);
+	return macro_createFileAndDisplay("menu", print_menuCallback,0);
 }
 
 /*--------------------------------------------------------------------------

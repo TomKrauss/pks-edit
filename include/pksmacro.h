@@ -406,7 +406,7 @@ extern int print_saveMouseBindingsAndDisplay(void);
  * the given file name. If successful, open the file in PKS Edit.
  */
 #ifdef _FILE_DEFINED
-extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp));
+extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp), int bWysiwyg);
 #endif
 
 /*--------------------------------------------------------------------------

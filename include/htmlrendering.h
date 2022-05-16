@@ -62,5 +62,10 @@ extern char* mdr_linkClicked(MARKDOWN_RENDERER_DATA* pData, int cxMouse, int cyM
  */
 extern void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y);
 
+/*
+ * The vertical scrollbar was dragged - update the scrollbar and scroll the window contents.
+ */
+extern void mdr_scrolled(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, WPARAM wParam, BOOL bScrollChanged);
+
 #define HTMLRENDERING_H
 #endif 

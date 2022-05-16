@@ -1223,7 +1223,7 @@ int decompile_saveMacrosAndDisplay(char *macroname, DECOMPILATION_MODE nMode) {
 	}
 	strcat(szBuf, pszExtension);
 	_decompileFunction = nMode == DM_CODE ? decompile_macroCode : decompile_macroInstructions;
-	return macro_createFileAndDisplay(szBuf, decompile_printMacrosCallback);
+	return macro_createFileAndDisplay(szBuf, decompile_printMacrosCallback, 0);
 }
 
 

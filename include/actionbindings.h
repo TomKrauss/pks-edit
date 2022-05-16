@@ -184,5 +184,11 @@ extern KEYCODE bindings_addModifierKeysToKeycode(KEYCODE key);
  */
 extern int macro_getIndexForKeycode(KEYCODE* scan, char* name, int oldidx);
 
+/*
+ * Retrieve all action binding context identifiers available.
+ * Returns the number of existing bindings.
+ */
+extern int bindings_getBindingContexts(char* ppszContexts[20]);
+
 #define ACTION_BINDINGS_H
 #endif
