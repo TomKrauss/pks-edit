@@ -1582,20 +1582,26 @@ int EdListBindings(LIST_BINDING_OPTION lWhich)
 	}
 
 	if (lWhich & LISTB_KEYS) {
-		if (print_saveKeyBindingsAndDisplay() == 0) {
+		if (print_keyBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
 
 	if (lWhich & LISTB_MICE) {
-		if (print_saveMouseBindingsAndDisplay() == 0) {
+		if (print_mouseBindingsAndDisplay() == 0) {
 			return 0;
 		}
 	}
 
 	if (lWhich & LISTB_MENUS) {
-		if (print_saveMenuBindingsAndDisplay() == 0) {
+		if (print_menuBindingsAndDisplay() == 0) {
+			return 0;
+		}
+	}
+
+	if (lWhich & LISTB_MACROC_API) {
+		if (print_macrocDocumentationAndDisplay() == 0) {
 			return 0;
 		}
 	}

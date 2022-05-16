@@ -1544,7 +1544,7 @@ static struct tagHTML_TAG_MAPPING {
 	{"script", HTT_BLOCK, MET_FENCED_CODE_BLOCK, 0},
 	{"pre", HTT_BLOCK, MET_FENCED_CODE_BLOCK, 0},
 	{"table", HTT_BLOCK, MET_TABLE, 0, .tm_returnValues = 1},
-	{"hr", HTT_BLOCK, MET_HORIZONTAL_RULE, 0},
+	{"hr", HTT_BLOCK, MET_HORIZONTAL_RULE, 0, .tm_noCloseTag = 1},
 	{"tr", HTT_SPECIAL, MET_NONE, 0},
 	{"td", HTT_SPECIAL, MET_NONE, 0},
 	{"th", HTT_SPECIAL, MET_NONE, 0},
@@ -2320,7 +2320,6 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 	if (pState->hps_table) {
 		return;
 	}
-	pState->hps_blockLevel++;
 	if (pState->hps_blockLevel <= 1) {
 		int nLevel = pTag->ht_descriptor->tm_elementLevel;
 		if (mType == MET_UNORDERED_LIST) {
@@ -2332,6 +2331,9 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 			nLevel = pState->hps_orderedListListLevel;
 		}
 		pState->hps_part = mdr_newPart(pStream, pState, mType, nLevel);
+		if (mType == MET_HORIZONTAL_RULE) {
+			pState->hps_blockLevel = 0;
+		}
 		if (mType == MET_ORDERED_LIST) {
 			pState->hps_part->rvp_number = pState->hps_orderedListIndices[nLevel-1]++;
 		}

@@ -979,7 +979,8 @@
             { "command": "@macro-list" },
             { "command": "@key-list" },
             { "command": "@mouse-list" },
-            { "command": "@menu-list" }
+            { "command": "@menu-list" },
+            { "command": "@macroc-api-list" }
           ]
         },
         { "separator": true },

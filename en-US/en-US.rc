@@ -1684,7 +1684,7 @@ BEGIN
     IDS_COMMAND167          "Re-read the current file to undo all changes;Abandon File"
     IDS_COMMAND168          "Saves and closes the current editor window;Save & close"
     IDS_COMMAND169          "Inserts a line, caret stays;Insert line"
-    IDS_COMMAND170          "Edit more document settings;Editor settings"
+    IDS_COMMAND170          "Create the PKS-MacroC API documentation;MacroC API Documentation"
     IDS_COMMAND171          "Clear all text buffers;Clear all buffers"
     IDS_COMMAND172          "Delete all marked lines;Delete marked lines"
     IDS_COMMAND173          "Set multiplier for next command;Multiplier"

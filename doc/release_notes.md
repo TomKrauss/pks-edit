@@ -53,6 +53,7 @@ simple HTML formatting including hyperlink to more documentation.
   PKSMacroC code.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.
 - Error diagnostics of the PKSMacroC compiler and error handling in PKSMacroC has been improved (there is still room for improvement). 
+- One can create a PKSMacroC native method API documentation now from within PKS-Edit using the new menu point "Macro->View Bindings->MacroC API Documentation".
 
 #### Markdown wysiwyg mode
 - One can search now and find matches in markdown documents rendered in Wysiwyg format.

@@ -34,10 +34,16 @@ typedef enum {
  * Used in list binding to define which type of binding should be displayed.
  */
 typedef enum {
+	// Print and display all macros with documentation and source code
 	LISTB_MACROS = 0x1,
+	// Print and display the current keystroke action bindings
 	LISTB_KEYS = 0x2,
+	// Print and display the current mouse click action bindings
 	LISTB_MICE = 0x4,
-	LISTB_MENUS = 0x8
+	// Print and display the current list of menu bindings
+	LISTB_MENUS = 0x8,
+	// Print and display the PKSMacroC API
+	LISTB_MACROC_API = 0x10
 } LIST_BINDING_OPTION;
 
 /* Option flags for sorting text */

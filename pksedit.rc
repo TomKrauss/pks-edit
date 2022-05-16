@@ -1723,7 +1723,7 @@ BEGIN
     IDS_COMMAND167          "Liest die aktuelle Datei neu;Neu lesen"
     IDS_COMMAND168          "Sichert und schließt das Bearbeitungsfenster;Sichern & Schließen"
     IDS_COMMAND169          "Fügt eine Zeile ein, Cursor bleibt;Zeile einfügen"
-    IDS_COMMAND170          "Editiert weitere Dokumenteinstellungen;Edit erw. Dok"
+    IDS_COMMAND170          "PKS-MacroC API Documentation erzeugen;PKS-MacroC Api Dokumentation"
     IDS_COMMAND171          "Leert alle Text-Zwischenspeicher;Buffer leeren"
     IDS_COMMAND172          "Löscht alle markierten Zeilen;Lösche Liste"
     IDS_COMMAND173          "Setzt den Multiplikator für die nächste Funktion;Multiplikator"

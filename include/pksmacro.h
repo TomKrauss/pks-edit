@@ -199,9 +199,10 @@ extern void macro_getLabelFor(MACRO* mp, char* pszBuf, size_t nBufferSize);
 
 typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
 extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);
-extern int 		print_saveMouseBindingsAndDisplay(void);
-extern int 		print_saveKeyBindingsAndDisplay(void);
-extern int 		print_saveMenuBindingsAndDisplay(void);
+extern int 		print_mouseBindingsAndDisplay(void);
+extern int 		print_keyBindingsAndDisplay(void);
+extern int 		print_menuBindingsAndDisplay(void);
+extern int 		print_macrocDocumentationAndDisplay(void);
 
 /*
  * Decompile a macro with the given mode and return the result of the decompilation
@@ -398,7 +399,7 @@ extern long long macro_executeMacroByIndex(int macroindex);
 /*
  * print the current mouse bindings to a file and display them to the user.
  */
-extern int print_saveMouseBindingsAndDisplay(void);
+extern int print_mouseBindingsAndDisplay(void);
 
 /*---------------------------------
  * macro_createFileAndDisplay()
@@ -410,9 +411,9 @@ extern BOOL macro_createFileAndDisplay(char* fn, long (*callback)(FILE* fp), int
 #endif
 
 /*--------------------------------------------------------------------------
- * print_saveMenuBindingsAndDisplay()
+ * print_menuBindingsAndDisplay()
  */
-extern int print_saveMenuBindingsAndDisplay(void);
+extern int print_menuBindingsAndDisplay(void);
 
 /*------------------------------------------------------------
  * macro_readWriteWithFileSelection()

@@ -170,9 +170,9 @@ static int print_keyBindingsCallback(FILE *fp)
 }
 
 /*
- * print_saveKeyBindingsAndDisplay
+ * print_keyBindingsAndDisplay
  */
-int print_saveKeyBindingsAndDisplay(void) {
+int print_keyBindingsAndDisplay(void) {
 	return macro_createFileAndDisplay("keys.html", print_keyBindingsCallback, 1);
 }
 
@@ -260,7 +260,7 @@ static int print_mouseBindingCallback(FILE *fp) {
 /*
  * print the current mouse bindings to a file and display them to the user.
  */
-int print_saveMouseBindingsAndDisplay(void)
+int print_mouseBindingsAndDisplay(void)
 {
 	return macro_createFileAndDisplay("mouse.html", print_mouseBindingCallback,1);
 }
@@ -271,67 +271,38 @@ static void print_indent(FILE* fp, int nIndent) {
 	}
 }
 
-/*--------------------------------------------------------------------------
- * print_subMenu()
- */
-static void print_subMenu(FILE *fp, HMENU hMenu, int nIndent) {
-	MACROREF *	mp;
-	HMENU		hSubMenu;
-	UINT		wCount;
-	UINT		wState;
-	char		szText[128];
-	char		command[100];
-	int			nItem;
-	int			wID;
+static print_menuText(FILE* fp, BOUND_TEXT* pText, MACROREF command) {
+	char szTooltip[256];
+	char szTemp[256];
+	const char* pszText = bindings_getBoundText(pText);
+	if (!pszText) {
+		command_getTooltipAndLabel(command, szTooltip, szTemp);
+		pszText = szTemp;
+	}
+	fprintf(fp, "<b>%s</b>: ", pszText);
+}
 
-	wCount = GetMenuItemCount(hMenu);
-	for (nItem = 0; nItem < (int)wCount; ) {
-		wState = GetMenuState(hMenu, nItem, MF_BYPOSITION);
-		if (HIBYTE(wState) &&
-			(hSubMenu = GetSubMenu(hMenu, nItem)) != 0) {
-			GetMenuString(hMenu, nItem, szText, sizeof szText,
-				MF_BYPOSITION);
-			print_indent(fp, nIndent);
-			fprintf(fp,"{\"label\": \"%.*s\", \"sub-menu\": [\n", (int)(sizeof szText), szText);
-			print_subMenu(fp, hSubMenu, nIndent + 1);
-			for (int i = 0; i < nIndent; i++) {
-				fputc('\t', fp);
+static void print_menuDefinition(FILE* fp, MENU_ITEM_DEFINITION* pMid) {
+	while (pMid) {
+		if (pMid->mid_isSeparator) {
+			fprintf(fp, "<li>---</li>\n");
+		}
+		else {
+			fprintf(fp, "<li>");
+			print_menuText(fp, &pMid->mid_label, pMid->mid_command);
+			if (!pMid->mid_children) {
+				char 	comment[MAC_COMMENTLEN], command[128];
+				print_getNameAndComment(pMid->mid_command, comment, command);
+				fputs(command, fp);
 			}
-			fprintf(fp, "]}");
-		} else if (wState & MF_SEPARATOR) {
-			print_indent(fp, nIndent);
-			fprintf(fp,"{\"separator\": true}");
-		} else {
-			GetMenuString(hMenu, nItem, szText, sizeof szText,
-				MF_BYPOSITION);
-			wID = GetMenuItemID(hMenu, nItem);
-			if (wID <= 0 || (wID > IDM_HISTORY && wID < IDM_HISTORY + 10)) {
-				nItem++;
-				continue;
-			}
-			print_indent(fp, nIndent);
-			BOOL bAutoLabel = FALSE;
-			if ((mp = macro_translateMenuCommand(wID)) == 0) {
-				sprintf(command, "%d", wID);
-			} else {
-				bAutoLabel = TRUE;
-				mac_name(command, mp->index, mp->typ);
-			}
-			if (wID == IDM_HISTORY) {
-				fprintf(fp, "{\"history-menu\": true,");
-				fprintf(fp, "\"command\": \"%s\"},", command);
-			} else {
-				fprintf(fp, "{");
-				if (!bAutoLabel) {
-					fprintf(fp, "\"label\": \"%.*s\",", (int)(sizeof szText), szText);
-				}
-				fprintf(fp, "\"command\": \"%s\"}", command);
+			fprintf(fp, "</li>\n");
+			if (pMid->mid_children) {
+				fprintf(fp, "<ul>\n");
+				print_menuDefinition(fp, pMid->mid_children);
+				fprintf(fp, "</ul>\n");
 			}
 		}
-		if (++nItem < (int)wCount && wID != IDM_HISTORY) {
-			fprintf(fp, ",");
-		}
-		fprintf(fp, "\n");
+		pMid = pMid->mid_next;
 	}
 }
 
@@ -340,21 +311,59 @@ static void print_subMenu(FILE *fp, HMENU hMenu, int nIndent) {
  */
 static int print_menuCallback(FILE *fp)
 {
-	HMENU 	hMenu;
+	char* szContexts[20];
 
-	fprintf(fp,"\n\n\"menu\": [");
-	hMenu = GetMenu(hwndMain);
-	print_subMenu(fp, hMenu, 0);
-	fprintf(fp,"]\n");
+	int nContext = bindings_getBindingContexts(szContexts);
+	fprintf(fp, "<h3>Menu Bindings</h3>\n");
+	fprintf(fp, "<ul>\n");
+	for (int i = 0; i < nContext; i++) {
+		char* pszContext = szContexts[i];
+		fprintf(fp, "<h4>Context %s</h4>\n", pszContext);
+		MENU_ITEM_DEFINITION* pMid = bindings_getMenuBarFor(pszContext);
+		print_menuDefinition(fp, pMid);
+	}
+	fprintf(fp, "</ul>\n");
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
- * print_saveMenuBindingsAndDisplay()
+ * print_macrocDocumentationCallback()
  */
-int print_saveMenuBindingsAndDisplay(void)
+static int print_macrocDocumentationCallback(FILE* fp)
 {
-	return macro_createFileAndDisplay("menu", print_menuCallback,0);
+	char szNoDoc[512];
+	fprintf(fp, "<h3>PKSMacroC API</h3>\n");
+	for (int i = 0; i < _functionTableSize; i++) {
+		NATIVE_FUNCTION* fup = &_functionTable[i];
+		const char* pszApiDoc = macrodoc_helpForNativeFunction(fup->nf_name, fup);
+		if (!pszApiDoc) {
+			sprintf(szNoDoc, "<p><b>Synopsis</b>: %s()<br/>No documentation available</p>", fup->nf_name);
+			pszApiDoc = szNoDoc;
+		}
+		fputs(pszApiDoc, fp);
+		if (pszApiDoc != szNoDoc) {
+			free(pszApiDoc);
+		}
+		fputs("<hr/>", fp);
+	}
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * print_macrocDocumentationAndDisplay()
+ */
+int print_macrocDocumentationAndDisplay(void)
+{
+	return macro_createFileAndDisplay("macroc.html", print_macrocDocumentationCallback, 1);
+}
+
+
+/*--------------------------------------------------------------------------
+ * print_menuBindingsAndDisplay()
+ */
+int print_menuBindingsAndDisplay(void)
+{
+	return macro_createFileAndDisplay("menu.html", print_menuCallback, 1);
 }
 
 /*--------------------------------------------------------------------------

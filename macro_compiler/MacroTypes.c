@@ -119,11 +119,11 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	pDescriptor->ptd_hasDynamicSize = pTemplate->ptd_hasDynamicSize;
 	pDescriptor->ptd_isValueType = pTemplate->ptd_isValueType;
 	pDescriptor->ptd_isHandleType = pTemplate->ptd_isHandleType;
+	types_destroyDescriptorProperties(pDescriptor);
 	pDescriptor->ptd_numberOfProperties = pTemplate->ptd_numberOfProperties;
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
 	}
-	types_destroyDescriptorProperties(pDescriptor);
 	pDescriptor->ptd_numberOfProperties = pTemplate->ptd_numberOfProperties;
 	if (pTemplate->ptd_isEnumType) {
 		if (pTemplate->ptd_elements.ptd_enumValues) {

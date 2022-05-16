@@ -450,10 +450,16 @@ typedef enum {
  * Used in list binding to define which type of binding should be displayed.
  */
 typedef enum {
+	// Print and display all macros with documentation and source code
 	LISTB_MACROS = 0x1,
+	// Print and display the current keystroke action bindings
 	LISTB_KEYS = 0x2,
+	// Print and display the current mouse click action bindings
 	LISTB_MICE = 0x4,
-	LISTB_MENUS = 0x8
+	// Print and display the current list of menu bindings
+	LISTB_MENUS = 0x8,
+	// Print and display the PKSMacroC API
+	LISTB_MACROC_API = 0x10
 } LIST_BINDING_OPTION;
 
 /* Flags for EdBlockPaste */
@@ -763,7 +769,7 @@ native int EdSetMultiplier();
  * Returns the last multiplier set with SetMultiplier. Can be used in PKS-Edit MacroC code
  * to perform an operation multiple times.
  */
-@Method(name="SetMultiplier")
+@Method(name="GetMultiplier")
 native int EdGetMultiplier();
 
 /*
@@ -813,6 +819,14 @@ native int EdCursorRight(EDITOR editor);
  */
 @Method(name="CursorLeft", signature="iWeMOT_")
 native int EdCursorLeft(EDITOR editor);
+
+/*
+ * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
+ * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
+ */
+@Method(name="RegisterNative")
+native int function_registerNativeFunction(string pszMacroCName, string pszFunctionName, string pszModule,
+		string pszSignature, string pszDescription, string pszParameters);
 
 /*
  * Moves the input caret one line / page etc... up depending on
@@ -876,7 +890,7 @@ native int EdReplace();
 @Method(name="FindAgain", signature="ieDIR_")
 native int EdFindAgain(EDITOR editor);
 /*
- * Rpeat the last replacement in the given editor.
+ * Repeat the last replacement in the given editor.
  */
 @Method(name="ReplaceAgain")
 native int EdReplaceAgain(EDITOR editor);
@@ -972,6 +986,14 @@ native int EdExecute(int flags, string cmdline, string directory, string errfile
  */
 @Method(name="ShiftBetweenBrackets", signature="iWeDIR_")
 native int EdShiftBetweenBrackets(EDITOR editor);
+
+/*
+ * Interprete the clicked line as an "error output line" and try to navigate to the corresponding
+ * source code.
+ */
+@Method(name="FindErrorMouseClick")
+native int xref_navigateSearchErrorList(DIRECTION_OPTION dir);
+
 /*
  * Open a dialog to "sort" the current document.
  */
@@ -1616,4 +1638,9 @@ native int GetTickCount();
 @Method(lib="kernel32.dll")
 native int GetLastError();
 
+/*
+ * Internal MacroC API to register a type (enum or structured).
+ */
+@Method(name="RegisterType", signature="P")
+native int interpreter_registerType();
 

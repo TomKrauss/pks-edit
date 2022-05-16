@@ -48,7 +48,7 @@ static const char* macrodoc_pksTypeFromParamtype(PARAMETER_TYPE_DESCRIPTOR pt) {
 static void macrodoc_startHelpSection(STRING_BUF* pBuf, const char* pszName) {
 	stringbuf_appendString(pBuf, "<p><b>");
 	stringbuf_appendString(pBuf, pszName);
-	stringbuf_appendString(pBuf, "</b>:<br>");
+	stringbuf_appendString(pBuf, "</b>: ");
 }
 
 /*
