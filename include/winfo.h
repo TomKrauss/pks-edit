@@ -168,11 +168,20 @@ typedef void (*RENDERER_MOUSEMOVE)(WINFO* wp, int x, int y);
 
 typedef BOOL(*RENDERER_FIND_LINK)(WINFO* wp, char* pszDest, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult);
 
+typedef enum { PFR_CONTINUE, PFR_END_PAGE, PFR_END } PRINT_FRAGMENT_RESULT;
+
+typedef struct tagPRINT_LINE PRINT_LINE;
+
+typedef struct tagDEVEXTENTS DEVEXTENTS;
+
+typedef PRINT_FRAGMENT_RESULT(*RENDERER_PRINT_FRAGMENT)(HDC hdc, PRINT_LINE* pPrintLine, DEVEXTENTS* pExtents);
+
 // Repaint a range of "logical lines" starting with a logical screen colum and ending with a screen column
 // line numbers are counted in terms of internal buffer line indices.
 typedef int (*RENDERER_REPAINT)(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol);
 
 typedef LRESULT (*RENDERER_WINDOW_PROC)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
@@ -198,6 +207,7 @@ typedef struct tagRENDERER {
     const RENDERER_FIND_LINK r_findLink;                          // Optional callback to find a link at the "current" caret position.
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
     const RENDERER_WINDOW_PROC r_wndProc;                         // Custom window procedure used by this renderer.
+    const RENDERER_PRINT_FRAGMENT r_printFragment;                // May be implemented by renderers to support printing.
 } RENDERER;
 
 /*--------------------------------------------------------------------------

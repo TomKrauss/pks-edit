@@ -342,9 +342,11 @@ static int print_macrocDocumentationCallback(FILE* fp)
 		}
 		fputs(pszApiDoc, fp);
 		if (pszApiDoc != szNoDoc) {
-			free(pszApiDoc);
+			free((char*)pszApiDoc);
 		}
-		fputs("<hr/>", fp);
+		if (i < _functionTableSize - 1) {
+			fputs("<hr/>", fp);
+		}
 	}
 	return 1;
 }

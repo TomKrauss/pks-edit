@@ -68,6 +68,31 @@ typedef struct tagPRTPARAMS {	// print params
 	PAGE_MARGIN_ELEMENT footer;	// the footer to paint
 } PRTPARAM;
 
+typedef struct tagPRINT_LINE {
+	int wrappedLineOffset;	// normally 0. WHen a line is printed, which is wrapped print_signleLineOfText is called for every "segment line" with this being the
+							// offset of the lines printed before.
+	void* pElement;				// current element to print - type of element depends on renderer.
+	void* pLastElement;			// last element to print
+	BOOL produceOutput;		// Whether output should be produced.
+	int charHeight;			// character / line height
+	int firstc;				// first character index to print (mostly 0)
+	int lastc;				// last character index to print (mostly lp->len)
+	long lineNumber;		// number of line to print
+	long linesPrinted;		// The number of lines printed so far.
+	int  pagenumber;		// Current page number
+	int xPos;				// x position, where the printing starts
+	int yPos;				// y position, where the printing starts
+	int maxYPos;			// the available space in y direction
+} PRINT_LINE;
+
+typedef struct tagDEVEXTENTS {
+	int			xPage, yPage;
+	int			xLMargin, xRMargin;
+	int			yHeaderPos, yTop,
+		yFooterPos, yBottom;
+	int			headerSpace, lineHeight;
+} DEVEXTENTS;
+
 /* printing options */
 #define	PRTO_LINE_NUMBERS						0x1			// print line #
 #define	PRTO_SWAP_HEADER_FOOTER_ALIGNMENT		0x8			// swap h+f on alternate pages

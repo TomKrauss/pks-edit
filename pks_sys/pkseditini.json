@@ -56,8 +56,8 @@
             "decoration": 1,
             "font": {
                 "face": "Consolas",
-                "width": 0,
-                "height": 8
+                "width": 110,
+                "height": 180
             },
             "align": "center",
             "lines": 2,
@@ -70,8 +70,8 @@
             "decoration": 2,
             "font": {
                 "face": "Consolas",
-                "width": 0,
-                "height": 8
+                "width": 110,
+                "height": 180
             },
             "align": "center",
             "lines": 2,
@@ -81,8 +81,8 @@
         },
         "font": {
             "face": "Consolas",
-            "width": 0,
-            "height": 8
+            "width": 110,
+            "height": 180
         },
         "pagelen": 80,
         "lmargin": 5,

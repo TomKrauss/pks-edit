@@ -47,14 +47,6 @@
 
 #define DEFAULT_PRINT_COLOR RGB(0,0,0)
 
-typedef struct tagDEVEXTENTS {
-	int			xPage,yPage;
-	int			xLMargin,xRMargin;
-	int			yHeaderPos,yTop,
-				yFooterPos,yBottom;
-	int			headerSpace,lineHeight;
-} DEVEXTENTS;
-
 typedef struct tagPRINT_SCOPE {
 	FTABLE	*fp;
 	WINFO	*wp;
@@ -408,23 +400,10 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 	}
 }
 
-typedef struct tagPRINT_LINE {
-	int wrappedLineOffset;	// normally 0. WHen a line is printed, which is wrapped print_signleLineOfText is called for every "segment line" with this being the
-							// offset of the lines printed before.
-	LINE* lp;				// current line to print.
-	int charHeight;			// character / line height
-	int firstc;				// first character index to print (mostly 0)
-	int lastc;				// last character index to print (mostly lp->len)
-	long lineNumber;		// number of line to print
-	int xPos;				// x position, where the printing starts
-	int yPos;				// y position, where the printing starts
-	int maxYPos;			// the available space in y direction
-} PRINT_LINE;
-
 /*------------------------------------------------------------
  * print_singleLineOfText()
  */
-static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
+static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine) {
 	PRTPARAM* pParams = config_getPrintConfiguration();
 	char 	szBuff[80];
 	int		nCount;
@@ -434,6 +413,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 	int		nActualLine = 0;
 	int		nFirstActualLineToPrint = pLine->wrappedLineOffset;
 	int		nLinesPrinted = 1;
+	BOOL	printing = pLine->produceOutput;
 
 	int nDCId = SaveDC(hdc);
 	pLine->wrappedLineOffset = 0;
@@ -449,7 +429,8 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 		nMaxCharsPerLine = -nCount;
 	}
 	_currentPrintScope.wp->mincol = pLine->firstc;
-	max = caret_lineOffset2screen(_currentPrintScope.wp, &(CARET) {.linePointer = pLine->lp, .offset = pLine->lp->len});
+	LINE* lp = (LINE*)pLine->pElement;
+	max = caret_lineOffset2screen(_currentPrintScope.wp, &(CARET) {.linePointer = lp, .offset = lp->len});
 	if (max > pLine->lastc) {
 		max = pLine->lastc;
 	}
@@ -467,7 +448,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 	if (_currentPrintScope.wp->maxcol > pLine->firstc) {
 		if (nActualLine >= nFirstActualLineToPrint) {
 			if (printing) {
-				pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+				pRender(&rc, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
 			}
 		}
 		while (_currentPrintScope.wp->maxcol < max) {
@@ -490,7 +471,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine, BOOL printing) {
 				nLinesPrinted++;
 				if (printing) {
 					ExcludeClipRect(hdc, 0, pLine->yPos, xPos, pLine->yPos + pLine->charHeight);
-					pRender(&rc, xPos, pLine->yPos, pLine->lp, pLine->lineNumber);
+					pRender(&rc, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
 				}
 			}
 		}
@@ -528,35 +509,57 @@ static int print_isInPrintRange(PRTPARAM *pParams, WINFO *wp, int nCurrentPage, 
 	return 0;
 }
 
+/*
+ * Default printing implementation to print in standard ASCII mode. 
+ */
+PRINT_FRAGMENT_RESULT print_asciiLines(HDC hdc, PRINT_LINE* printLineParam, DEVEXTENTS*	pExtents) {
+	if (printLineParam->yPos + pExtents->lineHeight > printLineParam->maxYPos) {
+footerprint:
+		if (!printLineParam->pElement || P_EQ(printLineParam->pElement, printLineParam->pLastElement))
+			return PFR_END;
+		printLineParam->yPos = 0;
+		printLineParam->pagenumber++;
+		return PFR_END_PAGE;
+	}
+	else {
+		int nLinesPrinted = print_singleLineOfText(hdc, printLineParam);
+		printLineParam->linesPrinted += nLinesPrinted;
+		if (printLineParam->wrappedLineOffset == 0) {
+			LINE* lp = (LINE*)printLineParam->pElement;
+			if (P_EQ(printLineParam->pElement, printLineParam->pLastElement) || (printLineParam->pElement = lp->next) == 0)
+				goto footerprint;
+			printLineParam->lineNumber++;
+		}
+	}
+	return PFR_CONTINUE;
+}
+
 /*------------------------------------------------------------
  * PrintPage()
-
  * Print the current document / file. Returns the number of lines actually printed.
  */
 static int print_file(HDC hdc, BOOL measureOnly)
 {	char 		message[128];
-	long		oldpageno,pageno;
-	long		linesPrinted = 0;
+	long		oldpageno;
 	BOOL		printing = TRUE;
-	BOOL		produceOutput;
 	DEVEXTENTS	de;
 	TEXTMETRIC	textMetrics;
 	FTABLE*		fp = _currentPrintScope.fp;
-	LINE 		*lplast;
 	PRTPARAM	*pp = config_getPrintConfiguration();
 	PRINT_LINE	printLineParam;
 
-	lplast = _currentPrintScope.lplast;
 
 	print_getDeviceExtents(hdc, &de);
 	print_selectfont(hdc,&pp->font);
 	GetTextMetrics(hdc, &textMetrics);
 	oldpageno = 0;
-	pageno = 1;
+	printLineParam.linesPrinted = 0;
+	printLineParam.pagenumber = 1;
+	printLineParam.pLastElement = _currentPrintScope.lplast;
 	printLineParam.wrappedLineOffset = 0;
 	printLineParam.yPos = 0;
 	printLineParam.xPos = de.xLMargin;
-	printLineParam.lp = _currentPrintScope.lp;
+	printLineParam.pElement = _currentPrintScope.lp;
 	printLineParam.charHeight = de.lineHeight;
 	printLineParam.firstc = _currentPrintScope.firstColumn;
 	printLineParam.lastc = _currentPrintScope.lastColumn;
@@ -568,57 +571,52 @@ static int print_file(HDC hdc, BOOL measureOnly)
 	} else {
 		_currentPrintScope.wp->dispmode |= SHOW_SYNTAX_HIGHLIGHT;
 	}
-	while (printLineParam.lp) {
-		if (oldpageno != pageno) {
+	while (printLineParam.pElement) {
+		if (oldpageno != printLineParam.pagenumber) {
 			if (measureOnly) {
 				printing = TRUE;
 			} else {
-				printing = print_isInPrintRange(pp, wp, pageno, printLineParam.lineNumber);
+				printing = print_isInPrintRange(pp, wp, printLineParam.pagenumber, printLineParam.lineNumber);
 				if (printing < 0) {
 					break;
 				}
 			}
-			produceOutput = printing && !measureOnly;
-			if (!PREVIEWING() && produceOutput) {
+			printLineParam.produceOutput = printing && !measureOnly;
+			if (!PREVIEWING() && printLineParam.produceOutput) {
 				wsprintf(message,/*STR*/"%s - %s (Seite %ld)",
 						(LPSTR)szAppName,
 					  	(LPSTR)string_abbreviateFileName(ft_visibleName(fp)),
-					  	pageno);
+						printLineParam.pagenumber);
 				progress_showMonitorMessage(message); 
 			}
-			oldpageno = pageno;
+			oldpageno = printLineParam.pagenumber;
 		}
 		if (printLineParam.yPos == 0) {
-			if (produceOutput) {
+			if (printLineParam.produceOutput) {
 				StartPage(hdc);
 				print_resetDeviceMode(hdc);
-				print_headerOrFooter(hdc, &de, de.yHeaderPos, pageno,
+				print_headerOrFooter(hdc, &de, de.yHeaderPos, printLineParam.pagenumber,
 					pp->header.pme_template, pp, TRUE);
 				print_selectfont(hdc,&pp->font);
 			}
 			printLineParam.yPos = de.yTop;
 		}
-		if (printLineParam.yPos+de.lineHeight > printLineParam.maxYPos) {
-footerprint:
-			if (produceOutput) {
-				print_headerOrFooter(hdc,&de,de.yFooterPos,pageno,pp->footer.pme_template, pp, FALSE);
+		RENDERER_PRINT_FRAGMENT fPrint = wp->renderer->r_printFragment;
+		if (!fPrint) {
+			fPrint = print_asciiLines;
+		}
+		PRINT_FRAGMENT_RESULT pfrResult = fPrint(hdc, &printLineParam, &de);
+		if (pfrResult == PFR_END_PAGE || pfrResult == PFR_END) {
+			if (printLineParam.produceOutput) {
+				print_headerOrFooter(hdc, &de, de.yFooterPos, printLineParam.pagenumber, pp->footer.pme_template, pp, FALSE);
 				EndPage(hdc);
 			}
-			if (!printLineParam.lp || P_EQ(printLineParam.lp,lplast))
+			if (pfrResult == PFR_END) {
 				break;
-			printLineParam.yPos = 0;
-			pageno++;
-		} else {
-			int nLinesPrinted = print_singleLineOfText(hdc, &printLineParam, produceOutput);
-			linesPrinted += nLinesPrinted;
-			if (printLineParam.wrappedLineOffset == 0) {
-				if (P_EQ(printLineParam.lp, lplast) || (printLineParam.lp = printLineParam.lp->next) == 0)
-					goto footerprint;
-				printLineParam.lineNumber++;
 			}
 		}
 	}
-	return linesPrinted;
+	return printLineParam.linesPrinted;
 }
 
 /*

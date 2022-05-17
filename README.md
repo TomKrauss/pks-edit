@@ -76,7 +76,7 @@ To enhance the macro compiler, you need win__flex and win__bison. You may downlo
 here. We currently use the latest version 2.5.25.
 - https://github.com/lexxmark/winflexbison
 Install win_flex and win_bison into a directory GNU_HOME/bin and set the environment variable GNU_HOME to
-point to that directory: The bin directory containing the files should be below GNU_HOME.
+point to that directory: The bin directory containing the files should be placed below GNU_HOME.
 
 In order to edit the or execute the installation script (pksedit.iss), you need to download
 [Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2).

@@ -371,8 +371,9 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_pElements;	// The render view parts to be rendered
 	HWND md_hwndTooltip;
 	TEXT_RUN* md_focussedRun;
-	long md_minln;
+	RENDER_VIEW_PART* md_focussedPart;
 	RENDER_VIEW_PART* md_caretView;
+	RENDER_VIEW_PART* md_previousCaretView;
 	TEXT_RUN* md_caretRun;
 	int md_caretRunIndex;
 	int md_caretPartIndex;
@@ -728,10 +729,10 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			pPartBounds->bottom = y + nHeight;
 			pPartBounds->left = x;
 			pPartBounds->right = x + size.cx;
-			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y;
-			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPartBounds->bottom;
-			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x;
-			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPartBounds->right;
+			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
+			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPartBounds->bottom - pPartBounds->top;
+			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
+			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPartBounds->right - pPartBounds->left;
 		} else {
 			int nTotalWidth = nRight - x;
 			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nTotalWidth, &nFit, 0 /* TODO: callback for measuring*/, &size);
@@ -745,23 +746,23 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			}
 			if (bRunBegin) {
 				nDeltaPainted = 0;
-				pTR->tr_bounds.top1 = pTR->tr_bounds.top = y;
-				pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = y + nHeight;
-				pTR->tr_bounds.left = pTR->tr_bounds.left1 = x;
-				pTR->tr_bounds.right = pTR->tr_bounds.right2 = x + size.cx;
+				pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
+				pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pTR->tr_bounds.top + nHeight;
+				pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
+				pTR->tr_bounds.right = pTR->tr_bounds.right2 = x + size.cx - pPartBounds->left;
 			}
 			else {
 				if (pTR->tr_bounds.top == pTR->tr_bounds.top1) {
-					pTR->tr_bounds.top = y;
+					pTR->tr_bounds.top = y - pPartBounds->top;
 				}
 				if (nFit < nLen) {
-					pTR->tr_bounds.bottom = y + nHeight;
+					pTR->tr_bounds.bottom = y + nHeight - pPartBounds->top;
 				}
 				else {
-					pTR->tr_bounds.bottom2 = y + nHeight;
+					pTR->tr_bounds.bottom2 = y + nHeight - pPartBounds->top;
 				}
-				pTR->tr_bounds.left = x;
-				pTR->tr_bounds.right2 = x + size.cx;
+				pTR->tr_bounds.left = x - pPartBounds->left;
+				pTR->tr_bounds.right2 = x + size.cx - pPartBounds->left;
 			}
 			if (nFit < nLen) {
 				int nFindSpace = 0;
@@ -2962,26 +2963,8 @@ static int mdr_getViewpartAtY(RENDER_VIEW_PART* pFirst, int nY) {
 	return -1;
 }
 
-typedef struct BOUNDS_DELTA {
-	RENDER_VIEW_PART* bd_part;
-	int bd_nDelta;
-} BOUNDS_DELTA;
-
-static int mdr_updateRunBounds(TEXT_RUN* pRun, BOUNDS_DELTA* pDelta) {
-	int nDelta = pDelta->bd_nDelta;
-	pRun->tr_bounds.top += nDelta;
-	pRun->tr_bounds.top1 += nDelta;
-	pRun->tr_bounds.bottom += nDelta;
-	pRun->tr_bounds.bottom2 += nDelta;
-	return 1;
-}
-
 static void mdr_updatePartBounds(RENDER_VIEW_PART* pPart, int nDelta) {
 	while (pPart) {
-		mdr_forRunListDo(pPart, mdr_updateRunBounds, &(BOUNDS_DELTA){
-			.bd_part = pPart,
-			.bd_nDelta = nDelta
-		});
 		pPart->rvp_bounds.top += nDelta;
 		pPart->rvp_bounds.bottom += nDelta;
 		pPart = pPart->rvp_next;
@@ -3055,46 +3038,37 @@ static long mdr_calculateMaxLine(WINFO* wp) {
 }
 
 static int mdr_adjustScrollBounds(WINFO* wp) {
-	SIZE s2;
-	SIZE s1;
+	SIZE size;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	int oldminLn = pData->md_minln;
-	if (pData->md_caretPartIndex <= pData->md_minln) {
-		pData->md_minln = pData->md_caretPartIndex;
+	SCROLLINFO info = {
+		.cbSize = sizeof info,
+		.fMask = SIF_POS
+	};
+	GetScrollInfo(wp->ww_handle, SB_VERT, &info);
+	RECT rect;
+	GetClientRect(wp->ww_handle, &rect);
+	RENDER_VIEW_PART* pCaret = pData->md_caretView;
+	mdr_getViewpartsExtend(pData, &size, pData->md_caretPartIndex);
+	int nNewY;
+	int nScreenHeight = rect.bottom - rect.top;
+	int nUse = pCaret ? pCaret->rvp_height : 10;
+	if (nUse > nScreenHeight) {
+		nUse = nScreenHeight;
+	}
+	int nMaxY = info.nPos + nScreenHeight - nUse;
+	if (size.cy < info.nPos) {
+		nNewY = size.cy;
+	} else if (size.cy > nMaxY) {
+		nNewY = size.cy - nScreenHeight + nUse;
 	} else {
-		RECT rect;
-		GetClientRect(wp->ww_handle, &rect);
-		int height = rect.bottom - rect.top;
-		mdr_getViewpartsExtend(pData, &s2, pData->md_caretPartIndex+1);
-		while(1) {
-			mdr_getViewpartsExtend(pData, &s1, pData->md_minln);
-			int delta = s2.cy - s1.cy;
-			if (delta > height) {
-				pData->md_minln++;
-			}
-			else {
-				break;
-			}
-		}
-	}
-	if (pData->md_minln < 0) {
-		pData->md_minln = 0;
-	}
-	int delta = oldminLn - pData->md_minln;
-	if (delta == 0) {
 		return 0;
 	}
-	RECT r;
-	GetClientRect(wp->ww_handle, &r);
-	RENDER_VIEW_PART* pPartStartOfPage = mdr_getViewPartAt(pData->md_pElements, pData->md_minln);
-	// Hack: for now we need to update maxcursln and mincursln as they are used independently of the renderer.
-	wp->mincursln = pData->md_minln;
-	wp->maxcursln = mdr_getViewpartAtY(pPartStartOfPage, r.bottom - r.top) + wp->mincursln;
+	wp->maxcursln = mdr_getViewpartAtY(pData->md_pElements, nNewY);
+	wp->mincursln = mdr_getViewpartAtY(pData->md_pElements, nNewY-nScreenHeight);
 	if (pData->md_hwndTooltip) {
 		ShowWindow(pData->md_hwndTooltip, SW_HIDE);
 	}
-	mdr_getViewpartsExtend(pData, &s1, pData->md_minln);
-	mdr_scrolled(wp->ww_handle, pData, MAKELPARAM(SB_THUMBPOSITION, s1.cy), TRUE);
+	mdr_scrolled(wp->ww_handle, pData, MAKELPARAM(SB_THUMBPOSITION, nNewY), TRUE);
 	return 1;
 }
 
@@ -3429,10 +3403,26 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	return 1;
 }
 
-static BOOL mdr_hitTestTextRuns(TEXT_RUN* pRuns, POINT pPoint, long* pCol, TEXT_RUN** pMatchedRun) {
+static RUN_BOUNDS mdr_getRunBounds(RENDER_VIEW_PART* pPart, TEXT_RUN* pRun) {
+	int offsetY = pPart->rvp_bounds.top;
+	int offsetX = pPart->rvp_bounds.left;
+	RUN_BOUNDS rb = pRun->tr_bounds;
+	rb.bottom += offsetY;
+	rb.bottom2 += offsetY;
+	rb.top += offsetY;
+	rb.top1 += offsetY;
+	rb.left += offsetX;
+	rb.left1 += offsetX;
+	rb.right += offsetX;
+	rb.right2 += offsetX;
+	return rb;
+}
+
+static BOOL mdr_hitTestTextRuns(TEXT_RUN* pRuns, RENDER_VIEW_PART* pPart, POINT pPoint, long* pCol, TEXT_RUN** pMatchedRun) {
 	long nCol = 0;
 	while (pRuns) {
-		if (runbounds_contains(&pRuns->tr_bounds, pPoint)) {
+		RUN_BOUNDS rb = mdr_getRunBounds(pPart, pRuns);
+		if (runbounds_contains(&rb, pPoint)) {
 			*pCol = nCol;
 			*pMatchedRun = pRuns;
 			return TRUE;
@@ -3448,13 +3438,14 @@ typedef struct tagHIT_TEST_RUNLIST {
 	long htr_resultColumn;
 	int  htr_cx;
 	int  htr_cy;
+	RENDER_VIEW_PART* htr_part;
 	TEXT_RUN* htr_matchedRun;
 } HIT_TEST_RUNLIST;
 
 static int mdr_hitTestRunList(TEXT_RUN* pRuns, HIT_TEST_RUNLIST* pParam) {
 	long intraCol;
 	pParam->htr_matchedRun = 0;
-	if (mdr_hitTestTextRuns(pRuns, (POINT) { pParam->htr_cx, pParam->htr_cy }, & intraCol, & pParam->htr_matchedRun)) {
+	if (mdr_hitTestTextRuns(pRuns, pParam->htr_part, (POINT) { pParam->htr_cx, pParam->htr_cy }, & intraCol, & pParam->htr_matchedRun)) {
 		pParam->htr_resultColumn = intraCol + pParam->htr_currentColumn;
 		return FALSE;
 	}
@@ -3467,18 +3458,20 @@ static BOOL mdr_hitTestInternal(MARKDOWN_RENDERER_DATA* pData, int cx, int cy, l
 	if (!pData) {
 		return FALSE;
 	}
-	RENDER_VIEW_PART* pPart = mdr_getViewPartAt(pData->md_pElements, pData->md_minln);
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	long ln = 0;
 	POINT pt = { cx, cy };
 	HIT_TEST_RUNLIST param = {
 		.htr_cx = cx,
 		.htr_cy = cy,
 	};
-	long ln = pData->md_minln;
 	while (pPart) {
+		// TODO: optimize
 		if (PtInRect(&pPart->rvp_bounds, pt)) {
 			*pLine = ln; 
 			param.htr_currentColumn = 0;
 			param.htr_matchedRun = 0;
+			param.htr_part = pPart;
 			mdr_forRunListDo(pPart, mdr_hitTestRunList, &param);
 			if (param.htr_matchedRun) {
 				*pMatchedRun = param.htr_matchedRun;
@@ -3516,20 +3509,22 @@ static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
 	mdr_hitTestInternal(wp->r_data, cx, cy, pLine, pCol, &pMatchP, &pMatchR);
 }
 
-static void mdr_setRollover(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
-	if (!pRun || pRun->tr_attributes.rollover == aFlag || !pRun->tr_link) {
+static void mdr_setRollover(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, BOOL aFlag) {
+	if (!pRun || !pPart || pRun->tr_attributes.rollover == aFlag || !pRun->tr_link) {
 		return;
 	}
 	pRun->tr_attributes.rollover = aFlag;
-	InvalidateRect(hwnd, (RECT*) & pRun->tr_bounds, FALSE);
+	RUN_BOUNDS rb = mdr_getRunBounds(pPart, pRun);
+	InvalidateRect(hwnd, (RECT*) &rb, FALSE);
 }
 
-static void mdr_setFocussed(HWND hwnd, TEXT_RUN* pRun, BOOL aFlag) {
-	if (!pRun || pRun->tr_attributes.focussed == aFlag || !pRun->tr_link) {
+static void mdr_setFocussed(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, BOOL aFlag) {
+	if (!pRun || !pPart || pRun->tr_attributes.focussed == aFlag || !pRun->tr_link) {
 		return;
 	}
 	pRun->tr_attributes.focussed = aFlag;
-	InvalidateRect(hwnd, (RECT*)&pRun->tr_bounds, FALSE);
+	RUN_BOUNDS rb = mdr_getRunBounds(pPart, pRun);
+	InvalidateRect(hwnd, (RECT*)&rb, FALSE);
 }
 
 /*
@@ -3547,9 +3542,10 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 	if (pMatchR == pData->md_focussedRun) {
 		return;
 	}
-	mdr_setRollover(hwnd, pData->md_focussedRun, FALSE);
+	mdr_setRollover(hwnd, pData->md_focussedPart, pData->md_focussedRun, FALSE);
 	pData->md_focussedRun = pMatchR;
-	mdr_setRollover(hwnd, pMatchR, TRUE);
+	pData->md_focussedPart = pMatchP;
+	mdr_setRollover(hwnd, pMatchP, pMatchR, TRUE);
 	TTTOOLINFO toolinfo = { 0 };
 	toolinfo.cbSize = sizeof(toolinfo);
 	toolinfo.hwnd = hwnd;
@@ -3559,8 +3555,9 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 		toolinfo.lpszText = pMatchR->tr_title;
 		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
 		POINT pt;
-		pt.x = pMatchR->tr_bounds.left1;
-		pt.y = pMatchR->tr_bounds.top1 - 20;
+		RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView, pMatchR);
+		pt.x = rb.left1;
+		pt.y = rb.top1 - 20;
 		ClientToScreen(hwnd, &pt);
 		SendMessage(pData->md_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x, pt.y));
 	} else {
@@ -3602,7 +3599,8 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 	case WM_KILLFOCUS:
 	case WM_SETFOCUS:
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_caretRun) {
-			InvalidateRect(hwnd, (RECT*) & pData->md_caretRun->tr_bounds, 0);
+			RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView, pData->md_caretRun);
+			InvalidateRect(hwnd, (RECT*) & rb, 0);
 		}
 		break;
 	case WM_VSCROLL:
@@ -3675,9 +3673,10 @@ static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 	if (pPart) {
 		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
 		if (pRun) {
-			*pCY = pRun->tr_bounds.top1;
-			*pCX = pRun->tr_bounds.left1;
-			*pHeight = pRun->tr_bounds.bottom - pRun->tr_bounds.top1;
+			RUN_BOUNDS rb = mdr_getRunBounds(pPart, pRun);
+			*pCY = rb.top1;
+			*pCX = rb.left1;
+			*pHeight = rb.bottom - rb.top1;
 		}
 		else {
 			*pCY = pPart->rvp_bounds.top;
@@ -3686,11 +3685,12 @@ static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 		}
 		if (pRun != pData->md_caretRun) {
 			if (pData->md_caretRun) {
-				mdr_setFocussed(wp->ww_handle, pData->md_caretRun, FALSE);
+				mdr_setFocussed(wp->ww_handle, pData->md_previousCaretView, pData->md_caretRun, FALSE);
 			}
 			pData->md_caretRun = pRun;
 			if (pRun) {
-				mdr_setFocussed(wp->ww_handle, pRun, TRUE);
+				mdr_setFocussed(wp->ww_handle, pData->md_caretView, pRun, TRUE);
+				pData->md_previousCaretView = pData->md_caretView;
 			}
 		}
 		if (*pHeight <= 2) {
