@@ -217,19 +217,6 @@ static int print_calculateRatio(int total, int mul, int div)
 	return (total * (long)mul / (long)div);
 }
 
-/*------------------------------------------------------------
- * print_ntextlines()
- * Returns the number of content lines printed on one page (excluding header and footer).
- */
-static int print_ntextlines(DEVEXTENTS* dep) {
-	PRTPARAM	*pp = config_getPrintConfiguration();
-
-	int n =(dep->yFooterPos - dep->yHeaderPos) / pp->font.fs_cheight;
-	n -= pp->header.pme_lines;
-	n -= pp->footer.pme_lines;
-	return n;
-}
-
 /*--------------------------------------------------------------------------
  * print_resetDeviceMode()
  */
@@ -403,9 +390,10 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
 /*------------------------------------------------------------
  * print_singleLineOfText()
  */
-static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine) {
+static int print_singleLineOfText(RENDER_CONTEXT* pRC, PRINT_LINE *pLine) {
 	PRTPARAM* pParams = config_getPrintConfiguration();
 	char 	szBuff[80];
+	HDC		hdc = pRC->rc_hdc;
 	int		nCount;
 	int		max;
 	int		xPos = pLine->xPos;
@@ -439,16 +427,11 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine) {
 	if (_currentPrintScope.wp->maxcol > nMaxCharsPerLine) {
 		_currentPrintScope.wp->maxcol = nMaxCharsPerLine;
 	}
-	RENDER_CONTEXT rc;
-	rc.rc_hdc = hdc;
-	rc.rc_wp = _currentPrintScope.wp;
-	rc.rc_printing = TRUE;
-	rc.rc_theme = theme_getDefault();
 	RENDER_LINE_FUNCTION pRender = _currentPrintScope.wp->renderer->r_renderLine;
 	if (_currentPrintScope.wp->maxcol > pLine->firstc) {
 		if (nActualLine >= nFirstActualLineToPrint) {
 			if (printing) {
-				pRender(&rc, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
+				pRender(pRC, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
 			}
 		}
 		while (_currentPrintScope.wp->maxcol < max) {
@@ -471,7 +454,7 @@ static int print_singleLineOfText(HDC hdc, PRINT_LINE *pLine) {
 				nLinesPrinted++;
 				if (printing) {
 					ExcludeClipRect(hdc, 0, pLine->yPos, xPos, pLine->yPos + pLine->charHeight);
-					pRender(&rc, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
+					pRender(pRC, xPos, pLine->yPos, pLine->pElement, pLine->lineNumber);
 				}
 			}
 		}
@@ -512,7 +495,8 @@ static int print_isInPrintRange(PRTPARAM *pParams, WINFO *wp, int nCurrentPage, 
 /*
  * Default printing implementation to print in standard ASCII mode. 
  */
-PRINT_FRAGMENT_RESULT print_asciiLines(HDC hdc, PRINT_LINE* printLineParam, DEVEXTENTS*	pExtents) {
+PRINT_FRAGMENT_RESULT print_asciiLines(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam, DEVEXTENTS*	pExtents) {
+	HDC hdc = pRC->rc_hdc;
 	if (printLineParam->yPos + pExtents->lineHeight > printLineParam->maxYPos) {
 footerprint:
 		if (!printLineParam->pElement || P_EQ(printLineParam->pElement, printLineParam->pLastElement))
@@ -522,7 +506,7 @@ footerprint:
 		return PFR_END_PAGE;
 	}
 	else {
-		int nLinesPrinted = print_singleLineOfText(hdc, printLineParam);
+		int nLinesPrinted = print_singleLineOfText(pRC, printLineParam);
 		printLineParam->linesPrinted += nLinesPrinted;
 		if (printLineParam->wrappedLineOffset == 0) {
 			LINE* lp = (LINE*)printLineParam->pElement;
@@ -536,11 +520,12 @@ footerprint:
 
 /*------------------------------------------------------------
  * PrintPage()
- * Print the current document / file. Returns the number of lines actually printed.
+ * Print the current document / file. Returns the number of pages actually printed.
  */
-static int print_file(HDC hdc, BOOL measureOnly)
+static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 {	char 		message[128];
 	long		oldpageno;
+	HDC			hdc = pRC->rc_hdc;
 	BOOL		printing = TRUE;
 	DEVEXTENTS	de;
 	TEXTMETRIC	textMetrics;
@@ -565,6 +550,9 @@ static int print_file(HDC hdc, BOOL measureOnly)
 	printLineParam.lastc = _currentPrintScope.lastColumn;
 	printLineParam.lineNumber = 1;
 	printLineParam.maxYPos = de.yBottom;
+	printLineParam.yOffset = 0;
+	printLineParam.wp = _currentPrintScope.wp;
+
 	WINFO* wp = WIPOI(fp);
 	if ((pp->options & PRTO_SYNTAX_HIGHLIGHT) == 0) {
 		_currentPrintScope.wp->dispmode &= ~SHOW_SYNTAX_HIGHLIGHT;
@@ -605,7 +593,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 		if (!fPrint) {
 			fPrint = print_asciiLines;
 		}
-		PRINT_FRAGMENT_RESULT pfrResult = fPrint(hdc, &printLineParam, &de);
+		PRINT_FRAGMENT_RESULT pfrResult = fPrint(pRC, &printLineParam, &de);
 		if (pfrResult == PFR_END_PAGE || pfrResult == PFR_END) {
 			if (printLineParam.produceOutput) {
 				print_headerOrFooter(hdc, &de, de.yFooterPos, printLineParam.pagenumber, pp->footer.pme_template, pp, FALSE);
@@ -616,7 +604,7 @@ static int print_file(HDC hdc, BOOL measureOnly)
 			}
 		}
 	}
-	return printLineParam.linesPrinted;
+	return printLineParam.pagenumber;
 }
 
 /*
@@ -696,9 +684,13 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			RECT pageRect;
 			DEVEXTENTS de;
 			print_getDeviceExtents(hdc, &de);
+			RENDER_CONTEXT rc;
+			rc.rc_hdc = hdc;
+			rc.rc_wp = _currentPrintScope.wp;
+			rc.rc_printing = TRUE;
+			rc.rc_theme = theme_getDefault();
 			if (numberOfPreviewPages <= 0) {
-				int nTotal = print_ntextlines(&de);
-				numberOfPreviewPages = (print_file(hdc, TRUE) + nTotal - 1) / nTotal;
+				numberOfPreviewPages = print_file(&rc, TRUE);
 				if (numberOfPreviewPages <= 0) {
 					numberOfPreviewPages = 1;
 				}
@@ -713,7 +705,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 			SetDCBrushColor(hdc, RGB(255, 255, 255));
 			Rectangle(hdc, 0, pageRect.top, pageRect.right, pageRect.bottom);
 			DeleteObject(SelectObject(hdc, original));
-			print_file(hdc, FALSE);
+			print_file(&rc, FALSE);
 			RestoreDC(hdc, savedDc);
 			return TRUE;
 		case WM_DESTROY:
@@ -1011,8 +1003,13 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 		docinfo.lpszDatatype = "Text";
 		progress_startMonitor(IDS_ABRTPRINT, 1000);
 		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
+		RENDER_CONTEXT rc;
+		rc.rc_hdc = hdcPrn;
+		rc.rc_wp = _currentPrintScope.wp;
+		rc.rc_printing = TRUE;
+		rc.rc_theme = theme_getDefault();
 		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo)) > 0) &&
-			(errEscape = print_file(hdcPrn, FALSE)) >= 0) {
+			(errEscape = print_file(&rc, FALSE)) >= 0) {
 			if (!PREVIEWING()) {
 				EndDoc(hdcPrn);
 			}

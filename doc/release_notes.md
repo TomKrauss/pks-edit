@@ -6,7 +6,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
 ### 2.2.0
 
 This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
-Wysiwyg rendering of markdown documents and navigating in wysiwyg windows has been improved.
+Wysiwyg rendering of markdown documents and navigating in wysiwyg windows has been improved. Printing of
+formatted content (Wysiwyg markdown and HTML documents) is now supported in a basic way.
 
 #### New
 - PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
@@ -61,6 +62,7 @@ simple HTML formatting including hyperlink to more documentation.
 - A simple wysiwxg mode was added for HTML documents (do not expect to much :-)).
 - One can navigate to and activate hyperlinks Wysiwyg mode using the keyboard (default binding is 
   `UP`, `DOWN`, `LEFT`, `RIGHT` keys to navigate to and `SPACE` to activate a hyperlink).
+- One can print now Wysiwyg display documents (markdown and HTML).
 
 #### Hex mode
 - One can search now and find matches in hex mode (fixes issue PKSEDIT-3).

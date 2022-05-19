@@ -174,7 +174,7 @@ typedef struct tagPRINT_LINE PRINT_LINE;
 
 typedef struct tagDEVEXTENTS DEVEXTENTS;
 
-typedef PRINT_FRAGMENT_RESULT(*RENDERER_PRINT_FRAGMENT)(HDC hdc, PRINT_LINE* pPrintLine, DEVEXTENTS* pExtents);
+typedef PRINT_FRAGMENT_RESULT(*RENDERER_PRINT_FRAGMENT)(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintLine, DEVEXTENTS* pExtents);
 
 // Repaint a range of "logical lines" starting with a logical screen colum and ending with a screen column
 // line numbers are counted in terms of internal buffer line indices.

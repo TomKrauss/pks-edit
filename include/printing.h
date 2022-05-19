@@ -69,7 +69,7 @@ typedef struct tagPRTPARAMS {	// print params
 } PRTPARAM;
 
 typedef struct tagPRINT_LINE {
-	int wrappedLineOffset;	// normally 0. WHen a line is printed, which is wrapped print_signleLineOfText is called for every "segment line" with this being the
+	int wrappedLineOffset;	// normally 0. When a line is printed, which is wrapped print_signleLineOfText is called for every "segment line" with this being the
 							// offset of the lines printed before.
 	void* pElement;				// current element to print - type of element depends on renderer.
 	void* pLastElement;			// last element to print
@@ -82,7 +82,9 @@ typedef struct tagPRINT_LINE {
 	int  pagenumber;		// Current page number
 	int xPos;				// x position, where the printing starts
 	int yPos;				// y position, where the printing starts
+	int yOffset;			// Current y offset during printing - used for pixel type print renderers.
 	int maxYPos;			// the available space in y direction
+	WINFO* wp;				// the current window pointer
 } PRINT_LINE;
 
 typedef struct tagDEVEXTENTS {

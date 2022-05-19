@@ -490,7 +490,7 @@
         {
           "styleName": "code",
           "weight": 700,
-          "backgroundColor": "#8e8e8e"
+          "backgroundColor": "#4e4e4e"
         },
         {
           "styleName": "highlight",
