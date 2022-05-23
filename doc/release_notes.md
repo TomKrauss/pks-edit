@@ -7,7 +7,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
 
 This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
 Wysiwyg rendering of markdown documents and navigating in wysiwyg windows has been improved. Printing of
-formatted content (Wysiwyg markdown and HTML documents) is now supported in a basic way.
+formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now supported.
 
 #### New
 - PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
@@ -66,6 +66,7 @@ simple HTML formatting including hyperlink to more documentation.
 
 #### Hex mode
 - One can search now and find matches in hex mode (fixes issue PKSEDIT-3).
+- One can print files in hex mode now.
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:

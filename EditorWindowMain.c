@@ -643,6 +643,9 @@ void ww_modeChanged(WINFO* wp) {
 	ww_setScrollCheckBounds(wp);
 	wp->renderer->r_adjustScrollBounds(wp);
 	win_sendRedrawToWindow(wp->ww_handle);
+	if (wp->lineNumbers_handle) {
+		win_sendRedrawToWindow(wp->lineNumbers_handle);
+	}
 	render_updateCaret(wp);
 }
 
@@ -1517,8 +1520,9 @@ static void draw_lineNumbers(WINFO* wp) {
 	SetBkMode(hdc, TRANSPARENT);
 	int padding = 3;
 	char text[20];
-	if (maxln > fp->nlines-1) {
-		maxln = fp->nlines-1;
+	long nMax = wp->renderer->r_calculateMaxLine(wp);
+	if (maxln > nMax-1) {
+		maxln = nMax-1;
 	}
 	LINE* lp = ww_getMinLine(wp, wp->minln);
 	int nRightPadding = LINE_ANNOTATION_WIDTH + (2 * LINE_ANNOATION_PADDING);

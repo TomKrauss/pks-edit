@@ -21,6 +21,7 @@
 #include "documentmodel.h"
 #include "themes.h"
 #include "trace.h"
+#include "printing.h"
 
 #define	HEX_BYTES_PER_LINE		32
 #define HEX_ASCII_DISTANCE		3
@@ -226,13 +227,11 @@ static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOf
  /*
   * Render the current window in hexadecimal display.
   */
-void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y, long min, long max) {
 	WINFO* wp = pCtx->rc_wp;
 	FTABLE* fp = FTPOI(wp);
 	long ln;
 	long newy;
-	long min = wp->minln;
-	long max = wp->maxln;
 	int nLength;
 	char szBuffer[HEX_BYTES_PER_LINE+5];
 	RECT rect;
@@ -248,7 +247,9 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	int cheight = wp->cheight;
 	GetClientRect(wp->ww_handle, &rect);
 	hBrushCaretLine = CreateSolidBrush(pCtx->rc_theme->th_caretLineColor);
-	if (wp->blstart && wp->blend && wp->blstart->m_linePointer == wp->blend->m_linePointer) {
+	if (pCtx->rc_printing) {
+		FillRect(pCtx->rc_hdc, pClip, hBrushBg);
+	} else if (wp->blstart && wp->blend && wp->blstart->m_linePointer == wp->blend->m_linePointer) {
 		lpSelection = wp->blend->m_linePointer;
 		nSelectionStart = wp->blstart->m_column;
 		nSelectionSize = wp->blend->m_column-wp->blstart->m_column;
@@ -306,6 +307,14 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 		FillRect(pCtx->rc_hdc, &r, hBrushBg);
 	}
 	DeleteObject(hBrushCaretLine);
+}
+
+/*
+ * Render the current window in hexadecimal display.
+ */
+void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+	WINFO* wp = pCtx->rc_wp;
+	render_hexModeFromTo(pCtx, pClip, hBrushBg, y, wp->minln, wp->maxln);
 }
 
 static void hex_bufferOffsetToScreen(WINFO* wp, CARET* pBufferCaret, long* pLine, long* pCol) {
@@ -485,6 +494,37 @@ static int hex_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
 	return 0;
 }
 
+/*
+ * Default printing implementation to print in standard ASCII mode.
+ */
+PRINT_FRAGMENT_RESULT hex_print(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam, DEVEXTENTS* pExtents) {
+	HDC hdc = pRC->rc_hdc;
+	WINFO* wp = pRC->rc_wp;
+	int nLinesPerScreen = 56;
+	long nMax = printLineParam->yOffset + nLinesPerScreen;
+	long nMaxLines = hex_calculateNLines(wp);
+	if (nMax > nMaxLines) {
+		nMax = nMaxLines;
+	}
+	RECT rect;
+	rect.left = pExtents->xLMargin;
+	rect.right = pExtents->xRMargin;
+	rect.top = pExtents->yTop;
+	rect.bottom = pExtents->yBottom;
+	int nOldDC = SaveDC(pRC->rc_hdc);
+	HBRUSH hBrush = CreateSolidBrush(pRC->rc_theme->th_defaultBackgroundColor);
+	IntersectClipRect(pRC->rc_hdc, rect.left, rect.top, rect.right, rect.bottom);
+	render_hexModeFromTo(pRC, &rect, hBrush, printLineParam->yPos, printLineParam->yOffset, nMax);
+	DeleteObject(hBrush);
+	RestoreDC(pRC->rc_hdc, nOldDC);
+	printLineParam->yOffset = nMax;
+	if (nMax < nMaxLines) {
+		printLineParam->pagenumber++;
+	}
+	printLineParam->yPos = 0;
+	return nMax >= nMaxLines ? PFR_END : PFR_END_PAGE;
+}
+
 
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
@@ -504,7 +544,8 @@ static RENDERER _hexRenderer = {
 	caret_calculateOffsetFromScreen,
 	TRUE,
 	hex_modelChanged,
-	.r_repaint= hex_repaint
+	.r_repaint= hex_repaint,
+	.r_printFragment = hex_print,
 };
 
 /*
