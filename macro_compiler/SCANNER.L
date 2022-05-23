@@ -166,7 +166,13 @@ char * _yyCurrentComment;
 PKS_TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
 void yyrequire(const char* pszNamespace) {
-	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, yy_getCurrentInputFilename(), pszNamespace)) {
+	int nIndex = _compilerConfiguration->cb_numberOfDependencies;
+	if (strcmp(pszNamespace, yy_getCurrentInputFilename()) == 0) {
+		// Insert the current file last in the dependency list.
+		nIndex = (int)arraylist_size(_compilerConfiguration->cb_dependencies);
+	}
+	if (!compiler_requireNamespaceOrFilename(_compilerConfiguration->cb_dependencies, nIndex, 
+			yy_getCurrentInputFilename(), pszNamespace)) {
 		yyerror("Cannot locate source file for required namespace %s", pszNamespace);
 	}
 }
@@ -179,6 +185,7 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 	YY_FLUSH_BUFFER;
 	_compilerConfiguration = pConfig;
 	_compilerInputStream = pConfig->cb_stream;
+	_compilerConfiguration->cb_postponed = 0;
 	_currentIdentifierContext = sym_getGlobalCompilerContext();
 	if (!tables_inited) {
 		if (!init_keywords() ||
@@ -188,8 +195,10 @@ int yyinit(jmp_buf *errb, COMPILER_CONFIGURATION* pConfig) {
 		tables_inited = 1;
 	}
 	yylineno = 1;
-	if (pConfig->cb_topLevelFile) {
+	if (!pConfig->cb_dependencies) {
 		pConfig->cb_dependencies = arraylist_create(11);
+	}
+	if (pConfig->cb_topLevelFile) {
 		if (yyerr.errfp) {
 			fclose(yyerr.errfp);
 			yyerr.errfp = 0;
@@ -229,7 +238,9 @@ int yyfinish(void)
 		yyerr.failpt = 0;
 		nRet = 0;
 	} else {
-		_compilerConfiguration->cb_numberOfFilesCompiled++;
+		if (!_compilerConfiguration->cb_postponed) {
+			_compilerConfiguration->cb_numberOfFilesCompiled++;
+		}
 	}
 	return nRet;
 }

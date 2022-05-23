@@ -409,8 +409,6 @@ PKSMacroC currently does not support short-circuiting boolean expressions (McCar
 `array[len] == c` is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
 powerful and simpler to write.
 
-The `require` keyword does not work as expected. It will load the "required" source **after** the file requiring it was loaded. We will fix that as
-well on a long term run in particular when introducing the ability to define own types (enums and structs) to be able to load declarations before
-they are used.
+
 
 

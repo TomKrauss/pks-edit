@@ -30,7 +30,7 @@
 
 extern MACRO 	*macro_getByIndex(int idx);
 
-extern char	*_macroname;
+extern char	*_selectedMacro;
 
 typedef struct tagMACRODATA  {
 	char			cmdbyte;

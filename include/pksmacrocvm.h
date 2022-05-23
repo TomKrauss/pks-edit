@@ -491,6 +491,8 @@ typedef struct tagCOMPILER_CONFIGURATION {
 	const char* cb_source;											// The name of the source file
 	const char* cb_errorFile;										// The name of the file, where the errors and warnings are recorded.
 	void* cb_dependencies;											// Dependencies / required files also to load detected during analysis
+	int   cb_numberOfDependencies;									// Used as a marked to find out, whether additional dependencies must be loaded first.
+	int   cb_postponed;												// Set to TRUE, if compilation was postponed as required files needed to be compiled first. 
 } COMPILER_CONFIGURATION;
 
 extern COMPILER_CONFIGURATION* _compilerConfiguration;

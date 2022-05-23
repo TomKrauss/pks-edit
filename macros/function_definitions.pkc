@@ -99,6 +99,16 @@ typedef enum {
     MOT_EXTEND_SELECTION = 0x100
 } CARET_MOVEMENT_OPTTION;
 
+/* Describes the types of macros to return from FunctionNamesMatching */
+typedef enum {
+	// return the names of matching native functions
+	LMT_FUNCTION = 0x1,
+	// return the names of matching macros
+	LMT_GLOBAL_MACROS = 0x2,
+	// must be included to also return static macro names
+	LMT_STATIC_MACROS = 0x4
+} LIST_MACRO_TYPES;
+
 /*
  * Describes options for copying and cutting text from the curring selection.
  */
@@ -1425,7 +1435,7 @@ native int macroc_indexOf(string[] arrayOrString, auto param);
  * as regular expression) and given the named flags.
  */
 @Method(name="FunctionNamesMatching", signature="asbLMT")
-native string[] macro_getFunctionNamesMatching(string namePattern);
+native string[] macro_getFunctionNamesMatching(string namePattern, LIST_MACRO_TYPES types);
 
 /*
  * Retrieves the number of milliseconds that have elapsed since the system was started, up to 49.7 days.

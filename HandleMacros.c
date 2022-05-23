@@ -53,6 +53,9 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 				szBuf[0] = '@';
 			}
 			break;
+		case CMD_NAMESPACE:
+			sprintf(szBuf, "Namespace '%s'", MAC_NAME(macro_getNamespaceByIdx(nIndex)));
+			break;
 		default: sprintf(szBuf,"??"); break;
 	}
 	return szBuf;

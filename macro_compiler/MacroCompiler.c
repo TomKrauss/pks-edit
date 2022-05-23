@@ -159,39 +159,34 @@ static int compiler_compileDependentFile(COMPILER_CONFIGURATION* pBaseConfig, co
 		.cis_next = compiler_nextFromFilestream,
 		.cis_pointer = fp
 	};
-	COMPILER_CONFIGURATION config = {
-		.cb_showStatus = pBaseConfig->cb_showStatus,
-		.cb_insertNewMacro = pBaseConfig->cb_insertNewMacro,
-		.cb_source = pszFilename,
-		.cb_topLevelFile = FALSE,
-		.cb_stream = &inputStream
-	};
-	int nRet = compiler_compileWithParams(&config);
-	pBaseConfig->cb_numberOfWarnings += config.cb_numberOfWarnings;
-	pBaseConfig->cb_numberOfErrors += config.cb_numberOfErrors;
-	pBaseConfig->cb_numberOfFilesCompiled += config.cb_numberOfFilesCompiled;
-	return nRet;
+	pBaseConfig->cb_source = pszFilename;
+	pBaseConfig->cb_topLevelFile = FALSE;
+	pBaseConfig->cb_stream = &inputStream;
+	return compiler_compileWithParams(pBaseConfig);
 }
 
 static int compiler_compileWithParams(COMPILER_CONFIGURATION* pConfig) {
 	int nRet;
 	jmp_buf errb;
+	BOOL bTopLevel = pConfig->cb_topLevelFile;
 	if (!setjmp(errb)) {
 		yyinit(&errb, pConfig);
 		yyparse();
 	}
 	nRet = yyfinish();
-	if (nRet && pConfig->cb_dependencies) {
-		size_t nSize = arraylist_size(pConfig->cb_dependencies);
-		for (int i = 0; i < nSize; i++) {
+	if (nRet && bTopLevel && pConfig->cb_dependencies) {
+		for (int i = 0; i < arraylist_size(pConfig->cb_dependencies); ) {
 			const char* pszFile = arraylist_get(pConfig->cb_dependencies, i);
 			if (!compiler_compileDependentFile(pConfig, pszFile)) {
 				nRet = 0;
 				break;
 			}
+			if (!pConfig->cb_postponed) {
+				i++;
+			}
 		}
+		arraylist_destroyStringList(pConfig->cb_dependencies);
 	}
-	arraylist_destroyStringList(pConfig->cb_dependencies);
 	return nRet;
 }
 
@@ -288,31 +283,37 @@ static BOOL macro_needsWrapper(const char* pszCode) {
  * A macro source file requires a namespace (or file name) to be defined (loaded). If that is not the case
  * load it first relative to the given source file.
  */
-int compiler_requireNamespaceOrFilename(ARRAY_LIST* pDependentFiles, const char* pszSourcefile, const char* pszRequired) {
+int compiler_requireNamespaceOrFilename(ARRAY_LIST* pDependentFiles, int nIndex, const char* pszSourcefile, const char* pszRequired) {
 	char szNamespacename[128];
 	char szFilename[128];
 	char szPath[EDMAXPATHLEN];
 	char szBuf[EDMAXPATHLEN];
 	strmaxcpy(szNamespacename, pszRequired, sizeof szNamespacename);
 	char* pszExt = strrchr(szNamespacename, '.');
-	if (pszExt) {
-		strcpy(szFilename, szNamespacename);
-		*pszExt++ = 0;
-	} else {
-		sprintf(szFilename, "%s.pkc", pszRequired);
+	if (strcmp(pszSourcefile, pszRequired) == 0) {
+		strcpy(szBuf, pszRequired);
 	}
-	if (macro_hasNamespace(szNamespacename)) {
-		return 1;
+	else {
+		if (pszExt) {
+			strcpy(szFilename, szNamespacename);
+			*pszExt++ = 0;
+		}
+		else {
+			sprintf(szFilename, "%s.pkc", pszRequired);
+		}
+		if (macro_hasNamespace(szNamespacename)) {
+			return 1;
+		}
+		string_splitFilename(pszSourcefile, szPath, 0);
+		string_concatPathAndFilename(szBuf, szPath, szFilename);
 	}
-	string_splitFilename(pszSourcefile, szPath, 0);
-	string_concatPathAndFilename(szBuf, szPath, szFilename);
 	if (arraylist_indexOfComparing(pDependentFiles, szBuf, _stricmp) >= 0) {
 		return 1;
 	}
 	if (file_exists(szBuf) < 0) {
 		return 0;
 	}
-	arraylist_add(pDependentFiles, _strdup(szBuf));
+	arraylist_insertAt(pDependentFiles, _strdup(szBuf), nIndex);
 	return 1;
 }
 

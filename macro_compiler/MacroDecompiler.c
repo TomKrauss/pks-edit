@@ -33,6 +33,7 @@ int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
 char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
+extern char* mac_name(char* szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 
 static TYPE_PROPERTY_DESCRIPTOR _propertyDescriptors[32];
 static int _numberOfLocalVars;
@@ -1149,7 +1150,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 /*
  * decompile_printMacrosCallback
  */
-static char *_macroname;
+static MACROREF *_selectedMacro;
 static long decompile_printMacrosCallback(FILE *fp)
 {
 	int nMacros = macro_getNumberOfMacros();
@@ -1158,8 +1159,8 @@ static long decompile_printMacrosCallback(FILE *fp)
 
 	for (i = 0; i < nMacros; i++) {
 		if ((mp = macro_getByIndex(i)) != 0) {
-			if (!_macroname ||
-				strcmp(_macroname, MAC_NAME(mp)) == 0) {
+			if (!_selectedMacro ||
+				(_selectedMacro->index == i && _selectedMacro->typ == CMD_MACRO)) {
 				DECOMPILE_OPTIONS options = { .do_macro = mp};
 				STRING_BUF* pBuf = stringbuf_create(512);
 				stringbuf_setFlags(pBuf, SB_COUNT_LINE_NUMBERS);
@@ -1169,6 +1170,17 @@ static long decompile_printMacrosCallback(FILE *fp)
 			}
 		}
 	}
+	if (_selectedMacro && _selectedMacro->typ == CMD_NAMESPACE) {
+		mp = macro_getNamespaceByIdx(_selectedMacro->index);
+		if (mp) {
+			DECOMPILE_OPTIONS options = { .do_macro = mp };
+			STRING_BUF* pBuf = stringbuf_create(512);
+			stringbuf_setFlags(pBuf, SB_COUNT_LINE_NUMBERS);
+			_decompileFunction(pBuf, &options);
+			fputs(stringbuf_getString(pBuf), fp);
+			stringbuf_destroy(pBuf);
+		}
+	}
 	return 1;
 }
 
@@ -1176,21 +1188,16 @@ static long decompile_printMacrosCallback(FILE *fp)
  * Decompile a macro with the given mode and return the result of the decompilation
  * in an array list. The array list must be destroyed by the caller using arraylist_destroyStringList.
  * The decompilation with also return the line number containing the instruction pointer passed.
- */
-ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int *pNLine) {
-	int nIndex = macro_getInternalIndexByName(pszName);
-	*pNLine = 0;
+  */
+ARRAY_LIST* decompile_macro(MACRO* mp, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine) {
 	ARRAY_LIST* pResult = arraylist_create(32);
-	if (nIndex < 0) {
-		return pResult;
-	}
-	MACRO* mp = macro_getByIndex(nIndex);
-	DECOMPILE_OPTIONS options = { .do_macro = mp, .do_instructionPointer = pszInstructionPointer};
+	DECOMPILE_OPTIONS options = { .do_macro = mp, .do_instructionPointer = pszInstructionPointer };
 	STRING_BUF* pBuf = stringbuf_create(512);
 	stringbuf_setFlags(pBuf, SB_COUNT_LINE_NUMBERS);
 	if (nMode == DM_CODE) {
 		decompile_macroCode(pBuf, &options);
-	} else {
+	}
+	else {
 		decompile_macroInstructions(pBuf, &options);
 	}
 	*pNLine = options.do_lineNumberForInstructionPointer;
@@ -1207,17 +1214,32 @@ ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode,
 }
 
 /*
+ * Decompile a macro with the given mode and return the result of the decompilation
+ * in an array list. The array list must be destroyed by the caller using arraylist_destroyStringList.
+ * The decompilation with also return the line number containing the instruction pointer passed.
+ */
+ARRAY_LIST* decompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int *pNLine) {
+	int nIndex = macro_getInternalIndexByName(pszName);
+	*pNLine = 0;
+	if (nIndex < 0) {
+		return arraylist_create(1);
+	}
+	MACRO* mp = macro_getByIndex(nIndex);
+	return decompile_macro(mp, nMode, pszInstructionPointer, pNLine);
+}
+
+/*
  * decompile_saveMacrosAndDisplay
  * Decompiles one or all macros and prints the decompilation result to a given file.
  * Decompilation may be performed by printing the code as source code or by printing the low level instructions
  */
-int decompile_saveMacrosAndDisplay(char *macroname, DECOMPILATION_MODE nMode) {
+int decompile_saveMacrosAndDisplay(MACROREF *pSelectedMacro, DECOMPILATION_MODE nMode) {
 	char szBuf[128];
 	char* pszExtension = nMode == DM_CODE ? ".pkc" : ".pkobj";
 
-	_macroname = macroname;
-	if (macroname) {
-		strmaxcpy(szBuf, macroname, sizeof szBuf-5);
+	_selectedMacro = pSelectedMacro;
+	if (pSelectedMacro) {
+		mac_name(szBuf, pSelectedMacro->index, pSelectedMacro->typ);
 	} else {
 		strcpy(szBuf, "macros");
 	}

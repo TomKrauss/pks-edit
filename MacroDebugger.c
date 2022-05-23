@@ -154,7 +154,7 @@ static void debugger_fillCodeDisplay(HWND hwndList, EXECUTION_CONTEXT* pContext)
 	SendMessage(hwndList, LB_RESETCONTENT, 0, 0L);
 	SendMessage(hwndList, WM_SETREDRAW, FALSE, 0L);
 	int nSelection;
-	ARRAY_LIST* pDecompiled = deccompile_macroNamed(pContext->ec_currentFunction, DM_CODE, pContext->ec_instructionPointer, &nSelection);
+	ARRAY_LIST* pDecompiled = decompile_macroNamed(pContext->ec_currentFunction, DM_CODE, pContext->ec_instructionPointer, &nSelection);
 	size_t nElements = arraylist_size(pDecompiled);
 	for (int i = 0; i < nElements; i++) {
 		SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM)arraylist_get(pDecompiled, i));

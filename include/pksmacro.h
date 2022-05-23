@@ -170,8 +170,9 @@ extern ARRAY_LIST* macro_getFunctionNamesMatching(const char* pszPattern, LIST_M
 /*
  * A macro source file requires a namespace to be defined (loaded). If that is not the case
  * load it first relative to the given source file. Returns 0, if the namespace cannot be located.
+ * Insert the required file at the given index to correctly build the dependency list.
  */
-extern int compiler_requireNamespaceOrFilename(ARRAY_LIST* pSources, const char* pszSourcefile, const char* pszNamespacename);
+extern int compiler_requireNamespaceOrFilename(ARRAY_LIST* pSources, int nIndex, const char* pszSourcefile, const char* pszNamespacename);
 
 #endif
 
@@ -198,7 +199,7 @@ extern MACRO* macro_getNamespaceByIdx(int idx);
 extern void macro_getLabelFor(MACRO* mp, char* pszBuf, size_t nBufferSize);
 
 typedef enum { DM_CODE, DM_INSTRUCTIONS} DECOMPILATION_MODE;
-extern int 		decompile_saveMacrosAndDisplay(char* macroname, DECOMPILATION_MODE nMode);
+extern int 		decompile_saveMacrosAndDisplay(MACROREF* pSelectedMacro, DECOMPILATION_MODE nMode);
 extern int 		print_mouseBindingsAndDisplay(void);
 extern int 		print_keyBindingsAndDisplay(void);
 extern int 		print_menuBindingsAndDisplay(void);
@@ -210,7 +211,13 @@ extern int 		print_macrocDocumentationAndDisplay(void);
  * The decompilation with also return the line number containing the instruction pointer passed.
  */
 #ifdef ARRAYLIST_H
-ARRAY_LIST* deccompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine);
+extern ARRAY_LIST* decompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine);
+/*
+ * Decompile a macro with the given mode and return the result of the decompilation
+ * in an array list. The array list must be destroyed by the caller using arraylist_destroyStringList.
+ * The decompilation with also return the line number containing the instruction pointer passed.
+  */
+extern ARRAY_LIST* decompile_macro(MACRO* mp, DECOMPILATION_MODE nMode, const char* pszInstructionPointer, int* pNLine);
 #endif
 
 /*

@@ -358,6 +358,16 @@ static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const cha
 	return tProp;
 }
 
+static int parser_resetIfDependencies() {
+	if (_compilerConfiguration->cb_numberOfDependencies != arraylist_size(_compilerConfiguration->cb_dependencies)) {
+		_compilerConfiguration->cb_postponed = 1;
+		yyrequire(_compilerConfiguration->cb_source);
+		parser_switchToBuffer(-1);
+		return 1;
+	}
+	return 0;
+}
+
 %}
 
 %%
@@ -365,7 +375,11 @@ static PKS_VALUE_TYPE parser_pushFieldIndexWithError(PKS_VALUE_TYPE t, const cha
 file_structure: {
 				init_header();
 			}
-			namespace prerequisites 
+			namespace prerequisites {
+				if (parser_resetIfDependencies()) {
+					YYACCEPT;
+				}
+			}
 			global_declarations 
 			header_delimiter 
 			macro_definitions {
@@ -1254,6 +1268,7 @@ static void destroy_bytecodeBuffer(int nStart) {
 
 static void init_header() {
 	init_bytecodeBuffer(-1);
+	_compilerConfiguration->cb_numberOfDependencies = (int)arraylist_size(_compilerConfiguration->cb_dependencies);
 }
 
 static void init_native() {

@@ -3216,11 +3216,12 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 	FillRect(hdc, pClip, hBrushBg);
 	DeleteObject(hBrushBg);
 	rect.top -= nTopY;
+	float zoomFactor = pRC->rc_wp ? pRC->rc_wp->zoomFactor : 1.0f;
 	RENDER_FLOW_PARAMS rfp = {
 		.rfp_focus = GetFocus() == hwnd,
 		.rfp_hdc = hdc,
 		.rfp_theme = pRC->rc_theme,
-		.rfp_zoomFactor = pRC->rc_wp->zoomFactor
+		.rfp_zoomFactor = zoomFactor
 	};
 	if (GetMapMode(hdc) == MM_ANISOTROPIC) {
 		LONG ext = win_getWindowExtension(hdc);
@@ -3348,10 +3349,11 @@ PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintL
 void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_RENDERER_DATA* pData) {
 	HDC hdc = ps->hdc;
 	RECT* pClip = &ps->rcPaint;
-	RENDER_CONTEXT rc;
-	rc.rc_hdc = hdc;
-	rc.rc_theme = theme_getCurrent();
-	rc.rc_printing = FALSE;
+	RENDER_CONTEXT rc = {
+		.rc_hdc = hdc,
+		.rc_theme = theme_getCurrent(),
+		.rc_printing = FALSE
+	};
 	mdr_renderAll(hwnd, &rc, pData, pClip, nTopY);
 }
 

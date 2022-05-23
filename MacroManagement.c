@@ -44,6 +44,7 @@
 
 extern long		_multiplier;
 
+extern void			yywarning(char* s, ...);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 /*
@@ -189,6 +190,12 @@ void macro_defineNamespaceInitializer(int nNamespaceIdx, const char* pBytes, siz
 		return;
 	}
 	MACRO* mp = arraylist_get(_namespaces, nNamespaceIdx);
+	if (mp->mc_bytecodeLength) {
+		if (nByteLen) {
+			yywarning("Currently unsupported: multiple namespace files defining global declarations (%s)", mp->mc_name);
+		}
+		return;
+	}
 	mp->mc_bytecodeLength = (unsigned int)nByteLen;
 	free(mp->mc_bytecodes);
 	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);
@@ -377,10 +384,14 @@ int macro_readCompiledMacroFile(char *fn) {
 		}
 
 		rsc_close(rp);
-		MACRO* mpNamespace = macro_getNamespaceByIdx(0);
-		if (mpNamespace && !mpNamespace->mc_isInitialized) {
-			if (!interpreter_initializeNamespace(mpNamespace, TRUE)) {
-				return 0;
+		if (_namespaces) {
+			for (int i = 0; i < arraylist_size(_namespaces); i++) {
+				MACRO* mpNamespace = macro_getNamespaceByIdx(i);
+				if (mpNamespace && !mpNamespace->mc_isInitialized) {
+					if (!interpreter_initializeNamespace(mpNamespace, TRUE)) {
+						return 0;
+					}
+				}
 			}
 		}
 	}
@@ -769,8 +780,14 @@ static void macro_updateMacroList(HWND hwnd)
 	}
 
 	if (state) {
-		for (i = 0; i < _commandTableSize; i++)
-			SendMessage(hwndList,LB_ADDSTRING,0,MAKELONG(CMD_CMDSEQ,i));
+		for (i = 0; i < _commandTableSize; i++) {
+			SendMessage(hwndList, LB_ADDSTRING, 0, MAKELONG(CMD_CMDSEQ, i));
+		}
+		if (_namespaces) {
+			for (i = 0; i < arraylist_size(_namespaces); i++) {
+				SendMessage(hwndList, LB_ADDSTRING, 0, MAKELONG(CMD_NAMESPACE, i));
+			}
+		}
 	}
 
 	macro_listEndFilling(hwndList,nCurr);
@@ -872,13 +889,18 @@ static void macro_updateCommentAndName(HWND hwnd)
 	type = (MACROREFTYPE)LOWORD(nSelected);
 	DlgInitString(hwnd, IDD_STRING1, 
 				mac_name(szName,nIndex,type), MAC_NAMELEN);
-	DlgInitString(hwnd, IDD_STRING2, 
-		command_getTooltipAndLabel((MACROREF) {.typ = type, .index = nIndex}, szComment, szK), MAC_COMMENTLEN);
+	if (type == CMD_NAMESPACE) {
+		DlgInitString(hwnd, IDD_STRING2, "", MAC_COMMENTLEN);
+	}
+	else {
+		DlgInitString(hwnd, IDD_STRING2, 
+			command_getTooltipAndLabel((MACROREF) {.typ = type, .index = nIndex}, szComment, szK), MAC_COMMENTLEN);
+	}
 
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETMODIFY, FALSE, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETMODIFY, FALSE, 0);
 
-	editable = (LOWORD(nSelected) == CMD_MACRO) ? TRUE : FALSE;
+	editable = (type == CMD_MACRO) ? TRUE : FALSE;
 
 	SendDlgItemMessage(hwnd, IDD_STRING1, EM_SETREADONLY, !editable, 0);
 	SendDlgItemMessage(hwnd, IDD_STRING2, EM_SETREADONLY, !editable, 0);
@@ -886,8 +908,8 @@ static void macro_updateCommentAndName(HWND hwnd)
 	/* macro_enableButton(hwnd,IDD_MACSTART,editable); */
 	macro_enableButton(hwnd,IDD_MACRENAME,editable);
 	macro_enableButton(hwnd,IDD_MACDELETE,editable);
-	macro_enableButton(hwnd,IDD_MACEDIT,editable);
-	macro_enableButton(hwnd, IDD_MACPRINTINSTRUCTIONS, editable);
+	macro_enableButton(hwnd,IDD_MACEDIT,editable || type == CMD_NAMESPACE);
+	macro_enableButton(hwnd, IDD_MACPRINTINSTRUCTIONS, editable || type == CMD_NAMESPACE);
 }
 
 static int _nBoundKeys;
@@ -1087,8 +1109,16 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 		case WM_COMMAND: 
 			nSelected = macro_getSelectedMacro(hwnd);
 			GetDlgItemText(hwnd,IDD_STRING1,szName,sizeof szName);
-			_selectedMacroName = (LOWORD(nSelected) == CMD_MACRO) ?
-				MAC_NAME(macro_getByIndex(HIWORD(nSelected))) : 0;
+			MACROREFTYPE type = (MACROREFTYPE)LOWORD(nSelected);
+			if (type == CMD_MACRO) {
+				_selectedMacroName = MAC_NAME(macro_getByIndex(HIWORD(nSelected)));
+			}
+			else if (type = CMD_NAMESPACE) {
+				_selectedMacroName = "namespace";
+			}
+			else {
+				_selectedMacroName = 0;
+			}
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
 			switch (nId = GET_WM_COMMAND_ID(wParam, lParam)) {
 
@@ -1207,7 +1237,7 @@ int EdMacrosEdit(void)
 
 	if (_selectedMacroName) {
 		if (ret == IDD_MACEDIT || ret == IDD_MACPRINTINSTRUCTIONS) {
-			return decompile_saveMacrosAndDisplay(_selectedMacroName, ret == IDD_MACEDIT ? DM_CODE : DM_INSTRUCTIONS);
+			return decompile_saveMacrosAndDisplay(&currentSelectedMacro, ret == IDD_MACEDIT ? DM_CODE : DM_INSTRUCTIONS);
 		}
 	}
 	return 0;

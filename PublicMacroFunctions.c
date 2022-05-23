@@ -1576,7 +1576,7 @@ int EdCompileMacros(int bShowList)
 int EdListBindings(LIST_BINDING_OPTION lWhich)
 {
 	if (lWhich & LISTB_MACROS) {
-		if (decompile_saveMacrosAndDisplay((char*)0, DM_CODE) == 0) {
+		if (decompile_saveMacrosAndDisplay(0, DM_CODE) == 0) {
 			return 0;
 		}
 	}
