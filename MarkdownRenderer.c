@@ -123,6 +123,7 @@ typedef struct tagFONT_ATTRIBUTES {
 	short	subscript : 1;
 	short	fixedFont : 1;
 	COLORREF bgColor;
+	char*	bgColorStyle;
 	COLORREF fgColor;
 } FONT_ATTRIBUTES;
 
@@ -379,6 +380,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	TEXT_RUN* md_caretRun;
 	int md_caretRunIndex;
 	int md_caretPartIndex;
+	BOOL md_printing;
 } MARKDOWN_RENDERER_DATA;
 
 /*
@@ -509,8 +511,8 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 		nTotal = 1;
 	}
 	if (nWidth > nTotal && pTable->rt_width.ss_units == CSU_NONE) {
-		right = left + nTotal;
-		nWidth = nTotal;
+		nWidth = (int)(nTotal * pParams->rfp_zoomFactor);
+		right = left + nWidth;
 	}
 	for (int i = 0; i < MAX_TABLE_COLUMNS; i++) {
 		if (!pTable->rt_columnWidths[i]) {
@@ -522,6 +524,7 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
 	RECT bounds;
 	bounds.top = y;
+	MARGINS mTableMargins = mdr_getScaledMargins(pParams->rfp_zoomFactor, &_tableMargins);
 	while (pRow) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
 		RECT usedBounds;
@@ -533,13 +536,13 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 		while (pCell) {
 			bHeader = pCell->rtc_isHeader;
 			bounds.right = bounds.left + nColumnWidth[nColumn];
-			bounds.bottom = bounds.top + 3000;
+			bounds.bottom = bounds.top + 30000;
 			if (pCell->rtc_flow.tf_text) {
 				byte align = pCell->rtc_align;
 				if (!align && pCell->rtc_isHeader) {
 					align = TA_ALIGN_CENTER;
 				}
-				mdr_renderTextFlow(&_tableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, pParams);
+				mdr_renderTextFlow(&mTableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, pParams);
 			}
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
@@ -875,6 +878,9 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			DeleteObject(SelectObject(hdc, hOldFont));
 			hFont = mdr_createFont(hdc, &pTR->tr_attributes, pRFP->rfp_zoomFactor);
 			hOldFont = SelectObject(hdc, hFont);
+			if (pTR->tr_attributes.bgColorStyle) {
+				pTR->tr_attributes.bgColor = theme_textStyleBackground(pTheme, pTR->tr_attributes.bgColorStyle, RGB(100, 100, 25));
+			}
 			if (pTR->tr_attributes.bgColor == NO_COLOR) {
 				SetBkMode(hdc, TRANSPARENT);
 			}
@@ -900,16 +906,9 @@ static void mdr_paintFillDecoration(RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* 
 	RECT r;
 	int nWhitespace = m.m_top / 2;
 	r.top = y - m.m_top + nWhitespace;
-	if (pPart->rvp_layouted) {
-		r.bottom = r.top + (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) + m.m_bottom + m.m_top - nWhitespace;
-	}
-	else {
-		TEXTMETRIC tm;
-		GetTextMetrics(hdc, &tm);
-		r.bottom = r.top + (pPart->rvp_number * tm.tmHeight) + +m.m_bottom + m.m_top - nWhitespace;
-	}
-	r.left = x - 10;
-	r.right = nRight > 1200 ? nRight - 100 : nRight;
+	r.bottom = r.top + (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) + m.m_bottom + m.m_top - nWhitespace;
+	r.left = x - (int)(10*pRFP->rfp_zoomFactor);
+	r.right = nRight;
 	int nWidth = pDecoration->rbd_strokeWidth;
 	if (!nWidth) {
 		nWidth = 1;
@@ -939,23 +938,23 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	int y = pBounds->top + m.m_top;
 	if (!pParams->rfp_measureOnly) {
 		font_setDefaultTextColors(hdc, pParams->rfp_theme);
+		HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
+		HFONT hOldFont = SelectObject(hdc, hFont);
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
-			HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
-			HFONT hOldFont = SelectObject(hdc, hFont);
 			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
-			DeleteFont(SelectObject(hdc, hOldFont));
 		}
 		else if (pPart->rvp_type == MET_TASK_LIST) {
-			mdr_paintCheckmark(pParams, x - 20, y, pPart->rvp_number == 1);
+			mdr_paintCheckmark(pParams, x - -(int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
 			char szBuf[20];
 			sprintf(szBuf, "%ld.", pPart->rvp_number);
-			TextOut(hdc, x - 20, y, szBuf, (int)strlen(szBuf));
+			TextOut(hdc, x - (int)(20*pParams->rfp_zoomFactor), y, szBuf, (int)strlen(szBuf));
 		}
-		else if (pPart->rvp_decoration) {
+		if (pPart->rvp_decoration) {
 			mdr_paintFillDecoration(pParams, pPart, pBounds);
 		}
+		DeleteFont(SelectObject(hdc, hOldFont));
 	}
 	int nDCId = SaveDC(hdc);
 	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
@@ -1180,11 +1179,12 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	THEME_DATA* pTheme = theme_getCurrent();
 	if (mAttrs & ATTR_HIGHLIGHT) {
 		pRun->tr_attributes.fixedFont = 0;
-		pRun->tr_attributes.bgColor = theme_textStyleBackground(pTheme, "highlight", RGB(100, 100, 25)); 
+		pRun->tr_attributes.bgColorStyle = "highlight";
 	} else if (mAttrs & (ATTR_CODE|ATTR_TAG_CODE)) {
 		pRun->tr_attributes.fixedFont = 1;
-		pRun->tr_attributes.bgColor = theme_textStyleBackground(pTheme, "code", RGB(100, 100, 25));
+		pRun->tr_attributes.bgColorStyle = "code";
 	} else {
+		pRun->tr_attributes.bgColorStyle = 0;
 		pRun->tr_attributes.bgColor = NO_COLOR;
 	}
 	if (mAttrs & ATTR_SUB) {
@@ -3235,6 +3235,10 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		else {
 			rfp.rfp_part = pPart;
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
+			if (!pPart->rvp_layouted && pPart->rvp_decoration) {
+				rfp.rfp_measureOnly = TRUE;
+				pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
+			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
 			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 		}
@@ -3252,6 +3256,10 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), R
 		parsePage(wp);
 	}
 	if (!pCtx->rc_printing) {
+		if (pData->md_printing) {
+			mdr_invalidateViewpartsLayout(pData);
+			pData->md_printing = FALSE;
+		}
 		SCROLLINFO info = {
 			.cbSize = sizeof info,
 			.fMask = SIF_POS,
@@ -3285,12 +3293,37 @@ PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintL
 	if (!pData) {
 		return PFR_END;
 	}
-	mdr_invalidateViewpartsLayout(pData);
+	if (!pData->md_printing) {
+		mdr_invalidateViewpartsLayout(pData);
+		pData->md_printing = TRUE;
+	}
 	RECT rect;
 	rect.left = pExtents->xLMargin;
 	rect.right = pExtents->xRMargin;
 	rect.top = pExtents->yTop;
 	rect.bottom = pExtents->yBottom;
+	int nYBottom = (int)pPrintLine->yOffset + rect.bottom - rect.top;
+	int nBottomIdx = mdr_getViewpartAtY(pData->md_pElements, nYBottom);
+	if (nBottomIdx >= 0) {
+		RENDER_VIEW_PART* pBottom = mdr_getViewPartAt(pData->md_pElements, nBottomIdx);
+		RENDER_VIEW_PART* pPart = pData->md_pElements;
+		int nY = 0;
+		// Try to avoid clipped lines during Wysiwyg printing.
+		// This will currently only work for view parts, which are not very big.
+		while (pPart) {
+			if (pPart == pBottom) {
+				break;
+			}
+			if (pPart->rvp_next == pBottom) {
+				if (nY > nYBottom - 500) {
+					rect.bottom = nY- pPrintLine->yOffset+rect.top;
+					break;
+				}
+			}
+			nY += pPart->rvp_height;
+			pPart = pPart->rvp_next;
+		}
+	}
 	int nOldDC = SaveDC(pRC->rc_hdc);
 	HBRUSH hBrush = CreateSolidBrush(pRC->rc_theme->th_defaultBackgroundColor);
 	IntersectClipRect(pRC->rc_hdc, rect.left, rect.top, rect.right, rect.bottom);
@@ -3301,7 +3334,9 @@ PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintL
 	pPrintLine->yOffset = nTotal;
 	SIZE size;
 	mdr_getViewpartsExtend(pData, &size, -1);
-	pPrintLine->pagenumber++;
+	if (nTotal < size.cy) {
+		pPrintLine->pagenumber++;
+	}
 	pPrintLine->yPos = 0;
 	return nTotal >= size.cy ? PFR_END : PFR_END_PAGE;
 }

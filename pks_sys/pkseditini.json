@@ -21,7 +21,7 @@
         "undo-history": 100,
         "autosave-time": 10,
         "maximum-open-windows": 15,
-        "theme": "default",
+        "theme": "system default",
         "include-path": "include;inc",
         "language": "English",
         "default-font": "Consolas",
