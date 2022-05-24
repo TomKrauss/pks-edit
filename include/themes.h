@@ -139,6 +139,12 @@ long theme_textStyleBackground(THEME_DATA* pTheme, const char* pszStylename, lon
  */
 extern const char* theme_textStyleFontface(const char* pszStylename, const char* pszDefault);
 
+/*
+ * Returns the font size of the given style name. If the style cannot be found or does not
+ * define the font face, a default value passed as 2nd argument is returned.
+ */
+extern int theme_textStyleFontsize(const char* pszStylename, int nDefaultHeight);
+
 #define THEMES_H
 
 #endif // !THEMES_H

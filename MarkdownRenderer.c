@@ -106,11 +106,18 @@ typedef struct tagRUN_BOUNDS {
 	int		bottom;
 } RUN_BOUNDS;
 
+typedef enum { CSU_NONE, CSU_PX, CSU_EM, CSU_PT, CSU_PERCENT } CSS_SIZE_UNIT;
+
+typedef struct tagSIZE_SPECIFICATION {
+	float	ss_value;
+	CSS_SIZE_UNIT ss_units;
+} SIZE_SPECIFICATION;
+
 /*
  * The text style of a "text run"
  */
 typedef struct tagFONT_ATTRIBUTES {
-	int		size;
+	SIZE_SPECIFICATION size;
 	int		weight;
 	int		indent;
 	short	lineBreak : 1;
@@ -142,13 +149,6 @@ typedef enum {
 	TA_ALIGN_CENTER = 0x3
 } TEXT_ALIGN;
 
-typedef enum { CSU_NONE, CSU_PX, CSU_EM, CSU_PT, CSU_PERCENT } CSS_SIZE_UNIT;
-
-typedef struct tagSIZE_SPECIFICATION {
-	float	ss_value;
-	CSS_SIZE_UNIT ss_units;
-} SIZE_SPECIFICATION;
-
 typedef struct tagFONT_STYLE_DELTA {
 	int fsd_logicalStyles;
 	int fsd_indent;
@@ -158,6 +158,7 @@ typedef struct tagFONT_STYLE_DELTA {
 	COLORREF fsd_strokeColor;
 	int fsd_strokeWidth;
 	TEXT_ALIGN fsd_textAlign;
+	SIZE_SPECIFICATION fsd_fontSize;
 	SIZE_SPECIFICATION fsd_width;
 } FONT_STYLE_DELTA;
 
@@ -224,7 +225,6 @@ typedef struct tag_RENDER_TABLE {
 	int rt_totalColumnWidth;
 	int rt_borderWidth;						// width of the table border (by default 1)
 	COLORREF rt_borderColor;				// Optional color of the border
-	SIZE_SPECIFICATION rt_width;			// width of the table or default
 } RENDER_TABLE;
 
 typedef struct tagMARGINS {
@@ -254,6 +254,7 @@ struct tagRENDER_VIEW_PART {
 	MDR_ELEMENT_TYPE rvp_type;
 	long rvp_number;					// for numbered lists
 	int	rvp_level;						// for headers and lists - the level.
+	SIZE_SPECIFICATION rvp_width;		// width of the part 
 	union {
 		TEXT_FLOW rvp_flow;
 		RENDER_TABLE* rvp_table;
@@ -262,7 +263,7 @@ struct tagRENDER_VIEW_PART {
 
 typedef struct tagMDR_ELEMENT_FORMAT {
 	MARGINS mef_margins;
-	int mef_charHeight;
+	SIZE_SPECIFICATION mef_fontSize;
 	int mef_charWeight;
 	int mef_fixedFont;
 	RENDER_BOX_DECORATION* mef_decoration;
@@ -294,7 +295,7 @@ static int mdr_getNextLinkRunOffset(RENDER_VIEW_PART* pPart, int nOffset, int nD
 static int mdr_forRunListDo(RENDER_VIEW_PART* pPart, int (*runCallback)(TEXT_RUN* pRunList, void* pParam), void* pParam);
 
 static MDR_ELEMENT_FORMAT _formatText = {
-	0, 0, DEFAULT_LEFT_MARGIN, 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static RENDER_BOX_DECORATION _fencedBlock = {
@@ -304,66 +305,66 @@ static RENDER_BOX_DECORATION _fencedBlock = {
 };
 
 static MDR_ELEMENT_FORMAT _formatFenced = {
-	12, 6, 20, 20, 14, FW_BOLD, 1, .mef_decoration = &_fencedBlock
+	12, 6, 20, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD, 1, .mef_decoration = &_fencedBlock
 };
 
 #define BLOCK_QUOTE_INDENT		25
 #define BLOCK_QUOTE_MARGIN		4
 
 static MDR_ELEMENT_FORMAT _formatParagraph = {
-	0, 10, DEFAULT_LEFT_MARGIN, 10, 14, FW_NORMAL
+	0, 10, DEFAULT_LEFT_MARGIN, 10,  .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
-	0, 0, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote2 = {
-	0, 0, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote3 = {
-	0, 0, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, 14, FW_NORMAL
+	0, 0, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatTable = {
-	10, 10, 10, 10, 14, FW_NORMAL
+	10, 10, 10, 10, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatListLevel1 = {
-	1, 1, 45, 20, 14, FW_NORMAL
+	1, 1, 45, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatListLevel2 = {
-	1, 1, 70, 20, 14, FW_NORMAL
+	1, 1, 70, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatListLevel3 = {
-	1, 1, 95, 20, 14, FW_NORMAL
+	1, 1, 95, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatH1 = {
-	PARAGRAPH_OFFSET+5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 28, FW_BOLD
+	PARAGRAPH_OFFSET+5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 2.4f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH2 = {
-	PARAGRAPH_OFFSET, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 24, FW_BOLD
+	PARAGRAPH_OFFSET, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 2.0f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH3 = {
-	PARAGRAPH_OFFSET-5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, 20, FW_BOLD
+	PARAGRAPH_OFFSET-5, DEFAULT_LEFT_MARGIN, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 1.6f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH4 = {
-	PARAGRAPH_OFFSET/2, 3, DEFAULT_LEFT_MARGIN, 20, 18, FW_BOLD
+	PARAGRAPH_OFFSET/2, 3, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 1.5f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH5 = {
-	PARAGRAPH_OFFSET/3, 3, DEFAULT_LEFT_MARGIN, 20, 16, FW_BOLD
+	PARAGRAPH_OFFSET/3, 3, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 1.4f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MDR_ELEMENT_FORMAT _formatH6 = {
-	PARAGRAPH_OFFSET/4, 3, DEFAULT_LEFT_MARGIN, 20, 14, FW_BOLD
+	PARAGRAPH_OFFSET/4, 3, DEFAULT_LEFT_MARGIN, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD
 };
 
 static MARGINS _tableMargins = {
@@ -397,34 +398,53 @@ static BOOL runbounds_contains(RUN_BOUNDS* pBounds, POINT pt) {
 }
 
 /*
+ * Perform CSS size calculations.Given a relative value calculate the size in logical markdown renderer pixels.
+ */
+static int mdr_calculateSize(SIZE_SPECIFICATION sSize, int nRelativeValue, float fZoomfactor) {
+	switch (sSize.ss_units) {
+	case CSU_PERCENT:
+		return (int)(nRelativeValue * sSize.ss_value);
+	case CSU_EM:
+		return (int)(sSize.ss_value * 16 * fZoomfactor);
+	case CSU_PT:
+		return (int)(sSize.ss_value * 16 / 12 * fZoomfactor);
+	case CSU_NONE:
+		return (int)(nRelativeValue * fZoomfactor);
+	default:
+		return (int)(sSize.ss_value * fZoomfactor);
+	}
+}
+
+static LOGFONT _defaultFont = {
+	12,					// lfHeight;
+	0,					// lfWidth;
+	0,					// lfEscapement;
+	0,					// lfOrientation;
+	FW_NORMAL,			// lfWeight;
+
+	0,					// lfItalic;
+	0,					// lfUnderline;
+	0,					// lfStrikeOut;
+
+	ANSI_CHARSET,		// lfCharSet;
+	OUT_DEVICE_PRECIS,	// lfOutPrecision;
+	CLIP_DEFAULT_PRECIS,// lfClipPrecision;
+	ANTIALIASED_QUALITY,// lfQuality;
+	FF_DONTCARE, 		// lfPitchAndFamily;
+};
+/*
  * Create a font for the given font-attributes. 
  */
 static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom) {
-	static LOGFONT _defaultFont = {
-		12,					// lfHeight;
-		0,					// lfWidth;
-		0,					// lfEscapement;
-		0,					// lfOrientation;
-		FW_NORMAL,			// lfWeight;
-
-		0,					// lfItalic;
-		0,					// lfUnderline;
-		0,					// lfStrikeOut;
-
-		ANSI_CHARSET,		// lfCharSet;
-		OUT_DEVICE_PRECIS,	// lfOutPrecision;
-		CLIP_DEFAULT_PRECIS,// lfClipPrecision;
-		ANTIALIASED_QUALITY,// lfQuality;
-		FF_DONTCARE, 		// lfPitchAndFamily;
-	};
 	LOGFONT _lf;
 	if (!_defaultFont.lfFaceName[0]) {
 		const char* pszStyle = theme_textStyleFontface("wysiwyg", "Verdana");
 		strcpy(_defaultFont.lfFaceName, pszStyle);
+		_defaultFont.lfHeight = theme_textStyleFontsize("wysiwyg", 12);
 	}
 	memcpy(&_lf, &_defaultFont, sizeof _lf);
 	long nHeight;
-	nHeight = (long)(pAttrs->size * fZoom);
+	nHeight = mdr_calculateSize(pAttrs->size, _defaultFont.lfHeight, 1.0f) * fZoom;
 	if (pAttrs->subscript || pAttrs->superscript) {
 		nHeight /= 2;
 	}
@@ -499,18 +519,15 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	int left = pBounds->left+m.m_left;
 	int right = pBounds->right - m.m_right;
 	int nWidth = right - left;
-	if (pTable->rt_width.ss_units == CSU_PERCENT) {
-		nWidth = (int)(nWidth * pTable->rt_width.ss_value);
-		right = left + nWidth;
-	} else if (pTable->rt_width.ss_units == CSU_PX) {
-		nWidth = (int)pTable->rt_width.ss_value;
+	nWidth = mdr_calculateSize(pPart->rvp_width, nWidth, pParams->rfp_zoomFactor);
+	if (pPart->rvp_width.ss_units != CSU_NONE) {
 		right = left + nWidth;
 	}
 	int nTotal = pTable->rt_totalColumnWidth;
 	if (nTotal == 0) {
 		nTotal = 1;
 	}
-	if (nWidth > nTotal && pTable->rt_width.ss_units == CSU_NONE) {
+	if (nWidth > nTotal && pPart->rvp_width.ss_units == CSU_NONE) {
 		nWidth = (int)(nTotal * pParams->rfp_zoomFactor);
 		right = left + nWidth;
 	}
@@ -936,6 +953,11 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	MARGINS m = mdr_getScaledMargins(pParams->rfp_zoomFactor, &pPart->rvp_margins);
 	int x = pBounds->left + m.m_left;
 	int y = pBounds->top + m.m_top;
+	RECT renderBounds = *pBounds;
+	if (pPart->rvp_width.ss_units != CSU_NONE) {
+		int nWidth = mdr_calculateSize(pPart->rvp_width, renderBounds.right - m.m_right - x, pParams->rfp_zoomFactor);
+		renderBounds.right = x + nWidth + m.m_right;
+	}
 	if (!pParams->rfp_measureOnly) {
 		font_setDefaultTextColors(hdc, pParams->rfp_theme);
 		HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
@@ -944,7 +966,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
 		else if (pPart->rvp_type == MET_TASK_LIST) {
-			mdr_paintCheckmark(pParams, x - -(int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
+			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
 			char szBuf[20];
@@ -952,23 +974,24 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 			TextOut(hdc, x - (int)(20*pParams->rfp_zoomFactor), y, szBuf, (int)strlen(szBuf));
 		}
 		if (pPart->rvp_decoration) {
-			mdr_paintFillDecoration(pParams, pPart, pBounds);
+			mdr_paintFillDecoration(pParams, pPart, &renderBounds);
 		}
 		DeleteFont(SelectObject(hdc, hOldFont));
 	}
 	int nDCId = SaveDC(hdc);
 	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
 	if (pFlow->tf_text && pFlow->tf_runs) {
-		mdr_renderTextFlow(&m, pFlow, pBounds, &pPart->rvp_bounds, pUsed,
+		mdr_renderTextFlow(&m, pFlow, &renderBounds, &pPart->rvp_bounds, pUsed,
 				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, TA_ALIGN_LEFT, pParams);
 	} else {
 		pUsed->bottom = y + 10 + m.m_bottom;
 	}
 	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
-		mdr_paintRule(pParams, pBounds->left + DEFAULT_LEFT_MARGIN, pBounds->right - DEFAULT_LEFT_MARGIN, pUsed->bottom - 2, 1);
+		int nMargin = (int)(DEFAULT_LEFT_MARGIN * pParams->rfp_zoomFactor);
+		mdr_paintRule(pParams, renderBounds.left + nMargin, renderBounds.right - nMargin, pUsed->bottom - 2, 1);
 	}
 	RestoreDC(hdc, nDCId);
-	pPart->rvp_height = pUsed->bottom - pBounds->top;
+	pPart->rvp_height = pUsed->bottom - renderBounds.top;
 	pPart->rvp_layouted = TRUE;
 }
 
@@ -1173,7 +1196,7 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	pRun->tr_size = nSize;
 	pRun->tr_lp = lp;
 	pRun->tr_lineOffset = nLineOffset;
-	pRun->tr_attributes.size = pFormat->mef_charHeight;
+	pRun->tr_attributes.size = pFormat->mef_fontSize;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
 	pRun->tr_attributes.fixedFont = pFormat->mef_fixedFont;
 	THEME_DATA* pTheme = theme_getCurrent();
@@ -1217,6 +1240,9 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	}
 	if (mAttrs & ATTR_LINE_BREAK) {
 		pRun->tr_attributes.lineBreak = 1;
+	}
+	if (pFSD->fsd_fontSize.ss_units != CSU_NONE) {
+		pRun->tr_attributes.size = pFSD->fsd_fontSize;
 	}
 	pFSD->fsd_logicalStyles &= ~(ATTR_LINE_BREAK | ATTR_LINK);
 	if (ppszLink && *ppszLink) {
@@ -1323,7 +1349,7 @@ typedef struct tagHTML_PARSER_STATE {
 	LINE* hps_lp;
 	int					hps_runOffset;
 	HASHMAP* hps_lastAttributes;
-	MDR_ELEMENT_FORMAT* hps_blockFormat;
+	MDR_ELEMENT_FORMAT  hps_blockFormat;
 	FONT_STYLE_DELTA	hps_styleTable[20];
 	FONT_STYLE_DELTA* hps_currentStyle;
 	RENDER_VIEW_PART** hps_head;
@@ -1639,6 +1665,12 @@ static SIZE_SPECIFICATION mdr_parseSize(const char* pszText) {
 			fValue /= 100.0f;
 			units = CSU_PERCENT;
 		}
+		else if (_strtolend[0] == 'e' && _strtolend[1] == 'm') {
+			units = CSU_EM;
+		}
+		else if (_strtolend[0] == 'p' && _strtolend[1] == 't') {
+			units = CSU_PT;
+		}
 		else if (_strtolend[0] == 0 || (_strtolend[0] == 'p' && _strtolend[1] == 'x')) {
 			units = CSU_PX;
 		}
@@ -1695,6 +1727,8 @@ static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 					pFSD->fsd_fillColor = json_convertColor(szAttrValue);
 				} else if (strcmp("width", szAttribute) == 0) {
 					pFSD->fsd_width = mdr_parseSize(szAttrValue);
+				} else if (strcmp("font-size", szAttribute) == 0) {
+					pFSD->fsd_fontSize = mdr_parseSize(szAttrValue);
 				} else if (strcmp("border", szAttribute) == 0) {
 					mdr_parseBorder(pFSD, szAttrValue);
 				} else if (strcmp("text-align", szAttribute) == 0) {
@@ -1937,9 +1971,9 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	default: pPart->rvp_paint = mdr_renderMarkdownBlockPart; break;
 	}
 	pPart->rvp_type = mType;
-	pState->hps_blockFormat = mdr_getFormatFor(mType, nLevel);
+	pState->hps_blockFormat = *mdr_getFormatFor(mType, nLevel);
 	pPart->rvp_level = nLevel;
-	mdr_applyFormat(pPart, pState->hps_blockFormat);
+	mdr_applyFormat(pPart, &pState->hps_blockFormat);
 	FONT_STYLE_DELTA* pFSD = pState->hps_currentStyle;
 	if (pFSD->fsd_strokeColor != NO_COLOR || pFSD->fsd_fillColor != NO_COLOR) {
 		RENDER_BOX_DECORATION* pDecoration = calloc(1, sizeof * pDecoration);
@@ -2089,7 +2123,7 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 	char* pszText = " ";
 	int nLen = (int)strlen(pszText);
 	stringbuf_appendString(pState->hps_text, pszText);
-	TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(pPart), pState->hps_blockFormat, nLen, pfsd, pState->hps_lp, 0, 0);
+	TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(pPart), &pState->hps_blockFormat, nLen, pfsd, pState->hps_lp, 0, 0);
 	if (pszTitle) {
 		pRun->tr_title = _strdup(pszTitle);
 	}
@@ -2159,7 +2193,7 @@ static TEXT_FLOW* mdr_endRun(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, B
 	TEXT_FLOW* pFlow = mdr_getTextFlowEnsureInit(pStream, pState);
 	int nDelta = (int)(nSize - pState->hps_lastTextOffset);
 	if (pFlow && (nDelta || bForced)) {
-		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pState->hps_blockFormat, nDelta, pState->hps_currentStyle, pState->hps_lp, pState->hps_runOffset, 0);
+		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, &pState->hps_blockFormat, nDelta, pState->hps_currentStyle, pState->hps_lp, pState->hps_runOffset, 0);
 		mdr_applyRunAttributes(pState, pRun);
 		pState->hps_lastTextOffset += nDelta;
 		pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
@@ -2290,9 +2324,7 @@ static void mdr_applyTableAttributes(HTML_PARSER_STATE* pState, HASHMAP* pAttrib
 		return;
 	}
 	FONT_STYLE_DELTA* pfsd = pState->hps_currentStyle;
-	if (pfsd->fsd_width.ss_units != CSU_NONE) {
-		pTable->rt_width = pfsd->fsd_width;
-	}
+	RENDER_VIEW_PART* pPart = pState->hps_part;
 	if (pfsd->fsd_strokeWidth) {
 		pTable->rt_borderWidth = pfsd->fsd_strokeWidth;
 	}
@@ -2308,7 +2340,7 @@ static void mdr_applyTableAttributes(HTML_PARSER_STATE* pState, HASHMAP* pAttrib
 	}
 	char* pszWidth = (char*)hashmap_get(pAttributes, "width");
 	if (pszWidth) {
-		pTable->rt_width = mdr_parseSize(pszWidth);
+		pPart->rvp_width = mdr_parseSize(pszWidth);
 	}
 }
 
@@ -2368,6 +2400,12 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 		}
 		*pState->hps_currentStyle = fsd;
 		mdr_skipLeadingSpace(pStream);
+		if (fsd.fsd_width.ss_units != CSU_NONE) {
+			pState->hps_part->rvp_width = fsd.fsd_width;
+		}
+		if (fsd.fsd_fontSize.ss_units != CSU_NONE) {
+			pState->hps_blockFormat.mef_fontSize = fsd.fsd_fontSize;
+		}
 		if (mType == MET_TABLE) {
 			pState->hps_table = pState->hps_part->rvp_data.rvp_table;
 			mdr_applyTableAttributes(pState, pTag->ht_attributes);
@@ -2408,6 +2446,9 @@ static void mdr_onHtmlTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML
 	}
 	if (!pTag->ht_isClose) {
 		*pOldFSD = fsdOld;
+		if (pFSDDelta->fsd_textColor != NO_COLOR) {
+			pOldFSD->fsd_textColor = pFSDDelta->fsd_textColor;
+		}
 	}
 }
 
@@ -2445,7 +2486,7 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 			state.hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
 			if (nSize) {
 				mdr_ensureParagraph(pStream, &state);
-				TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(state.hps_part), state.hps_blockFormat, nSize, state.hps_currentStyle,
+				TEXT_RUN* pRun = mdr_appendRun(mdr_getBlockRunsOf(state.hps_part), &state.hps_blockFormat, nSize, state.hps_currentStyle,
 					state.hps_lp, state.hps_runOffset, 0);
 				mdr_applyRunAttributes(&state, pRun);
 				state.hps_lastTextOffset += (int)nSize;
@@ -2492,7 +2533,7 @@ static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pS
 		return 0;
 	}
 	int nSize = (int)(stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset);
-	TEXT_RUN* pResult = mdr_appendRun(&pFlow->tf_runs, pState->hps_blockFormat, nSize, pFSD, pState->hps_lp, pState->hps_runOffset, 0);
+	TEXT_RUN* pResult = mdr_appendRun(&pFlow->tf_runs, &pState->hps_blockFormat, nSize, pFSD, pState->hps_lp, pState->hps_runOffset, 0);
 	pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 	pState->hps_lastTextOffset += (int)nSize;
 	return pResult;
@@ -2524,7 +2565,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			c = cNext;
 			if (nLineOffset == 0 && mdr_isIndentedFencedBlock(pStream, mType)) {
 				mType = MET_FENCED_CODE_BLOCK;
-				pState->hps_blockFormat = &_formatFenced;
+				pState->hps_blockFormat = _formatFenced;
 				mdr_parsePreformattedCodeBlock(pStream, pState, TRUE, 0);
 				pState->hps_lastTextOffset = (int)stringbuf_size(pState->hps_text);
 				goto outer;
@@ -2668,7 +2709,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					continue;
 				}
 				pStream->is_seek(pStream, offset);
-				if (mdr_parseAutolinks(pStream, pState, mdr_getTextFlowEnsureInit(pStream, pState), pState->hps_blockFormat, pState->hps_currentStyle, pState->hps_lastTextOffset)) {
+				if (mdr_parseAutolinks(pStream, pState, mdr_getTextFlowEnsureInit(pStream, pState), &pState->hps_blockFormat, pState->hps_currentStyle, pState->hps_lastTextOffset)) {
 					pState->hps_lastTextOffset = (int)stringbuf_size(pState->hps_text);
 					continue;
 				}
@@ -2694,8 +2735,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 outer:
 	if (pState->hps_part) {
 		pState->hps_part->rvp_type = mType;
-		if (pState->hps_blockFormat) {
-			mdr_applyFormat(pState->hps_part, pState->hps_blockFormat);
+		if (pState->hps_blockFormat.mef_fontSize.ss_units != CSU_NONE) {
+			mdr_applyFormat(pState->hps_part, &pState->hps_blockFormat);
 		}
 	}
 	mdr_closeTextElement(pStream, pState, FALSE);
@@ -3662,7 +3703,7 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 	toolinfo.cbSize = sizeof(toolinfo);
 	toolinfo.hwnd = hwnd;
 	toolinfo.hinst = hInst;
-	if (pMatchR && pMatchR->tr_title) {
+	if (pMatchR && pMatchR->tr_title && pData->md_caretView) {
 		// Activate the tooltip.
 		toolinfo.lpszText = pMatchR->tr_title;
 		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
@@ -3701,6 +3742,9 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			int yPos = GET_Y_LPARAM(lParam);
 			mdr_mouseMove(hwnd, pData, xPos, yPos);
 		}
+		break;
+	case WM_THEMECHANGED:
+		_defaultFont.lfFaceName[0] = 0;
 		break;
 	case WM_MOUSEWHEEL:
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {

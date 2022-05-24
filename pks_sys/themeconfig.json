@@ -21,7 +21,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -97,7 +98,7 @@
         {
           "styleName": "hyperlink",
           "underline": true,
-          "foregroundColor": "#2222FF"
+          "foregroundColor": "#0000AA"
         },
         {
           "styleName": "string",
@@ -154,7 +155,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -290,7 +292,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -426,7 +429,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",

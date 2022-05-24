@@ -1341,4 +1341,12 @@ const char* theme_textStyleFontface(const char* pszStylename, const char* pszDef
 	return (pStyle && pStyle->faceName[0]) ? pStyle->faceName : pszDefault;
 }
 
+/*
+ * Returns the font size of the given style name. If the style cannot be found or does not
+ * define the font face, a default value passed as 2nd argument is returned.
+ */
+int theme_textStyleFontsize(const char* pszStylename, int nDefaultHeight) {
+	EDTEXTSTYLE* pStyle = ll_find((void*)theme_getCurrent()->th_styles, pszStylename);
+	return (pStyle && pStyle->size) ? pStyle->size : nDefaultHeight;
+}
 

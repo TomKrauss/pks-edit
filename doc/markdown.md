@@ -45,17 +45,21 @@ You may also ==highlight== important places in the text.
 
 Some HTML formatting is supported in markdown documents. Here are some samples and below one can see the effect.
 
+```
+- <code>code tag to style code</code >.
+- <span style="color: teal;">using CSS style to color text in color **teal**</span>
+- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
+- <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
+```
+- <code>code tag to style code</code >.
+- <span style="color: teal;">using CSS style to color text in color **teal**</span>
+- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
+- <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
 
-```
-- <code>code tag to style code</code >.
-- <span style="color: teal;">using CSS style to color text in color **teal**</span>
-- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
-- <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
-```
-- <code>code tag to style code</code >.
-- <span style="color: teal;">using CSS style to color text in color **teal**</span>
-- <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
-- <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
+<p style="width: 70%">Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification.
+Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification.</p>
+
+<h3 style="font-size: 80px; color: red">Colored H3 Header with big font</h3>
 
 ### HTML Entities
 
@@ -192,7 +196,7 @@ Content21 | Content22 | Content23 | Excess |
 HTML Tables support simple HTML attributes and styles to align columns. Column and row spanning are not yet supported.
 
 
-<table style="width:500px; border: 2px solid red;">
+<table style="width:500px; border: 2px solid lime;">
 <tr><th>HTML Header 1</th><th>Header 2</th></tr>
 <tr><td>Content 1</td><td style="text-align: center">Content 2 centered</td></tr>
 </table>
