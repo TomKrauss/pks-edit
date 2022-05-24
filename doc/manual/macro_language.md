@@ -11,11 +11,13 @@ The standard macro file shipped with PKS-Edit currently contains:
 - custom macros performing text operations - for instance used as post-save actions or the like.
 
 ## Recording Macros
+
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## The Macro Menu
+
 Allows you to edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
 
 Also contains menu entries created from the macros defined allowing to use any defined macro.

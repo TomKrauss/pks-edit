@@ -21,7 +21,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -82,6 +83,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#efefef"
         },
@@ -97,7 +99,7 @@
         {
           "styleName": "hyperlink",
           "underline": true,
-          "foregroundColor": "#2222FF"
+          "foregroundColor": "#0000AA"
         },
         {
           "styleName": "string",
@@ -154,7 +156,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -218,6 +221,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#64b764"
         },
@@ -290,7 +294,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -354,6 +359,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#d78484"
         },
@@ -426,7 +432,8 @@
       "textStyles": [
         {
           "styleName": "wysiwyg",
-          "faceName": "Arial"
+          "faceName": "Arial",
+          "size": -11
         },
         {
           "styleName": "default",
@@ -489,6 +496,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#4e4e4e"
         },
