@@ -45,6 +45,8 @@ typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 #define PARAGRAPH_OFFSET	15		// offset in pixels between paragraph type elements.
 #define DEFAULT_LEFT_MARGIN	10		// offset of most elements to the left of the screen.
 
+#define MAX_HTML_VALUE_LEN 200
+
 #define IS_UNORDERED_LIST_START(c)	(c == '-' || c == '*' || c == '+')
 
 extern HINSTANCE		hInst;
@@ -128,9 +130,8 @@ typedef struct tagFONT_ATTRIBUTES {
 	short	focussed : 1;
 	short	superscript : 1;
 	short	subscript : 1;
-	short	fixedFont : 1;
 	COLORREF bgColor;
-	char*	bgColorStyle;
+	const char* style;
 	COLORREF fgColor;
 } FONT_ATTRIBUTES;
 
@@ -185,6 +186,7 @@ static int mdr_destroyRun(TEXT_RUN* pRun);
 
 typedef struct tagTEXT_FLOW {
 	char* tf_text;
+	TEXT_ALIGN	tf_align;
 	TEXT_RUN* tf_runs;
 } TEXT_FLOW;
 
@@ -208,7 +210,6 @@ typedef enum {
 typedef struct tagRENDER_TABLE_CELL {
 	struct tagRENDER_TABLE_CELL* rtc_next;
 	BOOL		rtc_isHeader;
-	TEXT_ALIGN	rtc_align;
 	SIZE_SPECIFICATION	rtc_width;			// width of the table cell
 	TEXT_FLOW	rtc_flow;
 } RENDER_TABLE_CELL;
@@ -265,7 +266,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 	MARGINS mef_margins;
 	SIZE_SPECIFICATION mef_fontSize;
 	int mef_charWeight;
-	int mef_fixedFont;
+	const char* mef_style;
 	RENDER_BOX_DECORATION* mef_decoration;
 } MDR_ELEMENT_FORMAT;
 
@@ -305,7 +306,7 @@ static RENDER_BOX_DECORATION _fencedBlock = {
 };
 
 static MDR_ELEMENT_FORMAT _formatFenced = {
-	12, 6, 20, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD, 1, .mef_decoration = &_fencedBlock
+	12, 6, 20, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_BOLD, "code", .mef_decoration = &_fencedBlock
 };
 
 #define BLOCK_QUOTE_INDENT		25
@@ -438,20 +439,22 @@ static LOGFONT _defaultFont = {
 static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 	LOGFONT _lf;
 	if (!_defaultFont.lfFaceName[0]) {
-		const char* pszStyle = theme_textStyleFontface("wysiwyg", "Verdana");
-		strcpy(_defaultFont.lfFaceName, pszStyle);
+		const char* pszFontface = theme_textStyleFontface("wysiwyg", "Verdana");
+		strcpy(_defaultFont.lfFaceName, pszFontface);
 		_defaultFont.lfHeight = theme_textStyleFontsize("wysiwyg", 12);
 	}
 	memcpy(&_lf, &_defaultFont, sizeof _lf);
 	long nHeight;
-	nHeight = mdr_calculateSize(pAttrs->size, _defaultFont.lfHeight, 1.0f) * fZoom;
+	nHeight = (int)(mdr_calculateSize(pAttrs->size, _defaultFont.lfHeight, 1.0f) * fZoom);
 	if (pAttrs->subscript || pAttrs->superscript) {
 		nHeight /= 2;
 	}
 	_lf.lfHeight = nHeight;
-	if (pAttrs->fixedFont) {
-		strcpy(_lf.lfFaceName, "Consolas");
-		_lf.lfWeight = FW_BOLD;
+	if (pAttrs->style) {
+		const char* pszFontface = theme_textStyleFontface(pAttrs->style, 0);
+		if (pszFontface) {
+			strcpy(_lf.lfFaceName, pszFontface);
+		}
 	}
 	if (pAttrs->weight) {
 		_lf.lfWeight = pAttrs->weight;
@@ -555,7 +558,7 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 			bounds.right = bounds.left + nColumnWidth[nColumn];
 			bounds.bottom = bounds.top + 30000;
 			if (pCell->rtc_flow.tf_text) {
-				byte align = pCell->rtc_align;
+				byte align = pCell->rtc_flow.tf_align;
 				if (!align && pCell->rtc_isHeader) {
 					align = TA_ALIGN_CENTER;
 				}
@@ -726,6 +729,38 @@ static void mdr_paintSelection(HDC hdc, int x, int y, RENDER_FLOW_PARAMS* pRFP, 
 	render_paintSelectionRect(hdc, &selectionRect);
 }
 
+static void mdr_getLineExtent(HDC hdc, TEXT_FLOW* pTF, TEXT_RUN* pRun, float fZoom, int nOffsetInText, int nTotalWidthInPixels, int nCurrentFit, int* pWidth) {
+	SIZE size;
+	int nFit;
+	GetTextExtentExPoint(hdc, &pTF->tf_text[nOffsetInText], (int)nCurrentFit, nTotalWidthInPixels, &nFit, 0, &size);
+	*pWidth = size.cx;
+	nTotalWidthInPixels -= size.cx;
+	HFONT hOldFont = NULL;
+	while (size.cx < nTotalWidthInPixels) {
+		pRun = pRun->tr_next;
+		if (!pRun) {
+			break;
+		}
+		if (hOldFont) {
+			DeleteObject(SelectObject(hdc, hOldFont));
+		}
+		HFONT hFont = mdr_createFont(hdc, &pRun->tr_attributes, fZoom);
+		hOldFont = SelectObject(hdc, hFont);
+		nOffsetInText += nFit;
+		GetTextExtentExPoint(hdc, &pTF->tf_text[nOffsetInText], (int)pRun->tr_size, nTotalWidthInPixels, &nFit, 0, &size);
+		if (nFit < pRun->tr_size) {
+			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffsetInText], nFit, nTotalWidthInPixels, &nFit, 0, &size);
+			*pWidth += size.cx;
+			break;
+		}
+		*pWidth += size.cx;
+		nTotalWidthInPixels -= size.cx;
+	}
+	if (hOldFont) {
+		DeleteObject(SelectObject(hdc, hOldFont));
+	}
+}
+
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
@@ -758,10 +793,14 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	}
 	pPartBounds->top = y;
 	BOOL bRunBegin = TRUE;
+	BOOL bStartOfLine = TRUE;
+	int nDeltaX = 0;
 	while (pTR) {
 		SIZE size;
 		int nFit = 0;
-		x += pTR->tr_attributes.indent;
+		if (bRunBegin) {
+			x += pTR->tr_attributes.indent;
+		}
 		if (pTR->tr_image) {
 			mdr_paintImage(hdc, pTR, x, y, &size, pRFP->rfp_zoomFactor, pRFP->rfp_measureOnly);
 			if (size.cy > nHeight) {
@@ -815,14 +854,14 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 				}
 			}
 			int nDelta = nHeight > size.cy ? (nHeight - size.cy) / 2 : 0;
-			int nDeltaX = 0;
-			if (bRunBegin && !pTR->tr_next) {
-				// TODO alignment supported only for non formatted contents.
+			if (bStartOfLine && nAlign != TA_ALIGN_LEFT && nAlign != TA_ALIGN_DEFAULT) {
+				int nWidth;
+				mdr_getLineExtent(hdc, pTF, pTR, pRFP->rfp_zoomFactor, nOffs, nTotalWidth, nFit, &nWidth);
 				if (nAlign == TA_ALIGN_RIGHT) {
-					nDeltaX = nTotalWidth - size.cx;
+					nDeltaX = nTotalWidth - nWidth;
 				}
 				else if (nAlign == TA_ALIGN_CENTER) {
-					nDeltaX = (nTotalWidth - size.cx) / 2;
+					nDeltaX = (nTotalWidth - nWidth) / 2;
 				}
 			}
 			SetTextColor(hdc, pTR->tr_attributes.fgColor == NO_COLOR ? cDefault : pTR->tr_attributes.fgColor);
@@ -866,6 +905,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			nOffs += nFit;
 			nDeltaPainted += nFit;
 			x = pUsed->left;
+			bStartOfLine = TRUE;
 			y += nHeight;
 			nHeight = 0;
 			nLen -= nFit;
@@ -879,11 +919,13 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 		else {
 			if (pTR->tr_attributes.lineBreak) {
 				x = pUsed->left;
+				bStartOfLine = TRUE;
 				y += nHeight;
 				nHeight = 0;
 			}
 			else {
 				x += size.cx;
+				bStartOfLine = FALSE;
 			}
 			nOffs += (int)nLen;
 			pTR = pTR->tr_next;
@@ -895,8 +937,8 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			DeleteObject(SelectObject(hdc, hOldFont));
 			hFont = mdr_createFont(hdc, &pTR->tr_attributes, pRFP->rfp_zoomFactor);
 			hOldFont = SelectObject(hdc, hFont);
-			if (pTR->tr_attributes.bgColorStyle) {
-				pTR->tr_attributes.bgColor = theme_textStyleBackground(pTheme, pTR->tr_attributes.bgColorStyle, RGB(100, 100, 25));
+			if (pTR->tr_attributes.style) {
+				pTR->tr_attributes.bgColor = theme_textStyleBackground(pTheme, pTR->tr_attributes.style, RGB(100, 100, 25));
 			}
 			if (pTR->tr_attributes.bgColor == NO_COLOR) {
 				SetBkMode(hdc, TRANSPARENT);
@@ -982,7 +1024,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
 	if (pFlow->tf_text && pFlow->tf_runs) {
 		mdr_renderTextFlow(&m, pFlow, &renderBounds, &pPart->rvp_bounds, pUsed,
-				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, TA_ALIGN_LEFT, pParams);
+				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, pFlow->tf_align, pParams);
 	} else {
 		pUsed->bottom = y + 10 + m.m_bottom;
 	}
@@ -1198,16 +1240,13 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	pRun->tr_lineOffset = nLineOffset;
 	pRun->tr_attributes.size = pFormat->mef_fontSize;
 	pRun->tr_attributes.weight = pFormat->mef_charWeight;
-	pRun->tr_attributes.fixedFont = pFormat->mef_fixedFont;
 	THEME_DATA* pTheme = theme_getCurrent();
 	if (mAttrs & ATTR_HIGHLIGHT) {
-		pRun->tr_attributes.fixedFont = 0;
-		pRun->tr_attributes.bgColorStyle = "highlight";
+		pRun->tr_attributes.style = "highlight";
 	} else if (mAttrs & (ATTR_CODE|ATTR_TAG_CODE)) {
-		pRun->tr_attributes.fixedFont = 1;
-		pRun->tr_attributes.bgColorStyle = "code";
+		pRun->tr_attributes.style = "code";
 	} else {
-		pRun->tr_attributes.bgColorStyle = 0;
+		pRun->tr_attributes.style = pFormat->mef_style;
 		pRun->tr_attributes.bgColor = NO_COLOR;
 	}
 	if (mAttrs & ATTR_SUB) {
@@ -1220,6 +1259,8 @@ static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, si
 	}
 	if (pFSD->fsd_styleName) {
 		pRun->tr_attributes.fgColor = theme_textStyleForeground(pTheme, pFSD->fsd_styleName, NO_COLOR);
+		free((char*)pFSD->fsd_styleName);
+		pFSD->fsd_styleName = 0;
 	} else {
 		if (mAttrs & ATTR_LINK) {
 			pRun->tr_attributes.fgColor = theme_textStyleForeground(pTheme, "hyperlink", RGB(120, 120, 255));
@@ -1684,8 +1725,9 @@ static SIZE_SPECIFICATION mdr_parseSize(const char* pszText) {
  */
 static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 	int tState = 0;
-	char szAttribute[128];
-	char szAttrValue[128];
+	// (A) pszStyleSpec is currently never longer than MAX_HTML_VALUE_LEN
+	char szAttribute[MAX_HTML_VALUE_LEN];
+	char szAttrValue[MAX_HTML_VALUE_LEN];
 	char* pszAttr;
 	char* pszValue;
 	char c;
@@ -1768,7 +1810,7 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 	int bTermQuote = 0;
 	char lastC = 0;
 	char szAttribute[32];
-	static char szValue[128];
+	static char szValue[MAX_HTML_VALUE_LEN];
 	char* pszAttr = 0;
 	char* pszValue = 0;
 	char* pszDest = szTag;
@@ -1856,7 +1898,7 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 			} else {
 				*pszValue = 0;
 				if (strcmp("class", szAttribute) == 0) {
-					pFSD->fsd_styleName = szValue;
+					pFSD->fsd_styleName = _strdup(szValue);
 				} else if (strcmp("style", szAttribute) == 0) {
 					mdr_parseStyle(pFSD, szValue);
 				} else if (pResult && pResult->tm_returnValues) {
@@ -1950,6 +1992,7 @@ static void mdr_resetFontStyleDelta(FONT_STYLE_DELTA* pFSD) {
 	pFSD->fsd_logicalStyles = 0;
 	pFSD->fsd_styleName = 0;
 	pFSD->fsd_indent = 0;
+	pFSD->fsd_textAlign = TA_ALIGN_DEFAULT;
 	pFSD->fsd_textColor = NO_COLOR;
 	pFSD->fsd_fillColor = NO_COLOR;
 	pFSD->fsd_strokeColor = NO_COLOR;
@@ -1968,7 +2011,10 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	switch (mType) {
 	case MET_HORIZONTAL_RULE: pPart->rvp_paint = mdr_renderHorizontalRule; break;
 	case MET_TABLE: pPart->rvp_paint = mdr_renderTable; break;
-	default: pPart->rvp_paint = mdr_renderMarkdownBlockPart; break;
+	default: 
+		pPart->rvp_paint = mdr_renderMarkdownBlockPart;
+		pPart->rvp_data.rvp_flow.tf_align = pState->hps_currentStyle->fsd_textAlign;
+		break;
 	}
 	pPart->rvp_type = mType;
 	pState->hps_blockFormat = *mdr_getFormatFor(mType, nLevel);
@@ -2254,7 +2300,7 @@ static void mdr_onTagSpecialHandling(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 			RENDER_TABLE_CELL* pTC = (RENDER_TABLE_CELL*)ll_append((LINKED_LIST**)&pState->hps_tableRow->rtr_cells, sizeof * pState->hps_tableCell);
 			pState->hps_tableCell = pTC;
 			pTC->rtc_isHeader = pTag->ht_descriptor->tm_tagName[1] == 'h';
-			pTC->rtc_align = pState->hps_currentStyle->fsd_textAlign;
+			pTC->rtc_flow.tf_align = pState->hps_currentStyle->fsd_textAlign;
 		}
 		mdr_skipLeadingSpace(pStream);
 		return;
@@ -2439,6 +2485,10 @@ static void mdr_onHtmlTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML
 		mdr_onInlineTag(pStream, pState, pTag);
 	} else {
 		mdr_onBlockLevelTag(pStream, pState, pTag);
+		if (pFSDDelta->fsd_textColor != NO_COLOR) {
+			fsdOld.fsd_textColor = pFSDDelta->fsd_textColor;
+		}
+		fsdOld.fsd_textAlign = pFSDDelta->fsd_textAlign;
 	}
 	if (pTag->ht_attributes) {
 		hashmap_destroyWithKeysAndValues(pState->hps_lastAttributes);
@@ -2446,9 +2496,6 @@ static void mdr_onHtmlTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, HTML
 	}
 	if (!pTag->ht_isClose) {
 		*pOldFSD = fsdOld;
-		if (pFSDDelta->fsd_textColor != NO_COLOR) {
-			pOldFSD->fsd_textColor = pFSDDelta->fsd_textColor;
-		}
 	}
 }
 
@@ -2477,6 +2524,9 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 			FONT_STYLE_DELTA fsdNext = *state.hps_currentStyle;
 			BOOL bMatch = mdr_getTag(pStream, &fsdNext, &tag);
 			if (bMatch) {
+				if (!tag.ht_isClose) {
+					mdr_endRun(pStream, &state, FALSE);
+				}
 				mdr_onHtmlTag(pStream, &state, &tag, &fsdNext);
 			}
 			continue;
@@ -2704,6 +2754,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				pStream->is_skip(pStream, 1);
 				int bSucces = mdr_getTag(pStream, &fsdNext, &tag);
 				if (bSucces) {
+					if (!tag.ht_isClose) {
+						mdr_endRun(pStream, pState, FALSE);
+					}
 					mdr_onHtmlTag(pStream, pState, &tag, &fsdNext);
 					pStream->is_skip(pStream, -1);
 					continue;
@@ -2792,7 +2845,7 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
 				if (!pCell) {
 					break;
 				}
-				pCell->rtc_align = columnAlignments[nColumn++];
+				pCell->rtc_flow.tf_align = columnAlignments[nColumn++];
 			}
 			stringbuf_reset(pBuf);
 			lnOffset = pStream->is_inputMark(pStream, &lp);
@@ -2814,7 +2867,7 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
 	if (nColumn < nMaxColumns && (c == '|' || stringbuf_size(pBuf) > 0)) {
 		RENDER_TABLE_CELL* pCell = mdr_parseTableCell(pStream, pState, &row, pBuf, lp, lnOffset, bHeader);
 		if (pCell) {
-			pCell->rtc_align = columnAlignments[nColumn++];
+			pCell->rtc_flow.tf_align = columnAlignments[nColumn++];
 		}
 	}
 	stringbuf_destroy(pBuf);

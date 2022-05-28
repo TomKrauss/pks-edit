@@ -83,6 +83,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#efefef"
         },
@@ -220,6 +221,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#64b764"
         },
@@ -357,6 +359,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#d78484"
         },
@@ -493,6 +496,7 @@
         },
         {
           "styleName": "code",
+          "faceName": "Consolas",
           "weight": 700,
           "backgroundColor": "#4e4e4e"
         },
