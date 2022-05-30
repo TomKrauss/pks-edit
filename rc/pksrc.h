@@ -41,6 +41,8 @@
 #define IDS_ICON_SIZE_BIG               203
 #define IDS_ICON_SIZE_BIG2              204
 #define IDS_ICON_SIZE_LARGE             204
+#define IDS_TT_SORT_FIELD_SEPARATOR     205
+#define IDS_TT_SORT_FIELD_OPTIONS       206
 #define IDS_FONT_AWESOME                224
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535

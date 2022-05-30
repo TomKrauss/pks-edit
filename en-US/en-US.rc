@@ -522,11 +522,11 @@ BEGIN
 END
 
 DLGSORT DIALOGEX 9, 51, 261, 132
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sort file contents"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Selectioncriteria:",-1,4,10,74,8,NOT WS_GROUP
+    LTEXT           "&Selection Criteria:",-1,4,10,74,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS2,4,22,104,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Ke&yfields:",-1,4,42,58,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING2,4,54,104,12,ES_AUTOHSCROLL
@@ -540,7 +540,7 @@ BEGIN
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,124,68,84,12
     LTEXT           "R&ange:",-1,118,94,30,8
     COMBOBOX        IDD_RNGE,190,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
-    LTEXT           "&Field Delimiter:",-1,118,112,40,8,NOT WS_GROUP
+    LTEXT           "&Field Delimiter:",-1,118,112,66,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,190,110,54,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Cancel",2,152,6,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,200,6,44,14
@@ -996,7 +996,6 @@ BEGIN
 
     DLGSORT, DIALOG
     BEGIN
-        RIGHTMARGIN, 219
     END
 
     DLGWORKMODE, DIALOG
@@ -1430,6 +1429,10 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "medium"
     IDS_ICON_SIZE_BIG       "big"
     IDS_ICON_SIZE_LARGE     "large"
+    IDS_TT_SORT_FIELD_SEPARATOR
+                            "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
+    IDS_TT_SORT_FIELD_OPTIONS
+                            "Enter the comparison options for sorting the individual fields / columns. Use the syntax {[z.f.o]{t},} to define one sort field (delimited by ,), wbere z is the line number, f is the field number and o is the offset for a field. t is the option for sorting a field: d = sort numerically, D = sort as Date,  i = sort strings case ignore, b = skip blanks when comparing, a = use keyword chars only for comparison "
 END
 
 STRINGTABLE
@@ -1555,7 +1558,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND64           "Shifts the text selection to left;Shift Left"
-    IDS_COMMAND65           "Sort a text range;Sort Text"
+    IDS_COMMAND65           "Sort a text range;Sort Text..."
     IDS_COMMAND66           "Goto next difference of a comparison;Compare"
     IDS_COMMAND67           "Print the current window;Print Current Window..."
     IDS_COMMAND68           "Print the selection;Print Selection"

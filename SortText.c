@@ -61,22 +61,23 @@ typedef struct keytab {
 static KEYTAB _keytab;
 
 typedef struct {
-	LINE	*lp;
+	LINE	*lp;		// Line making up one record
+	int		flags;		// old line flags
 	int		nl;
 } RECORD;
 
 typedef struct recparams {
 	LINE *lpfirst,*lplast;
-	int  nrec;		/* may not supersede ~4000 , so (int) is enough */
+	int  nrec;		// number of records in line may not supersede ~4000 , so (int) is enough
 } RECPARAMS;
 
-typedef struct strvec {
-	char		*s;			/* the buffer */
-	int		ac;			/* # of tokens in line */
-	char		*so[MAXARG];	/* start token # ... */
-	char		*eo[MAXARG];	/* end token # ... */
-	int		lo[MAXARG];	/* len token # ... */
-} STRVEC;
+typedef struct tagSORT_COLUMN_DESCRIPTOR {
+	char	*scd_source;			// the original input from which the column descriptors were created.
+	int		scd_numberOfColumns;	// # of tokens in line
+	char	*so[MAXARG];			// start token # 
+	char	*eo[MAXARG];			// end token # ... 
+	int		lo[MAXARG];				// len token # ... 
+} SORT_COLUMN_DESCRIPTOR;
 
 #define	MAXREC		5000
 
@@ -195,35 +196,35 @@ static int sort_compareDate(unsigned char *s1, int l1, unsigned char *s2, int l2
 /*--------------------------------------------------------------------------
  * sort_tokenize()
  */
-static int sort_tokenize(STRVEC *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
+static int sort_tokenize(SORT_COLUMN_DESCRIPTOR *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
 {	int  i,i1;
-	int  ac;
+	int  nColumns;
 	unsigned char c;
 
-	vec->s = s;
-	vec->ac= 0;
+	vec->scd_source = s;
+	vec->scd_numberOfColumns= 0;
 	i 	  = 0;
-	ac 	  = 0;
+	nColumns = 0;
 	for (; ; ) {
 		if (skipseps) {
 			while((c = s[i]) != 0 && fs_set[c])
 				i++;
 		}
-		if (ac >= MAXARG) {
+		if (nColumns >= MAXARG) {
 			error_showErrorById(IDS_MSGTOOMUCHFIELDS);
 			return 0;
 		}
-		vec->so[ac] = &s[i];
-		i1          = i;
+		vec->so[nColumns] = &s[i];
+		i1 = i;
 		while((c = s[i]) != 0 && !fs_set[c])
 			i++;
-		vec->eo[ac] 	= &s[i];
-		vec->lo[ac++]	= i-i1;
+		vec->eo[nColumns] 	= &s[i];
+		vec->lo[nColumns++]	= i-i1;
 		if (!c) break;
 		if (!skipseps)
 			i++;
 	}
-	vec->ac = ac;
+	vec->scd_numberOfColumns = nColumns;
 	return 1;
 }
 
@@ -247,10 +248,10 @@ static void sort_initializeFieldSeparators(char *set, char *pFieldSeparators)
 }
 
 /*--------------------------------------------------------------------------
- * sort_initializeKeyList()
+ * Compile the column sort options.
  */
 static void sort_initializeKeyList(char *s, char *fs_set)
-{	STRVEC 	v;
+{	SORT_COLUMN_DESCRIPTOR 	v;
 	DVEC		d;
 	const char	*s2;
 	KEY		*kp;
@@ -268,11 +269,11 @@ static void sort_initializeKeyList(char *s, char *fs_set)
 
 		sort_initializeFieldSeparators(loc_set,",");
 		sort_tokenize(&v, s, loc_set, 1);
-		if (v.ac > MAXKEYS) {
+		if (v.scd_numberOfColumns > MAXKEYS) {
 			error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
-			v.ac = 8;
+			v.scd_numberOfColumns = 8;
 		}
-		for (i = 0; i < v.ac; i++) {
+		for (i = 0; i < v.scd_numberOfColumns; i++) {
 			s2 = sort_convertStringToDigitArray(d,v.so[i],v.eo[i]);
 			kp = &_keytab.k[i];
 			kp->ln   = d[0].n;
@@ -320,7 +321,7 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2)
 {	int 		i,off,ret,l1,l2;
 	LINE 	*lp1,*lp2,*lp;
 	KEY		*kp;
-	STRVEC 	v1,v2;
+	SORT_COLUMN_DESCRIPTOR 	v1,v2;
 	unsigned char *s1,*s2;
 
 	lp1 = rp1->lp;
@@ -355,12 +356,12 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2)
 			l1 = lp1->len;
 			l2 = lp2->len;
 		} else {					/* token $off	*/
-			if (off >= v1.ac) {		/* check whether $off exists */
-				if (off < v2.ac)
+			if (off >= v1.scd_numberOfColumns) {		/* check whether $off exists */
+				if (off < v2.scd_numberOfColumns)
 					return _sortflags & SO_REVERSE ? 1 : -1;
 				else
 					continue;
-			} else if (off >= v2.ac)
+			} else if (off >= v2.scd_numberOfColumns)
 		   		return _sortflags & SO_REVERSE ? -1 : 1;
 			s1 = v1.so[off];
 			s2 = v2.so[off];
@@ -433,7 +434,7 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 				return 0;
 			}
 			rectab[nrec].lp = lpfirst;
-			nl              = 1;
+			nl = 1;
 			if (sortflags & SO_CLUSTERLINES) {
 				for (;;) {
 					ln_markModified(lpfirst);
@@ -447,7 +448,8 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 				}
 			} else 
 				ln_markModified(lpfirst);
-			_rectab[nrec++].nl = nl;
+			rectab[nrec].flags = lpfirst->lflg;
+			rectab[nrec++].nl = nl;
 		}
 		if (lpfirst == lplast)
 			return nrec;
@@ -490,12 +492,14 @@ void ln_order(FTABLE *fp, void *p1, void *p2) {
 	i       = 0;
 	if (!rp->lpfirst) {
 		fp->firstl = rectab[0].lp;
+		fp->firstl->lflg = rectab[0].flags;
 		lpd        = 0;
 		goto advance;
 	} else lpd = rp->lpfirst;
 	for (; i < n; i++) {
 		lpd->next = rectab[i].lp;
-advance:
+		lpd->next->lflg = rectab[i].flags;
+	advance:
 		rectab[i].lp->prev = lpd;
 		lpd = rectab[i].lp;
 		for (j = 1; j < rectab[i].nl; j++)
@@ -505,29 +509,33 @@ advance:
 	lpend->prev	= lpd;
 	WINFO* wp = WIPOI(fp);
 	wp->caret.linePointer = fp->firstl;
-	ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 }
 
-/*--------------------------------------------------------------------------
- * undo_cash()
+/*
+ * Allocate the undo data for undoing a sort operation.
  */
-static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
-{	RECORD 	*rec,*rp;
-	RECPARAMS *recpar;
-	LINE	  	*lp;
-	long   	nrec,size;
+int sort_allocateUndoStructure(FTABLE* fp, LINE* lpfirst, LINE* lplast, void** p1, void** p2) {
+	RECORD* rec, * rp;
+	RECPARAMS* recpar;
+	LINE* lp;
+	long   	nrec, size;
 
-	size  = ln_cnt(lpfirst,lplast);
-	nrec  = size;
+	size = ln_cnt(lpfirst, lplast);
+	nrec = size;
 	size *= sizeof(RECORD);
-	if ((rec  = malloc(size)) == 0)
+	*p1 = 0;
+	*p2 = 0;
+	if ((rec = malloc(size)) == 0) {
 		return 0;
+	}
 
 	for (lp = lpfirst, rp = rec; ; lp = lp->next, rp++) {
 		rp->lp = lp;
 		rp->nl = 1;
-		if (lp == lplast)
+		rp->flags = lp->lflg;
+		if (lp == lplast) {
 			break;
+		}
 	}
 
 	if ((recpar = malloc(sizeof(RECPARAMS))) == 0) {
@@ -535,11 +543,25 @@ static int undo_cash(FTABLE *fp, LINE *lpfirst, LINE *lplast)
 		return 0;
 	}
 	recpar->lpfirst = lpfirst->prev;
-	recpar->lplast  = lplast ->next;
-	recpar->nrec    = nrec;
+	recpar->lplast = lplast->next;
+	recpar->nrec = nrec;
+	*p1 = rec;
+	*p2 = recpar;
+	return 1;
 
+}
+
+/*--------------------------------------------------------------------------
+ * sort_saveForUndo()
+ */
+int sort_saveForUndo(FTABLE *fp, LINE *lpfirst, LINE *lplast)
+{	RECORD 	*rec;
+	RECPARAMS *recpar;
+
+	if (!sort_allocateUndoStructure(fp, lpfirst, lplast, &rec, &recpar)) {
+		return 0;
+	}
 	undo_saveOperation(fp,(LINE*)rec, (LINE*)recpar,O_LNORDER);
-
 	return 1;
 }
 
@@ -583,13 +605,13 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 		return 0;
 	}
 
+	sort_saveForUndo(fp, lpfirst, lplast);
 	if ((n  = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
 		n2 = sort_groupUnselectedLines(lpfirst,lplast,n);
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast = lplast ->next;
 		rp.nrec = n+n2;
 		progress_startMonitor(IDS_ABRTSORT, 1000);
-		undo_cash(fp,lpfirst,lplast);
 		if (sort_quickSortList(_rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);
 			ln_order(fp,_rectab,&rp);

@@ -38,6 +38,10 @@
   * the lines in a file.
   */
 extern void ln_order(FTABLE* fp, void* p1, void* p2);
+/*
+ * Allocate the undo data for undoing a sort operation.
+ */
+extern int sort_allocateUndoStructure(FTABLE* fp, LINE* lpfirst, LINE* lplast, void** p1, void** p2);
 
  /**
   * Represents a sequence of undo deltas - each delta is the operation on one line in the editor (in one special case two lines)
@@ -421,11 +425,19 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 				}
 				bRedrawAll = TRUE;
 				break;
-			case O_LNORDER:
+			case O_LNORDER: {
+				void* rp1 = 0;
+				void* rp2 = 0;
+				sort_allocateUndoStructure(fp, fp->firstl, fp->lastl->prev, &rp1, &rp2);
 				ln_order(fp, pDelta->lp, pDelta->oldState.lpAnchor);
-				add_stepToCommand(pRedoCommand, pDelta->oldState.lpAnchor, pDelta->lp, O_LNORDER);
+				// Hack: these are not really line pointers, but pointers to a sort algo specific data structure
+				free(pDelta->lp);
+				free(pDelta->oldState.lpAnchor);
+				add_stepToCommand(pRedoCommand, rp1, rp2, O_LNORDER);
 				bRedrawAll = TRUE;
 				break;
+
+			}
 			}
 		}
 		pOperation = pOperation->prev;

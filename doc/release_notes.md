@@ -99,6 +99,8 @@ simple HTML formatting including hyperlink to more documentation.
 - Convert spaces to tabs did not convert all possible spaces to tabs, but only the ones at the beginning of lines.
 - Searching for \t, \f and \b had been broken when searching using regular expressions and did not find the respective characters.
 - Replacing expressions with \n in the replace by patterns did not automatically split lines any more. This regression was fixed.
+- A potential crash when redoing a sort operation was fixed.
+- Undoing a sort operation will correctly reset the line flags.
 
 ### 2.1.0
 
