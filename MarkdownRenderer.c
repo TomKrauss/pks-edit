@@ -447,7 +447,7 @@ static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom)
 	long nHeight;
 	nHeight = (int)(mdr_calculateSize(pAttrs->size, _defaultFont.lfHeight, 1.0f) * fZoom);
 	if (pAttrs->subscript || pAttrs->superscript) {
-		nHeight /= 2;
+		nHeight = nHeight < 0 ? -nHeight : nHeight/2;
 	}
 	_lf.lfHeight = nHeight;
 	if (pAttrs->style) {
@@ -865,7 +865,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 				}
 			}
 			SetTextColor(hdc, pTR->tr_attributes.fgColor == NO_COLOR ? cDefault : pTR->tr_attributes.fgColor);
-			int nSuperDelta = 2 * size.cy / 3;
+			int nSuperDelta = size.cy / 2;
 			if (pTR->tr_attributes.subscript) {
 				nDelta += nSuperDelta;
 			}
@@ -2852,8 +2852,10 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
 			nStart = 1;
 		}
 		else {
-			if (c == '\\' && (c = pStream->is_peekc(pStream, 0)) != 0) {
+			char cEscaped;
+			if (c == '\\' && (cEscaped = pStream->is_peekc(pStream, 0)) == '|') {
 				pStream->is_skip(pStream, 1);
+				c = cEscaped;
 			}
 			stringbuf_appendChar(pBuf, c);
 			nStart = 1;

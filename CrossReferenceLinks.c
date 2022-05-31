@@ -883,6 +883,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 	}
 	if (pActivate) {
 		ww_selectWindow(pActivate);
+		op_updateall();
 		pActivate->workmode &= ~WM_STICKY;
 	}
 }

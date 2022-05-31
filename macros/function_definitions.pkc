@@ -552,6 +552,22 @@ typedef enum {
 } MANAGE_DOCKS_TYPE;
 
 /*
+ * Defines the type of flag to apply / get (from an editor) using the EditorChangeOption API.
+ */
+typedef enum {
+	// Change the editor input mode - 2nd parameter is one of the WM_... flags.
+	OP_EDIT_MODE,
+	// Change the editor display mode - 2nd parameter is one of the SHOW_... flags.
+	OP_DISPLAY_MODE,
+	// Change the macro recording mode
+	OP_MACRO,
+	// Change an arbitrary editor setting
+	OP_OPTIONS,
+	// Change a "file" type flag on the editor passed
+	OP_FILEFLAG 
+} OP_FLAGTYPE;
+
+/*
  * Abondon all changes in the given editor.
  */
 @Method(name="AbandonFile")
@@ -1055,11 +1071,20 @@ native int mainframe_toggleFullScreen();
  */
 @Method(name="FindOnInternet", signature="iWbFORM_siii")
 native int EdFindOnInternet(EDITOR editor);
+
 /*
  * Toggle the specified option.
  */
-@Method(name="ToggleTextMode", signature="ieWM_")
+@Method(name="ToggleEditorOption", signature="ieWM_")
 native int EdOptionToggle();
+
+/*
+ * Change an editor option. One can change display modes or input options and add or
+ * remove a flag depending on 'nSet' parameter.
+ */
+@Method(name="EditorChangeOption")
+native int op_changeEditorOption(EDITOR editor, OP_FLAGTYPE flType, int nFlag, boolean bSet);
+
 /*
  * Find a cross reference from the word under the caret in the specified editor.
  */

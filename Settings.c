@@ -67,12 +67,12 @@ static struct optiontab {
 	int  resetFlag;					// If flag is assigned, reset this flag if != 0
 	int  (*func)();					// the function to call after completion.
 } _optiontab[] = {
-     IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   0,	doctypes_changed,
+	 IDD_FKFLG6,    SHOW_WYSIWYG_DISPLAY,   OP_DISPLAY_MODE,SHOW_HEX_DISPLAY,	displaymode_changed,
+	 IDD_FKFLG1,    WM_INSERT,     OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG2,    WM_AUTOINDENT, OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG3,    WM_AUTOWRAP,   OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG4,    WM_AUTOFORMAT, OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG5,    WM_SHOWMATCH,  OP_EDIT_MODE,   0,	doctypes_changed,
-     IDD_FKFLG6,    SHOW_WYSIWYG_DISPLAY,   OP_DISPLAY_MODE,0,	displaymode_changed,
      IDD_FKFLG7,    WM_ABBREV,     OP_EDIT_MODE,   0,	doctypes_changed,
      IDD_FKFLG8,    WM_COLUMN_SELECTION,  OP_EDIT_MODE,   WM_LINE_SELECTION,	doc_columnChanged,
      IDD_FKFLG9,    F_RDONLY,      OP_FILEFLAG,   0,	doctypes_changed,
@@ -81,7 +81,7 @@ static struct optiontab {
      IDD_FKFLG10+2, 1,            OP_MACRO,   0,	recorder_toggleRecording,
      0,             SHOW_CONTROL_CHARS,   OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             SHOW_CARET_PRESERVE_COLUMN,    OP_DISPLAY_MODE,   0,	displaymode_changed,
-     0,             SHOW_HEX_DISPLAY,       OP_DISPLAY_MODE,   0,	displaymode_changed,
+     0,             SHOW_HEX_DISPLAY,       OP_DISPLAY_MODE,   SHOW_WYSIWYG_DISPLAY,	displaymode_changed,
      0,             SHOW_RULER,     OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             SHOW_LINENUMBERS,OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             SHOW_SYNTAX_HIGHLIGHT,OP_DISPLAY_MODE,   0,	displaymode_changed,
@@ -130,25 +130,32 @@ static int doc_columnChanged(void)
     bl_setColumnSelection(wp);
     return 1;
 }
-	
+
+/*
+ * Returns an int pointer to an "editor flag" so one can read or set it.
+ */
+int * op_getEditorFlag(WINFO* wp, OP_FLAGTYPE flagType) {
+	if (wp != 0) {
+		FTABLE* fp = wp->fp;
+		if (fp != NULL) {
+			if (flagType == OP_FILEFLAG)
+				return &fp->flags;
+			if (flagType == OP_EDIT_MODE)
+				return &fp->documentDescriptor->workmode;
+			if (flagType == OP_DISPLAY_MODE)
+				return &wp->dispmode;
+		}
+	}
+	return 0;
+}
+
 /*--------------------------------------------------------------------------
  * op_getFlagToToggle()
  */
-static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
-{	WINFO *wp;
-	
+static int *op_getFlagToToggle(WINFO* wp, OP_FLAGTYPE flagType)
+{
 	if (flagType != OP_MACRO && flagType != OP_OPTIONS) {
-		if ((wp = ww_getCurrentEditorWindow()) != 0) {
-			FTABLE* fp = wp->fp;
-			if (fp != NULL) {
-				if (flagType == OP_FILEFLAG)
-					return &fp->flags;
-				if (flagType == OP_EDIT_MODE)
-					return &fp->documentDescriptor->workmode;
-				if (flagType == OP_DISPLAY_MODE)
-					return &wp->dispmode;
-			}
-		}
+		return op_getEditorFlag(wp, flagType);
 	} else {
 		return (flagType == OP_MACRO) ? &_recording : &(GetConfiguration()->options);
 	}
@@ -158,11 +165,11 @@ static int *op_getFlagToToggle(OP_FLAGTYPE flagType)
 /*--------------------------------------------------------------------------
  * op_changeFlag()
  */
-static void op_changeFlag(struct optiontab *op, int dofunc)
+static void op_changeFlag(WINFO* wp, struct optiontab *op, int dofunc)
 {	int state = 0;
 	int *flg;
 	
-	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
+	if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
 		if (*flg & op->flag) {
 			state = 1;
 			if (op->resetFlag) {
@@ -189,7 +196,7 @@ BOOL op_defineOption(long nFlag)
 {
 	int	*pOpt;
 
-	if ((pOpt = op_getFlagToToggle(HIWORD(nFlag))) != 0) {
+	if ((pOpt = op_getFlagToToggle(ww_getCurrentEditorWindow(), HIWORD(nFlag))) != 0) {
 		return *pOpt & LOWORD(nFlag);
 	}
 	return 0;
@@ -198,12 +205,12 @@ BOOL op_defineOption(long nFlag)
 /*--------------------------------------------------------------------------
  * op_toggleOption()
  */
-static int op_toggleOption(struct optiontab *op)
+static int op_toggleOption(WINFO* wp, struct optiontab *op)
 {    int *flg;
 
-	if ((flg = op_getFlagToToggle(op->op_type)) != 0) {
+	if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
 		*flg ^= op->flag;
-		op_changeFlag(op,1);
+		op_changeFlag(wp, op,1);
 		return 1;
 	}
 	return 0;
@@ -219,9 +226,34 @@ long long EdOptionToggle(long par)
 
 	for (op = _optiontab; op->flgkeynr >= 0;  op++)
 		if (op->flag == flag && op->op_type == local)
-			return op_toggleOption(op);
+			return op_toggleOption(ww_getCurrentEditorWindow(), op);
 		
 	return 0;
+}
+
+/*
+ * Change an editor option. One can change display modes or input options and add or
+ * remove a flag depending on 'nSet' parameter.
+ */
+int op_changeEditorOption(WINFO* wp, OP_FLAGTYPE flType, int nFlag, int nSet) {
+	struct optiontab* op;
+	for (op = _optiontab; op->flgkeynr >= 0; op++) {
+		if (op->flag == nFlag && op->op_type == flType) {
+			int* flg;
+			if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
+				if (nSet) {
+					*flg |= nFlag;
+				}
+				else {
+					*flg &= ~nFlag;
+				}
+				op_changeFlag(wp, op, 1);
+				return *flg;
+			}
+		}
+	}
+	return 0;
+
 }
 
 /*
@@ -268,16 +300,16 @@ static void op_propertyChanged(ACTION_BINDING* pBinding, PROPERTY_CHANGE_TYPE ty
 	if (type != PC_ENABLED) {
 		return;
 	}
+	WINFO* wp = ww_getCurrentEditorWindow();
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
 		if (op->op_type == OP_DISPLAY_MODE || op->op_type == OP_EDIT_MODE || op->op_type == OP_FILEFLAG) {
 			HWND hwnd = GetDlgItem(hwndFkeys, op->flgkeynr);
 			if (!newValue) {
-				op_changeFlag(op, 0);
+				op_changeFlag(wp, op, 0);
 			}
 			EnableWindow(hwnd, newValue);
 		}
 	}
-	InvalidateRect(hwndFkeys, NULL, FALSE);
 }
 
 /*--------------------------------------------------------------------------
@@ -287,9 +319,10 @@ static void op_propertyChanged(ACTION_BINDING* pBinding, PROPERTY_CHANGE_TYPE ty
 EXPORT void op_updateall(void)
 {   struct optiontab *op;
 	static BOOL actionListenerRegistered = FALSE;
+	WINFO* wp = ww_getCurrentEditorWindow();
 
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
-     	op_changeFlag(op,0);
+     	op_changeFlag(wp, op,0);
 	}
 	if (!actionListenerRegistered) {
 		actionListenerRegistered = TRUE;

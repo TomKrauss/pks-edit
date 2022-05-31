@@ -455,7 +455,9 @@ enum_value:	T_IDENT opt_enum_assignment {
 				parser_addTypeProperty($1.ident.s, (long)$2.num);
 			}
 
-opt_enum_assignment: 
+opt_enum_assignment: {
+				$$.num = _currentTypeDescriptor->ptd_numberOfProperties;
+			}
 			| T_ASSIGN T_NUM {
 				$$.num = $2.num;
 			}

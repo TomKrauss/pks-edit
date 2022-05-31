@@ -726,6 +726,9 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	if (ft_checkReadonlyWithError(fp) && action == REP_REPLACE) {
 		return RTR_ERROR;
 	}
+	if (!pszReplaceWith) {
+		return RTR_ERROR;
+	}
 	regex_compileWithDefault(pszSearchPattern);
 	find_initializeReplaceByExpression(pszReplaceWith);
 	newlen = _currentReplacementPattern.preparedReplacementString ? (long)strlen(_currentReplacementPattern.preparedReplacementString) : 0;

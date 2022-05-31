@@ -88,8 +88,8 @@ typedef enum {
 
 /* Flags for EdMacroRecorded */
 typedef enum {
-	MAC_AUTO = 1,
-	MAC_LASTREC = 2
+	MAC_AUTO = -5,
+	MAC_LASTREC = -6
 } RECORD_MACRO_OPTION;
 
 /*

@@ -1468,6 +1468,10 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "mittel"
     203                     "groß"
     IDS_ICON_SIZE_LARGE     "sehr groß"
+    IDS_TT_SORT_FIELD_SEPARATOR
+                            "Geben Sie die Trennzeichen für die Trennung in Felder ein, z.B. ""\\t ,;"" um Tabs, Leerzeichen, Komma oder Semikolon zu verwenden"
+    IDS_TT_SORT_FIELD_OPTIONS
+                            "Geben Sie die Vergleichsoptionen für das Sortieren von Feldern / Spalten mit folgender Syntax an: {[z.f.o]{t},} Sortfelddefinitionen werden mit , getrennt. Z ist die Zeilennummer (in Records), f ist die Feldnummer und o ist der Offset eines Felds. t ist die Option für das Sortieren eines Felds: d = numerischer Vergleich, D = Datumsvergleich,  i = Ignoriere Groß/Klein, b = Leerzeichen ignorieren, a = Schlüsselwortzeichen für den Vergleich verwenden"
 END
 
 STRINGTABLE
@@ -1827,7 +1831,7 @@ BEGIN
     IDS_COMMAND251          "Toggle zeilenweise Selektion"
     IDS_COMMAND252          "Toggle Syntax Highlighting"
     IDS_COMMAND253          "Selektion oder Zeile nach oben schieben;Selektion+ verschieben"
-    IDS_COMMAND254          "Selektion oder Zeile nach unten schieben;Selektion- verschieben"
+    IDS_COMMAND254          "Gebens sie die Optionen an, die die den Vergleichsalgorithmus festlegen: d = numerischer Vergleich, D = Vergleich als Datum,  i = ignorieren Groß/Klein, b = Leerzeichen beim Sortieren skippen, a = nur Schlüsselwortzeichen vergleichen"
 END
 
 #endif    // Deutsch (Deutschland) resources

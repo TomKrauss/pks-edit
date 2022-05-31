@@ -15,6 +15,15 @@ void TrimTrailingBlanks() {
 }
 
 /*
+ * Change option in current editor showing the caret highline.
+ */
+@ActionLabel("Show Caret Highlight")
+@ActionFlags(needsCurrentEditor)
+void SetCaretHighlight() {
+	EditorChangeOption(OP_DISPLAY_MODE, SHOW_CARET_LINE_HIGHLIGHT, true);
+}
+
+/*
  * Find a single line comment in a text. Skip over string literals.
  * @param text the text in which a single line comment is <em>searched</em>.
  * @param comment the string introducing single line comments, e.g. <code>//</code>.

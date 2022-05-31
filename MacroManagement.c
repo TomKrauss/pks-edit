@@ -186,16 +186,19 @@ int macro_lookupNamespace(const char* pszNamespaceName) {
  * Define the namespace initializer code.
  */
 void macro_defineNamespaceInitializer(int nNamespaceIdx, const char* pBytes, size_t nByteLen) {
-	if (!_namespaces || nNamespaceIdx >= arraylist_size(_namespaces)) {
+	if (!nByteLen || !_namespaces || nNamespaceIdx >= arraylist_size(_namespaces)) {
 		return;
 	}
 	MACRO* mp = arraylist_get(_namespaces, nNamespaceIdx);
+#if 0
+	// figure out how to redefine namespace bytecodes / extent bytecodes defined in different namespaces.
 	if (mp->mc_bytecodeLength) {
 		if (nByteLen) {
 			yywarning("Currently unsupported: multiple namespace files defining global declarations (%s)", mp->mc_name);
 		}
 		return;
 	}
+#endif
 	mp->mc_bytecodeLength = (unsigned int)nByteLen;
 	free(mp->mc_bytecodes);
 	mp->mc_bytecodes = malloc(mp->mc_bytecodeLength);

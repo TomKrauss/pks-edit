@@ -22,7 +22,21 @@ extern void error_showErrorById(int nId, ...);
  */
 extern long long error_setShowMessages(BOOL aFlag);
 
-typedef enum { OP_EDIT_MODE, OP_DISPLAY_MODE, OP_MACRO, OP_OPTIONS, OP_FILEFLAG } OP_FLAGTYPE;
+/*
+ * Defines the type of flag to apply / get (from an editor) using the EditorChangeOption API.
+ */
+typedef enum {
+	// Change the editor input mode - 2nd parameter is one of the WM_... flags.
+	OP_EDIT_MODE,
+	// Change the editor display mode - 2nd parameter is one of the SHOW_... flags.
+	OP_DISPLAY_MODE,
+	// Change the macro recording mode
+	OP_MACRO,
+	// Change an arbitrary editor setting
+	OP_OPTIONS,
+	// Change a "file" type flag on the editor passed
+	OP_FILEFLAG 
+} OP_FLAGTYPE;
 
 #define	OPT_WMODE			(((long)OP_EDIT_MODE)<<16)
 #define	OPT_DMODE			(((long)OP_DISPLAY_MODE)<<16)

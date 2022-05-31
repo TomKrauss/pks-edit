@@ -75,7 +75,7 @@ bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_createArray(), interpreter_createMap(), interpreter_registerType(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
 macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
-macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces();
+macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
 
 static const char* ww_getFilename(WINFO* wp) {
     FTABLE* fp = wp->fp;
@@ -152,7 +152,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*57*/  EdLinesJoin, -1, EW_MODIFY | EW_NEEDSCURRF | EW_UNDOFLSH | 0,                                 "JoinLines",                  NULL,  "iW"                                           },
 {/*58*/  EdEditFile, -1, EW_HASFORM | 0,                                                               "EditFile",                   NULL,  "ibOPEN_bFORM_s"                                },
 {/*59*/  EdOptionSet, -1, EW_HASFORM | 0,                                                              "SetOptions",                 NULL,  "ibFORM_eO_"                            },
-{/*60*/  (long long (*)())EdPrint, -1, 0,                                                                               "Print",                      NULL,  "iePRT_s"                                     },
+{/*60*/  (long long (*)())EdPrint, -1, 0,                                                              "Print",                      NULL,  "iePRT_s"                                     },
 {/*61*/  EdExitAndSave, -1, 0,                                                                         "ExitEdit",                   NULL,  "ii"                                          },
 {/*62*/  EdExit, -1, 0,                                                                                "QuitEdit",                   NULL,  "ii"                                          },
 {/*63*/  EdCloseAll, -1, 0,                                                                            "CloseAllWindows",            NULL,  "i"                                          },
@@ -170,7 +170,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF | 0,                                              "SetEditorSettings",                NULL, "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS | 0,                                        "FindOnInternet",             NULL,  "iWbFORM_siii"                                  },
-{/*78*/  EdOptionToggle, -1, EW_NEEDSCURRF | 0,                                                        "ToggleTextMode",             NULL,  "ieWM_"                                      },
+{/*78*/  EdOptionToggle, -1, EW_NEEDSCURRF | 0,                                                        "ToggleEditorOption",             NULL,  "ieWM_"                                      },
 {/*79*/  EdGetMultiplier, -1, 0,                                                                       "GetMultiplier",              NULL,  "i"                                     },
 {/*80*/  EdFindTag, -1, EW_HASFORM | 0,                                                                "FindTag",                    NULL,  "iWibFORM_s"                                    },
 {/*81*/  EdFindFileCursor, -1, EW_NEEDSCURRF | 0,                                                      "CursorFindFile",             NULL,  "iW"                                           },
@@ -262,6 +262,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*167*/edit_replaceTabsWithSpaces, -1, 0, "EditorReplaceTabsWithSpaces", NULL, "sWs" },
 {/*168*/interpreter_createMap, -1, 0, "CreateMap", NULL, "P" },
 {/*170*/(long long (*)())interpreter_registerType, -1, 0, "RegisterType", NULL, "P" },
+{/*171*/(long long (*)())op_changeEditorOption, -1, 0, "EditorChangeOption", NULL, "iWeOP_ii" },
 0
 };
 

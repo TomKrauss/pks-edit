@@ -61,6 +61,8 @@ static void UpdateTOC(string directory, string[] toc) {
 void UpdateManualToc() {
 	string[5] tocLines;
 	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
+	string tocFile;
+	EDITOR editor;
 
 	clear();
 	println("Starting to update TOC in directory " + manualDir);
@@ -72,6 +74,18 @@ void UpdateManualToc() {
 	}
 	UpdateTOC(manualDir, tocLines);
 	println("done... ");
-	EditorOpenFile(PathCreateFromSegments(manualDir, "toc.md"));
+	tocFile = PathCreateFromSegments(manualDir, "toc.md");
+	for (EDITOR ed : EditorGetAll()) {
+		if (EditorGetFilename(ed) == tocFile) {
+			EditorSetCurrent(ed);
+			AbandonFile(ed);
+			editor = ed;
+			break;
+		}
+	}
+	if (!editor) {
+		editor = EditorOpenFile(tocFile);
+	}
+	EditorChangeOption(editor, OP_DISPLAY_MODE, SHOW_WYSIWYG_DISPLAY, true);
 }
 

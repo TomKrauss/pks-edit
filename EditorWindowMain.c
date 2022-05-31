@@ -656,7 +656,9 @@ void ww_changeDisplayMode(WINFO* wp, int nNewDisplayMode) {
 	if (wp->dispmode != nNewDisplayMode) {
 		wp->dispmode = nNewDisplayMode;
 		ww_modeChanged(wp);
-		op_updateall();
+		if (wp == ww_getCurrentEditorWindow()) {
+			op_updateall();
+		}
 	}
 }
 
