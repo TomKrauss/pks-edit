@@ -3,7 +3,9 @@
  * Represents tuples of data contained in a HASHMAP, which can be retrieved
  * from a Map using the MapEntries API.
  *
- * @see HASHMAP
+ * Please do not change this structure to not break PKS-Edit map functionality.
+ *
+ * @see map
  * @see MapEntries
  */
 typedef struct {
@@ -16,6 +18,7 @@ typedef struct {
 	 * Values in a map have arbitrary type.
 	 */
 	auto value;
+
 } MAP_ENTRY;
 
 /*
@@ -26,7 +29,14 @@ typedef native FILE;
 /*
  * Data structure in PKSMacroC for fast hashed lookup of data. Currently only keys of type string are supported.
  * The most convenient way to add elements to or lookup elements from a hashmap is by using the array operator as
- * in these examples <code>x = myMap[key];</code> or <code>myMap['a'] = 1;</code>.
+ * in the following examples:
+ * <pre>
+ * string key = "y";
+ * auto x = myMap[key];
+ * myMap["a"] = 1;
+ * </pre>
+ * @see size
+ * @see MAP_ENTRY
  */
 typedef native map;
 
@@ -519,10 +529,12 @@ typedef enum {
 } DIRECTION_OPTION;
 
 /*
- * Option to expand tabs to spaces or vice versa
+ * Option to expand tabs to spaces or vice versa.
  */
 typedef enum {
+	// expand tabs to spaces
 	CT_EXPAND = 1,
+	// compress spaces and convert to tabs
 	CT_COMPRESS = 0
 } CT_OPTION;
 
@@ -564,7 +576,7 @@ typedef enum {
 	// Change an arbitrary editor setting
 	OP_OPTIONS,
 	// Change a "file" type flag on the editor passed
-	OP_FILEFLAG 
+	OP_FILEFLAG
 } OP_FLAGTYPE;
 
 /*
@@ -1422,7 +1434,10 @@ native string interpreter_typeOf(auto object);
 
 /*
  * Return the size of the object. This is the length of a string
- * or the number of entries in an array or map.
+ * or the number of entries in an array or map. For <i>struct</i> type
+ * data types, this is the number of struct members.
+ * @see map
+ * @see string
  */
 @Method(name="size", signature="P")
 native int interpreter_size(auto stringOrArrayOrMap);
@@ -1674,7 +1689,10 @@ native int GetTickCount();
 native int GetLastError();
 
 /*
- * Internal MacroC API to register a type (enum or structured).
+ * Internal MacroC API to register a type (enum or structured or native).
+ * <p>
+ * <em>Caveat: do not invoke in user code</em>.
+ * </p>
  */
 @Method(name="RegisterType", signature="P")
 native int interpreter_registerType();

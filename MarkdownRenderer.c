@@ -1000,7 +1000,8 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 		int nWidth = mdr_calculateSize(pPart->rvp_width, renderBounds.right - m.m_right - x, pParams->rfp_zoomFactor);
 		renderBounds.right = x + nWidth + m.m_right;
 	}
-	if (!pParams->rfp_measureOnly) {
+	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
+	if (!pParams->rfp_measureOnly && pFlow->tf_runs) {
 		font_setDefaultTextColors(hdc, pParams->rfp_theme);
 		HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
 		HFONT hOldFont = SelectObject(hdc, hFont);
@@ -1021,7 +1022,6 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 		DeleteFont(SelectObject(hdc, hOldFont));
 	}
 	int nDCId = SaveDC(hdc);
-	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
 	if (pFlow->tf_text && pFlow->tf_runs) {
 		mdr_renderTextFlow(&m, pFlow, &renderBounds, &pPart->rvp_bounds, pUsed,
 				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, pFlow->tf_align, pParams);
@@ -1450,10 +1450,12 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 	int nOffs;
 	char c;
 	LINE* lp;
+	int bSkipEmptyFirst = 0;
 	char szTag[32];
 
 	if (pEndTag) {
 		sprintf(szTag, "</%s>", pEndTag);
+		bSkipEmptyFirst = 1;
 	}
 	RENDER_VIEW_PART* pPart = pState->hps_part;
 	if (!pPart) {
@@ -1483,6 +1485,9 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 		int nRunStart = pStream->is_inputMark(pStream, &lp);
 		pStream->is_skip(pStream, nOffs);
 		while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
+			if (c == '\r') {
+				continue;
+			}
 			if (c == '\t') {
 				size_t nCurrent = stringbuf_size(pState->hps_text) - nLastOffset;
 				size_t nTab = (nCurrent + 4) / 4 * 4;
@@ -1491,12 +1496,20 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 					nCurrent++;
 				}
 			} else {
+				if (pEndTag && c == '<' && pStream->is_strncmp(pStream, szTag+1, strlen(szTag)-1) == 0) {
+					pStream->is_positionToLineStart(pStream, 1);
+					return;
+				}
 				stringbuf_appendChar(pState->hps_text, c);
 			}
 
 		}
 		size_t nSize = stringbuf_size(pState->hps_text) - nLastOffset;
 		if (nSize == 0) {
+			if (bSkipEmptyFirst) {
+				bSkipEmptyFirst = 0;
+				continue;
+			}
 			// do not skip empty lines.
 			stringbuf_appendChar(pState->hps_text, ' ');
 			nSize++;
@@ -2413,6 +2426,9 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 		// For tables force a new part start
 		pState->hps_blockLevel = 0;
 	}
+	if (mType == MET_FENCED_CODE_BLOCK && pTag->ht_isOpen) {
+		pState->hps_blockLevel = 0;
+	}
 	// close current block if either it was an "auto-created" block (blocklevel == 0) or it is explicitly closed and the block
 	if (pTag->ht_isClose || pState->hps_blockLevel == 0) {
 		mdr_closeTextElement(pStream, pState, FALSE);
@@ -2445,7 +2461,9 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 			pState->hps_part->rvp_number = pState->hps_orderedListIndices[nLevel-1]++;
 		}
 		*pState->hps_currentStyle = fsd;
-		mdr_skipLeadingSpace(pStream);
+		if (mType != MET_FENCED_CODE_BLOCK) {
+			mdr_skipLeadingSpace(pStream);
+		}
 		if (fsd.fsd_width.ss_units != CSU_NONE) {
 			pState->hps_part->rvp_width = fsd.fsd_width;
 		}

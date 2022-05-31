@@ -154,7 +154,7 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		}
 	}
 	else {
-		if (pTemplate->ptd_elements.ptd_properties) {
+		if (pTemplate->ptd_elements.ptd_properties && pTemplate->ptd_numberOfProperties) {
 			pDescriptor->ptd_elements.ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_properties);
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
 				TYPE_PROPERTY_DESCRIPTOR* pSource = &pTemplate->ptd_elements.ptd_properties[i];
@@ -365,7 +365,7 @@ PKS_TYPE_DESCRIPTOR* types_getTypeDescriptor(const char* pszTypeName) {
 
 /*
  * Returns the enum value table for a PKSMacroC enum type plus the respective size. The type is searched,
- * where the enzm values start with a given prefix.
+ * where the enum values start with a given prefix.
  */
 int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType) {
 	PKS_VALUE_TYPE t;

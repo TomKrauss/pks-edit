@@ -54,10 +54,11 @@ static STREAM_OFFSET stringstream_tell(INPUT_STREAM* pStream) {
  * Return the next character from a string input stream.
  */
 static int stringstream_getc(INPUT_STREAM* pStream) {
-	char c = *STRING_DATA(pStream).is_source;
-	if (STRING_DATA(pStream).is_source < STRING_DATA(pStream).is_eof) {
-		STRING_DATA(pStream).is_source++;
+	if (STRING_DATA(pStream).is_source >= STRING_DATA(pStream).is_eof) {
+		return 0;
 	}
+	char c = *STRING_DATA(pStream).is_source;
+	STRING_DATA(pStream).is_source++;
 	return c;
 }
 

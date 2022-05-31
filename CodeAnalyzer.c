@@ -141,6 +141,7 @@ static void analyzer_getMacrocCompletions(WINFO* wp, int (*fMatch)(const char* p
 	}
 	char* key;
 	SYMBOL sym = szFunction[0] ? sym_find(sym_getGlobalCompilerContext(), szFunction, &key) : (SYMBOL) { 0 };
+	PKS_VALUE_TYPE vtEnum = 0;
 	if (sym.s_type == S_EDFUNC) {
 		// should select the proper constants for the native function currently edited. function_getParameterTypeDescriptor((void*)VALUE(sym),)
 		NATIVE_FUNCTION* pFunc = (NATIVE_FUNCTION*)VALUE(sym);
@@ -160,6 +161,7 @@ static void analyzer_getMacrocCompletions(WINFO* wp, int (*fMatch)(const char* p
 				bEditorParam = 1;
 			}
 			if (ptd.pt_enumVal) {
+				vtEnum = ptd.pt_valueType;
 				for (int i = 0; i < ptd.pt_enumCount; i++) {
 					PARAMETER_ENUM_VALUE* pValue = &ptd.pt_enumVal[i];
 					const char* pszName = pValue->pev_name;
@@ -171,6 +173,29 @@ static void analyzer_getMacrocCompletions(WINFO* wp, int (*fMatch)(const char* p
 						});
 					}
 				}
+			}
+		}
+	}
+	for (PKS_VALUE_TYPE vt = VT_MAP_ENTRY; ; vt++) {
+		if (!types_existsType(vt)) {
+			break;
+		}
+		if (vt == vtEnum) {
+			continue;
+		}
+		PKS_TYPE_DESCRIPTOR* pDescriptor = types_getTypeDescriptor(types_nameFor(vt));
+		if (!pDescriptor || !pDescriptor->ptd_isEnumType) {
+			continue;
+		}
+		for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
+			PARAMETER_ENUM_VALUE* pValue = &pDescriptor->ptd_elements.ptd_enumValues[i];
+			const char* pszName = pValue->pev_name;
+			if (fMatch(pszName)) {
+				fCallback(&(ANALYZER_CALLBACK_PARAM) {
+					.acp_recommendation = pszName,
+						.acp_object = pValue,
+						.acp_help = macrodoc_helpForEnumValue
+				});
 			}
 		}
 	}
