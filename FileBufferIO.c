@@ -72,6 +72,9 @@ static MAGIC _magicMarkers[] = {
 
 static MAGIC* _cryptMarker = &_magicMarkers[0];
 
+// TODO: get rid of this hack.
+char* _linebuf;
+
 /*------------------------------*/
 /* ft_initializeReadWriteBuffers()			  */
 /*------------------------------*/

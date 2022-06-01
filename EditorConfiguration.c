@@ -243,7 +243,7 @@ static void config_autosaveConfiguration() {
 	EDITOR_CONFIGURATION* config = GetConfiguration();
 
 	if (config->options & O_SAVE_SETTINGS_ON_EXIT) {
-		prof_save(FALSE);
+		config_saveConfiguration(FALSE);
 	}
 	macro_autosaveAllBindings(config->options & O_SAVE_MACROS_ON_EXIT ? FALSE : TRUE);
 }
@@ -540,7 +540,7 @@ void EdOptionSet(void) {
     if (tempRet == 1) {
 		theme_setCurrent(pConfig->themeName);
 		ui_switchToLanguage(pConfig->language);
-		prof_save(FALSE);
+		config_saveConfiguration(FALSE);
 		fkey_visibilitychanged();
 		mainframe_windowTitleChanged(); 
 		tb_updateImageList(NULL, 0);

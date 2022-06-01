@@ -150,12 +150,13 @@ extern int config_save(const char* pszFilename);
 extern void config_destroy();
 
 /*------------------------------------------------------------
- * prof_save()
- * Save the configuration. If interactive is passed, then open
+ * config_saveConfiguration()
+ * Save the configuration. If bInteractive is true, open
  * a file selector to pick the pkseditini.json file to which the config
- * is saved.
+ * is saved. If bInteractive is false, use the default file name
+ * from which the configuration had been loaded.
  */
-extern int prof_save(int interactive);
+extern long long config_saveConfiguration(int bInteractive);
 
 /*------------------------------------------------------------
  * prof_getstdopt()

@@ -97,7 +97,7 @@ extern 			int	_bInNativeDefinition;
 extern 			int	_bDefiningConst;
 extern 			int	_bInHeader;
 
-extern char*    _yyCurrentComment;
+extern STRING_BUF*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
 extern void		yyrequire(const char* pszNamespace);
@@ -218,9 +218,9 @@ static void parser_flushBuffer(int aLevel) {
 static void parser_startTypeDescriptor(int bEnum) {
 	_currentTypeDescriptor = calloc(1, sizeof *_currentTypeDescriptor);
 	_currentTypeDescriptor->ptd_isEnumType = bEnum;
-	_currentTypeDescriptor->ptd_documentation = _yyCurrentComment;
+	_currentTypeDescriptor->ptd_documentation = _strdup(stringbuf_getString(_yyCurrentComment));
 	_currentTypeDescriptor->ptd_elements.ptd_properties = calloc(MAX_TYPE_PROPERTIES, sizeof (PARAMETER_ENUM_VALUE));
-	_yyCurrentComment = 0;
+	stringbuf_reset(_yyCurrentComment);
 }
 
 static void parser_finalizeTypeDescriptor(char* pszTypename) {
@@ -252,8 +252,8 @@ static void parser_addTypeProperty(char* pszName, int nValue) {
 	int i = _currentTypeDescriptor->ptd_numberOfProperties++;
 	TYPE_PROPERTY_DESCRIPTOR* pDescriptor = &_currentTypeDescriptor->ptd_elements.ptd_properties[i];
 	pDescriptor->tpd_name = pszName;
-	pDescriptor->tpd_documentation = _yyCurrentComment;
-	_yyCurrentComment = 0;
+	pDescriptor->tpd_documentation = _strdup(stringbuf_getString(_yyCurrentComment));
+	stringbuf_reset(_yyCurrentComment);
 	pDescriptor->tpd_type = nValue;
 }
 
@@ -657,15 +657,17 @@ native_function_definition:
 					}
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszLib});
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszSignature});
-					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=_yyCurrentComment});
+					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=stringbuf_getString(_yyCurrentComment)});
 					YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=pszArgs});
 					_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, 
 							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 6);
 					// register right away as well, so we can use it.
-					function_registerNativeFunction(pszMacroCName, $3.ident.s, pszLib, pszSignature, _yyCurrentComment, pszArgs);
+					function_registerNativeFunction(pszMacroCName, $3.ident.s, pszLib, pszSignature, stringbuf_getString(_yyCurrentComment), pszArgs);
 					free($3.ident.s);
 					finalize_native();
-				} 
+				} | error {
+					finalize_native();
+				}
 
 macro_definition: { init_macroDefinition(); } 
 				macrostart block {
@@ -677,7 +679,7 @@ macro_definition: { init_macroDefinition(); }
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
 				macro_processAnnotations(&_macroParam, _currentMethodAnnotations);
 				_macroParam.mp_name = $2.ident.s;
-				_macroParam.mp_comment = _yyCurrentComment;
+				_macroParam.mp_comment = stringbuf_getString(_yyCurrentComment);
 				_macroParam.mp_returnType = $2.ident.type;
 				_macroParam.mp_numberOfLocalVariables = _localVariableIndex;
 				_macroParam.mp_bytecodeLength = _currentBytecodeBuffer->bb_current - _currentBytecodeBuffer->bb_start;
@@ -688,7 +690,7 @@ macro_definition: { init_macroDefinition(); }
 				_compilerConfiguration->cb_insertNewMacro(&_macroParam);
 				memset(&_macroParam, 0, sizeof _macroParam);
 				freeitem(&$2.ident.s);
-				freeitem(&_yyCurrentComment);
+				stringbuf_reset(_yyCurrentComment);
 				bytecode_closeOpenLabels();
 				finalize_macroDefinition();
 			} 
@@ -1281,10 +1283,14 @@ static void init_native() {
 static void finalize_native() {
 	_bInNativeDefinition = 0;
 	destroy_annotations();
-	stringbuf_destroy(_nativeMethodArgs);
-	stringbuf_destroy(_nativeMethodSignature);
-	_nativeMethodArgs = 0;
-	_nativeMethodSignature = 0;
+	if (_nativeMethodArgs) {
+		stringbuf_destroy(_nativeMethodArgs);
+		_nativeMethodArgs = 0;
+	}
+	if (_nativeMethodSignature) {
+		stringbuf_destroy(_nativeMethodSignature);
+		_nativeMethodSignature = 0;
+	}
 }
 
 static void finalize_header() {

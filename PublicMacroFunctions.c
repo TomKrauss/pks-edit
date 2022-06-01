@@ -190,14 +190,6 @@ int bl_hideSelectionInCurrentWindow(WINFO* wp)	 {
 }
 
 /*--------------------------------------------------------------------------
- * EdSetup()
- */
-int EdSetup(void)
-{ 
-	return prof_save(TRUE);
-}
-
-/*--------------------------------------------------------------------------
  * DialogCharInput()
  */
 int DialogCharInput(int promptfield, unsigned char c)

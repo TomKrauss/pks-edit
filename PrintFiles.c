@@ -723,8 +723,8 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 /**
  * Save the config file with the printer layout.
  */
-static void print_saveSettings() {
-	prof_save(FALSE);
+static void print_saveConfiguration() {
+	config_saveConfiguration(FALSE);
 }
 
 static void prt_decolboxfill(HWND hwnd, int nItem, void* selValue) {
@@ -798,7 +798,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 		IDD_INT8,			0,& pParams->footer.pme_lines,
 		IDD_STRING1,		sizeof pParams->header,	pParams->header.pme_template,
 		IDD_STRING2,		sizeof pParams->footer,	pParams->footer.pme_template,
-		IDD_CALLBACK1,		0,				print_saveSettings,
+		IDD_CALLBACK1,		0,				print_saveConfiguration,
 		IDD_FONTSELECT,		TRUE,			pParams->font.fs_name,
 		IDD_FONTSELECT2,	TRUE,			pParams->header.pme_font.fs_name,
 		IDD_FONTSELECT3,	TRUE,			pParams->footer.pme_font.fs_name,

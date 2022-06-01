@@ -82,16 +82,17 @@ int prof_getstdopt(void) {
 }
 
 /*------------------------------------------------------------
- * prof_save()
- * Save the configuration. If interactive is passed, then open
+ * config_saveConfiguration()
+ * Save the configuration. If bInteractive is true, open
  * a file selector to pick the pkseditini.json file to which the config
- * is saved.
+ * is saved. If bInteractive is false, use the default file name
+ * from which the configuration had been loaded.
  */
-int prof_save(int interactive) {
+long long config_saveConfiguration(int bInteractive) {
 	int  	fd;
 	char *	fn;
 
-	if (!interactive) {
+	if (!bInteractive) {
 		fn = _pksEditIniFilename;
 
 	} else {

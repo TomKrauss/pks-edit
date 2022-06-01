@@ -36,7 +36,6 @@
 #define YY_NO_UNISTD_H
 #define fileno(x)		_fileno(x)
 #define YY_FATAL_ERROR(msg) yyerror( msg )
-#define MAX_COMMENT_SIZE		16000
 
 #define YY_INPUT(buf,result,max_size) \
 		{ \
@@ -162,7 +161,7 @@ void yywarning(const char* s, ...) {
 
 static COMPILER_INPUT_STREAM	*_compilerInputStream;
 
-char * _yyCurrentComment;
+STRING_BUF * _yyCurrentComment;
 PKS_TYPE_DESCRIPTOR* _currentTypeDescriptor;
 
 void yyrequire(const char* pszNamespace) {
@@ -221,7 +220,7 @@ int yyfinish(void)
 		_compilerInputStream->cis_close(_compilerInputStream);
 	}
 	if (_yyCurrentComment) {
-		free(_yyCurrentComment);
+		stringbuf_destroy(_yyCurrentComment);
 		_yyCurrentComment = NULL;
 	}
 	yy_init = 0;
@@ -414,9 +413,9 @@ WS		[ \t]
 %%
 <INITIAL>"/*"	{	
 	if (!_yyCurrentComment) {
-		_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
+		_yyCurrentComment = stringbuf_create(512);
 	} else {
-		_yyCurrentComment[0] = 0;
+		stringbuf_reset(_yyCurrentComment);
 	}
 	BEGIN(IN_COMMENT); 
 }
@@ -448,12 +447,10 @@ WS		[ \t]
 }
 <IN_COMMENT>"*/"      {		BEGIN(INITIAL);	}
 <IN_COMMENT>[^*\n]+   {
-		if ((strlen(_yyCurrentComment) + strlen(yytext)) < MAX_COMMENT_SIZE-32) {
-			strcat(_yyCurrentComment, yytext);	
-		}
+			stringbuf_appendString(_yyCurrentComment, yytext);	
 }
 <IN_COMMENT>"*"       // eat the lone star
-<IN_COMMENT>\n        {		if (_yyCurrentComment[0]) strcat(_yyCurrentComment, "\r\n");}
+<IN_COMMENT>\n        {		if (stringbuf_size(_yyCurrentComment) > 0) stringbuf_appendString(_yyCurrentComment, "\r\n");}
 <INITIAL>0b{BINNUM}+ {
 				yylval.num = number(yytext);
 				return T_NUM;
@@ -476,11 +473,9 @@ WS		[ \t]
 #[^\n]*		{	;	}
 \/\/[^\n]*	{	if (_currentTypeDescriptor) {
 					if (!_yyCurrentComment) {
-						_yyCurrentComment = calloc(1, MAX_COMMENT_SIZE);
+						_yyCurrentComment = stringbuf_create(512);
 					}
-					if (strlen(yytext) < MAX_COMMENT_SIZE) {
-						strcpy(_yyCurrentComment, yytext+3);
-					}
+					stringbuf_appendString(_yyCurrentComment, yytext+3);
 				}
 			}
 {WS}		{	;	}

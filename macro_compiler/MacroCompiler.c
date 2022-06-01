@@ -248,7 +248,7 @@ static void macro_unEscape(char *dst, const char *src, size_t nDestSize) {
  * macro already exists, it is deleted.
  */
 static char* _tempMacroName;
-static int macro_defineTemporaryMacro(MACRO_PARAM *pParam) {
+static int macro_defineTemporaryMacro(MACRO_PARAM* pParam) {
 	// TODO: when multiple macro functions are compiled as part of the evaluation, we should remove them all.
 	free(_tempMacroName);
 	_tempMacroName = _strdup(pParam->mp_name);
@@ -323,7 +323,7 @@ int compiler_requireNamespaceOrFilename(ARRAY_LIST* pDependentFiles, int nIndex,
 * and assume, the command to execute was passed on the command line (and will be escaped).
 * 'pszContext' is the name of the context in which the execution will be performed.
  */
-int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char* pszContext) {	
+int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char* pszContext) {
 	FTABLE 		ft;
 	int			saveMacEdited;
 
@@ -335,14 +335,24 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 		ln_createAndAdd(&ft, "string temp-block() {", -1, 0);
 	}
 	size_t nSize = strlen(pszCode);
+	char* pszTemp = calloc(1, nSize + 3);
 	if (bUnescape) {
-		char* pszTemp = calloc(1, nSize);
 		macro_unEscape(pszTemp, pszCode, nSize);
-		ln_createAndAdd(&ft, pszTemp, -1, 0);
-		free(pszTemp);
-	} else {
-		ln_createAndAdd(&ft, (char*)pszCode, -1, 0);
 	}
+	else {
+		strcpy(pszTemp, pszCode);
+	}
+	int nLen = (int)strlen(pszTemp);
+	while (--nLen > 0) {
+		if (pszTemp[nLen] == ')') {
+			pszTemp[nLen+1] = ';';
+			break;
+		}
+		if (!isspace((unsigned char)pszTemp[nLen])) {
+			break;
+		}
+	}
+	ln_createAndAdd(&ft, pszTemp, -1, 0);
 	if (bNeedsWrapper) {
 		ln_createAndAdd(&ft, "}", -1, 0);
 	}
@@ -364,13 +374,15 @@ int macro_executeSingleLineMacro(const char *pszCode, BOOL bUnescape, const char
 	config.cb_stream = &cis;
 	int ret = 1;
 	if (!compiler_compileWithParams(&config)) {
-		error_displayAlertDialog("Error in command: %s", pszCode);
+		error_displayAlertDialog("Error in command: %s", pszTemp);
 		ret = 0;
 	} else {
 		macro_executeByName(_tempMacroName);
 		macro_deleteByName(_tempMacroName);
 	}
+	free(pszTemp);
 	free(_tempMacroName);
+	ln_listfree(ft.firstl);
 	_macrosWereChanged = saveMacEdited;
 	return ret;
 }

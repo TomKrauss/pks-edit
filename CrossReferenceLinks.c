@@ -662,13 +662,11 @@ char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* p
 /* xref_saveCrossReferenceWord()					*/
 /*---------------------------------*/
 static char *_tagword;
-static char *xref_saveCrossReferenceWord(unsigned char *d,unsigned char *dend) {
+static char *xref_saveCrossReferenceWord(WINFO* wp, unsigned char *d,unsigned char *dend) {
 	if (_tagword) {
 		strcpy(d,_tagword);
 		return _tagword;
 	}
-
-	WINFO* wp = ww_getCurrentEditorWindow();
 	return xref_findIdentifierCloseToCaret(wp, &wp->caret, d,dend,NULL, NULL, 1);
 }
 
@@ -1022,7 +1020,6 @@ static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
 static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp) {
 	FILE_SELECT_PARAMS params;
 	FTABLE* fp;
-	WINFO* wp;
 	memset(&params, 0, sizeof params);
 	params.fsp_saveAs = FALSE;
 	if (nCommand && fsel_selectFileWithOptions(fsp, nCommand, &params) == 0) {
@@ -1031,12 +1028,12 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 
 	switch(st_type) {
 		case ST_ERRORS:
-			wp = ww_getCurrentEditorWindow();
-			if (xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM) && wp) {
-				EdFileAbandon(wp);
+			if (!xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM)) {
+				break;
 			}
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {
+				EdFileAbandon(WIPOI(fp));
 				// TODO: make this configurable - currently only used by PKS MacroC compiler.
 				fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
 			}
@@ -1216,7 +1213,7 @@ int EdFindTagCursor(WINFO* wp)
 	if (EdFindFileCursor(wp)) {
 		return 1;
 	}
-	return xref_navigateCrossReferenceForceDialog(wp, xref_saveCrossReferenceWord(_linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
+	return xref_navigateCrossReferenceForceDialog(wp, xref_saveCrossReferenceWord(wp, _linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
 }
 
 /*---------------------------------*/

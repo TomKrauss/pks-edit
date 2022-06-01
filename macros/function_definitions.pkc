@@ -3,8 +3,6 @@
  * Represents tuples of data contained in a HASHMAP, which can be retrieved
  * from a Map using the MapEntries API.
  *
- * Please do not change this structure to not break PKS-Edit map functionality.
- *
  * @see map
  * @see MapEntries
  */
@@ -23,6 +21,10 @@ typedef struct {
 
 /*
  * Handle type data structure to read from and write into files.
+ * @see FileReadLine
+ * @see FileWriteLine
+ * @see FileOpen
+ * @see FileClose
  */
 typedef native FILE;
 
@@ -44,6 +46,8 @@ typedef native map;
  * Handle to be passed <b>optionally</b> to perform an operation in the context of
  * an open editor window. If the <code>EDITOR</code> parameter is not passed, the
  * currently active editor is used as an argument.
+ * @see EditorInsertString
+ * @see EditorReplaceText
  */
 typedef native EDITOR;
 
@@ -778,9 +782,10 @@ native int doctypes_saveToFile();
 
 /*
  * Read or write the currently compiled macros to from an external format.
+ * @param bWrite <code>true</code> to write the macro file.
  */
 @Method(name="MacrosReadWrite", signature="iibFORM_s")
-native int macro_readWriteWithFileSelection();
+native int macro_readWriteWithFileSelection(boolean bWrite, FORM_PARAMETER_OPTION foOption);
 
 /*
  * Read a "tag file" created with ctags containing cross references, that can be navigated
@@ -790,10 +795,14 @@ native int macro_readWriteWithFileSelection();
 native int EdTagfileRead();
 
 /*
- * Opens the setup dialog allowing to change the PKS-Edit configuration.
+ * Save the editor configuration (layout, theme, language etc...).
+ * @param bInteractive if <code>true</code>, open
+ * a file selector to pick the file to which the configuration
+ * is saved. If <code>false</code>, use the default file name (pkseditini.json located in directory PKS_SYS)
+ * from which the configuration had been loaded.
  */
-@Method(name="RwSetup", signature="ibFORM_s")
-native int EdSetup();
+@Method(name="SaveConfiguration", signature="iibFORM_s")
+native int config_saveConfiguration(boolean bInteractive);
 
 /*
  * Opens a dialog letting the user define a multiplicator for the command to

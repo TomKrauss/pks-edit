@@ -580,9 +580,10 @@ int doctypes_saveToFile(void) {
 		return 0;
 	}
 
-	if (EdSaveFile(SAV_SAVE | SAV_FORCED) == 0) {
+	if (!json_marshal(params.fsp_resultFile, &config, _doctypeConfigurationRules)) {
+		// TODO: I18N
+		error_displayAlertDialog("Error saving the file with the editor configiration.");
 		return 0;
 	}
-
-	return 0;
+	return 1;
 }

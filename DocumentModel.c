@@ -30,9 +30,6 @@
 extern int 	_flushing;
 extern PASTE* bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType);
 
-// TODO: get rid of this hack.
-char* _linebuf;
-
 /*---------------------------------*/
 /* ln_newbl()					*/
 /* CUT&PASTE-marked line deleted	*/
