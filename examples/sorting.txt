@@ -1,0 +1,14 @@
+Number	Element		Sign	[g/cm3]
+24		Chromium  	Cr 		51.996
+26		Iron 		Fe 		55.847
+28		Nickel 		Ni 		58.70
+27		Cobalt		Co		58.9332
+3		Lithium 	Li		6.941
+8		Oxygen		O		15.9994
+10		Neon		Ne		20.179
+
+
+ID;Person;Birthday
+1;Hans Miller;1983/1/3
+2;Oscar Meyer;1988/4/12
+

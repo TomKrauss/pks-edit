@@ -147,7 +147,7 @@ EXPORT void hist_saveString(HISTORY_TYPE type, const char *string) {
 /*------------------------------------------------------------
  * hist_combo()
  */
-EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type)
+EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bForceInit)
 {	char *p,*q = 0;
 	ARRAY_LIST* pArray = hist_getHistoryArray(type);
 
@@ -161,7 +161,7 @@ EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type)
 			break;
 		}
 	}
-	if (q) {
+	if (bForceInit && q) {
 		SetDlgItemText(hDlg, nItem, q);
 	}
 }

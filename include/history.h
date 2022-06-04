@@ -49,7 +49,7 @@ typedef struct tagSESSION_DATA {
 } SESSION_DATA;
 
 extern void hist_saveString(HISTORY_TYPE type, const char *string);
-extern void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type);
+extern void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bForceInit);
 extern char *hist_getString(HISTORY_TYPE type, int nItem);
 
 /*---------------------------------

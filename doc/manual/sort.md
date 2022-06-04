@@ -10,19 +10,23 @@ can be selected in the dialog that opens.
 - Field Delimiter - specify one or more characters (you may use special syntax as in `\t` to name special characters) to be used to define key fields
   in the text. To sort a CSV format file for instance one would use ",;" as possible delimiters. To skip multiple separators (e.g. when a line contains fields
   separated by a varying number of whitespaces), check the option `Skip Multiple Delimters`.
-- Key Fields - allow to define the details about comparing the lines. One uses the following syntax to define a *key field*: `{[l.f.o]{c},}`
-  - `l` is the 0-based index of a line in a block of lines to sort
-  - `f` is the 0-based index of the field in the line
-  - `o` is an optional character based offset in the line, starting from where a comparison is being made
-  - `c` specifies an option for comparison of the field
+- Key Fields - allow to define the details about comparing the lines. One uses the following syntax to define a *key field*: `{f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+`
+  - `f` is followed by a number - the 0-based index of the field in the line
+  - `l` is followed by a number - the 0-based index of a line in a block of lines to sort
+  - `o` is followed by a number - an optional character based offset in the line, starting from where a comparison is being made. If fields 
+     are separated using field separators, offset into the field otherwise offset into the line sorted
+  - `w` is followed by a number - an optional character based width of a field in characters
+  - These specifications may be extended by option characters defining options for the sort field
     - `a` - the fields are compared alphanumerically (default case)
     - `i` - ignore case during alphanumeric comparison
-    - `d` - the field is interpreted as a number to sort
+    - `d` - the field is interpreted as a number to sort. Numbers may be integers or floating point numbers with either , or . as the
+    -       decimal separator. Other formats such as grouping chars or exponential formats are not yet supported.
     - `D` - the field is interpreted as a Date specification (various formats are supported - this will be improved in future versions of PKS-Edit)
     - `b` - skip leading blanks during comparison
-    - `u` - treat fields as *unique*. All fields, which are not unique are marked for deletion and can be deleted after sorting.
+    - `u` - treat fields as *unique*. All fields, which are not unique are marked for deletion and can be deleted after sorting.**
+    - `-` - sort by this field descending rather than ascending
 
-## Example
+## Example 1
 
 If one tries to sort the following table using the chemical sign (2<sup>nd</sup> column).
 
@@ -32,6 +36,24 @@ Chrome|Cr|5.102
 Iron|Fe|5.67 
 Nickel|Ni|5.67
 
-Then one would specify a key field of `0.1` (1<sup>st</sup> line, 2<sup>nd</sup> column).
+Then one would specify a separator field of ` \t` (check option skip multiple separators) and a key field of `f1` (2<sup>nd</sup> key in the line split by `|`).
 
-To sort for the weight (3rd column), one can specify `0.2.d` (1<sup>st</sup> line, 3<sup>rd</sup> column - sort *numerically*).
+To sort for the weight (3rd column) descending, one can specify `f2d-` (3<sup>rd</sup> column - sort *numerically*).
+
+## Example 2
+
+To sort the following CSV file, select \(highlight) the data lines of the following text, set the field separator to ";".
+
+```
+ID;Person;Birthday
+1;Hans Miller;1983/1/3
+2;Oscar Meyer;1988/4/12
+```
+
+To sort comparing two fields, the 1<sup>st</sup> one interpreting the value in the 3<sup>rd</sup> column as Date enforcing a field width
+of 10 characters and the 2<sup>nd</sup> one numerically comparing descending numbers in the 1<sup>st</sup> column use: `f0-d,f2w10D`.
+
+
+
+
+

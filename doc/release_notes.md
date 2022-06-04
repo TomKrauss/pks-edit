@@ -15,6 +15,8 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
   and character deletes (DEL + Backspace) are concurrently applied to multiple places in the code concurrently.
 - Errors in macroc code can now be debugged in a simple debugger allowing to inspect the stack frame, global and local 
   variables of each function executed. The debugger supports to step, continue and abort the current macroC execution.
+- Sorting text is more easy to use now and supports guessing of field separators and a variety of new formats and options 
+  (e.g. sorting of floating numbers).
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations

@@ -48,9 +48,6 @@
     <ClCompile Include="Clipboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Compare.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="macro_compiler\MacroCodeGenerator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -648,6 +645,9 @@
     <None Include="README.md" />
     <None Include="macro_compiler\PARSER.Y" />
     <None Include="macro_compiler\SCANNER.L" />
+    <None Include="doc\manual\sort.md" />
+    <None Include="doc\manual\navigate.md" />
+    <None Include="doc\manual\using_mouse.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

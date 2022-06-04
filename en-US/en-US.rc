@@ -253,14 +253,14 @@ BEGIN
     LTEXT           "&Range:",112,6,135,32,10,NOT WS_GROUP
     COMBOBOX        IDD_RNGE,44,132,118,51,CBS_DROPDOWNLIST | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     GROUPBOX        "Options Search",IDD_OPT10,171,66,136,60
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,78,110,12
+    CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,180,78,110,12
     CONTROL         "Regul&ar Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,180,90,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,180,102,80,12
     PUSHBUTTON      "&Count",IDD_BUT4,204,132,48,15,WS_GROUP
     DEFPUSHBUTTON   "&Replace",1,242,15,66,16,WS_GROUP
     PUSHBUTTON      "&Mark",IDD_BUT3,259,132,48,15,WS_GROUP
     PUSHBUTTON      "Cancel",2,242,47,66,15,WS_GROUP
-    CONTROL         "Preserve upper/lower case",IDD_PRESERVE_CASE,"Button",BS_AUTOCHECKBOX,12,102,130,14
+    CONTROL         "Preserve upper/lower Case",IDD_PRESERVE_CASE,"Button",BS_AUTOCHECKBOX,12,102,130,14
 END
 
 DLGABORT DIALOGEX 46, 58, 484, 60
@@ -421,10 +421,10 @@ BEGIN
     CONTROL         "&Forwards",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,8,68,44,14
     CONTROL         "B&ackwards",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON,56,68,48,14
     GROUPBOX        "Options",IDD_OPT10,119,23,138,63,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,34,94,12
+    CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,34,94,12
     CONTROL         "&Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,128,46,80,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,128,58,80,12
-    CONTROL         "&Wrap search",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,128,70,80,12
+    CONTROL         "&Wrap Search",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,128,70,80,12
     PUSHBUTTON      "Cancel",2,170,6,44,14,WS_GROUP
     DEFPUSHBUTTON   "OK",1,217,6,38,14
 END
@@ -521,29 +521,30 @@ BEGIN
     DEFPUSHBUTTON   "OK",1,132,10,60,14
 END
 
-DLGSORT DIALOGEX 9, 51, 261, 132
+DLGSORT DIALOGEX 9, 51, 329, 132
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sort file contents"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Selection Criteria:",-1,4,10,74,8,NOT WS_GROUP
-    COMBOBOX        IDD_FINDS2,4,22,104,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Ke&yfields:",-1,4,42,58,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING2,4,54,104,12,ES_AUTOHSCROLL
-    GROUPBOX        "Optionen",-1,6,74,104,52,WS_GROUP
-    CONTROL         "Bind to sort criteria",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,96,12
-    CONTROL         "Descending",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,94,12
+    COMBOBOX        IDD_FINDS2,4,22,178,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Ke&yfields (comma separated):",-1,4,42,153,8,NOT WS_GROUP
+    EDITTEXT        IDD_STRING2,4,54,178,12,ES_AUTOHSCROLL
+    GROUPBOX        "Optionen",-1,6,74,178,52,WS_GROUP
+    CONTROL         "Sort lines clustered by Selection Criteria",IDD_LOWOPT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,166,12
+    CONTROL         "&Quote Delimiters",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,169,12
     CONTROL         "S&kip Multiple Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
-    GROUPBOX        "Options for selection",-1,118,30,126,54,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,124,44,111,12
-    CONTROL         "Regular expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,124,56,84,12
-    CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,124,68,84,12
-    LTEXT           "R&ange:",-1,118,94,30,8
-    COMBOBOX        IDD_RNGE,190,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
-    LTEXT           "&Field Delimiter:",-1,118,112,66,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,190,110,54,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Cancel",2,152,6,44,14,WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,200,6,44,14
+    GROUPBOX        "Options for Selection",-1,196,30,126,54,WS_GROUP
+    CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,202,44,111,12
+    CONTROL         "Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,202,56,84,12
+    CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,202,68,84,12
+    LTEXT           "R&ange:",-1,196,94,30,8
+    COMBOBOX        IDD_RNGE,268,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
+    LTEXT           "&Field Delimiters:",-1,196,112,66,8,NOT WS_GROUP
+    EDITTEXT        IDD_STRING1,268,110,54,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Cancel",2,230,6,44,14,WS_GROUP
+    DEFPUSHBUTTON   "&OK",1,278,6,44,14
 END
 
 DLGWORKMODE DIALOGEX 38, 28, 391, 192
@@ -654,7 +655,7 @@ BEGIN
     COMBOBOX        IDD_PATH1,6,184,251,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Se&lect Folder...",IDD_PATH1SEL,262,184,64,14
     GROUPBOX        "Search &Options",IDD_OPT10,194,28,130,100,WS_GROUP
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,39,94,12
+    CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,39,94,12
     CONTROL         "Regular E&xpressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,205,51,94,12
     CONTROL         "Shell Wild&cards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,205,63,94,12
     CONTROL         "Si&ngle Match in File",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX,205,75,94,12
@@ -663,7 +664,7 @@ BEGIN
     CONTROL         "Search in Pre&vious Result",IDD_OPT4,"Button",BS_AUTOCHECKBOX,205,111,94,12
     GROUPBOX        "Replace Options",IDD_OPT14,194,131,130,47,WS_GROUP
     CONTROL         "Confirm Repla&cement",IDD_OPT5,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,205,145,80,12
-    CONTROL         "Preserve &upper/lower case",IDD_PRESERVE_CASE,"Button",BS_AUTOCHECKBOX,205,157,108,14
+    CONTROL         "Preserve &upper/lower Case",IDD_PRESERVE_CASE,"Button",BS_AUTOCHECKBOX,205,157,108,14
     PUSHBUTTON      "Cancel",2,168,7,40,14,WS_GROUP
     PUSHBUTTON      "&Replace",IDD_BUT3,215,7,65,14,WS_GROUP
     DEFPUSHBUTTON   "OK",1,287,7,40,14
@@ -996,6 +997,7 @@ BEGIN
 
     DLGSORT, DIALOG
     BEGIN
+        RIGHTMARGIN, 261
     END
 
     DLGWORKMODE, DIALOG
@@ -1432,7 +1434,7 @@ BEGIN
     IDS_TT_SORT_FIELD_SEPARATOR
                             "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
     IDS_TT_SORT_FIELD_OPTIONS
-                            "Enter the comparison options for sorting the individual fields / columns. Use the syntax {[z.f.o]{t},} to define one sort field (delimited by ,), wbere z is the line number, f is the field number and o is the offset for a field. t is the option for sorting a field: d = sort numerically, D = sort as Date,  i = sort strings case ignore, b = skip blanks when comparing, a = use keyword chars only for comparison "
+                            "Enter the comparison options for sorting the individual fields / columns.\nUse the syntax {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+ to define one sort field (delimited by ,), where\nl is the line number (in clustered sorting),\nf is the field number and\nw is the width of a field\no is the offset for a field.\nt is the option for sorting a field:\n  d = sort numerically\n  D = sort as Date\n  i = sort strings case ignore\n  b = skip blanks when comparing\n  a = use keyword chars only for comparison\n  - = sort descending"
 END
 
 STRINGTABLE

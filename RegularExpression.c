@@ -29,7 +29,7 @@
 
 #define	ISTHERE(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
 #define	MAXCTAB					32		/* maximum byte length of chartestset */
-#define	BIG						512		/* big Range Size used by: +,*,{x,} */
+#define	BIG						32000	/* big Range Size used by: +,*,{x,} */
 
 static int 	_chsetinited;
 unsigned char bittab[8] = { 1,2,4,8,16,32,64,128 };

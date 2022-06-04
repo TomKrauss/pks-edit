@@ -313,16 +313,17 @@ typedef enum {
 
 /* Option flags for sorting text */
 typedef enum {
-    /* skip multiple Token Seperators */
-    SO_SKIPSEPS = 0x1,
-    /* sort records rather than lines */
-    SO_CLUSTERLINES = 0x2,
-    /* reverse the order of sorting */
-    SO_REVERSE = 0x4,
-    /* sort all lines */
-    SO_NOSELECT = 0x8,
-    /* at least one token key field */
-    SO_TOKENIZE= 0x10
+	// skip multiple field seperators
+	SO_SKIPSEPARATORS = 0x1,
+	// sort records rather than lines
+	SO_CLUSTERLINES = 0x2,
+	// allow for quoting separators using "...."
+	SO_SEPARATOR_QUOTING = 0x4,
+	// Sort all lines. Do not use the selection criteria for filtering lines to sort but for
+	// cluster identification
+	SO_NOSELECT = 0x8,
+	// honor field separators to split key fields
+	SO_TOKENIZE = 0x10
 } SORT_OPTION_FLAGS;
 
 /* Flags for formatting text */

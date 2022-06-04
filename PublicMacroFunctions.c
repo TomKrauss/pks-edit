@@ -427,13 +427,73 @@ int EdFormatText(void)
 	return ft_formatText(ww_getCurrentEditorWindow(), _scope, alignment);
 }
 
+/*
+ * Try to guess the separator characters used during sort of e.g. CSV fields.
+ */
+static int sort_guessSeparators(WINFO* wp, char* pszFieldSeparator, int* pFlags) {
+	char szText[512];
+	*pFlags = 0;
+	if (!bl_getSelectedText(wp, szText, sizeof szText)) {
+		return 0;
+	}
+	int maxLines = 10;
+	int nLine = 0;
+	char szTable[128*10];
+	memset(szTable, 0, sizeof szTable);
+	char* pszRun = szText;
+	char* pszCandidates = ",;:| \t";
+	while (*pszRun) {
+		char c = *pszRun++;
+		if (c == '\n') {
+			if (nLine++ > maxLines) {
+				break;
+			}
+			continue;
+		}
+		if (strchr(pszCandidates, c)) {
+			szTable[nLine * 128 + c]++;
+		}
+	}
+	char* pszSep = pszFieldSeparator;
+	char* pszC = pszCandidates;
+	while (*pszC) {
+		char c = *pszC++;
+		int nCount = szTable[c];
+		if (nCount) {
+			for (int i = 1; i < nLine; i++) {
+				int nNext = szTable[i * 128 + c];
+				if (!nNext) {
+					nCount = 0;
+					break;
+				}
+				if (nNext != nCount) {
+					*pFlags |= SO_SKIPSEPARATORS;
+				}
+			}
+		}
+		if (nCount) {
+			if (c != '\t' && c != ' ') {
+				*pszSep++ = c;
+			} else {
+				*pFlags |= SO_SKIPSEPARATORS;
+				*pszSep++ = ' ';
+				*pszSep++ = '\\';
+				*pszSep++ = 't';
+			}
+			break;
+		}
+	}
+	*pszSep = 0;
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * EdSort()
  */
 int EdSort(void)
-{	static char key[50],fs[32];
-	static int  flags;
-	static DIALPARS _d[] = {
+{	static char key[128],fs[32];
+	int  flags;
+	DIALPARS _d[] = {
 		IDD_RNGE,		RNG_LINE ,		&_scope,
 		IDD_STRING1,	sizeof fs,		&fs,
 		IDD_STRING2,	sizeof key,		&key,
@@ -441,28 +501,33 @@ int EdSort(void)
 		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_OPT1,		SO_REVERSE,		&flags,
-		IDD_OPT2,		SO_CLUSTERLINES,	&flags,
-		IDD_OPT3,		SO_SKIPSEPS,		&flags,
+		IDD_OPT1,		SO_CLUSTERLINES,	&flags,
+		IDD_OPT2,		SO_SEPARATOR_QUOTING,& flags,
+		IDD_OPT3,		SO_SKIPSEPARATORS,		&flags,
 		0
 	};
-	static ITEMS	_i   = {
+	ITEMS	_i   = {
 		{ C_PUSH_STRING_LITERAL,_currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL,fs },
 		{ C_PUSH_STRING_LITERAL,key },
 		{ C_PUSH_INTEGER_LITERAL,	(unsigned char *)&flags },
 		{ C_PUSH_INTEGER_LITERAL,	(unsigned char *)&_scope }
 	};
-	static PARAMS	_sp = { DIM(_i), P_MAYOPEN, _i };
-	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
-		IDD_REGEXP,		IDS_TT_REGULAR_EXPRESSION,
+	PARAMS	_sp = { DIM(_i), P_MAYOPEN, _i };
+	DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
+		IDD_FINDS2,		IDS_TT_REGULAR_EXPRESSION,
 		IDD_STRING1,	IDS_TT_SORT_FIELD_SEPARATOR,
 		IDD_STRING2,	IDS_TT_SORT_FIELD_OPTIONS,
 		0
 	};
 	WINFO* wp = ww_getCurrentEditorWindow();
-
-	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	strcpy(fs, ",;");
+	if (!*key) {
+		strcpy(key, "f1-d");
+	}
+	sort_guessSeparators(wp, fs, &flags);
+	// No default selection criteria
+	_currentSearchAndReplaceParams.searchPattern[0] = 0;
 	if (!win_callDialog(DLGSORT,&_sp,_d, _tt))
 		return 0;
 
@@ -1355,6 +1420,7 @@ int EdReplace(void)
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		IDD_FINDS,	IDS_TT_REGULAR_EXPRESSION,
 		IDD_PRESERVE_CASE,	IDS_TT_PRESERVE_CASE,
 		0
 	};
@@ -1391,6 +1457,7 @@ int EdFind(void)
 	};
 	DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
+		IDD_FINDS,	IDS_TT_REGULAR_EXPRESSION,
 		0
 	};
 

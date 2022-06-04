@@ -30,7 +30,7 @@
 #include "regexp.h"
 #include "publicapi.h"
 
-#define	MAXARG			128
+#define	MAX_SORT_TOKENS			128
 #define	MAXKEYS			8
 #define	MAXDEPTH		6
 
@@ -39,22 +39,25 @@ typedef struct dvec {
 	int	w;
 } DVEC[6];
 
-#define	K_UNIQ			0x1		/* skip records whith this key uniq */
-#define	K_SKIPWHITE		0x2
-#define	K_SORTDICT		0x4
+#define	K_UNIQ			0x1		// skip records whith this key uniq
+#define	K_SKIPWHITE		0x2		// Skip whitespace during comparison
+#define	K_SORTDICT		0x4		// Dictionary compare mode 
+#define K_DESCENDING	0x8		// sort this key field descending
 
-typedef struct {
-	char	flag;
-	int  ln,fld,off;	/* line # in EdMacroRecord, field in line + offset */
-	int  (*cmp)(unsigned char *s1,int l1,unsigned char *s2, int l2);
+typedef struct tagKEY {
+	char	k_flags;			// one of the K_... flags from above
+	int		k_clusterLineIndex;	// line # in cluster to sort
+	int		k_fieldIndex;		// number / index of field
+	int		k_offset;			// offset into field. Either counting from the beginning of the line or from the 
+								// beginning of the text as split using the field separator
+	int		k_width;			// width of the field
+	int		(*k_compare)(const char *s1, const char *s2);
 } KEY;
 
-#define	KT_MKTOKEN		0x1
-
 typedef struct keytab {
-	int	nkeys;
-	int  fl;
-	unsigned char *fs_set;
+	int				kt_numberOfKeys;
+	int				kt_tokenizeForComparison;	// whether individual fields should be compared. If whole lines should be compared, this is 0
+	unsigned char *	kt_fieldSeparators;			// The (optional) field separators used to split key fields.
 	KEY	k[MAXKEYS];
 } KEYTAB;
 
@@ -71,13 +74,13 @@ typedef struct recparams {
 	int  nrec;		// number of records in line may not supersede ~4000 , so (int) is enough
 } RECPARAMS;
 
-typedef struct tagSORT_COLUMN_DESCRIPTOR {
-	char	*scd_source;			// the original input from which the column descriptors were created.
-	int		scd_numberOfColumns;	// # of tokens in line
-	char	*so[MAXARG];			// start token # 
-	char	*eo[MAXARG];			// end token # ... 
-	int		lo[MAXARG];				// len token # ... 
-} SORT_COLUMN_DESCRIPTOR;
+typedef struct tagSORT_TOKEN_LIST {
+	char*	stl_source;						// the original input from which the column descriptors were created.
+	int		stl_numberOfTokens;				// # of tokens in line
+	char*	stl_start[MAX_SORT_TOKENS];		// start token # 
+	char*	stl_end[MAX_SORT_TOKENS];		// end token # ... 
+	int		stl_length[MAX_SORT_TOKENS];	// len token # ... 
+} SORT_TOKEN_LIST;
 
 #define	MAXREC		5000
 
@@ -85,45 +88,29 @@ static long		_nlines;
 static SORT_OPTION_FLAGS _sortflags;
 static RECORD*	_rectab;
 
-extern int  compare_strings(unsigned char* s1, int l1, unsigned char* s2, int l2);
+#define MAX_KEY_SIZE			 4096
+#define LN_MARKED_FOR_CLUSTERING 0x800			// lines were marked to be clustered in the sorting function.
 
 /*------------------------------------------------------------
- * sort_compareStringsCaseIgnore()
- * Like sort_compareRecords strings, but case ignore.
+ * sort_compareExtractKeyfield()
+ * Extract the key fields to compare from the line.
  */
-static int sort_compareStringsCaseIgnore(unsigned char* s1, int l1, unsigned char* s2, int l2)
-{
-	int      len;
-
-	if (l1 > l2)
-		len = l2;
-	else len = l1;
-
-	while (len > 0) {
-		if (_l2uset[*s1++] != _l2uset[*s2++]) {
-			l1 = _l2uset[s1[-1]];
-			l2 = _l2uset[s2[-1]];
-			break;
-		}
-		else
-			len--;
-	}
-	return l1 - l2;
-}
-
-/*------------------------------------------------------------
- * sort_compareExtractKeyLetterWord()
- */
-static int sort_compareExtractKeyLetterWord(unsigned char* d, unsigned char* s, int l)
+static int sort_compareExtractKeyfield(unsigned char* d, unsigned char* s, int l, int nFlags)
 {
 	unsigned char* bufferStart = d, c;
+	int bKey = nFlags & K_SORTDICT;
+	int bSkipSpace = nFlags & K_SKIPWHITE;
 
-	if (l > 2048) l = 2048;			/* may fail on large keys */
+	if (l > MAX_KEY_SIZE) l = MAX_KEY_SIZE;			/* may fail on large keys */
 	while (l > 0) {
-		if (isalnum((c = *s++)))
+		c = *s++;
+		if ((!bSkipSpace || string_isSpace(c))
+			|| (!bKey || isalnum(c))) {
 			*d++ = c;
+		}
 		l--;
 	}
+	*d = 0;
 	return (int)(d - bufferStart);
 }
 
@@ -132,17 +119,17 @@ static int sort_compareExtractKeyLetterWord(unsigned char* d, unsigned char* s, 
  * sort_convertStringToDigitArray()
  * convert a string to a dig. arr
  */
-static const char *sort_convertStringToDigitArray(struct dvec *v,const char *s, const char *e)
+static const char* sort_convertStringToDigitArray(struct dvec* v, const char* s)
 {	int i;
 
 	for (i = 0; i < MAXDEPTH; i++,v++) {
-		if (s >= e)
+		if (!*s) {
 			v->n = 0;
-		else {
-			v->n = (long)string_convertToLong(s);
-			v->w = (int)(_strtolend-s);
-			s    = _strtolend;
+			break;
 		}
+		v->n = (long)string_convertToLong(s);
+		v->w = (int)(_strtolend-s);
+		s    = _strtolend;
 		if (*s == '.')
 			s++;
 	}
@@ -153,12 +140,12 @@ static const char *sort_convertStringToDigitArray(struct dvec *v,const char *s, 
  * sort_compareDigit()
  * sort_compareRecords 2 digits
  */
-static int sort_genericDigitCompare(char *s1, int l1, char *s2, int l2, int digwise)
+static int sort_genericDigitCompare(const char *s1, const char *s2, int digwise)
 {	struct dvec v1[MAXDEPTH],v2[MAXDEPTH],*vp;
 	int i,n;
 
-	sort_convertStringToDigitArray(v1,s1,s1+l1);
-	sort_convertStringToDigitArray(v2,s2,s2+l2);
+	sort_convertStringToDigitArray(v1,s1);
+	sort_convertStringToDigitArray(v2,s2);
 	for (i = 0; i < MAXDEPTH; i++) {
 		if (v1[i].n != v2[i].n) {
 			if (i != 0 && digwise) {
@@ -177,32 +164,84 @@ static int sort_genericDigitCompare(char *s1, int l1, char *s2, int l2, int digw
 	return 0;
 }
 
+/*
+ * Generic heuristic float parsing.
+ */
+double sort_convertToFloat(const char* s1) {
+	double f1 = 0;
+	double mult = 1;
+	int bNeg = 0;
+	char c;
+	while ((c = * s1++) != 0) {
+		if (c == '-') {
+			bNeg = 1;
+			break;
+		}
+		if (c == '.' || c == ',') {
+			mult = 0.1;
+			break;
+		}
+		if (isdigit(c)) {
+			f1 = (float)(c - '0');
+			break;
+		}
+	}
+	while ((c = *s1++) != 0) {
+		if (isdigit(c)) {
+			if (mult == 1) {
+				f1 *= 10;
+				f1 += (float)(c - '0');
+			}
+			else {
+				f1 += mult * (float)(c - '0');
+				mult /= 10.0;
+			}
+		}
+		else if (mult == 1 && (c == '.' || c == ',')) {
+			mult = 0.1;
+		}
+		else {
+			break;
+		}
+	}
+	return bNeg ? -f1 : f1;
+}
+
 /*--------------------------------------------------------------------------
  * sort_compareDigit()
  */
-static int sort_compareDigit(unsigned char *s1, int l1, unsigned char *s2, int l2)
+static int sort_compareDigit(const char *s1, const char *s2)
 {
-	return sort_genericDigitCompare(s1, l1, s2, l2, 1);
+	double f1 = sort_convertToFloat(s1);
+	double f2 = sort_convertToFloat(s2);
+	if (f1 > f2) {
+		return 1;
+	}
+	if (f1 < f2) {
+		return -1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
  * sort_compareDate()
  */
-static int sort_compareDate(unsigned char *s1, int l1, unsigned char *s2, int l2)
+static int sort_compareDate(const char *s1, const char *s2)
 {
-	return sort_genericDigitCompare(s1, l1, s2, l2, 0);
+	// TODO heuristic support of various date formats.
+	return sort_genericDigitCompare(s1, s2, 0);
 }
 
 /*--------------------------------------------------------------------------
  * sort_tokenize()
  */
-static int sort_tokenize(SORT_COLUMN_DESCRIPTOR *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
+static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
 {	int  i,i1;
 	int  nColumns;
 	unsigned char c;
 
-	vec->scd_source = s;
-	vec->scd_numberOfColumns= 0;
+	vec->stl_source = s;
+	vec->stl_numberOfTokens= 0;
 	i 	  = 0;
 	nColumns = 0;
 	for (; ; ) {
@@ -210,95 +249,117 @@ static int sort_tokenize(SORT_COLUMN_DESCRIPTOR *vec, unsigned char *s, unsigned
 			while((c = s[i]) != 0 && fs_set[c])
 				i++;
 		}
-		if (nColumns >= MAXARG) {
+		if (nColumns >= MAX_SORT_TOKENS) {
 			error_showErrorById(IDS_MSGTOOMUCHFIELDS);
 			return 0;
 		}
-		vec->so[nColumns] = &s[i];
+		vec->stl_start[nColumns] = &s[i];
 		i1 = i;
 		while((c = s[i]) != 0 && !fs_set[c])
 			i++;
-		vec->eo[nColumns] 	= &s[i];
-		vec->lo[nColumns++]	= i-i1;
+		vec->stl_end[nColumns] 	= &s[i];
+		vec->stl_length[nColumns++]	= i-i1;
 		if (!c) break;
 		if (!skipseps)
 			i++;
 	}
-	vec->scd_numberOfColumns = nColumns;
+	vec->stl_numberOfTokens = nColumns;
 	return 1;
 }
 
 /*--------------------------------------------------------------------------
  * sort_initializeFieldSeparators()
  */
-static void sort_initializeFieldSeparators(char *set, char *pFieldSeparators)
+static void sort_initializeFieldSeparators(char *pFieldSeparatorsCharset, char *pFieldSeparators)
 {	unsigned char o;
 
 	if (!*pFieldSeparators)
 		pFieldSeparators = " \t";
 
-	memset(set,0,256);
+	memset(pFieldSeparatorsCharset,0,256);
 	while((o=*pFieldSeparators++) != 0) {
 		if (o == '\\') {
 			o  = regex_parseOctalNumber(pFieldSeparators);
 			pFieldSeparators = _octalloc;
 		}
-		set[o] = 1;
+		pFieldSeparatorsCharset[o] = 1;
 	}
 }
 
 /*--------------------------------------------------------------------------
- * Compile the column sort options.
+ * Compile the sort field options / the "key list".
+ * Fields are delimited using "," and may contain whitespace
+ * Format for one key (sort field): f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]
+ * f number: 0-based field number in order of appearance
+ * l number: 0-based line number offset into cluster in clustered sorting case
+ * o number: optional 0-based character offset of field. If fields are separated using field separators, offset into the 
+ *             field otherwise offset into the line sorted
+ * w number: optional width of field in number of characters
+ * Examples
+ * - To sort comparing two fields, the 1st one numeric descending and the 2nd one interpreting the value as Date enforcing a field width
+ *   of 10 characters use: f0-d,f1w10D
  */
-static void sort_initializeKeyList(char *s, char *fs_set)
-{	SORT_COLUMN_DESCRIPTOR 	v;
-	DVEC		d;
-	const char	*s2;
+static void sort_initializeKeyList(char *pszKeySpec) {
 	KEY		*kp;
-	char		loc_set[256];
 	int    	i;
-	int		(*cmp)(unsigned char *s1,int l1, unsigned char *s2, int l2);
 
 	/* init to zero */
 	memset(&_keytab,0,sizeof(_keytab));
 
-	if (!*s) {
+	if (!*pszKeySpec) {
 		i = 1;
-		_keytab.k[0].cmp = compare_strings;
-	} else {
-
-		sort_initializeFieldSeparators(loc_set,",");
-		sort_tokenize(&v, s, loc_set, 1);
-		if (v.scd_numberOfColumns > MAXKEYS) {
-			error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
-			v.scd_numberOfColumns = 8;
-		}
-		for (i = 0; i < v.scd_numberOfColumns; i++) {
-			s2 = sort_convertStringToDigitArray(d,v.so[i],v.eo[i]);
-			kp = &_keytab.k[i];
-			kp->ln   = d[0].n;
-			kp->fld  = d[1].n;
-			kp->off  = d[2].n;
-			cmp      = compare_strings;
-			if (d[1].n)
-				_keytab.fl |= KT_MKTOKEN;
-			while (s2 < v.eo[i]) {
-				switch(*s2) {
-					case 'd':	cmp = sort_compareDigit; break;
-					case 'D': cmp = sort_compareDate;	 break;
-					case 'i': cmp = sort_compareStringsCaseIgnore;  break;
-					case 'a': kp->flag |= K_SORTDICT; break;
-					case 'b': kp->flag |= K_SKIPWHITE; break;
-					case 'u': kp->flag |= K_UNIQ; break;
-					default : error_showErrorById(IDS_MSGINVALSORTOPT);
-				}
-				s2++;
+		_keytab.k[0].k_compare = strcmp;
+	}
+	else {
+		i = 0;
+		char c;
+		kp = 0;
+		while ((c = *pszKeySpec++) != 0) {
+			if (kp == 0) {
+				kp = &_keytab.k[i++];
+				kp->k_compare = strcmp;
 			}
-			kp->cmp = cmp;
+			switch (c) {
+			case ',':
+				i++;
+				if (i >= MAXKEYS) {
+					error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
+					goto done;
+				}
+				kp = 0;
+				break;
+			case 'f':
+				kp->k_fieldIndex = (int)string_convertToLong(pszKeySpec);
+				if (kp->k_fieldIndex)
+					_keytab.kt_tokenizeForComparison = 1;
+				pszKeySpec = (char*)_strtolend;
+				break;
+			case 'l':
+				kp->k_clusterLineIndex = (int)string_convertToLong(pszKeySpec);
+				pszKeySpec = (char*)_strtolend;
+				break;
+			case 'o':
+				kp->k_offset = (int)string_convertToLong(pszKeySpec);
+				pszKeySpec = (char*)_strtolend;
+				break;
+			case 'w':
+				kp->k_width = (int)string_convertToLong(pszKeySpec);
+				pszKeySpec = (char*)_strtolend;
+				break;
+			case 'd': kp->k_compare = sort_compareDigit; break;
+			case 'D': kp->k_compare = sort_compareDate;	 break;
+			case 'i': kp->k_compare = _strcmpi;  break;
+			case 'a': kp->k_flags |= K_SORTDICT; break;
+			case 'b': kp->k_flags |= K_SKIPWHITE; break;
+			case 'u': kp->k_flags |= K_UNIQ; break;
+			case '-': kp->k_flags |= K_DESCENDING; break;
+			case ' ': case '\t': break;
+			default: error_showErrorById(IDS_MSGINVALSORTOPT);
+			}
 		}
 	}
-	_keytab.fs_set = fs_set;
-	_keytab.nkeys  = i;
+done:
+	_keytab.kt_numberOfKeys  = i;
 }
 
 /*--------------------------------------------------------------------------
@@ -317,89 +378,102 @@ static LINE *sort_getLineFromRecord(const RECORD *rp, int num)
 /*--------------------------------------------------------------------------
  * sort_compareRecords()
  */
-static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2)
-{	int 		i,off,ret,l1,l2;
+static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {	
+	int 	i,ret,l1,l2;
+	int		nFieldIndex;
+	int		nOffset;
 	LINE 	*lp1,*lp2,*lp;
 	KEY		*kp;
-	SORT_COLUMN_DESCRIPTOR 	v1,v2;
+	SORT_TOKEN_LIST 	v1,v2;
 	unsigned char *s1,*s2;
 
 	lp1 = rp1->lp;
 	lp2 = rp2->lp;
-	for (i = 0; i < _keytab.nkeys; i++) {
+	for (i = 0; i < _keytab.kt_numberOfKeys; i++) {
 		kp = &_keytab.k[i];
-
+		BOOL bDescending = kp->k_flags & K_DESCENDING;
 	/* skip 2 first key line of each rec */
-		if ((l1 = kp->ln) != 0) {
+		if ((l1 = kp->k_clusterLineIndex) != 0) {
 			if (l1 >= rp1->nl) {
 				if (l1 < rp2->nl)
-					return _sortflags & SO_REVERSE ? 1 : -1;
+					return bDescending ? 1 : -1;
 				else
 					continue;
 			} else if (l1 >= rp2->nl)
-				return _sortflags & SO_REVERSE ? -1 : 1;
+				return bDescending ? -1 : 1;
 			lp1 = sort_getLineFromRecord(rp1,l1);
 			lp2 = sort_getLineFromRecord(rp2,l1);
 		}
 
 	/* evtl. split the lines according to IFS */
-		if (_keytab.fl & KT_MKTOKEN) {
-			if (i == 0 || kp[-1].ln != kp->ln) {
-				sort_tokenize(&v1, lp1->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
-				sort_tokenize(&v2, lp2->lbuf, _keytab.fs_set, _sortflags & SO_SKIPSEPS);
+		if (_keytab.kt_tokenizeForComparison) {
+			if (i == 0 || kp[-1].k_clusterLineIndex != kp->k_clusterLineIndex) {
+				sort_tokenize(&v1, lp1->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS);
+				sort_tokenize(&v2, lp2->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS);
 			}
 		}
-		off = kp->fld;
-		if (--off < 0)	{			/* the token $0, (whole line) */
+		nFieldIndex = kp->k_fieldIndex;
+		if (!_keytab.kt_tokenizeForComparison)	{				// the token $0, (whole line) 
 			s1 = lp1->lbuf;
 			s2 = lp2->lbuf;
 			l1 = lp1->len;
 			l2 = lp2->len;
-		} else {					/* token $off	*/
-			if (off >= v1.scd_numberOfColumns) {		/* check whether $off exists */
-				if (off < v2.scd_numberOfColumns)
-					return _sortflags & SO_REVERSE ? 1 : -1;
+		} else {											// token $nFieldIndex
+			if (nFieldIndex >= v1.stl_numberOfTokens) {		// check whether $nFieldIndex exists 
+				if (nFieldIndex < v2.stl_numberOfTokens)
+					return bDescending ? 1 : -1;
 				else
 					continue;
-			} else if (off >= v2.scd_numberOfColumns)
-		   		return _sortflags & SO_REVERSE ? -1 : 1;
-			s1 = v1.so[off];
-			s2 = v2.so[off];
-			l1 = v1.lo[off];
-			l2 = v2.lo[off];
+			} else if (nFieldIndex >= v2.stl_numberOfTokens)
+		   		return bDescending ? -1 : 1;
+			s1 = v1.stl_start[nFieldIndex];
+			s2 = v2.stl_start[nFieldIndex];
+			l1 = v1.stl_length[nFieldIndex];
+			l2 = v2.stl_length[nFieldIndex];
 		}
 
-	/* add opt. offset to begin of key */
-		if ((off = kp->off) != 0) {
-			s1 += off;
-			s2 += off;
-			l1 -= off;
-			l2 -= off;
+		// add opt. offset to begin of key field
+		if ((nOffset = kp->k_offset) != 0) {
+			if (nOffset > l1) {
+				s1 += l1;
+				l1 = 0;
+			} else {
+				s1 += nOffset;
+				l1 -= nOffset;
+			}
+			if (nOffset > l2) {
+				s2 += l2;
+				l2 = 0;
+			} else {
+				s2 += nOffset;
+				l2 -= nOffset;
+			}
+		}
+		if ((nOffset = kp->k_width) != 0) {
+			if (nOffset > l1) {
+				l1 = 0;
+			} else {
+				l1 -= nOffset;
+			}
+			if (nOffset > l2) {
+				l2 = 0;
+			}
+			else {
+				l2 -= nOffset;
+			}
 		}
 
 	/* skip 2 first key line of each rec */
-		if (kp->flag & K_SORTDICT) {
-			l1 = sort_compareExtractKeyLetterWord(_linebuf,s1,l1);
-			s1 = _linebuf;
-			l2 = sort_compareExtractKeyLetterWord(_linebuf+2048,s2,l2);
-			s2 = _linebuf+2048;
-		} else	/* is implied above */
-		if (kp->flag & K_SKIPWHITE) {
-			while (string_isSpace(*s1)) {
-				s1++;
-				l1--;
-			}
-			while (string_isSpace(*s2)) {
-				s2++;
-				l2--;
-			}
-		}
+		l1 = sort_compareExtractKeyfield(_linebuf, s1, l1, kp->k_flags);
+		s1 = _linebuf;
+		l2 = sort_compareExtractKeyfield(_linebuf + MAX_KEY_SIZE, s2, l2, kp->k_flags);
+		s2 = _linebuf + MAX_KEY_SIZE;
 
-		if ((ret = (*kp->cmp)(s1,l1,s2,l2)) != 0)
-			return _sortflags & SO_REVERSE ? -ret : ret;
+		if ((ret = (*kp->k_compare)(s1,s2)) != 0)
+			return bDescending ? -ret : ret;
 
-		if (kp->flag & K_UNIQ)
-			for (off = 0, lp=rp2->lp; off < rp2->nl; off++, lp=lp->next)
+		if (kp->k_flags & K_UNIQ)
+			for (nOffset = 0, lp=rp2->lp; nOffset < rp2->nl; nOffset++, lp=lp->next)
 				lp->lflg |= LNXMARKED;
 	}
 	return 0;
@@ -437,7 +511,6 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 			nl = 1;
 			if (sortflags & SO_CLUSTERLINES) {
 				for (;;) {
-					ln_markModified(lpfirst);
 					if (lpfirst == lplast)
 						break;
 					lpnext = lpfirst->next;
@@ -446,8 +519,8 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 					lpfirst = lpnext;
 					nl++;
 				}
-			} else 
-				ln_markModified(lpfirst);
+			}
+			ln_markModified(lpfirst);
 			rectab[nrec].flags = lpfirst->lflg;
 			rectab[nrec++].nl = nl;
 		}
@@ -455,25 +528,6 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 			return nrec;
 		lpfirst = lpfirst->next;
 	}
-}
-
-/*--------------------------------------------------------------------------
- * mk2cndlist()
- * group the not selected lines
- */
-static int sort_groupUnselectedLines(LINE *lpfirst, LINE *lplast,int n)
-{	int i;
-
-	for (i = n; ;lpfirst = lpfirst->next) {
-		if ((lpfirst->lflg & LNMODIFIED) == 0) {
-			_rectab[i].lp = lpfirst;
-			_rectab[i].nl = 1;
-			i++;
-		}
-		if (lpfirst == lplast)
-			break;
-	}
-	return i-n;
 }
 
 /*--------------------------------------------------------------------------
@@ -569,9 +623,11 @@ int sort_saveForUndo(FTABLE *fp, LINE *lpfirst, LINE *lplast)
  * ft_sortFile()
  * Sort the current file / document.
  */
-int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sortflags)
-{	int  	ret = 0, n,n2;
-	char		fs_set[256];
+int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char *sel, int sortflags)
+{
+	int  	ret = 0;
+	int		n;
+	char	fs_set[256];
 	RECPARAMS rp;
 	long  	l1;
 	LINE 	*lpfirst, *lplast;
@@ -589,6 +645,10 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	}
 
 	undo_startModification(fp);
+	if (scope == RNG_BLOCK) {
+		// donot include empty trailing lines in selection
+		scope = RNG_BLOCK_LINES;
+	}
 	if (find_setTextSelection(wp, scope, &mps,&mpe) == RNG_INVALID) {
 		return 0;
 	}
@@ -596,8 +656,9 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	lplast =  mpe->m_linePointer;
 	bl_hideSelection(wp, 0);
 
-	sort_initializeFieldSeparators(fs_set,fs);
-	sort_initializeKeyList(keys,fs_set);
+	sort_initializeKeyList(pszKeySpecification);
+	sort_initializeFieldSeparators(fs_set, fs);
+	_keytab.kt_fieldSeparators = fs_set;
 	_sortflags = sortflags;
 
 	l1 = wp->caret.ln;
@@ -606,11 +667,10 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *keys, char *sel, int sort
 	}
 
 	sort_saveForUndo(fp, lpfirst, lplast);
-	if ((n  = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
-		n2 = sort_groupUnselectedLines(lpfirst,lplast,n);
+	if ((n = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast = lplast ->next;
-		rp.nrec = n+n2;
+		rp.nrec = n;
 		progress_startMonitor(IDS_ABRTSORT, 1000);
 		if (sort_quickSortList(_rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);

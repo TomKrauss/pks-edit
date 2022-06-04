@@ -47,11 +47,11 @@
 
 extern int 		_translatekeys;
 
-extern BOOL 	DlgChooseFont(HWND hWnd, char *pszFontName, BOOL bPrinter);
+extern BOOL 	DlgChooseFont(HWND hWnd, char* pszFontName, BOOL bPrinter);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
-static DIALPARS 	*_dp;
-static DIALPARS*	(*_dialogInitParameterCallback)(int pageIndex);
+static DIALPARS* _dp;
+static DIALPARS* (*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
 static boolean		bPropertySheetMove;
 
@@ -63,7 +63,7 @@ HWND   hwndDlg;
  * re-entrant. Any text loaded must be used right away.
  */
 char* dlg_getResourceString(int nId) {
-	static char szBuf[256];
+	static char szBuf[1024];
 
 	if (!LoadString(ui_getResourceModule(), nId, szBuf, sizeof szBuf)) {
 		return (char*)NULL;
@@ -73,7 +73,7 @@ char* dlg_getResourceString(int nId) {
 
 /*-----------------------------------------------
  * assigns a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
- * for that particular page, if the page is activated. The callback is passed the index of the 
+ * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
 void dlg_setXDialogParams(DIALPARS* (*func)(int pageIndex), boolean positionDialogOnInit) {
@@ -97,7 +97,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 		return FALSE;
 	}
 	// Get the window of the tool.
-	HWND hwndTool = GetDlgItem(hDlg, toolID);
+	HWND hwndControl = GetDlgItem(hDlg, toolID);
 
 	// Create the tooltip. g_hInst is the global instance handle.
 	HWND hwndTip = CreateWindowEx(0L, TOOLTIPS_CLASS, NULL,
@@ -107,8 +107,16 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 		hDlg, NULL,
 		hInst, NULL);
 
-	if (!hwndTool || !hwndTip)
-	{
+	char szClassname[64];
+	GetClassName(hwndControl, szClassname, sizeof szClassname);
+	if (strcmp(WC_COMBOBOX, szClassname) == 0) {
+		COMBOBOXINFO cbi;
+		cbi.cbSize = sizeof(COMBOBOXINFO);
+		if (GetComboBoxInfo(hwndControl, &cbi)) {
+			hwndControl = cbi.hwndItem;
+		}
+	}
+	if (!hwndControl || !hwndTip) {
 		return (HWND)NULL;
 	}
 
@@ -117,7 +125,7 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	toolInfo.cbSize = sizeof(toolInfo);
 	toolInfo.hwnd = hDlg;
 	toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
-	toolInfo.uId = (UINT_PTR)hwndTool;
+	toolInfo.uId = (UINT_PTR)hwndControl;
 	char 	*pszText;
 
 	if (!(pszText = dlg_getResourceString(iTooltipItem))) {
@@ -418,7 +426,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				} else if (item != IDD_FILE_PATTERN) {
 					ht = SEARCH_PATTERNS;
 				}
-				hist_fillComboBox(hDlg, item, ht);
+				hist_fillComboBox(hDlg, item, ht, item != IDD_FINDS2);
 				LPSTR pData = (LPSTR)ip;
 				if (pData && *pData) {
 					SetDlgItemText(hDlg, item, pData);
@@ -429,7 +437,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				SetDlgItemText(hDlg,item,(LPSTR)ip);
 				break;
 			case IDD_PATH1:
-				hist_fillComboBox(hDlg, item, PATHES);
+				hist_fillComboBox(hDlg, item, PATHES, 1);
 				// drop through
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:
