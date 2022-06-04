@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <string.h>
+#include <time.h>
 
 #include "alloc.h"
 #include "edctype.h"
@@ -51,6 +52,7 @@ typedef struct tagKEY {
 	int		k_offset;			// offset into field. Either counting from the beginning of the line or from the 
 								// beginning of the text as split using the field separator
 	int		k_width;			// width of the field
+	const char* k_dateFormat;	// date format for field sorted by date - if not assigned, will be determined heuristically
 	int		(*k_compare)(const char *s1, const char *s2);
 } KEY;
 
@@ -91,6 +93,27 @@ static RECORD*	_rectab;
 #define MAX_KEY_SIZE			 4096
 #define LN_MARKED_FOR_CLUSTERING 0x800			// lines were marked to be clustered in the sorting function.
 
+/*
+ * C replacement of strptime. Parse the string s given a format f into a time struct. If successful
+ * return end of the parsed string NULL otherwise.
+ */
+extern char* strptime(const char* s, const char* f, struct tm* tm);
+
+static char* _dateFormats[] = {
+	// Warning: do not use the short form %D as the length of the pattern matters
+	// we need to compare patterns by length to the input text length. If the later is shorter
+	// we must not try to parse using that format or we get an exception (shortcoming of std::get_time, which is used internally).
+	"%m/%d/%y",
+	"%d.%m.%Y",
+	"%Y-%m-%d",
+	"%d. %B %y",
+	"%Y-%m-%d %H:%M:%S",
+	"%m/%d/%y %H:%M:%S",
+	"%H:%M:%S"
+};
+
+static KEY* _currentKey;
+
 /*------------------------------------------------------------
  * sort_compareExtractKeyfield()
  * Extract the key fields to compare from the line.
@@ -114,55 +137,6 @@ static int sort_compareExtractKeyfield(unsigned char* d, unsigned char* s, int l
 	return (int)(d - bufferStart);
 }
 
-
-/*--------------------------------------------------------------------------
- * sort_convertStringToDigitArray()
- * convert a string to a dig. arr
- */
-static const char* sort_convertStringToDigitArray(struct dvec* v, const char* s)
-{	int i;
-
-	for (i = 0; i < MAXDEPTH; i++,v++) {
-		if (!*s) {
-			v->n = 0;
-			break;
-		}
-		v->n = (long)string_convertToLong(s);
-		v->w = (int)(_strtolend-s);
-		s    = _strtolend;
-		if (*s == '.')
-			s++;
-	}
-	return s;
-}
-
-/*--------------------------------------------------------------------------
- * sort_compareDigit()
- * sort_compareRecords 2 digits
- */
-static int sort_genericDigitCompare(const char *s1, const char *s2, int digwise)
-{	struct dvec v1[MAXDEPTH],v2[MAXDEPTH],*vp;
-	int i,n;
-
-	sort_convertStringToDigitArray(v1,s1);
-	sort_convertStringToDigitArray(v2,s2);
-	for (i = 0; i < MAXDEPTH; i++) {
-		if (v1[i].n != v2[i].n) {
-			if (i != 0 && digwise) {
-				/* .101 < .2 ! */
-				vp = &v2[i];
-				if ((n = vp->w-v1[i].w) > 0) vp = &v1[i];
-				else n = -n;
-				while (n > 0) {
-					n--;
-					vp->n *= 10;
-				}
-			}
-			return (v1[i].n>v2[i].n) ? 1 : -1;
-		}
-	}
-	return 0;
-}
 
 /*
  * Generic heuristic float parsing.
@@ -226,10 +200,44 @@ static int sort_compareDigit(const char *s1, const char *s2)
 /*--------------------------------------------------------------------------
  * sort_compareDate()
  */
-static int sort_compareDate(const char *s1, const char *s2)
-{
-	// TODO heuristic support of various date formats.
-	return sort_genericDigitCompare(s1, s2, 0);
+static int sort_compareDate(const char *s1, const char *s2) {
+	struct tm tm1;
+	struct tm tm2;
+	const char* pszFmt = 0;
+	if (_currentKey && _currentKey->k_dateFormat) {
+		if (strptime(s1, _currentKey->k_dateFormat, &tm1)) {
+			pszFmt = _currentKey->k_dateFormat;
+		}
+	}
+	if (!pszFmt) {
+		for (int i = 0; i < DIM(_dateFormats); i++) {
+			pszFmt = _dateFormats[i];
+			// if len is less we get an exception.
+			if (strlen(s1) >= strlen(pszFmt) && strptime(s1, pszFmt, &tm1)) {
+				break;
+			}
+			pszFmt = 0;
+		}
+		if (!pszFmt) {
+			return 0;
+		}
+		if (_currentKey) {
+			_currentKey->k_dateFormat = pszFmt;
+		}
+	}
+	if (!strptime(s2, pszFmt, &tm2)) {
+		return 1;
+	}
+	time_t t1 = mktime(&tm1);
+	time_t t2 = mktime(&tm2);
+	double diffSecs = difftime(t1, t2);
+	if (diffSecs > 0) {
+		return 1;
+	}
+	if (diffSecs < 0) {
+		return -1;
+	}
+	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -468,7 +476,7 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 		s1 = _linebuf;
 		l2 = sort_compareExtractKeyfield(_linebuf + MAX_KEY_SIZE, s2, l2, kp->k_flags);
 		s2 = _linebuf + MAX_KEY_SIZE;
-
+		_currentKey = kp;
 		if ((ret = (*kp->k_compare)(s1,s2)) != 0)
 			return bDescending ? -ret : ret;
 
@@ -476,6 +484,7 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 			for (nOffset = 0, lp=rp2->lp; nOffset < rp2->nl; nOffset++, lp=lp->next)
 				lp->lflg |= LNXMARKED;
 	}
+	_currentKey = 0;
 	return 0;
 }
 

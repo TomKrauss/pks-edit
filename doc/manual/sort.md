@@ -21,7 +21,9 @@ can be selected in the dialog that opens.
     - `i` - ignore case during alphanumeric comparison
     - `d` - the field is interpreted as a number to sort. Numbers may be integers or floating point numbers with either , or . as the
     -       decimal separator. Other formats such as grouping chars or exponential formats are not yet supported.
-    - `D` - the field is interpreted as a Date specification (various formats are supported - this will be improved in future versions of PKS-Edit)
+    - `D` - the field is interpreted as a Date specification (various formats are supported - this will be made customizable in future versions of PKS-Edit).
+            Currently the following formats are tried (note, that date, time and date+time formats are tried): `%m/%d/%y`, `%d.%m.%Y`,
+	        `%Y-%m-%d`, `%d. %B %y`, `%Y-%m-%d %H:%M:%S`, `%m/%d/%y %H:%M:%S`, `%H:%M:%S`. 
     - `b` - skip leading blanks during comparison
     - `u` - treat fields as *unique*. All fields, which are not unique are marked for deletion and can be deleted after sorting.**
     - `-` - sort by this field descending rather than ascending

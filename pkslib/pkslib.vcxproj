@@ -160,6 +160,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Drawing.cpp" />
     <ClCompile Include="LoadImage.cpp" />
+    <ClCompile Include="ParseTime.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

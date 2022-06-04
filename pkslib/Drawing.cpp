@@ -1,3 +1,19 @@
+/*
+ * Drawing.cpp
+ *
+ * PROJEKT: PKS-EDIT for Windows
+ *
+ * purpose: perform some GDI operations for nicer rendering.
+ *
+ * 										created:
+ * 										last modified:
+ *										author: Tom
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 #include "pch.h"
 #include <windows.h>
 #include <objidl.h>
