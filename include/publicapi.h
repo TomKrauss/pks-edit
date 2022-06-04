@@ -53,12 +53,14 @@ typedef enum {
 	// sort records rather than lines
 	SO_CLUSTERLINES = 0x2,
 	// allow for quoting separators using "...."
-	SO_SEPARATOR_QUOTING = 0x4,
+	SO_CSV_QUOTING = 0x4,
+	// allow for quoting separators using \..
+	SO_BACKSLASH_QUOTING = 0x8,
 	// Sort all lines. Do not use the selection criteria for filtering lines to sort but for 
 	// cluster identification
-	SO_NOSELECT = 0x8,
+	SO_NOSELECT = 0x10,
 	// honor field separators to split key fields
-	SO_TOKENIZE = 0x10
+	SO_TOKENIZE = 0x20
 } SORT_OPTION_FLAGS;
 
 /* Flags for align operations */

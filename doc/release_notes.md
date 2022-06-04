@@ -16,7 +16,8 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
 - Errors in macroc code can now be debugged in a simple debugger allowing to inspect the stack frame, global and local 
   variables of each function executed. The debugger supports to step, continue and abort the current macroC execution.
 - Sorting text is more easy to use now and supports guessing of field separators and a variety of new formats and options 
-  (e.g. sorting of floating numbers).
+  (e.g. sorting of floating numbers). When sorting by *key fields*, one may now define key fields using field seperators
+  with CSV quoting or with backslash quoting support.
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations

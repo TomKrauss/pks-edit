@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -521,7 +521,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",1,132,10,60,14
 END
 
-DLGSORT DIALOGEX 9, 51, 329, 132
+DLGSORT DIALOGEX 9, 51, 329, 145
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sort file contents"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -530,21 +530,22 @@ BEGIN
     COMBOBOX        IDD_FINDS2,4,22,178,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Ke&yfields (comma separated):",-1,4,42,153,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING2,4,54,178,12,ES_AUTOHSCROLL
-    GROUPBOX        "Optionen",-1,6,74,178,52,WS_GROUP
+    GROUPBOX        "Optionen",-1,6,74,178,68,WS_GROUP
     CONTROL         "Sort lines clustered by Selection Criteria",IDD_LOWOPT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,166,12
-    CONTROL         "&Quote Delimiters",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,169,12
-    CONTROL         "S&kip Multiple Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
+    CONTROL         "&CSV Quoting of Delimiters",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,99,169,12
+    CONTROL         "S&kip Multiple Delimiters",IDD_OPT4,"Button",BS_AUTOCHECKBOX,10,125,164,12
     GROUPBOX        "Options for Selection",-1,196,30,126,54,WS_GROUP
     CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,202,44,111,12
     CONTROL         "Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,202,56,84,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,202,68,84,12
     LTEXT           "R&ange:",-1,196,94,30,8
-    COMBOBOX        IDD_RNGE,268,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
+    COMBOBOX        IDD_RNGE,267,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
     LTEXT           "&Field Delimiters:",-1,196,112,66,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,268,110,54,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Cancel",2,230,6,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,278,6,44,14
+    CONTROL         "&Backslash Quoting of Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,112,169,12
 END
 
 DLGWORKMODE DIALOGEX 38, 28, 391, 192
@@ -997,7 +998,6 @@ BEGIN
 
     DLGSORT, DIALOG
     BEGIN
-        RIGHTMARGIN, 261
     END
 
     DLGWORKMODE, DIALOG
@@ -1423,7 +1423,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED
+    IDS_NO_EVALUATION_SUPPORTED 
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1431,9 +1431,9 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "medium"
     IDS_ICON_SIZE_BIG       "big"
     IDS_ICON_SIZE_LARGE     "large"
-    IDS_TT_SORT_FIELD_SEPARATOR
+    IDS_TT_SORT_FIELD_SEPARATOR 
                             "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
-    IDS_TT_SORT_FIELD_OPTIONS
+    IDS_TT_SORT_FIELD_OPTIONS 
                             "Enter the comparison options for sorting the individual fields / columns.\nUse the syntax {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+ to define one sort field (delimited by ,), where\nl is the line number (in clustered sorting),\nf is the field number and\nw is the width of a field\no is the offset for a field.\nt is the option for sorting a field:\n  d = sort numerically\n  D = sort as Date\n  i = sort strings case ignore\n  b = skip blanks when comparing\n  a = use keyword chars only for comparison\n  - = sort descending"
 END
 
@@ -1444,7 +1444,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION
+    IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"

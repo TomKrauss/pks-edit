@@ -9,7 +9,8 @@ can be selected in the dialog that opens.
   of a block of text up to the next line matching the selection criteria to be moved in the process of sorting in one piece.
 - Field Delimiter - specify one or more characters (you may use special syntax as in `\t` to name special characters) to be used to define key fields
   in the text. To sort a CSV format file for instance one would use ",;" as possible delimiters. To skip multiple separators (e.g. when a line contains fields
-  separated by a varying number of whitespaces), check the option `Skip Multiple Delimters`.
+  separated by a varying number of whitespaces), check the option `Skip Multiple Delimters`. To support CSV like quoting (using `"` characters to enclose
+  separators), check the corresponding option, to support backslash quoting of delimiters also check the corresponding option.
 - Key Fields - allow to define the details about comparing the lines. One uses the following syntax to define a *key field*: `{f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+`
   - `f` is followed by a number - the 0-based index of the field in the line
   - `l` is followed by a number - the 0-based index of a line in a block of lines to sort

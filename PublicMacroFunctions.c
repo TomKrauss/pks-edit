@@ -441,18 +441,32 @@ static int sort_guessSeparators(WINFO* wp, char* pszFieldSeparator, int* pFlags)
 	char szTable[128*10];
 	memset(szTable, 0, sizeof szTable);
 	char* pszRun = szText;
-	char* pszCandidates = ",;:| \t";
+	char* pszCandidates = ",;|#: \t";
+	int nQuotes = 0;
+	char cPrevious = 0;
 	while (*pszRun) {
 		char c = *pszRun++;
 		if (c == '\n') {
 			if (nLine++ > maxLines) {
 				break;
 			}
+			if (nQuotes && (nQuotes % 2) == 0) {
+				*pFlags |= SO_CSV_QUOTING;
+			}
+			cPrevious = 0;
+			nQuotes = 0;
 			continue;
+		} else if (c == '"') {
+			nQuotes++;
 		}
 		if (strchr(pszCandidates, c)) {
-			szTable[nLine * 128 + c]++;
+			if (cPrevious == '\\') {
+				*pFlags |= SO_BACKSLASH_QUOTING;
+			} else {
+				szTable[nLine * 128 + c]++;
+			}
 		}
+		cPrevious = c;
 	}
 	char* pszSep = pszFieldSeparator;
 	char* pszC = pszCandidates;
@@ -502,8 +516,9 @@ int EdSort(void)
 		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
 		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
 		IDD_OPT1,		SO_CLUSTERLINES,	&flags,
-		IDD_OPT2,		SO_SEPARATOR_QUOTING,& flags,
-		IDD_OPT3,		SO_SKIPSEPARATORS,		&flags,
+		IDD_OPT2,		SO_CSV_QUOTING,& flags,
+		IDD_OPT3,		SO_BACKSLASH_QUOTING,& flags,
+		IDD_OPT4,		SO_SKIPSEPARATORS,		&flags,
 		0
 	};
 	ITEMS	_i   = {

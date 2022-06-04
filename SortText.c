@@ -103,12 +103,12 @@ static char* _dateFormats[] = {
 	// Warning: do not use the short form %D as the length of the pattern matters
 	// we need to compare patterns by length to the input text length. If the later is shorter
 	// we must not try to parse using that format or we get an exception (shortcoming of std::get_time, which is used internally).
+	"%Y-%m-%d %H:%M:%S",
+	"%m/%d/%y %H:%M:%S",
 	"%m/%d/%y",
 	"%d.%m.%Y",
 	"%Y-%m-%d",
 	"%d. %B %y",
-	"%Y-%m-%d %H:%M:%S",
-	"%m/%d/%y %H:%M:%S",
 	"%H:%M:%S"
 };
 
@@ -118,20 +118,27 @@ static KEY* _currentKey;
  * sort_compareExtractKeyfield()
  * Extract the key fields to compare from the line.
  */
-static int sort_compareExtractKeyfield(unsigned char* d, unsigned char* s, int l, int nFlags)
+static int sort_compareExtractKeyfield(unsigned char* d, unsigned char* s, int l, int nFlags, char cQuoteChar)
 {
 	unsigned char* bufferStart = d, c;
 	int bKey = nFlags & K_SORTDICT;
+	int bBackslash = _sortflags & SO_BACKSLASH_QUOTING;
 	int bSkipSpace = nFlags & K_SKIPWHITE;
 
 	if (l > MAX_KEY_SIZE) l = MAX_KEY_SIZE;			/* may fail on large keys */
 	while (l > 0) {
 		c = *s++;
+		l--;
+		if ((bBackslash && c == '\\') || (c == cQuoteChar)) {
+			c = *s++;
+			if (--l <= 0) {
+				break;
+			}
+		}
 		if ((!bSkipSpace || string_isSpace(c))
 			|| (!bKey || isalnum(c))) {
 			*d++ = c;
 		}
-		l--;
 	}
 	*d = 0;
 	return (int)(d - bufferStart);
@@ -243,10 +250,12 @@ static int sort_compareDate(const char *s1, const char *s2) {
 /*--------------------------------------------------------------------------
  * sort_tokenize()
  */
-static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *fs_set, int skipseps)
-{	int  i,i1;
+static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *fs_set, int skipseps, char cQuote) {	
+	int  i,i1;
 	int  nColumns;
+	int  bInQuote = 0;
 	unsigned char c;
+	int bBackslash = _sortflags & SO_BACKSLASH_QUOTING;
 
 	vec->stl_source = s;
 	vec->stl_numberOfTokens= 0;
@@ -263,8 +272,18 @@ static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *
 		}
 		vec->stl_start[nColumns] = &s[i];
 		i1 = i;
-		while((c = s[i]) != 0 && !fs_set[c])
+		while ((c = s[i]) != 0 && (bInQuote || !fs_set[c])) {
+			if (c == cQuote) {
+				if (s[i + 1] == cQuote) {
+					i++;
+				} else {
+					bInQuote = !bInQuote;
+				}
+			} else if (bBackslash && c == '\\' && s[i + 1]) {
+				i++;
+			}
 			i++;
+		}
 		vec->stl_end[nColumns] 	= &s[i];
 		vec->stl_length[nColumns++]	= i-i1;
 		if (!c) break;
@@ -397,6 +416,7 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 
 	lp1 = rp1->lp;
 	lp2 = rp2->lp;
+	char cQuoteChar = (_sortflags & SO_CSV_QUOTING) ? '"' : 0;
 	for (i = 0; i < _keytab.kt_numberOfKeys; i++) {
 		kp = &_keytab.k[i];
 		BOOL bDescending = kp->k_flags & K_DESCENDING;
@@ -416,8 +436,8 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 	/* evtl. split the lines according to IFS */
 		if (_keytab.kt_tokenizeForComparison) {
 			if (i == 0 || kp[-1].k_clusterLineIndex != kp->k_clusterLineIndex) {
-				sort_tokenize(&v1, lp1->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS);
-				sort_tokenize(&v2, lp2->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS);
+				sort_tokenize(&v1, lp1->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
+				sort_tokenize(&v2, lp2->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
 			}
 		}
 		nFieldIndex = kp->k_fieldIndex;
@@ -472,9 +492,9 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 		}
 
 	/* skip 2 first key line of each rec */
-		l1 = sort_compareExtractKeyfield(_linebuf, s1, l1, kp->k_flags);
+		l1 = sort_compareExtractKeyfield(_linebuf, s1, l1, kp->k_flags, cQuoteChar);
 		s1 = _linebuf;
-		l2 = sort_compareExtractKeyfield(_linebuf + MAX_KEY_SIZE, s2, l2, kp->k_flags);
+		l2 = sort_compareExtractKeyfield(_linebuf + MAX_KEY_SIZE, s2, l2, kp->k_flags, cQuoteChar);
 		s2 = _linebuf + MAX_KEY_SIZE;
 		_currentKey = kp;
 		if ((ret = (*kp->k_compare)(s1,s2)) != 0)
