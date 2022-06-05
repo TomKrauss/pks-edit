@@ -688,8 +688,10 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	if (pw[0]) {
 		file_flushBuffer(fd, _cryptMarker->m_bytes, _cryptMarker->m_size, 0);
 	}
-	while (lp != fp->lastl) {		// don't save last line
-		if ((no = offset+lp->len) < LINEBUFSIZE) {
+	// don't save last line
+	while (lp != fp->lastl) {
+		// Make sure we are not overriding end of _linebuf, which has size LINEBUFSIZE
+		if ((no = offset+lp->len) < LINEBUFSIZE-2) {
 			memmove(&_linebuf[offset],lp->lbuf,lp->len);
 			offset = no;
 			if (LINE_HAS_LINE_END(lp)) {
