@@ -26,3 +26,4 @@ pksedit.his
 /packages.config
 /pkslib/x64
 /pks_sys/pkssession.json
+/examples/big_sorting_sample.txt

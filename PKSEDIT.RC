@@ -393,7 +393,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",1,132,10,60,14
 END
 
-DLGSORT DIALOGEX 9, 51, 299, 135
+DLGSORT DIALOGEX 9, 51, 281, 158
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sortieren von Text"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -402,20 +402,21 @@ BEGIN
     COMBOBOX        IDD_FINDS2,4,22,152,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Schl&üsselfelder (Komma getrennt):",-1,4,42,148,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING2,4,54,152,12,ES_AUTOHSCROLL
-    GROUPBOX        " Optionen",-1,6,74,149,52,WS_GROUP
+    GROUPBOX        " Optionen",-1,6,74,149,73,WS_GROUP
     CONTROL         "Selektierte &Abschnitte sortieren",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,86,130,12
-    CONTROL         "S&kippe Mehrfachtrenner",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,110,96,12
-    GROUPBOX        "Optionen für Selektion",-1,166,30,94,54,WS_GROUP
+    CONTROL         "S&kippe Mehrfachtrenner",IDD_OPT4,"Button",BS_AUTOCHECKBOX,10,128,96,12
+    GROUPBOX        "Optionen für Selektion",-1,166,30,108,54,WS_GROUP
     CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,172,44,84,12
     CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,172,56,84,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,172,68,84,12
     LTEXT           "B&ereich:",-1,166,94,30,8
-    COMBOBOX        IDD_RNGE,206,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
+    COMBOBOX        IDD_RNGE,212,92,62,43,CBS_DROPDOWNLIST | WS_TABSTOP
     LTEXT           "&Feldtrenner:",-1,166,112,40,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,206,110,54,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Abbruch",2,168,6,44,14,WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,216,6,44,14
-    CONTROL         "Quote von Trennern erlauben",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,98,138,12
+    EDITTEXT        IDD_STRING1,212,110,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Abbruch",2,183,6,44,14,WS_GROUP
+    DEFPUSHBUTTON   "&OK",1,231,6,44,14
+    CONTROL         "CSV-Quoten von Trennern",IDD_OPT2,"Button",BS_AUTOCHECKBOX,10,100,138,12
+    CONTROL         "Backslash-Quoten von Trennern",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,114,138,12
 END
 
 DLGWORKMODE DIALOGEX 38, 28, 327, 171
@@ -985,8 +986,7 @@ BEGIN
 
     DLGSORT, DIALOG
     BEGIN
-        RIGHTMARGIN, 219
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 155
     END
 
     DLGWORKMODE, DIALOG
@@ -1384,10 +1384,9 @@ BEGIN
     IDS_MSGMARKUNDEF        "Die Textmarke ist nicht definiert"
     IDS_MSGNOREPLACESTRING  "Keine Ersatz Zeichenkette definiert"
     IDS_MSGNOSEARCHSTRING   "Kein Suchmuster definiert"
-    IDS_MSGTOOMUCHFIELDS    "!Zu viele Sortierfelder"
-    IDS_MSGTOOMUCHSORTKEYS  "!Nur 8 Sortiertschlüssel erlaubt"
+    IDS_MSGTOOMANYFIELDS    "!Zu viele Sortierfelder"
+    IDS_MSGTOOMANYSORTKEYS  "!Nur 8 Sortiertschlüssel erlaubt"
     IDS_MSGINVALSORTOPT     "Ungültige Sortieroption"
-    IDS_MSGTOOMUCHRECORDS   "Zu viele Records für die Sortierung"
     IDS_MSGNOTRASH          "Der Papierkorb ist leer"
     IDS_MSGNOUNDO           "Undo ist nicht möglich"
     IDS_MSGNOCLIP           "Das Clipboard ist leer"
