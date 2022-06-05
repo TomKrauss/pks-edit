@@ -35,11 +35,6 @@
 #define	MAXKEYS			8
 #define	MAXDEPTH		6
 
-typedef struct dvec {
-	long n;
-	int	w;
-} DVEC[6];
-
 #define	K_UNIQ			0x1		// skip records whith this key uniq
 #define	K_SKIPWHITE		0x2		// Skip whitespace during comparison
 #define	K_SORTDICT		0x4		// Dictionary compare mode 
@@ -88,7 +83,6 @@ typedef struct tagSORT_TOKEN_LIST {
 
 static long		_nlines;
 static SORT_OPTION_FLAGS _sortflags;
-static RECORD*	_rectab;
 
 #define MAX_KEY_SIZE			 4096
 #define LN_MARKED_FOR_CLUSTERING 0x800			// lines were marked to be clustered in the sorting function.
@@ -267,7 +261,7 @@ static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *
 				i++;
 		}
 		if (nColumns >= MAX_SORT_TOKENS) {
-			error_showErrorById(IDS_MSGTOOMUCHFIELDS);
+			error_showErrorById(IDS_MSGTOOMANYFIELDS);
 			return 0;
 		}
 		vec->stl_start[nColumns] = &s[i];
@@ -350,7 +344,7 @@ static void sort_initializeKeyList(char *pszKeySpec) {
 			case ',':
 				i++;
 				if (i >= MAXKEYS) {
-					error_showErrorById(IDS_MSGTOOMUCHSORTKEYS);
+					error_showErrorById(IDS_MSGTOOMANYSORTKEYS);
 					goto done;
 				}
 				kp = 0;
@@ -403,6 +397,20 @@ static LINE *sort_getLineFromRecord(const RECORD *rp, int num)
 }
 
 /*--------------------------------------------------------------------------
+ * sort_abortProgress()
+ */
+static int _cancelled;
+static int sort_abortProgress(void)
+{
+	static int _abort;
+	if ((_abort++ & 0x3F) == 0 && progress_cancelMonitor(TRUE)) {
+		_cancelled = 1;
+		return 1;
+	}
+	return 0;
+}
+
+/*--------------------------------------------------------------------------
  * sort_compareRecords()
  */
 static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {	
@@ -414,6 +422,9 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 	SORT_TOKEN_LIST 	v1,v2;
 	unsigned char *s1,*s2;
 
+	if (_cancelled || sort_abortProgress()) {
+		return 0;
+	}
 	lp1 = rp1->lp;
 	lp2 = rp2->lp;
 	char cQuoteChar = (_sortflags & SO_CSV_QUOTING) ? '"' : 0;
@@ -523,19 +534,22 @@ static int sort_quickSortList(RECORD* pRecords, long n) {
  */
 static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast, 
 			   RE_PATTERN *pPattern, int sortflags,
-			   RECORD *rectab)
+			   RECORD **pRectab)
 {	int 	nrec,nl;
 	LINE *lpnext;
 	RE_MATCH match;
- 
+	RECORD* rectab;
+	int nCapacity = 5000;
+
+	rectab = malloc(nCapacity * sizeof * rectab);
+	if (!rectab) {
+		return 0;
+	}
+	*pRectab = rectab;
 	memset(&match, 0, sizeof match);
 	for (nrec = 0;;) {
 		if ((sortflags & SO_NOSELECT) || 
 			regex_match(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
-			if (nrec >= MAXREC) {
-				error_showErrorById(IDS_MSGTOOMUCHRECORDS);
-				return 0;
-			}
 			rectab[nrec].lp = lpfirst;
 			nl = 1;
 			if (sortflags & SO_CLUSTERLINES) {
@@ -552,11 +566,21 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 			ln_markModified(lpfirst);
 			rectab[nrec].flags = lpfirst->lflg;
 			rectab[nrec++].nl = nl;
+			if (nrec >= nCapacity) {
+				nCapacity = 2 * nCapacity;
+				*pRectab = realloc(rectab, nCapacity * sizeof * rectab);
+				if (!*pRectab) {
+					free(rectab);
+					return 0;
+				}
+				rectab = *pRectab;
+			}
 		}
 		if (lpfirst == lplast)
 			return nrec;
 		lpfirst = lpfirst->next;
 	}
+	return 1;
 }
 
 /*--------------------------------------------------------------------------
@@ -663,6 +687,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 	MARK		*mps,*mpe;
 	RE_PATTERN* pattern;
 	WINFO* wp = WIPOI(fp);
+	RECORD* rectab;
 
 	if (!sel[0]) {
 		sortflags |= SO_NOSELECT;
@@ -672,7 +697,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 			return 0;
 		}
 	}
-
+	_cancelled = 0;
 	undo_startModification(fp);
 	if (scope == RNG_BLOCK) {
 		// donot include empty trailing lines in selection
@@ -689,21 +714,17 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 	sort_initializeFieldSeparators(fs_set, fs);
 	_keytab.kt_fieldSeparators = fs_set;
 	_sortflags = sortflags;
-
 	l1 = wp->caret.ln;
-	if ((_rectab = malloc((unsigned )(MAXREC*sizeof(RECORD)))) == 0) {
-		return 0;
-	}
 
 	sort_saveForUndo(fp, lpfirst, lplast);
-	if ((n = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,_rectab)) != 0) {
+	if ((n = sort_createRecordsFromLines(lpfirst,lplast,pattern,_sortflags,&rectab)) != 0) {
 		rp.lpfirst = lpfirst->prev;
 		rp.lplast = lplast ->next;
 		rp.nrec = n;
 		progress_startMonitor(IDS_ABRTSORT, 1000);
-		if (sort_quickSortList(_rectab,n)) {
+		if (sort_quickSortList(rectab,n)) {
 			caret_placeCursorInCurrentFile(wp,0L,0L);
-			ln_order(fp,_rectab,&rp);
+			ln_order(fp,rectab,&rp);
 		}
 		progress_closeMonitor(0);
 		render_repaintAllForFile(fp);
@@ -711,8 +732,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 		ret = 1;
 	}
 
-	free(_rectab);
-	_rectab = 0;
+	free(rectab);
 
 	return ret;
 }

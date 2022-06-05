@@ -1,3 +1,6 @@
+
+This file contains some sample data plus description to demonstrate the sorting facilities of PKS-Edit.
+
 The following table can be sorted by last column as number descending using a key field definition of "f-3d".
 It can be sorted by 2nd column (sign) using a key field definition of "f2"
 
@@ -29,11 +32,30 @@ Everything OK|12:12:12
 Out of memory|07:00:02
 Copying failed|14:14:00
 
-This is an example of a log file format using backslash quotes. Supported as an other option.
+This is an example of a log file format using backslash quotes. Supported also per option. To sort by timestamp (last field of line), use "f3D",
+to sort by error level use (ignore case) "f0i" or for this trivial case simply "i".
 
 WARNING#Service Price Calculation#Missing price information for article named \#hashtag subscriber#2022-06-06 12:01:12
 INFO#Service Purchase#20 Scans per second#2022-06-06 12:02:25
 ERROR#Module Persistence#Slow SQL performed#2022-06-06 12:00:00
+warning#Module UI#Undefined resource key msgOK#2022-06-06 12:22:00
 
 
+This is a sample for data, which can be "clustered" during sorting. To sort the data, set the selection
+criteria to "# Address" and check the option "Sort Lines Clustered by Selection Criteria".
+
+You may use the following pattern to sort addresses by city: f0l1. 
+
+# Address
+Berlin
+Kudamm 22
+Gabi Meyer
+# Address
+Munich
+Am Stachus 44
+Joseph Huber
+# Address
+Hamburg
+Reeperbahn 88
+Freddy Quinn
 

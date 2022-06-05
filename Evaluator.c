@@ -100,7 +100,7 @@ long long evaluator_evaluateCurrentSelection(WINFO* wp) {
 	} else {
 		size_t nMaxSize = MAX_SELECTION_SIZE_TO_EXECUTE;
 		pszText = calloc(nMaxSize, 1);
-		bSuccess = bl_getSelectedText(wp, pszText, nMaxSize);
+		bSuccess = bl_getSelectedText(wp, pszText, 0,nMaxSize);
 	}
 	if (bSuccess) {
 		pEvaluator->ev_function(pszText, EV_EXECUTE);

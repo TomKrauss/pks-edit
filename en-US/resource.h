@@ -82,11 +82,10 @@
 #define IDS_MSGNOREPLACESTRING          103
 #define IDS_MSGNOSEARCHSTRING           104
 #define IDD_LOWOPT3                     104
-#define IDS_MSGTOOMUCHFIELDS            105
-#define IDS_MSGTOOMUCHSORTKEYS          106
+#define IDS_MSGTOOMANYFIELDS            105
+#define IDS_MSGTOOMANYSORTKEYS          106
 #define IDM_HEX_DISPLAY                 106
 #define IDS_MSGINVALSORTOPT             107
-#define IDS_MSGTOOMUCHRECORDS           108
 #define IDM_LINE_SELECTION              109
 #define IDS_MSGNOTRASH                  109
 #define IDM_COLUMN_SELECTION            110
@@ -213,7 +212,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        205

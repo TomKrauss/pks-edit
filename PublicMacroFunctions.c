@@ -396,7 +396,7 @@ int EdAlignText(void)
 		0
 	};
 
-	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGALIGN, &_fp, _d, _tt)) {
 		return 0;
 	}
@@ -432,11 +432,11 @@ int EdFormatText(void)
  */
 static int sort_guessSeparators(WINFO* wp, char* pszFieldSeparator, int* pFlags) {
 	char szText[512];
+	int maxLines = 10;
 	*pFlags = 0;
-	if (!bl_getSelectedText(wp, szText, sizeof szText)) {
+	if (!bl_getSelectedText(wp, szText, maxLines, sizeof szText)) {
 		return 0;
 	}
-	int maxLines = 10;
 	int nLine = 0;
 	char szTable[128*10];
 	memset(szTable, 0, sizeof szTable);
@@ -1480,7 +1480,7 @@ int EdFind(void)
 		_dir = 0;
 	}
 	WINFO* wp = ww_getCurrentEditorWindow();
-	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
 		return 0;
 	}
@@ -1552,7 +1552,7 @@ int EdFindInFileList(void)
 	if (!_currentSearchAndReplaceParams.pathlist[0]) {
 		_getcwd(_currentSearchAndReplaceParams.pathlist, sizeof _currentSearchAndReplaceParams.pathlist);
 	}
-	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, _d, _tt, find_inFilesDialogProc);
 	if (ret == 0) {
 		return 0;
@@ -1713,7 +1713,7 @@ int EdCommandExecute(void)
 		0
 	};
 
-	bl_getSelectedText(ww_getCurrentEditorWindow(), cmd, sizeof cmd);
+	bl_getSelectedText(ww_getCurrentEditorWindow(), cmd, 1, sizeof cmd);
 	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
 		return 0;
 	}

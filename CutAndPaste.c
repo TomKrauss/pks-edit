@@ -252,7 +252,7 @@ EXPORT int EdBlockWrite(WINFO* wp){
 /*---------------------------------*/
 /* bl_cutOrCopyBlock()					*/
 /*---------------------------------*/
-static int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
+int bl_cutOrCopyBlock(WINFO*wp, MARK *ms, MARK *me, int flg, PASTE *pp) {
 	PASTE 	_p;
 	PASTE_LIST_TYPE tType = PLT_CLIPBOARD;
 	char*	 pszId;

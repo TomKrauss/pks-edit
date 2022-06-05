@@ -781,7 +781,7 @@ int xref_navigateCrossReference(char* s) {
  */
 int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
 	*pszText = 0;
-	bl_getSelectedText(wp, pszText, nMaxChars);
+	bl_getSelectedText(wp, pszText, 1, nMaxChars);
 	if (!pszText[0]) {
 		return xref_findIdentifierCloseToCaret(wp, &wp->caret, pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
 	}

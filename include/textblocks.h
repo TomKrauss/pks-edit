@@ -60,11 +60,11 @@ extern int bl_writeToFile(WINFO* wp, char* fn);
  *----------------------------*/
 extern int bl_cutOrCopy(WINFO* wp, int flg, PASTE* pp);
 
-/*--------------------------------------------------------------------------
- * EdBufferFree()
- * PKS Edit command which releases all block buffers
+/*
+ * API to copy or cut selected text blocks passing the start and end marketer.
+ * The flag is a combination of CUT_QUERYID, CUT_USEPP, CUT_APPND.
  */
-extern int EdBufferFree(void);
+extern int bl_cutOrCopyBlock(WINFO* wp, MARK* ms, MARK* me, int flg, PASTE* pp);
 
 /*--------------------------------------------------------------------------
  * bl_getTextForClipboardNamed()
@@ -206,9 +206,10 @@ extern 	PASTE* bl_addrbyid(char* pszId, int insert, PASTE_LIST_TYPE tType);
 
 /*
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum
- * of nCapacity characters to return.
+ * of nCapacity characters to return. One can specify a maximum number of lines being put on
+ * the clipboard if not the whole selected text is of interest or pass 0 here to get all.
  */
-extern int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity);
+extern int bl_getSelectedText(WINFO* wp, char* pszBuf, int nMaxLines, size_t nCapacity);
 
 	/*--------------------------------------------------------------------------
  * bl_append()

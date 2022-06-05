@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1342,10 +1342,9 @@ BEGIN
     IDS_MSGMARKUNDEF        "This marker is not defined"
     IDS_MSGNOREPLACESTRING  "No replacement pattern defined"
     IDS_MSGNOSEARCHSTRING   "No search pattern defined"
-    IDS_MSGTOOMUCHFIELDS    "!Too many sort fields defined"
-    IDS_MSGTOOMUCHSORTKEYS  "!A maximum of 8 sorting keys allowed"
+    IDS_MSGTOOMANYFIELDS    "!Too many sort fields defined"
+    IDS_MSGTOOMANYSORTKEYS  "!A maximum of 8 sorting keys allowed"
     IDS_MSGINVALSORTOPT     "Invalid sort option"
-    IDS_MSGTOOMUCHRECORDS   "Too many sorting records"
     IDS_MSGNOTRASH          "The trashcan is empty"
     IDS_MSGNOUNDO           "Undo not available"
     IDS_MSGNOCLIP           "The clipboard is empty"
@@ -1423,7 +1422,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1431,9 +1430,9 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "medium"
     IDS_ICON_SIZE_BIG       "big"
     IDS_ICON_SIZE_LARGE     "large"
-    IDS_TT_SORT_FIELD_SEPARATOR 
+    IDS_TT_SORT_FIELD_SEPARATOR
                             "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
-    IDS_TT_SORT_FIELD_OPTIONS 
+    IDS_TT_SORT_FIELD_OPTIONS
                             "Enter the comparison options for sorting the individual fields / columns.\nUse the syntax {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+ to define one sort field (delimited by ,), where\nl is the line number (in clustered sorting),\nf is the field number and\nw is the width of a field\no is the offset for a field.\nt is the option for sorting a field:\n  d = sort numerically\n  D = sort as Date\n  i = sort strings case ignore\n  b = skip blanks when comparing\n  a = use keyword chars only for comparison\n  - = sort descending"
 END
 
@@ -1444,7 +1443,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text are preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"

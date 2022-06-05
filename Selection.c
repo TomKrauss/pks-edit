@@ -198,9 +198,10 @@ unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned
 
 /*
  * Tries to return the text from the current selection in the passed buffer, assuming a maximum
- * of nCapacity characters to return.
+ * of nCapacity characters to return. One can specify a maximum number of lines being put on
+ * the clipboard if not the whole selected text is of interest or pass 0 here to get all.
  */
-int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity) {
+int bl_getSelectedText(WINFO* wp, char* pszBuf, int nMaxLines, size_t nCapacity) {
 	PASTE* pp;
 	PASTE  pbuf;
 
@@ -208,7 +209,22 @@ int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity) {
 	if (!ww_hasSelection(wp)) {
 		return 0;
 	}
-	if (bl_cutOrCopy(wp, 0, &pbuf)) {
+	MARK mstart = *wp->blstart;
+	MARK mend = *wp->blend;
+	if (nMaxLines > 0) {
+		LINE* lp = mstart.m_linePointer;
+		int n = nMaxLines;
+		while (lp != mend.m_linePointer && lp) {
+			if (--n <= 0) {
+				mend.m_linePointer = lp;
+				mend.m_line = mstart.m_line + nMaxLines - 1;
+				break;
+			}
+			lp = lp->next;
+		}
+	}
+	int ret = bl_cutOrCopyBlock(wp, &mstart, &mend, 0, &pbuf);
+	if (ret) {
 		pp = bl_addrbyid(0, 0, PLT_CLIPBOARD);
 		bl_convertPasteBufferToText(pszBuf, &pszBuf[nCapacity - 2], pp);
 		return 1;
@@ -224,7 +240,7 @@ int bl_getSelectedText(WINFO* wp, char* pszBuf, size_t nCapacity) {
 char* macro_getSelectedText(WINFO* wp) {
 	static char	buf[256];
 
-	bl_getSelectedText(wp, buf, sizeof buf);
+	bl_getSelectedText(wp, buf, 0, sizeof buf);
 	return buf;
 }
 
