@@ -8,7 +8,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- * 
+ *
  * author: Tom
  * created: 16.02.2022
  */
@@ -251,7 +251,7 @@ extern PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext);
 extern void interpreter_raiseError(const char* pFormat, ...);
 
 /*
- * Mini memory management function of PKS MacroC, which temporarily allocates a string to
+ * Mini memory management function of PKSMacroC, which temporarily allocates a string to
  * be released later.
  */
 extern PKS_VALUE interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource);
@@ -271,9 +271,9 @@ extern int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE
 
 typedef enum {
 	// Flow control
-	C_STOP  = 0,    			// eof sequence 
-	C_0FUNC = 0x1,  			// Function # (char) 
-	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param 
+	C_STOP  = 0,    			// eof sequence
+	C_0FUNC = 0x1,  			// Function # (char)
+	C_1FUNC = 0x2,  			// Function # (char) + 1 int Param
 	C_MACRO = 0x3,  			// macro "macroname"
 	C_MACRO_REF = 0x4,  		// variable reference to a macro to invoke / function pointer
 	C_MACRO_REF_LOCAL = 0x5,  	// local variable reference to a macro to invoke / function pointer
@@ -289,20 +289,20 @@ typedef enum {
 	C_SPREAD = 0xC,				// Spread operator for spreading an array into a sequence of values
 
 	// Push objects onto the stack
-	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows 
+	C_PUSH_CHARACTER_LITERAL = 0x10,		// Push character literal. 1 Ascii character follows
 	C_PUSH_SMALL_INT_LITERAL = 0x11,		// Push an integer literal in a compacted way (0-255).
-	C_PUSH_STRING_LITERAL = 0x12, 			// Push string literal, 1 string Asciistring\0 follows {pad} 
-	C_PUSH_INTEGER_LITERAL = 0x13,			// Push Integer literal, pad, 1 int Parameter follows 
-	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows 
+	C_PUSH_STRING_LITERAL = 0x12, 			// Push string literal, 1 string Asciistring\0 follows {pad}
+	C_PUSH_INTEGER_LITERAL = 0x13,			// Push Integer literal, pad, 1 int Parameter follows
+	C_PUSH_LONG_LITERAL  = 0x14, 			// Push long literal, pad, 1 long Parameter follows
 	C_PUSH_FLOAT_LITERAL = 0x15, 			// Push floating point literal
-	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows 
+	C_PUSH_BOOLEAN_LITERAL   = 0x16,		// Push boolean literal 1 Ascii character follows
 	C_PUSH_VARIABLE = 0x18,					// push named var (global var) onto stack
 	C_PUSH_LOCAL_VARIABLE = 0x19,			// push local var onto stack
 	C_FORM_START = 0x1A, 					// formular with parameters ...
 	C_PUSH_NEW_INSTANCE = 0x1C,				// create a new instance of an object.
 
 	// Define parameters and variables
-	C_DEFINE_PARAMETER = 0x20,				// create symbol with type and value 
+	C_DEFINE_PARAMETER = 0x20,				// create symbol with type and value
 	C_DEFINE_LOCAL_VARIABLE = 0x21,			// define a local variable with type and value. Local variables are maintained by index on the heap
 											// rather than in the symbol table
 	C_DEFINE_VARIABLE = 0x22,				// define a (global) variable with type and value, maintained and accessed by name from the symbol table.
@@ -325,11 +325,11 @@ typedef enum {
  * of runnning a MacroC macro.
  */
 typedef enum {
-	// form should be opened 
+	// form should be opened
 	FORM_SHOW = 0x40,
 	// form " and be prefilled
 	FORM_INIT = 0x1,
-	// force redraw 
+	// force redraw
 	FORM_REDRAW= 0x2
 } FORM_PARAMETER_OPTION;
 
@@ -354,7 +354,7 @@ typedef struct tagCOM_1FUNC {
 
 typedef struct tagCOM_0FUNC {
 	unsigned char typ;				// C_0FUNC all params are located on the stack
-	unsigned char funcnum;			// index in function table 
+	unsigned char funcnum;			// index in function table
 	int			  func_nargs;		// Number of arguments actually passed.
 } COM_0FUNC;
 
@@ -362,7 +362,7 @@ typedef struct tagCOM_MAC {
 	unsigned char typ;				// C_MACRO, C_MACRO_REF
 	unsigned char heapIndex;		// for C_MACRO_REF, if referring to local variable
 	int			  func_args;		// Number of arguments actually passed.
-	unsigned char name[1];			// 0-term. string padded to even # 
+	unsigned char name[1];			// 0-term. string padded to even #
 } COM_MAC;
 
 /*
@@ -391,7 +391,7 @@ typedef struct tagCOM_DEFINE_SYMBOL {
 typedef enum {
 	BRA_ALWAYS = 0,					// Branch always independent of a condition / the value on the stack.
 	BRA_IF_FALSE = 1,				// Take the top value of the stack, If that is false -> perform a branch
-	BRA_CASE = 2					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they 
+	BRA_CASE = 2					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they
 									// match, perform a branch
 } BRANCH_TYPE;
 
@@ -402,8 +402,8 @@ typedef struct tagCOM_GOTO {
 } COM_GOTO;
 
 typedef struct tagCOM_BINOP {
-	unsigned char typ;				// C_BINOP 
-	unsigned char op;				// see above BIN_ADD etc... 
+	unsigned char typ;				// C_BINOP
+	unsigned char op;				// see above BIN_ADD etc...
 	PKS_VALUE_TYPE targetType;		// for cast operators this is the target type.
 } COM_BINOP;
 
@@ -443,7 +443,7 @@ typedef struct tagCOM_STRING1 {
 } COM_STRING1;
 
 typedef struct tagCOM_FORM {
-	unsigned char	typ;			// CMD_FORMSTART 
+	unsigned char	typ;			// CMD_FORMSTART
 	unsigned char	options;		// FORM_SHOW
 	int				nfields;		// # of fields in formular
 } COM_FORM;
@@ -462,7 +462,7 @@ typedef union c_seq {
 } COM_SEQ;
 
 /*
- * Describes a bytecode buffer for being manipulated or read. 
+ * Describes a bytecode buffer for being manipulated or read.
  */
 typedef struct BYTECODE_BUFFER {
 	unsigned char* bb_start;
@@ -473,7 +473,7 @@ typedef struct BYTECODE_BUFFER {
 typedef struct tagMACRO_PARAM MACRO_PARAM;
 
 typedef struct tagCOMPILER_INPUT_STREAM {
-	void* cis_pointer;												// parameter for the stream implementation. Maybe for instance of type FILE* 
+	void* cis_pointer;												// parameter for the stream implementation. Maybe for instance of type FILE*
 																	// or point to some other structure necessary to handle the input.
 	int (*cis_next)(struct tagCOMPILER_INPUT_STREAM* pStream);		// Read one character from the input stream
 	void (*cis_close)(struct tagCOMPILER_INPUT_STREAM* pStream);	// Close the input stream
@@ -482,17 +482,17 @@ typedef struct tagCOMPILER_INPUT_STREAM {
 typedef struct tagCOMPILER_CONFIGURATION {
 	COMPILER_INPUT_STREAM* cb_stream;
 	int (*cb_insertNewMacro)(MACRO_PARAM *pParam);
-	void  (*cb_showStatus)(char* s, ...); 
+	void  (*cb_showStatus)(char* s, ...);
 	int  cb_numberOfFilesCompiled;									// Book keeping of the number of files compiled.
 	int  cb_numberOfErrors;											// Book keeping of the total number of errors during the compilation
 	int  cb_numberOfWarnings;										// Book keeping of the total number of warnings during the compilation
-	BOOL cb_topLevelFile;											// set to true for "top-level" files to compile, must be false for 
+	BOOL cb_topLevelFile;											// set to true for "top-level" files to compile, must be false for
 																	// files compiled as prerequisites for other files.
 	const char* cb_source;											// The name of the source file
 	const char* cb_errorFile;										// The name of the file, where the errors and warnings are recorded.
 	void* cb_dependencies;											// Dependencies / required files also to load detected during analysis
 	int   cb_numberOfDependencies;									// Used as a marked to find out, whether additional dependencies must be loaded first.
-	int   cb_postponed;												// Set to TRUE, if compilation was postponed as required files needed to be compiled first. 
+	int   cb_postponed;												// Set to TRUE, if compilation was postponed as required files needed to be compiled first.
 } COMPILER_CONFIGURATION;
 
 extern COMPILER_CONFIGURATION* _compilerConfiguration;

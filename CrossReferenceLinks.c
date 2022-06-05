@@ -6,8 +6,8 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
- * 
- * author: Tom 
+ *
+ * author: Tom
  * created: 28. Dec. 1990
  */
 
@@ -66,7 +66,7 @@ typedef struct tagTAG_REFERENCE {
 } TAG_REFERENCE;
 
 /*
- * Describes a xross-reference navigation request. 
+ * Describes a xross-reference navigation request.
  */
 typedef struct tagTAG {
 	char *tagname;						// The name of the tag (method, type, ...) itself.
@@ -91,9 +91,9 @@ static TAG_TABLE _allTags;
 
 extern FTABLE 	*ft_getCurrentErrorDocument();
 
-static NAVIGATION_PATTERN _pksEditSearchlistFormat = { 
+static NAVIGATION_PATTERN _pksEditSearchlistFormat = {
 0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	1,	2,	3 };
-static NAVIGATION_PATTERN _universalCTagsFileFormat =  { 
+static NAVIGATION_PATTERN _universalCTagsFileFormat =  {
 0, "", "^([^\t]+)\t([^\t]+)\t(.*);\"\t(.*)", 2, 3, 3, 1, 4 };
 static NAVIGATION_PATTERN *_exprerror = &_pksEditSearchlistFormat;
 static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
@@ -135,7 +135,7 @@ static NAVIGATION_PATTERN* xref_getNavigationPatternFor(const char* pszCompiler)
 }
 
 /*
- * Free all memory occupied by the cross reference lists. 
+ * Free all memory occupied by the cross reference lists.
  */
 void xref_destroyAllCrossReferenceLists() {
 	ll_destroy((LINKED_LIST**)&_compilerOutputNavigationPatterns, xref_destroyCmpTag);
@@ -215,7 +215,7 @@ static int xref_readTagFile(char* fn, FTABLE* fp) {
 /*---------------------------------*/
 /* xref_loadTagFile()				*/
 /*---------------------------------*/
-static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {	
+static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 	char   *fn = NULL;
 	char   dirname[512];
 
@@ -232,7 +232,7 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 				break;
 			}
 			string_splitFilename(dirname, dirname, NULL);
-		} 
+		}
 	}
 	if (fn == NULL && (fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
 		return 0;
@@ -289,7 +289,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	char* pszFile = string_abbreviateFileName(tp->filename);
 	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pTag->tagname, (int)strlen(pTag->tagname));
 	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
-	
+
 	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
 	DrawIconEx(hdc,
 		rcp->left + nIconWidth / 2,
@@ -299,7 +299,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	if (!pszComment) {
 		pszComment = tp->searchCommand;
 	}
-	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME + TAGLIST_COL_WIDTH_FILE, 
+	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME + TAGLIST_COL_WIDTH_FILE,
 		rcp->top + hDelta, pszComment, (int)strlen(pszComment));
 	DestroyIcon(hIcon);
 }
@@ -378,7 +378,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
  * Read the current CTAGS file into our internal lookup index for fast access.
  * We try to locate the tags file relative to the source file passed with sourceFilename,
  * if that is non NULL.
- * 
+ *
  * TODO: try to rebuild tag file index if required.
  */
 static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
@@ -654,7 +654,7 @@ static int xref_matchIdentifier(unsigned char c) {
 char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions) {
 
-	return xref_findExpressionCloseToCaret(wp, pCaret, pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd, 
+	return xref_findExpressionCloseToCaret(wp, pCaret, pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd,
 		xref_matchIdentifier, fiOptions);
 }
 
@@ -688,7 +688,7 @@ int xref_openFile(char *name, long line, const char* pszHint) {
 }
 
 /*
- * Navigate to a hyperlink. 
+ * Navigate to a hyperlink.
  */
 static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
 	char buf[512];
@@ -710,7 +710,7 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
  * Navigate to the cross reference word given as an argument - no
  * selection of multiple matches yet.
  * If bNavigateWithoutDialogSelection is TRUE, potential single matches
- * are navigated right away. Otherwise a picker for the matches is 
+ * are navigated right away. Otherwise a picker for the matches is
  * always presented to the user.
  *---------------------------------*/
 static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForceDialog) {
@@ -840,7 +840,7 @@ RE_PATTERN* xref_compileSearchListPattern() {
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-void xref_openSearchListResultFromLine(LINE *lp) { 	
+void xref_openSearchListResultFromLine(LINE *lp) {
 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(xref_getSearchListFormat());
@@ -887,7 +887,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 }
 
 /*
- * Highlight a match in a file opened as a result of a navigation. 
+ * Highlight a match in a file opened as a result of a navigation.
  */
 static xref_highlightMatch(long ln, int col, int len) {
 	WINFO* wpFound = ww_getCurrentEditorWindow();
@@ -988,13 +988,13 @@ int xref_navigateSearchErrorList(int dir) {
 		}
 		return 0;
 	}
-	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS : 
+	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS :
 					 IDS_MSGSTRINGNOTFOUND);
 	return 0;
 }
 
 /*
- * Initialize a searchlist file. 
+ * Initialize a searchlist file.
  */
 void xref_initSearchList(FTABLE* fp) {
 	fp->flags |= F_WATCH_LOGFILE | F_TRANSIENT;
@@ -1034,7 +1034,7 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {
 				EdFileAbandon(WIPOI(fp));
-				// TODO: make this configurable - currently only used by PKS MacroC compiler.
+				// TODO: make this configurable - currently only used by PKSMacroC compiler.
 				fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
 			}
 			return xref_navigateSearchErrorList(LIST_START);
@@ -1076,7 +1076,7 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 			char* pszCursor = &lp->lbuf[wp->caret.col];
 			char* pszEnd = &lp->lbuf[lp->len];
 			while (regex_match(&pattern, pszStart, pszEnd, &match)) {
-				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor && 
+				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor &&
 						regex_getCapturingGroup(&match, pPattern->filenameCapture - 1, szFileBuffer, (int)nFileBufferSize) == SUCCESS) {
 					pResult->ni_displayMode = -1;
 					pResult->ni_reference = szFileBuffer;

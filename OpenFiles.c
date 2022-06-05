@@ -127,6 +127,7 @@ static int ft_appendFileChanges(WINFO* wp) {
 		ln_removeFlag(lpPrevious, fp->lastl, LNMODIFIED);
 	}
 	ln_listfree(ftAppend.firstl);
+	free(ftAppend.documentDescriptor);
 	ft_setFlags(fp, oldFlags);
 	render_repaintAllForFile(fp);
 	file_closeFile(&fd);

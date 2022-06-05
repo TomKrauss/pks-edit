@@ -163,7 +163,6 @@ int ln_pasteLines(WINFO* wp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, 
 			if ((lpd = ln_modify(fp, lpnew, lpnew->len, lpnew->len)) == (LINE*)0) {
 				return 0;
 			}
-			free(lpDelete);
 		}
 		if ((lpd = ln_pasteLine(wp, lpd, lps, col, bExpandTabs)) == (LINE*)0) {
 			return 0;

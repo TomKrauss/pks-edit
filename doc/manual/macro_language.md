@@ -42,7 +42,7 @@ result in a message box:
 ```
 /*
  * Calculate the factorial of a number input into a message box.
- * Note: PKSMakroC - PKS MacroC Integers are 64 bit big, this macro
+ * Note: PKSMakroC - PKSMacroC Integers are 64 bit big, this macro
  * will cause overflows for fac(>16) !
  */
 void calculateFactorial() {

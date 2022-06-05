@@ -420,7 +420,7 @@ int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue
 }
 
 /*
- * Mini memory management function of PKS MacroC, which temporarily allocates a string to
+ * Mini memory management function of PKSMacroC, which temporarily allocates a string to
  * be released later.
  */
 PKS_VALUE interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource) {
