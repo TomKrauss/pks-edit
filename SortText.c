@@ -522,10 +522,12 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 /*--------------------------------------------------------------------------
  * sort_quickSortList()
  * sort the "list of lines" from the file.
+ * If sorting was aborted (via progress bar), return 0 to not sort the file 
+ * contents.
  */
 static int sort_quickSortList(RECORD* pRecords, long n) {
 	qsort(pRecords, n, sizeof(RECORD), sort_compareRecords);
-	return 1;
+	return !_cancelled;
 }
 
 /*--------------------------------------------------------------------------
