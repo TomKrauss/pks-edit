@@ -51,11 +51,6 @@ extern void		tb_updateImageList(wchar_t* tbIcons, int nCount);
 static const char* _applicationName = "PKS EDIT";
 
 /*------------------------------------------------------------
- * EdCloseAll()
- */
-extern int EdCloseAll();
-
-/*------------------------------------------------------------
  * FinalizePksEdit()
  *
  * Invoked, when PKS Edit exits to perform final tasks.
@@ -1644,6 +1639,32 @@ static int mainframe_countCompanions() {
 	return mainFrameCount;
 }
 
+/*------------------------------------------------------------
+ * ww_closeChildWindow()
+ */
+static int ww_closeChildWindow(HWND hwndChild, LONG someFlags)
+{
+	LRESULT ret;
+
+	if (!hwndChild || !IsWindow(hwndChild))
+		return 0;
+	if (someFlags) {
+		WINFO* wp = ww_getWinfoForHwnd(hwndChild);
+		if ((someFlags & CWF_EXCLUDE_CURRENT) && (wp == ww_getCurrentEditorWindow())) {
+			return 1;
+		}
+		if (someFlags & CWF_EXCLUDE_PINNED && wp && ww_isPinned(wp)) {
+			return 1;
+		}
+	}
+	if ((ret = SendMessage(hwndChild, WM_QUERYENDSESSION, 0, 0L)) == 1) {
+		SendMessage(hwndChild, WM_CLOSE, 0, 0);
+		return 1;
+	}
+
+	return (ret) ? 1 : 0;
+}
+
 static void mainframe_updateTitle() {
 	static int lastCount;
 	char szTitle[120];
@@ -1933,7 +1954,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_CLOSE:
 		FinalizePksEdit();
-		EdCloseAll();
+		mainframe_closeChildWindows(CWF_ALL);
 		if (ww_getNumberOfOpenWindows()) {
 			return 0;
 		}
@@ -2068,7 +2089,7 @@ void mainframe_windowTitleChanged() {
  * passing an lParam. If the called function returns 0, the enumeration
  * stops.
  */
-int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam) {
+static int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(HWND hwnd, LONG lParam), LONG lParam) {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	DOCKING_SLOT* pNext;
 	int ret = 1;
@@ -2080,8 +2101,10 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
 			}
 			HWND hwndCurrent = pSlot->ds_hwnd;
 			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwndCurrent, GWLP_TAB_CONTROL);
-			while (arraylist_size(pControl->tc_pages) > 0) {
-				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, 0);
+			ARRAY_LIST* pCopy = arraylist_clone(pControl->tc_pages);
+			size_t nSize = arraylist_size(pCopy);
+			for (int i = 0; i < nSize; i++) {
+				TAB_PAGE* pPage = arraylist_get(pCopy, i);
 				if (pPage->tp_hwnd && (ret = (*funcp)(pPage->tp_hwnd, lParam)) == 0) {
 					ret = 0;
 					break;
@@ -2091,6 +2114,7 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
 					break;
 				}
 			}
+			arraylist_destroy(pCopy);
 			if (bHideTabsDuringEnum) {
 				ShowWindow(hwndCurrent, SW_SHOW);
 			}
@@ -2098,6 +2122,19 @@ int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lP
 		pSlot = pNext;
 	}
 	return ret;
+}
+
+/*------------------------------------------------------------
+ * Close all child windows given a flag defining the windows to really be closed.
+ */
+long long mainframe_closeChildWindows(CLOSE_WINDOW_FLAGS someFlags) {
+	mainframe_enumChildWindows(TRUE, ww_closeChildWindow, someFlags);
+
+	// no exit: still windows alive
+	if (ww_getNumberOfOpenWindows() != 0) {
+		return 0;
+	}
+	return 1;
 }
 
 /*

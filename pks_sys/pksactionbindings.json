@@ -465,6 +465,10 @@
       "command": "@close-all-windows"
     },
     {
+      "key": "Alt+Shift+W",
+      "command": "@close-all-but-current-window"
+    },
+    {
       "key": "Ctrl+Shift+X",
       "command": "@cut-to-named-buffer"
     },
@@ -871,6 +875,9 @@
           ]
         },
         { "separator": true },
+        { "command": "@close-all-windows" },
+        { "command": "@close-all-but-current-window" },
+        { "command": "@close-unpinned-windows" },
         { "command": "@exit-edit" },
         { "command": "@quit-edit" },
         {

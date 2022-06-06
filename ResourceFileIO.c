@@ -94,10 +94,12 @@ char *rsc_rdmacros(char *name, unsigned char *p, unsigned char *pend)
  * codes and the corresponding size and an optional name of a macro if only a single
  * macro should be saved.
  */
-long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName)
+long rsc_wrmacros(int fd,long offset, void* pMacroName)
 {
 	int 		offs,i;
 	long		total;
+	char* buf; 
+	long maxbytes;
 	MACRO  	*mp;
 	MACRODATA *pMacroData;
 	unsigned char *datap,*comment;
@@ -105,16 +107,21 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 
 	offs = 0;
 	total = 0;
+	maxbytes = 128000;
+	buf = calloc(1, maxbytes);
 	pMacrosAndNamespaces = macro_getNamespacesAndMacros();
 	int nMax = (int) arraylist_size(pMacrosAndNamespaces);
 
 	for (i = 0; i < nMax; i++) {
 		mp = arraylist_get(pMacrosAndNamespaces, i);
 		if (pMacroName == 0 || strcmp(pMacroName, MAC_NAME(mp)) == 0) {
-			if (offs >= maxbytes) {
-				offs -= maxbytes;
-				total += maxbytes;
-				if (file_flushBuffer((int)fd, buf, (int)maxbytes, offs) < 1) {
+			int nCommentlen = mp->mc_comment ? (unsigned short)strlen(mp->mc_comment) + 1 : 0;
+			int nNewOffs = offs + sizeof(MACRODATA) + mp->mc_bytecodeLength + nCommentlen;
+			if (nNewOffs >= maxbytes) {
+				total += offs;
+				int nFlush = offs;
+				offs = 0;
+				if (file_flushBuffer((int)fd, buf, (int)nFlush, offs) < 1) {
 					total = -1;
 					goto done;
 				}
@@ -122,7 +129,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 			pMacroData = (MACRODATA *) &buf[offs];
 			pMacroData->cmdbyte = mp->mc_isNamespace ? CMD_NAMESPACE : CMD_MACRO;
 			pMacroData->namelen = (unsigned char)strlen(MAC_NAME(mp))+1;
-			pMacroData->commentlen = mp->mc_comment ? (unsigned short)strlen(mp->mc_comment)+1 : 0;
+			pMacroData->commentlen = nCommentlen;
 			pMacroData->namespaceIdx = mp->mc_namespaceIdx;
 			pMacroData->returnType = mp->mc_returnType;
 			pMacroData->macroScope = mp->mc_scope;
@@ -144,6 +151,7 @@ long rsc_wrmacros(int fd,long offset, char *buf, long maxbytes, void* pMacroName
 		return -1;
 	}
 done: 
+	free(buf);
 	arraylist_destroy(pMacrosAndNamespaces);
 	return total;
 }
@@ -217,7 +225,7 @@ int rsc_find(int fd, char *itemtyp, char *itemname, RSCHEADER *hp)
  * rsc_put()
  */
 int rsc_put(int fd, char *itemtyp, char *itemname, int replace, 
-		  long (*wrfunc)(int ,long ,char *, long, void* pParam), char *buffer, long bufsize, void* pParam)
+		  long (*wrfunc)(int ,long ,void* pParam), void* pParam)
 {
 	long 		size;
 	long		offset = 0;
@@ -235,7 +243,7 @@ int rsc_put(int fd, char *itemtyp, char *itemname, int replace,
 		/* not really a replace ............... */
 	}
 
-	if (offset < 0 || (size = (*wrfunc)(fd,offset,buffer,bufsize, pParam)) < 0)
+	if (offset < 0 || (size = (*wrfunc)(fd,offset,pParam)) < 0)
 		return 0;
 
 	ep = &h.rs_ent[nItem];

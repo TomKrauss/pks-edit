@@ -146,31 +146,6 @@ static BOOL InitApplication(void)
 	return TRUE;
 }
 
-/*------------------------------------------------------------
- * ww_closeChildWindow()
- */
-int ww_closeChildWindow(HWND hwndChild,int iconflag)
-{	LRESULT ret;
-
-	if (!hwndChild || !IsWindow(hwndChild))
-		return 0;
-
-	if ((ret = SendMessage(hwndChild, WM_QUERYENDSESSION,iconflag,0L)) == 1) {
-		SendMessage(hwndChild, WM_CLOSE, 0, 0);
-		return 1;
-	}
-
-	return (ret) ? 1 : 0;
-}
-
-/*------------------------------------------------------------
- * ww_closeEditChild()
- */
-int ww_closeEditChild(HWND hwndChild)
-{
-	return ww_closeChildWindow(hwndChild,0);
-}
-
 /*
  * Return the module instance handle from which the language resources are loaded.
  */
@@ -414,19 +389,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	main_restoreSizeAndMakeVisible();
 	return mainframe_messageLoop();
 
-}
-
-/*------------------------------------------------------------
- * EdCloseAll()
- */
-int EdCloseAll() {
-	mainframe_enumChildWindows(TRUE, ww_closeEditChild,0);
-
-	// no exit: still windows alive
-	if (ww_getNumberOfOpenWindows() != 0) {
-		return 0;
-	}
-	return 1;
 }
 
 /*------------------------------------------------------------

@@ -58,9 +58,10 @@ typedef enum {
 	WM_OEMMODE = 0x800,
 	// optimize delete and backspace operations to handle spaces as if they were tabs.
 	WM_DELETE_MULTIPLE_SPACES = 0x2000,
-	// window should not be automatically closed, when the number
-	// of open windows exceeds the maximum configured.
-	WM_STICKY = 0x4000
+	// window not to be automatically closed, when the number
+	// of open windows exceeds the maximum configured or when
+    // the close unpinned windows function is performed.
+	WM_PINNED = 0x4000
 } WORKING_MODE_FLAG;
 
 /*--- Fill styles for marked text ----*/
@@ -594,6 +595,11 @@ extern int ww_getRightMargin(WINFO* fp);
  * Returns the "active" editor window having the focus.
  */
 extern WINFO* ww_getCurrentEditorWindow();
+
+/*
+ * Returns true if a window is pinned.
+ */
+extern BOOL ww_isPinned(WINFO* wp);
 
 /*
  * Returns the WINFO data structure for a HWND.

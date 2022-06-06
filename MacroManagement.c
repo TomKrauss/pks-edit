@@ -290,7 +290,7 @@ static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 		_selectedMacroName = 0;
 
 	if (whichresource & (RSC_MACROS|RSC_SINGLEMACRO)) {
-		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_linebuf,(long)FBUFSIZE, _selectedMacroName) == 0) {
+		if (rsc_put(fd,"MACROS","",0,rsc_wrmacros,_selectedMacroName) == 0) {
 			error_showErrorById(IDS_MSGNODISKSPACE);
 			ret = 0;
 			goto done;

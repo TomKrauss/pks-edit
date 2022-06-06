@@ -65,10 +65,10 @@ extern int		rsc_create(char* fname, int trunc);
  * codes and the corresponding size and an optional name of a macro if only a single
  * macro should be saved.
  */
-extern long rsc_wrmacros(int fd, long offset, char* buf, long maxbytes, void* pMacroName);
+extern long rsc_wrmacros(int fd, long offset, void* pMacroName);
 
 extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
-	long (*wrfunc)(int, long, char*, long, void* pParam), char* buffer, long bufsize, void* pParam);
+	long (*wrfunc)(int, long, void* pParam), void* pParam);
 
 /*--------------------------------------------------------------------------
  * file_flushBuffer()

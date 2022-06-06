@@ -1699,7 +1699,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND176          "Defines document types;Define Document Types..."
-    IDS_COMMAND177          "Switches the function keys;Function keys ->"
+    IDS_COMMAND177          "Close all but current Window;Close all but current Window"
     IDS_COMMAND178          "Repeats the last editing commands;Repeat last Edit"
     IDS_COMMAND179          "Starts the macro recorder;Record Macro"
     IDS_COMMAND180          "Undo the last change;Undo"
@@ -1720,7 +1720,7 @@ STRINGTABLE
 BEGIN
     IDS_COMMAND192          "Scroll to move screen, so caret is centered;Scroll Center"
     IDS_COMMAND193          "Join all marked lines;Join Lines"
-    IDS_COMMAND194          "Document settings;Edit Special Settings..."
+    IDS_COMMAND194          "Close unpinned Windows;Close unpinned Windows"
     IDS_COMMAND195          "Move to last insertion position;To last Insertion Position"
     IDS_COMMAND196          "Print the contents of the clipboard;Print Clipboard..."
     IDS_COMMAND197          "Print the contents of a trashcan;Print Trashcan..."

@@ -869,7 +869,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 				if (wpThis) {
 					if (bActive) {
 						pActivate = wpThis;
-						pActivate->workmode |= WM_STICKY;
+						pActivate->workmode |= WM_PINNED;
 					}
 					if (nDisplayMode != -1) {
 						ww_changeDisplayMode(wpThis, nDisplayMode);
@@ -882,7 +882,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 	if (pActivate) {
 		ww_selectWindow(pActivate);
 		op_updateall();
-		pActivate->workmode &= ~WM_STICKY;
+		pActivate->workmode &= ~WM_PINNED;
 	}
 }
 
@@ -1000,7 +1000,7 @@ void xref_initSearchList(FTABLE* fp) {
 	fp->flags |= F_WATCH_LOGFILE | F_TRANSIENT;
 	WINFO* wp = WIPOI(fp);
 	if (wp) {
-		wp->workmode |= WM_STICKY|WM_LINE_SELECTION;
+		wp->workmode |= WM_PINNED|WM_LINE_SELECTION;
 		strcpy(wp->actionContext, "search-list");
 	}
 	fp->navigationPattern = xref_getSearchListFormat();

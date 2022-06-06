@@ -696,7 +696,7 @@ void ww_applyDisplayProperties(WINFO* wp) {
 static int ww_recycleWindow() {
 	WINFO* wpFound = NULL;
 	for (WINFO* wp = _winlist; wp; wp = wp->next) {
-		if (!(wp->workmode & WM_STICKY) && wp->fp && !ft_isFileModified(wp->fp)) {
+		if (!ww_isPinned(wp) && wp->fp && !ft_isFileModified(wp->fp)) {
 			wpFound = wp;
 		}
 	}
@@ -970,6 +970,13 @@ int ww_close(WINFO *wp)
  */
 WINFO* ww_getCurrentEditorWindow() {
 	return _winlist;
+}
+
+/*
+ * Returns true if a window is pinned.
+ */
+BOOL ww_isPinned(WINFO* wp) {
+	return wp->workmode & WM_PINNED;
 }
 
 /*

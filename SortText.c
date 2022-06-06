@@ -565,8 +565,8 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 					nl++;
 				}
 			}
-			ln_markModified(lpfirst);
-			rectab[nrec].flags = lpfirst->lflg;
+			// This is a simplification - ideally we mark only lines really changing their order
+			rectab[nrec].flags = lpfirst->lflg|LNMODIFIED;
 			rectab[nrec++].nl = nl;
 			if (nrec >= nCapacity) {
 				nCapacity = 2 * nCapacity;

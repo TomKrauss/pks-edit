@@ -55,14 +55,23 @@ extern HICON mainframe_getDefaultEditorIcon();
  */
 int mainframe_messageLoop();
 
-/*-----------------------------------------------------------
- * mainframe_enumChildWindows()
- * Execute a function for every child window optionally
- * passing an lParam. If the called function returns 0, the enumeration
- * stops. If bHideTabsDuringEnum is TRUE, the container displaying the enumerated
- * windows is temporarily hidden while executing the function.
+/*
+ * The flags to be passed to CloseChildWindows defining the options for windows to be excluded
+ * from being closed.
  */
-int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(), LONG lParam);
+typedef enum {
+	// Simply close all windows
+	CWF_ALL = 0x0,
+	// Do not close the current window
+	CWF_EXCLUDE_CURRENT = 0x1,
+	// Do not close windows with the sticky bit (pinned windows).
+	CWF_EXCLUDE_PINNED = 0x2
+} CLOSE_WINDOW_FLAGS;
+
+/*------------------------------------------------------------
+ * Close all child windows given one or more flags defining the windows to be kept open.
+ */
+long long mainframe_closeChildWindows(CLOSE_WINDOW_FLAGS someFlags);
 
 /*
  * Operations to manage the PKS-Edit editor docks available

@@ -1744,7 +1744,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND176          "Definiert Dokument Typen;Dokument-Typen konfigurierern..."
-    IDS_COMMAND177          "Schaltet die Funktionstasten weiter;Funktionstasten weiter schalten"
+    IDS_COMMAND177          "Alle Fenster außer aktuellem schließen;Alle Fenster außer aktuellem schließen"
     IDS_COMMAND178          "Wiederholt die letzten Einfüge-Operationen;Wieder einfügen"
     IDS_COMMAND179          "Startet eine Makro-Aufnahme;Makro aufnehmen"
     IDS_COMMAND180          "Macht die letzte Änderung rückgängig;Änderung rückgängig"
@@ -1765,7 +1765,7 @@ STRINGTABLE
 BEGIN
     IDS_COMMAND192          "Scrollt den Bildschirm so, daß der Cursor in der Mitte steht;Rollen mittig"
     IDS_COMMAND193          "Fügt alle markierten Zeilen zusammen;Join Zeilen"
-    IDS_COMMAND194          "Dokumenteinstellungen;Edit erw. Dok"
+    IDS_COMMAND194          "Nicht gepinnte Fenster schließen;Nicht gepinnte Fenster schließen"
     IDS_COMMAND195          "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung"
     IDS_COMMAND196          "Druckt den Inhalt der Zwischenablage;Drucken Ablage"
     IDS_COMMAND197          "Druckt den Inhalt des Papierkorbs;Drucken Papierkorb"

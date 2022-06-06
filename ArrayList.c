@@ -51,6 +51,18 @@ ARRAY_LIST* arraylist_create(size_t capacity) {
 	return pResult;
 }
 
+/*
+ * Clone an array list.
+ */
+ARRAY_LIST* arraylist_clone(ARRAY_LIST* pSource) {
+	ARRAY_LIST* pResult = arraylist_create(pSource->li_capacity);
+	for (int i = 0; i < pSource->li_size; i++) {
+		*pResult->li_buffer[i] = *pSource->li_buffer[i];
+	}
+	pResult->li_size = pSource->li_size;
+	return pResult;
+}
+
 /*---------------------------
  * Destroy an array list freeing up all memory.
  */

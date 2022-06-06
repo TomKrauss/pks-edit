@@ -42,15 +42,9 @@ static struct _finddata_t _dta;
  * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
  */
-EXPORT int file_exists(const char *s) 
-{
-	intptr_t handle;
-
-	if ((handle = _findfirst(s,&_dta)) < 0) {
-		return -1;
-	}
-	_findclose(handle);
-	return 0;
+EXPORT int file_exists(const char *pszFilename)  {
+	struct stat   buffer;
+	return stat(pszFilename, &buffer);
 }
 
 /*--------------------------------------------------------------------------

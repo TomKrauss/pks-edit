@@ -25,6 +25,7 @@
 #include "stringutil.h"
 #include "arraylist.h"
 #include "pksmacro.h"
+#include "edierror.h"
 #include "pksmacrocvm.h"
 #include "symbols.h"
 #include "scanner.h"
@@ -146,8 +147,12 @@ static void yyreport(const char* s, int bError, va_list ap) {
 void yyerror(const char* s, ...) {
 	va_list ap;
 
-    va_start(ap,s);
-	yyreport(s, 1, ap);
+   va_start(ap,s);
+	if (!_compilerConfiguration) {
+		error_showError((char*)s, ap);
+	} else {
+	 	yyreport(s, 1, ap);
+	}
 	va_end(ap);
 }
 

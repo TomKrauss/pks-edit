@@ -159,6 +159,19 @@ typedef enum {
 	MB_ICONASTERISK = 0x00000040
 } MESSAGE_BOX_FLAG;
 
+/*
+ * The flags to be passed to CloseChildWindows defining the options for windows to be excluded
+ * from being closed.
+ */
+typedef enum {
+	// Simply close all windows
+	CWF_ALL = 0x0,
+	// Do not close the current window
+	CWF_EXCLUDE_CURRENT = 0x1,
+	// Do not close windows with the sticky bit (pinned windows).
+	CWF_EXCLUDE_PINNED = 0x2
+} CLOSE_WINDOW_FLAGS;
+
 /* Option Flags assignable to EDITOR_CONFIGURATION.options */
 typedef enum {
 	// if set, PKS Edit will bring up a confirmation message boxes to confirm saving of files etc...
@@ -388,9 +401,10 @@ typedef enum {
 	WM_OEMMODE = 0x800,
 	// optimize delete and backspace operations to handle spaces as if they were tabs.
 	WM_DELETE_MULTIPLE_SPACES = 0x2000,
-	// window should not be automatically closed, when the number
-	// of open windows exceeds the maximum configured.
-	WM_STICKY = 0x4000
+	// window not to be automatically closed, when the number
+	// of open windows exceeds the maximum configured or when
+    // the close unpinned windows function is performed.
+	WM_PINNED = 0x4000
 } WORKING_MODE_FLAG;
 
 /*
@@ -1005,11 +1019,13 @@ native int EdExitAndSave();
  */
 @Method(name="QuitEdit", signature="ii")
 native int EdExit(int exitCode);
+
 /*
- * Close all editors.
+ * Close all child windows given one or more flags defining the windows to be kept open.
  */
-@Method(name="CloseAllWindows")
-native int EdCloseAll();
+@Method(name="CloseWindows")
+native int mainframe_closeChildWindows(CLOSE_WINDOW_FLAGS someFlags);
+
 /*
  * Save a file with the given options.
  */

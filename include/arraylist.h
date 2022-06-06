@@ -44,6 +44,11 @@ extern ARRAY_LIST* arraylist_create(size_t capacity);
 extern void arraylist_destroy(ARRAY_LIST* pList);
 
 /*
+ * Clone an array list.
+ */
+extern ARRAY_LIST* arraylist_clone(ARRAY_LIST* pSource);
+
+/*
  * Destroy an array list containing string malloced before. The elements
  * of the array are freed as well.
  */
