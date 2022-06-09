@@ -673,7 +673,7 @@ static char *xref_saveCrossReferenceWord(WINFO* wp, unsigned char *d,unsigned ch
 /*------------------*/
 /* xref_openFile()	*/
 /*------------------*/
-int xref_openFile(char *name, long line, const char* pszHint) {
+int xref_openFile(const char *name, long line, const char* pszHint) {
 	int ret = 0;
 
 	if (ft_activateWindowOfFileNamed(name)) {

@@ -21,6 +21,8 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
   which can be sorted.
 - The PKS-Edit tabstrip supports now context menus (to close multiple editor windows and to *pin* / *unpin* windows). It 
   also supports scrolling through many tabs using the mousewheel.
+- PKS-Edit supports now multi-selection in the open file dialog and supports passing command line arguments containing
+  wildcards to open multiple files.
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations

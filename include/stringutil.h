@@ -104,7 +104,7 @@ extern void destroy(void** ap);
  * a pattern with '!' to explicitly not match a given pattern - e.g. !*.obj will
  * explicitly exclude all files named *.obj.
  */
-extern int string_matchFilename(char* string, char* pattern);
+extern int string_matchFilename(const char* string, const char* pattern);
 
 /*--------------------------------------------------------------------------
  * string_isSpace()

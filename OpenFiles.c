@@ -774,6 +774,27 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	return fpBackup;
 }
 
+/*
+ * Open multiple files encoded into the pszMultiFiles string as described by the GetOpenFilename WIN32 API.
+ */
+static int ft_openMultipleFiles(const char* pszMultiFiles, int codepage) {
+	char fullpath[EDMAXPATHLEN];
+
+	strcpy(fullpath, pszMultiFiles);
+	int nOffs = (int)strlen(fullpath);
+	fullpath[nOffs++] = '\\';
+	int nFilesOffset = nOffs;
+	while (pszMultiFiles[nFilesOffset]) {
+		pszMultiFiles = &pszMultiFiles[nFilesOffset];
+		strcpy(&fullpath[nOffs], pszMultiFiles);
+		nFilesOffset = (int)(strlen(pszMultiFiles) + 1);
+		if (ft_openFileWithoutFileselector(fullpath, 0L, &(FT_OPEN_OPTIONS) { NULL, codepage }) == NULL) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 /*------------------------------------------------------------
  * EdEditFile()
  * Edit a file with a filename and with potential flags.
@@ -794,14 +815,20 @@ long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 	long codepage = -1;
 	if ((editflags & OPEN_NOFN) == 0) {
 		FILE_SELECT_PARAMS fsp;
+		memset(_fseltarget, 0, EDMAXPATHLEN);
 		memset(&fsp, 0, sizeof fsp);
 		fsp.fsp_saveAs = FALSE;
 		fsp.fsp_codepage = -1;
 		fsp.fsp_optionsAvailable = TRUE;
+		fsp.fsp_multiSelect = TRUE;
 		if (!fsel_selectFileWithTitle(CMD_OPEN_FILE, _fseltarget, &fsp)) {
 			return 0;
 		}
 		codepage = fsp.fsp_codepage;
+		size_t nLen = strlen(_fseltarget) + 1;
+		if (_fseltarget[nLen]) {
+			return ft_openMultipleFiles(_fseltarget, codepage);
+		}
 		filename = _fseltarget;
 	}
 	return ft_openFileWithoutFileselector(filename, 0L, &(FT_OPEN_OPTIONS) { NULL, codepage }) != NULL ? 1 : 0;

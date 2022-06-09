@@ -264,7 +264,7 @@ static int find_inFile(intptr_t p1, void* pUnused) {
  * matchInFile()
  * scan for a pSearchExpression pattern in file filename
  */
-static int matchInFile(char *fn, DTA *stat) {
+static int matchInFile(const char *fn, DTA *stat) {
 
 	if (stat->attrib & _A_SUBDIR) {
 		return 0;

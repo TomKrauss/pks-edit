@@ -110,7 +110,7 @@ static int gmatch(char *s, char *p)
  * a pattern with '!' to explicitly not match a given pattern - e.g. !*.obj will
  * explicitly exclude all files named *.obj.
  */
-int string_matchFilename(char *string,char *pattern) {	
+int string_matchFilename(const char *string, const char *pattern) {	
 	char *	pszToken;
 	char *	pszPatCopy;
 	char *	pszStringCopy;

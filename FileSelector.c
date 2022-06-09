@@ -226,7 +226,6 @@ static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *p
 
 	ret = fsel_selectFile(pFSP);
 	nCurrentDialog = nSave;
-	string_splitFilename(pFSP->fsp_resultFile,baseDirectory,pattern);
 	if (_fseltarget[0] == 0) {
 		return 0;
 	}
@@ -411,6 +410,9 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = pFSParams->fsp_title;
 	ofn.Flags = OFN_PATHMUSTEXIST;
+	if (pFSParams->fsp_multiSelect) {
+		ofn.Flags |= OFN_ALLOWMULTISELECT;
+	}
 	if (pFSParams->fsp_optionsAvailable) {
 		ofn.Flags |= OFN_ENABLETEMPLATE|OFN_EXPLORER|OFN_ENABLESIZING|OFN_ENABLEHOOK;
 		ofn.lpTemplateName = MAKEINTRESOURCE(pFSParams->fsp_saveAs ? DLG_SAVEAS_OPTIONS : DLG_OPEN_OPTIONS);
@@ -461,8 +463,13 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 
 	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(),
 		pFSParams, pszFileName, pszExt, pszPath)) == TRUE) {
-		lstrcpy(szFullPathOut, pszFileName);
-		string_splitFilename(pszFileName, pszPath, szFileNameIn);
+		memcpy(szFullPathOut, pszFileName, EDMAXPATHLEN);
+		if (pszFileName[strlen(pszFileName) + 1]) {
+			// special case: multi-result returned by GetFilename Filedialog API.
+			strcpy(pszPath, pszFileName);
+		} else {
+			string_splitFilename(pszFileName, pszPath, szFileNameIn);
+		}
 		hist_saveString(PATHES, pszPath);
 	}
 

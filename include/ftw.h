@@ -15,8 +15,6 @@
 #define SUBDIR      0x10
 #define ARCHIV		0x20
 
-extern int _ftwflg;
-
 #if defined(WIN32)
 #include <io.h>
 typedef struct _finddata_t DTA;
@@ -26,10 +24,8 @@ typedef struct _finddata_t DTA;
 typedef struct ffblk DTA;
 #endif
 
-typedef int (* FTWFUNC)(char *s,DTA *p);
-int _ftw(char *path,FTWFUNC func,int depth,char *pattern,int mode);
-int  ftw(char *path,FTWFUNC func,int depth,char *pattern);
-int ftwalk(char *path,FTWFUNC func,int depth,int fmode);
+typedef int (* FTWFUNC)(const char *s,DTA *p);
+int _ftw(const char *path,FTWFUNC func,int depth,const char *pattern,int mode);
 
 #endif __FTW__
 

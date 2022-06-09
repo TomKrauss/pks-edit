@@ -22,6 +22,7 @@
 #include "crossreferencelinks.h"
 #include "winfo.h"
 #include "findandreplace.h"
+#include "ftw.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
@@ -40,13 +41,27 @@ static int arguments_parsePhase1(char *arg) {
 	return 1;
 }
 
+static int argument_open(const char* pszFilespec, DTA* p) {
+	xref_openFile(pszFilespec, 0L, (void*)0);
+	return 0;
+}
+
+static void argument_openFiles(const char* pszFilespec) {
+	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
+		_ftw(".", argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
+	}
+	else {
+		xref_openFile(pszFilespec, 0L, (void*)0);
+	}
+}
+
 /*------------------------------------------------------------
  * arguments_parsePhase1()
  */
 static int arguments_parsePhase2(char *arg)
 {
 	if (*arg != '-' && *arg != '/') {
-		xref_openFile(arg,0L,(void*)0);
+		argument_openFiles(arg);
 	} else {
 		long line;
 		WINFO* wp = ww_getCurrentEditorWindow();
@@ -89,7 +104,8 @@ static int arguments_parsePhase2(char *arg)
 			xref_openSearchList(arg,1); 		/* Edit Compiler-Errors 	*/
 			break;
 		default:
-			xref_openFile(arg, 0L, (void*)0);
+			argument_openFiles(arg);
+			break;
 		}
 	}
 	return 1;

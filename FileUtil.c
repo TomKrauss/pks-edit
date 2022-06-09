@@ -273,7 +273,7 @@ EXPORT char *file_getTempDirectory(void) {
 /*
  * Callback used to delete temp files recursively. 
  */
-static int file_removeCb(char* filename, DTA* dta) {
+static int file_removeCb(const char* filename, DTA* dta) {
 	return _unlink(filename);
 }
 

@@ -71,7 +71,7 @@ static void bl_withClipboardDirDo(FTWFUNC pFunc) {
 /*
  * A clipboard buffer file was found during startup - restore it.
  */
-static int bl_deleteClipboardFile(char* pszFile, DTA* pDta) {
+static int bl_deleteClipboardFile(const char* pszFile, DTA* pDta) {
 	_unlink(pszFile);
 	return 0;
 }
@@ -119,7 +119,7 @@ void bl_autosavePasteBuffers() {
 /*
  * A clipboard buffer file was found during startup - restore it. 
  */
-static int bl_clipboardFileFound(char* pszFile, DTA* pDta) {
+static int bl_clipboardFileFound(const char* pszFile, DTA* pDta) {
 	char szName[50];
 	char szFileOnly[128];
 	strcpy(szFileOnly, string_getBaseFilename(pszFile));
@@ -135,7 +135,7 @@ static int bl_clipboardFileFound(char* pszFile, DTA* pDta) {
 	if (pBuffer) {
 		FILE_READ_OPTIONS fro;
 		memset(&fro, 0, sizeof fro);
-		fro.fro_fileName = pszFile;
+		fro.fro_fileName = (char*) pszFile;
 		if (!bl_readFileIntoPasteBuf(pBuffer, &fro)) {
 			bl_free(pBuffer);
 		}
