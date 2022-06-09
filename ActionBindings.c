@@ -55,6 +55,23 @@ static LOCAL_ACTION_BINDING*  _contextMenu;		// the context menu definitions
 static LOCAL_ACTION_BINDING*  _menu;				// the main menu definitions
 static LOCAL_ACTION_BINDING*  _toolbar;			// the toolbar definitions
 
+typedef struct tagACTION_CONTEXT_DESCRIPTOR {
+	const char* acd_name;						// the name of the context
+	BOOL acd_mutuallyExclusive;					// whether this context is mutually exclusive - i.e.: if passed actions with the default context are ignored.
+} ACTION_CONTEXT_DESCRIPTOR;
+
+/*
+ * Name of the default action context to use in PKS-Edit.
+ */
+const char* DEFAULT_ACTION_CONTEXT = "default";
+
+static ACTION_CONTEXT_DESCRIPTOR _contextDescriptors[] = {
+	{ "default", 0},
+	{ "editor-tabs", 1},
+	{ "wysiwyg-renderer", 0},
+	{"search-list", 0}
+};
+
 typedef struct tagJSON_BINDINGS {
 	LOCAL_ACTION_BINDING* keys;
 	LOCAL_ACTION_BINDING* mouse;
@@ -237,11 +254,6 @@ static int bindings_parseCommandMP(MACROREF* mp, const char* pszCommand) {
 	}
 	return 1;
 }
-
-/*
- * Name of the default action context to use in PKS-Edit.
- */
-const char* DEFAULT_ACTION_CONTEXT = "default";
 
 static int bindings_parseMouseCommand(LOCAL_ACTION_BINDING* pTarget, const char* pszCommand) {
 	return bindings_parseCommandMP(&pTarget->ab_binding.mousebind.macref, pszCommand);
@@ -586,13 +598,39 @@ int bindings_bindKey(KEYCODE key, MACROREF macro, const char* pszActionContext) 
 }
 
 /*
+ * Get the context descriptor for a context.
+ */
+static ACTION_CONTEXT_DESCRIPTOR* bindings_getContextDescriptor(const char* pszContextName) {
+	for (int i = 0; i < DIM(_contextDescriptors); i++) {
+		if (strcmp(_contextDescriptors[i].acd_name, pszContextName) == 0) {
+			return &_contextDescriptors[i];
+		}
+	}
+	return _contextDescriptors;
+}
+
+/*
+ * Returns TRUE, if a binding matches a given action context descriptor.
+ */
+static BOOL bindings_matchesContext(ACTION_CONTEXT_DESCRIPTOR* pDescriptor, LOCAL_ACTION_BINDING* pBinding) {
+	if (strcmp(pDescriptor->acd_name, pBinding->ab_context) == 0) {
+		return TRUE;
+	}
+	if (pDescriptor->acd_mutuallyExclusive) {
+		return FALSE;
+	}
+	return !pBinding->ab_context[0] || strcmp(DEFAULT_ACTION_CONTEXT, pBinding->ab_context) == 0;
+}
+
+/*
  * Returns a context menu - recursively callable for nested sub-menus. 
  */
 static MENU_ITEM_DEFINITION* bindings_getSubmenuFrom(const char* pszActionContext, LOCAL_ACTION_BINDING* pBinding) {
 	MENU_ITEM_DEFINITION* pHead = NULL;
 	MENU_ITEM_DEFINITION* pCurrent = NULL;
+	ACTION_CONTEXT_DESCRIPTOR* pCD = bindings_getContextDescriptor(pszActionContext);
 	while (pBinding) {
-		if (strcmp(pszActionContext, pBinding->ab_context) == 0 || !pBinding->ab_context[0] || strcmp(DEFAULT_ACTION_CONTEXT, pBinding->ab_context) == 0) {
+		if (bindings_matchesContext(pCD, pBinding)) {
 			MENU_ITEM_DEFINITION* pNested = NULL;
 			if (pBinding->ab_children) {
 				pNested = bindings_getSubmenuFrom(pszActionContext, pBinding->ab_children);

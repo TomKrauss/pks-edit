@@ -86,7 +86,8 @@ static struct optiontab {
 	 0,             SHOW_LINENUMBERS,OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             SHOW_SYNTAX_HIGHLIGHT,OP_DISPLAY_MODE,   0,	displaymode_changed,
 	 0,             WM_LINE_SELECTION,OP_EDIT_MODE,   WM_COLUMN_SELECTION,	doctypes_changed,
-	 0,   WM_OEMMODE,    OP_EDIT_MODE,   0,	doctypes_changed,
+	 0,				WM_OEMMODE,    OP_EDIT_MODE,   0,	doctypes_changed,
+	 0,				WM_PINNED, OP_EDIT_MODE,   0,	doctypes_changed,
 	 -1
 };
 
@@ -192,11 +193,11 @@ static void op_changeFlag(WINFO* wp, struct optiontab *op, int dofunc)
 /*--------------------------------------------------------------------------
  * op_defineOption()
  */
-BOOL op_defineOption(long nFlag)
+BOOL op_defineOption(WINFO* wp, long nFlag)
 {
 	int	*pOpt;
 
-	if ((pOpt = op_getFlagToToggle(ww_getCurrentEditorWindow(), HIWORD(nFlag))) != 0) {
+	if ((pOpt = op_getFlagToToggle(wp, HIWORD(nFlag))) != 0) {
 		return *pOpt & LOWORD(nFlag);
 	}
 	return 0;
@@ -219,14 +220,14 @@ static int op_toggleOption(WINFO* wp, struct optiontab *op)
 /*--------------------------------------------------------------------------
  * EdOptionToggle()
  */
-long long EdOptionToggle(long par)
+long long EdOptionToggle(WINFO* wp, long par)
 {	struct optiontab *op;
 	int flag = LOWORD(par);
 	OP_FLAGTYPE local = (OP_FLAGTYPE)(short)HIWORD(par);
 
 	for (op = _optiontab; op->flgkeynr >= 0;  op++)
 		if (op->flag == flag && op->op_type == local)
-			return op_toggleOption(ww_getCurrentEditorWindow(), op);
+			return op_toggleOption(wp, op);
 		
 	return 0;
 }
@@ -260,7 +261,7 @@ int op_changeEditorOption(WINFO* wp, OP_FLAGTYPE flType, int nFlag, int nSet) {
  * Start the recorder. 
  */
 int op_startMacroRecording() {
-	return (int)EdOptionToggle(MAKELONG(1, OP_MACRO));
+	return (int)EdOptionToggle(ww_getCurrentEditorWindow(), MAKELONG(1, OP_MACRO));
 }
 
 /*--------------------------------------------------------------------------
@@ -277,11 +278,13 @@ EXPORT int op_onOptionWidgetSelected(int toggle)
 				 * function itself
 				 */
 				EdOptionToggle(
+					ww_getCurrentEditorWindow(),
 					MAKELONG(op->flag,op->op_type));
 				_recording = recorder_isRecording();
 			} else {
 				intptr_t stack[8];
-				stack[0] = MAKELONG(op->flag, op->op_type);
+				stack[0] = (intptr_t)ww_getCurrentEditorWindow();
+				stack[1] = MAKELONG(op->flag, op->op_type);
 				return (int)interpreter_executeFunction(
 					FUNC_EdOptionToggle,
 						stack);

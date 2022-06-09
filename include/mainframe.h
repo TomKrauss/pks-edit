@@ -64,8 +64,11 @@ typedef enum {
 	CWF_ALL = 0x0,
 	// Do not close the current window
 	CWF_EXCLUDE_CURRENT = 0x1,
+	// Do not close the "selected" window - i.e. the window on which
+	// a context menu was opened for instance
+	CWF_EXCLUDE_SELECTED = 0x2,
 	// Do not close windows with the sticky bit (pinned windows).
-	CWF_EXCLUDE_PINNED = 0x2
+	CWF_EXCLUDE_PINNED = 0x4
 } CLOSE_WINDOW_FLAGS;
 
 /*------------------------------------------------------------

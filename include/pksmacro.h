@@ -298,7 +298,13 @@ extern MACROREF* macro_getKeyBinding(WPARAM key);
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
-extern long long macro_executeMacro(MACROREF* mp);
+#ifdef _WINFO_H
+extern long long macro_executeMacro(WINFO* wp, MACROREF* mp);
+/*
+ * Hack: can be used to set a "context" window for interpreter operations.
+ */
+extern void interpreter_setContextWindow(WINFO* wp);
+#endif
 
 /*------------------------------------------------------------
  * macro_onCharacterInserted()

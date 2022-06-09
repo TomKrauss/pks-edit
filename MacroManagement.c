@@ -576,7 +576,7 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 		if (aPositionClicked) {
 			return macro_executeWithPosition(wp, mp, *aPositionClicked);
 		} else {
-			return (int)macro_executeMacro(mp);
+			return (int)macro_executeMacro(wp, mp);
 		}
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
@@ -599,7 +599,7 @@ int macro_onCharacterInserted(WORD c) {
 
 static int macro_executeWithProgress(MACROREF* mp) {
 	progress_startMonitor(IDS_ABRTMACRO, 1000);
-	int ret = (int)macro_executeMacro(mp);
+	int ret = (int)macro_executeMacro(0, mp);
 	progress_closeMonitor(0);
 	return ret;
 }

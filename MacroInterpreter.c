@@ -107,6 +107,17 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	}
 }
 
+static WINFO* _contextWindow;
+
+/*
+ * Returns the window on which all functions should be executed by default.
+ * This is either a window passed on from an e.g. context menu action or the currently
+ * active window.
+ */
+static WINFO* interpreter_getCurrentEditorWindow() {
+	return _contextWindow ? _contextWindow : ww_getCurrentEditorWindow();
+}
+
 /*--------------------------------------------------------------------------
  * interpreter_getValueForOpCode()
  * pop data from execution stack
@@ -381,7 +392,7 @@ PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 			values[i - 1].v_l = (long)pValues[i].pkv_data.longValue;
 		}
 	}
-	mysprintf(buf, (char*)pszFormat, &(SPRINTF_ARGS){.sa_wp = ww_getCurrentEditorWindow(), .sa_values = values});
+	mysprintf(buf, (char*)pszFormat, &(SPRINTF_ARGS){.sa_wp = interpreter_getCurrentEditorWindow(), .sa_values = values});
 	free(values);
 	return interpreter_allocateString(pContext, buf);
 }
@@ -545,6 +556,13 @@ int interpreter_openDialog(PARAMS *pp)
 }
 
 /*
+ * Hack: can be used to set a "context" window for interpreter operations. 
+ */
+void interpreter_setContextWindow(WINFO* wp) {
+	_contextWindow = wp;
+}
+
+/*
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
@@ -552,7 +570,7 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(lo
 	if (!nf_flags) {
 		return 1;
 	}
-	WINFO* wp = ww_getCurrentEditorWindow();
+	WINFO* wp = interpreter_getCurrentEditorWindow();
 
 	FTABLE* fp = wp ? wp->fp : NULL;
 
@@ -723,7 +741,7 @@ static int interpreter_executeMacroByName(char* name) {
 		return 0;
 	}
 	macref.index = i;
-	return (int)macro_executeMacro(&macref);
+	return (int)macro_executeMacro(0, &macref);
 }
 
 /*---------------------------------*/
@@ -780,7 +798,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		if (typ == C_1FUNC) {
 			PARAMETER_TYPE_DESCRIPTOR pdt = function_getParameterTypeDescriptor(fup, 1);
 			if (pdt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
-				*functionParameters++ = (intptr_t) ww_getCurrentEditorWindow();
+				*functionParameters++ = (intptr_t) interpreter_getCurrentEditorWindow();
 			}
 			*functionParameters++ = pInstructionPointer->p;
 			nParametersPassed--;
@@ -806,7 +824,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 					wp = memory_handleForValue(v);
 				} else {
 					// assume, that no editor handle param had been passed - use the default editor.
-					wp = ww_getCurrentEditorWindow();
+					wp = interpreter_getCurrentEditorWindow();
 					i--;
 				}
 				if (wp == 0) {
@@ -1206,10 +1224,11 @@ long long macro_executeMacroByIndex(int macroindex) {
 /*---------------------------------*/
 /* macro_executeMacro()				*/
 /*---------------------------------*/
-long long macro_executeMacro(MACROREF* mp) {
+long long macro_executeMacro(WINFO* wp, MACROREF* mp) {
 	COM_1FUNC* cp;
 	long long ret;
 	MACRO macro;
+	_contextWindow = wp;
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
@@ -1217,15 +1236,17 @@ long long macro_executeMacro(MACROREF* mp) {
 		macro.mc_name = _commandTable[mp->index].c_name;
 		macro.mc_bytecodes = (unsigned char*)cp;
 		macro.mc_bytecodeLength = interpreter_getParameterSize(cp->typ, ((const char*)cp)+1);
-		return macro_interpretByteCodes(&macro);
+		ret = macro_interpretByteCodes(&macro);
+		break;
 	case CMD_MACRO:
 		ret = macro_executeMacroByIndex(mp->index);
-		return ret;
+		break;
 	default:
+		ret = 0;
 		error_displayAlertDialog("Illegal command type to execute.");
 	}
-
-	return 0;
+	_contextWindow = 0;
+	return ret;
 }
 
 

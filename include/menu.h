@@ -17,6 +17,12 @@
 #ifndef MENU_H
 
  /*
+  * Show the context menu given the parent window, the window pointer, an action context and the position
+  * of the menu.
+  */
+extern void menu_showContextMenu(HWND hwndParent, WINFO* wp, const char* pActionContext, int x, int y);
+
+ /*
   * Open the context menu in the current editor window (if any) close to the current mouse position.
   * The context menu will be popuplated with the appropriate items. Return 1 if successful, 0 otherwise.
   */

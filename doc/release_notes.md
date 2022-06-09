@@ -19,6 +19,8 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
   (e.g. sorting of floating numbers). When sorting by *key fields*, one may now define key fields using field seperators
   with CSV quoting or with backslash quoting support. There is no limit any more regarding the number of lines / blocks,
   which can be sorted.
+- The PKS-Edit tabstrip supports now context menus (to close multiple editor windows and to *pin* / *unpin* windows). It 
+  also supports scrolling through many tabs using the mousewheel.
 
 ### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations

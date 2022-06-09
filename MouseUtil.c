@@ -437,7 +437,7 @@ int macro_executeWithPosition(WINFO* wp, MACROREF* pRef, POINT pt) {
 			caret_placeToXY(wp, pt.x, pt.y);
 		}
 	}
-	return (int)macro_executeMacro(pRef);
+	return (int)macro_executeMacro(wp, pRef);
 }
 
 /*---------------------------------*/

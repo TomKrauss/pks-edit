@@ -841,6 +841,34 @@
       "command": "@toggle-comment"
     },
     {
+      "context": "editor-tabs",
+      "command": "@toggle-pin-window"
+    },
+    {
+      "context": "editor-tabs",
+      "separator": true
+    },
+    {
+      "context": "editor-tabs",
+      "command": "@quit-file"
+    },
+    {
+      "context": "editor-tabs",
+      "command": "@close-all-windows"
+    },
+    {
+      "context": "editor-tabs",
+      "command": "@close-all-but-selected-window"
+    },
+    {
+      "context": "editor-tabs",
+      "command": "@close-all-but-current-window"
+    },
+    {
+      "context": "editor-tabs",
+      "command": "@close-unpinned-windows"
+    },
+    {
       "context": "wysiwyg-renderer",
       "separator": true
     },

@@ -20,6 +20,7 @@
 #include "linkedlist.h"
 #include "documentmodel.h"
 #include "winfo.h"
+#include "pksmacrocvm.h"
 #include "arraylist.h"
 #include "pksmacro.h"
 #include "actionbindings.h"
@@ -39,7 +40,7 @@ static POINT _contextMenuPosition;
 /*--------------------------------------------------------------------------
  * interpreter_canExecuteFunction()
  */
-extern BOOL op_defineOption(long nFlag);
+extern BOOL op_defineOption(WINFO* wp, long nFlag);
 
 /*
  * Calculates a label to be used for a menu entry and process mnemonics at the same time. Assumption is,
@@ -111,14 +112,14 @@ static int menu_appendHistoryEntries(HMENU hMenu, BOOL bAppendSeparator) {
 	return nItems;
 }
 
-static void menu_enableItem(HMENU hMenu, int wItem, int nType, int nIndex) {
+static void menu_enableItem(WINFO* wp, HMENU hMenu, int wItem, int nType, int nIndex) {
 	BOOL bEnable = TRUE;
 	if (nType == CMD_CMDSEQ) {
 		long long llParam;
 		int nFuncnum = macro_getFunctionNumberForCommand(nIndex, &llParam);
 		bEnable = interpreter_canExecuteNativeFunction(nFuncnum, llParam, 0);
 		if (nFuncnum == FUNC_EdOptionToggle) {
-			if (op_defineOption((long)llParam)) {
+			if (op_defineOption(wp, (long)llParam)) {
 				CheckMenuItem(hMenu, wItem, MF_CHECKED | MF_BYPOSITION);
 			}
 		}
@@ -135,7 +136,7 @@ static void menu_enableItem(HMENU hMenu, int wItem, int nType, int nIndex) {
 /*
  * Append the list of macro menu function bindings to a menu.
  */
-static int menu_appendMacroEntries(HMENU hMenu, int wItemIndex, const char* pszPrefix, BOOL bAppendSeparator) {
+static int menu_appendMacroEntries(WINFO* wp, HMENU hMenu, int wItemIndex, const char* pszPrefix, BOOL bAppendSeparator) {
 	char szLabel[512];
 	BOOL bFirst = TRUE;
 	int nMacros = macro_getNumberOfMacros();
@@ -155,12 +156,12 @@ static int menu_appendMacroEntries(HMENU hMenu, int wItemIndex, const char* pszP
 		macro_getLabelFor(mp, szLabel, sizeof szLabel);
 		AppendMenu(hMenu, MF_STRING, (CMD_MACRO << 16) + i, szLabel);
 		nItems++;
-		menu_enableItem(hMenu, wItemIndex + nItems, CMD_MACRO, i);
+		menu_enableItem(wp, hMenu, wItemIndex + nItems, CMD_MACRO, i);
 	}
 	return nItems;
 }
 
-static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
+static BOOL menu_appendMenuItems(WINFO* wp, HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 	char szLabel[100];
 	char charsWithMnemonic[256];
 
@@ -170,19 +171,19 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 		if (pMenu->mid_isHistoryMenu) {
 			wItem += menu_appendHistoryEntries(hMenu, pMenu->mid_isSeparator) - 1;
 		} else if (pMenu->mid_isMacroMenu) {
-			wItem += menu_appendMacroEntries(hMenu, wItem, pMenu->mid_label.bt_text, pMenu->mid_isSeparator) - 1;
+			wItem += menu_appendMacroEntries(wp, hMenu, wItem, pMenu->mid_label.bt_text, pMenu->mid_isSeparator) - 1;
 		}  else if (pMenu->mid_isSeparator) {
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
 		} else if (pMenu->mid_children) {
 			HMENU hNested = CreateMenu();
 			menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, TRUE);
 			AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hNested, szLabel);
-			menu_appendMenuItems(hNested, pMenu->mid_children);
+			menu_appendMenuItems(wp, hNested, pMenu->mid_children);
 		}
 		else {
 			menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, FALSE);
 			AppendMenu(hMenu, MF_STRING, ((int)pMenu->mid_command.typ << 16) + pMenu->mid_command.index, szLabel);
-			menu_enableItem(hMenu, wItem, pMenu->mid_command.typ, pMenu->mid_command.index);
+			menu_enableItem(wp, hMenu, wItem, pMenu->mid_command.typ, pMenu->mid_command.index);
 		}
 		pMenu = pMenu->mid_next;
 		wItem++;
@@ -193,17 +194,24 @@ static BOOL menu_appendMenuItems(HMENU hMenu, MENU_ITEM_DEFINITION* pMenu) {
 /*
  * Populate the current context menu depending on the action context of the current editor window.
  */
-static BOOL menu_populateContextMenu(WINFO* wp) {
-	MENU_ITEM_DEFINITION* pMenu = bindings_getContextMenuFor(wp->actionContext);
-	return menu_appendMenuItems(_contextMenu, pMenu);
+static BOOL menu_populateContextMenu(WINFO* wp, const char* pActionContext) {
+	MENU_ITEM_DEFINITION* pMenu = bindings_getContextMenuFor(pActionContext);
+	interpreter_setContextWindow(wp);
+	int ret = menu_appendMenuItems(wp, _contextMenu, pMenu);
+	interpreter_setContextWindow(0);
+	return ret;
 }
 
-static void menu_showContextMenu(HWND hwndParent, WINFO* wp, int x, int y) {
+/*
+ * Show the context menu given the parent window, the window pointer, an action context and the position
+ * of the menu.
+ */
+void menu_showContextMenu(HWND hwndParent, WINFO* wp, const char* pActionContext, int x, int y) {
 	if (_contextMenu != NULL) {
 		DestroyMenu(_contextMenu);
 	}
 	_contextMenu = CreatePopupMenu();
-	if (!menu_populateContextMenu(wp)) {
+	if (!menu_populateContextMenu(wp, pActionContext)) {
 		return;
 	}
 	_contextMenuPosition.x = x;
@@ -225,7 +233,7 @@ long long menu_openContextMenu() {
 	}
 	POINT pt;
 	GetCursorPos(&pt);
-	menu_showContextMenu(wp->ww_handle, wp, pt.x, pt.y);
+	menu_showContextMenu(wp->ww_handle, wp, wp->actionContext, pt.x, pt.y);
 	return 1;
 }
 
@@ -259,7 +267,7 @@ void menu_updateMenubarPopup(HMENU hMenu) {
 	MENU_ITEM_DEFINITION* pMenu = bindings_getMenuBarPopupDefinitionFor(pszContext, hMenu);
 	if (pMenu != NULL) {
 		menu_removeAllItems(hMenu);
-		menu_appendMenuItems(hMenu, pMenu);
+		menu_appendMenuItems(ww_getCurrentEditorWindow(), hMenu, pMenu);
 	}
 }
 

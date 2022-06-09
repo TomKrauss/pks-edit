@@ -49,6 +49,7 @@ extern void 	EditDroppedFiles(HDROP hdrop);
 extern void		tb_updateImageList(wchar_t* tbIcons, int nCount);
 
 static const char* _applicationName = "PKS EDIT";
+static WINFO* _selectedWindow;
 
 /*------------------------------------------------------------
  * FinalizePksEdit()
@@ -112,6 +113,7 @@ typedef struct tagTAB_CONTROL {
 	int			tc_firstTabOffset;
 	int			tc_stripHeight;
 	int			tc_firstVisibleTab;
+	int			tc_numberOfVisibleTabs;			// The number of tabs currently showing on the screen
 	int			tc_activeTab;
 	int			tc_rolloverTab;
 } TAB_CONTROL;
@@ -677,25 +679,14 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 	}
 	rect.bottom = rect.top + pControl->tc_stripHeight;
 	RECT* pRect;
-	HDC hdc = GetWindowDC(hwnd);
-	int nTotalWidth = 0;
-	for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
-		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-		tabcontrol_measureTab(hdc, pPage, i == pControl->tc_activeTab);
-		if (i == pControl->tc_firstVisibleTab) {
-			nTotalWidth = pPage->tp_width;
-		} else {
-			nTotalWidth += pPage->tp_width;
-		}
-	}
-	ReleaseDC(hwnd, hdc);
 	if (!mainframe_isCloseableDock(hwnd)) {
 		pControl->tc_closer.tw_visible = FALSE;
 		pControl->tc_closer.tw_bounds.left = rect.right;
-	} else {
+	}
+	else {
 		pControl->tc_closer.tw_visible = TRUE;
 		pRect = &pControl->tc_closer.tw_bounds;
-		pRect->right = rect.right-CLOSER_DISTANCE;
+		pRect->right = rect.right - CLOSER_DISTANCE;
 		pRect->left = pRect->right - CLOSER_SIZE;
 		int dDelta = (pControl->tc_stripHeight - CLOSER_SIZE) / 2;
 		pRect->top = rect.top + dDelta;
@@ -704,6 +695,26 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 	pControl->tc_tabstripRect.right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
 	pControl->tc_tabstripRect.top = rect.top;
 	pControl->tc_tabstripRect.bottom = rect.bottom;
+
+	HDC hdc = GetWindowDC(hwnd);
+	int nTotalWidth = 0;
+	int nAvailableSpace = pControl->tc_tabstripRect.right - pControl->tc_tabstripRect.left;
+	int nSize = (int) arraylist_size(pControl->tc_pages);
+	pControl->tc_numberOfVisibleTabs = nSize;
+	for (int i = 0; i < nSize; i++) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+		tabcontrol_measureTab(hdc, pPage, i == pControl->tc_activeTab);
+		if (i == pControl->tc_firstVisibleTab) {
+			nTotalWidth = pPage->tp_width;
+		} else {
+			nTotalWidth += pPage->tp_width;
+		}
+		if (i >= pControl->tc_firstVisibleTab && nTotalWidth > nAvailableSpace) {
+			pControl->tc_numberOfVisibleTabs = (i - pControl->tc_firstVisibleTab) + 1;
+			break;
+		}
+	}
+	ReleaseDC(hwnd, hdc);
 
 	pRect = &pControl->tc_leftScroller.tw_bounds;
 	if (pControl->tc_firstVisibleTab > 0) {
@@ -721,7 +732,7 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 	}
 
 	pRect = &pControl->tc_rightScroller.tw_bounds;
-	if (nTotalWidth > pControl->tc_tabstripRect.right - pControl->tc_tabstripRect.left) {
+	if (nTotalWidth > nAvailableSpace) {
 		int delta = (rect.bottom - rect.top - SCROLL_BUTTON_WIDTH) / 2;
 		pRect->top = rect.top + delta;
 		pRect->bottom = rect.bottom - delta;
@@ -999,6 +1010,47 @@ static BOOL tabcontrol_dragTab(HWND hwnd, TAB_CONTROL* pControl, TAB_PAGE* pPage
 	return FALSE;
 }
 
+static TAB_PAGE* tabcontrol_getPageFor(TAB_CONTROL* pControl, int x, int* pPageIndex) {
+	int tOffset = pControl->tc_tabstripRect.left;
+	x -= tOffset;
+	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
+		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+		if (x < 0) {
+			break;
+		}
+		if (x < pPage->tp_width) {
+			*pPageIndex = i;
+			return pPage;
+		}
+		x -= pPage->tp_width;
+	}
+	return 0;
+}
+
+/*
+ * Scroll the tabs by a given delta.
+ */
+static void tabcontrol_scrollTabs(HWND hwnd, int nDelta) {
+	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+	tabcontrol_measureTabStrip(hwnd, pControl);
+	int nNew = pControl->tc_firstVisibleTab + nDelta;
+	int nTotal = (int)arraylist_size(pControl->tc_pages);
+	if (pControl->tc_numberOfVisibleTabs && nTotal < pControl->tc_numberOfVisibleTabs && pControl->tc_firstVisibleTab == 0) {
+		return;
+	}
+	if (nNew >= nTotal) {
+		nNew = nTotal - 1;
+	}
+	if (nNew < 0) {
+		nNew = 0;
+	}
+	if (nNew != pControl->tc_firstVisibleTab) {
+		pControl->tc_firstVisibleTab = nNew;
+		tabcontrol_repaintTabs(hwnd, pControl);
+
+	}
+}
+
 /*
  * Handle tab selection with the mouse. 
  */
@@ -1016,37 +1068,29 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 		return;
 	}
 	if (PtInRect(&pControl->tc_leftScroller.tw_bounds, pt) && pControl->tc_firstVisibleTab > 0) {
-		pControl->tc_firstVisibleTab--;
-		tabcontrol_repaintTabs(hwnd, pControl);
+		tabcontrol_scrollTabs(hwnd, -1);
 		return;
 	}
 	if (PtInRect(&pControl->tc_rightScroller.tw_bounds, pt)) {
-		pControl->tc_firstVisibleTab++;
-		tabcontrol_repaintTabs(hwnd, pControl);
+		tabcontrol_scrollTabs(hwnd, 1);
 		return;
 	}
 	int tOffset = pControl->tc_tabstripRect.left;
 	x -= tOffset;
-	for (int i = pControl->tc_firstVisibleTab; i < arraylist_size(pControl->tc_pages); i++) {
-		TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-		if (x < 0) {
-			break;
-		}
-		if (x < pPage->tp_width) {
-			if (pControl->tc_rolloverTab == i) {
-				if (pPage->tp_hwnd) {
-					PostMessage(pPage->tp_hwnd, WM_CLOSE, 0, 0l);
-				}
-			} else {
-				if (bDrag) {
-					tabcontrol_dragTab(hwnd, pControl, pPage, x, y);
-				} else {
-					tabcontrol_selectTab(hwnd, pControl, i);
-				}
+	int i;
+	TAB_PAGE* pPage = tabcontrol_getPageFor(pControl, x, &i);
+	if (pPage) {
+		if (pControl->tc_rolloverTab == i) {
+			if (pPage->tp_hwnd) {
+				PostMessage(pPage->tp_hwnd, WM_CLOSE, 0, 0l);
 			}
-			break;
+		} else {
+			if (bDrag) {
+				tabcontrol_dragTab(hwnd, pControl, pPage, x, y);
+			} else {
+				tabcontrol_selectTab(hwnd, pControl, i);
+			}
 		}
-		x -= pPage->tp_width;
 	}
 }
 
@@ -1206,6 +1250,30 @@ static void tabcontrol_createTooltip(TAB_CONTROL* pControl) {
 	pControl->tc_hwndTooltip = cust_createToolTooltip(pControl->tc_hwnd);
 }
 
+static void tabcontrol_openContextMenu(HWND hwnd, int x, int y) {
+	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+	int i;
+	TAB_PAGE* pPage = tabcontrol_getPageFor(pControl, x, &i);
+	if (pPage) {
+		WINFO* wp = ww_getWinfoForHwnd(pPage->tp_hwnd);
+		if (wp) {
+			_selectedWindow = wp;
+			menu_showContextMenu(wp->ww_handle, wp, "editor-tabs", x, y);
+		}
+	}
+}
+
+/*
+ * Returns the "selected" window. This is either the window on which a context menu was opened or
+ * it is the current editor window.
+ */
+WINFO* mainframe_getSelectedEditorWindow() {
+	if (_selectedWindow) {
+		return _selectedWindow;
+	}
+	return ww_getCurrentEditorWindow();
+}
+
 /*
  * Window procedure of the main frame window.
  */
@@ -1228,6 +1296,16 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		pControl->tc_closer.tw_type = TW_CLOSER;
 		tabcontrol_createTooltip(pControl);
 		SetWindowLongPtr(hwnd, GWLP_TAB_CONTROL, (LONG_PTR)pControl);
+		break;
+
+	case WM_MOUSEWHEEL: {
+		int nDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+		tabcontrol_scrollTabs(hwnd, nDelta > 0 ? 1 : -1);
+		break;
+	}
+
+	case WM_CONTEXTMENU:
+		tabcontrol_openContextMenu(hwnd, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		break;
 
 	case WM_LBUTTONDOWN:
@@ -1650,10 +1728,13 @@ static int ww_closeChildWindow(HWND hwndChild, LONG someFlags)
 		return 0;
 	if (someFlags) {
 		WINFO* wp = ww_getWinfoForHwnd(hwndChild);
+		if ((someFlags & CWF_EXCLUDE_SELECTED) && (wp == _selectedWindow)) {
+			return 1;
+		}
 		if ((someFlags & CWF_EXCLUDE_CURRENT) && (wp == ww_getCurrentEditorWindow())) {
 			return 1;
 		}
-		if (someFlags & CWF_EXCLUDE_PINNED && wp && ww_isPinned(wp)) {
+		if ((someFlags & CWF_EXCLUDE_PINNED) && wp && ww_isPinned(wp)) {
 			return 1;
 		}
 	}
@@ -1918,7 +1999,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_PKSKEY:
 		error_closeErrorWindow();
-		macro_executeMacro(_executeKeyBinding);
+		macro_executeMacro(0, _executeKeyBinding);
 		return 0;
 
 	case WM_PKSOPTOGGLE:

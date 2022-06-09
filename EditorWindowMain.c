@@ -908,6 +908,7 @@ void ww_destroy(WINFO *wp) {
 	wp->blstart = 0;
 	wp->blend = 0;
 	wp->fp = NULL;
+	interpreter_setContextWindow(0);
 	nId = wp->win_id;
 	SetWindowLongPtr(wp->ww_handle, GWL_WWPTR, 0);
 	SetWindowLongPtr(wp->edwin_handle, GWL_VIEWPTR, 0);

@@ -43,13 +43,6 @@ typedef enum {
 #define	OPT_GLOBSET			(((long)OP_OPTIONS)<<16L)
 #define OPT_RECORD			(((long)OP_MACRO)<<16L)
 
-/**
- * Toggle one of the configuratión options of PKS-Edit.
- * The parameter option is an int-wise combination with a high word of the option as given above and the corresponding
- * option in the respective category.
- */
-extern long long EdOptionToggle(long option);
-
 /*------------------------------------------------------------
  * progress_cancelMonitor()
  * optional force redraw to reflect changes in the current

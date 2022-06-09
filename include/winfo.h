@@ -674,6 +674,14 @@ extern void ww_destroyAll();
  */
 extern int sl_size(WINFO* wp);
 
+/**
+ * Toggle one of the configuratión options of PKS-Edit.
+ * The parameter option is an int-wise combination with a high word of the option as given above and the corresponding
+ * option in the respective category.
+ */
+extern long long EdOptionToggle(WINFO* wp, long option);
+
+
 #define FTPOI(wp)		(FTABLE*)(wp->fp)
 
 
