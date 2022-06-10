@@ -18,6 +18,7 @@
 #include "linkedlist.h"
 #include "caretmovement.h"
 #include "edierror.h"
+#include "pksrc.h"
 #include "errordialogs.h"
 #include "editorconfiguration.h"
 
@@ -26,7 +27,6 @@
 #include "actions.h"
 #include "grammar.h"
 
-#include "dos.h"
 #include "pathname.h"
 #include "fileselector.h"
 #include "history.h"
@@ -784,12 +784,30 @@ static int ft_openMultipleFiles(const char* pszMultiFiles, int codepage) {
 	int nOffs = (int)strlen(fullpath);
 	fullpath[nOffs++] = '\\';
 	int nFilesOffset = nOffs;
-	while (pszMultiFiles[nFilesOffset]) {
-		pszMultiFiles = &pszMultiFiles[nFilesOffset];
-		strcpy(&fullpath[nOffs], pszMultiFiles);
-		nFilesOffset = (int)(strlen(pszMultiFiles) + 1);
+
+	const char* pszRun = pszMultiFiles;
+	int nCount = 0;
+	while (pszRun[nFilesOffset]) {
+		pszRun = &pszRun[nFilesOffset];
+		nFilesOffset = (int)(strlen(pszRun) + 1);
+		nCount++;
+	}
+	int nMax = GetConfiguration()->maximumNumberOfOpenWindows;
+	if (nMax > 0 && nCount > nMax) {
+		error_showErrorById(IDS_TRYING_TO_OPEN_TOO_MANY_FILES, nMax);
+		nCount = nMax;
+	}
+	nFilesOffset = nOffs;
+	pszRun = pszMultiFiles;
+	while (pszRun[nFilesOffset]) {
+		pszRun = &pszRun[nFilesOffset];
+		strcpy(&fullpath[nOffs], pszRun);
+		nFilesOffset = (int)(strlen(pszRun) + 1);
 		if (ft_openFileWithoutFileselector(fullpath, 0L, &(FT_OPEN_OPTIONS) { NULL, codepage }) == NULL) {
 			return 0;
+		}
+		if (--nCount <= 0) {
+			break;
 		}
 	}
 	return 1;

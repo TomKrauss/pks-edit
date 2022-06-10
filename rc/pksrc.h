@@ -71,6 +71,7 @@
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
 #define IDS_REDO                        1246
+#define IDS_TRYING_TO_OPEN_TOO_MANY_FILES 1914
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
 #define IDS_COMMAND253                  2301

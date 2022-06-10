@@ -23,6 +23,9 @@
 #include "winfo.h"
 #include "findandreplace.h"
 #include "ftw.h"
+#include "pksrc.h"
+#include "edierror.h"
+#include "editorconfiguration.h"
 
 #define iswhite(c)	(c == ' ' || c == '\t')
 
@@ -41,12 +44,22 @@ static int arguments_parsePhase1(char *arg) {
 	return 1;
 }
 
+static int _maxMultiFileCount;
+
 static int argument_open(const char* pszFilespec, DTA* p) {
 	xref_openFile(pszFilespec, 0L, (void*)0);
+	if (--_maxMultiFileCount <= 0) {
+		error_showErrorById(IDS_TRYING_TO_OPEN_TOO_MANY_FILES, GetConfiguration()->maximumNumberOfOpenWindows);
+		return 1;
+	}
 	return 0;
 }
 
 static void argument_openFiles(const char* pszFilespec) {
+	_maxMultiFileCount = GetConfiguration()->maximumNumberOfOpenWindows;
+	if (_maxMultiFileCount <= 0) {
+		_maxMultiFileCount = 32000;
+	}
 	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
 		_ftw(".", argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
 	}

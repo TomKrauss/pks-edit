@@ -12,7 +12,7 @@ extern "C" {
 #include "../include/edctype.h"
 #include "../include/levensthein.h"
 
-extern int string_matchFilename(char* string, char* pattern);
+extern int string_matchFilename(const char* string, const char* pattern);
 }
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
