@@ -405,12 +405,6 @@ set of annoations is supported:
   - `ignoreDuringRecording` can be used to express, that the execution of this macro will not be recorded by the macro recorder
   - `undoAvailable` can be used to express, that the execution of this macro requires undo to be possible.
 
-## Caveats
-
-PKSMacroC currently does not support short-circuiting boolean expressions (McCarthy evaluations). In the expression `if (len < 10 && array[len] == c)` 
-`array[len] == c` is **always evaluated** regardless of the outcome of the test `len < 10`. We will fix this later to make boolean expressions more
-powerful and simpler to write.
-
 
 
 

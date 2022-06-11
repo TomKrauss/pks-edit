@@ -73,6 +73,7 @@ static MACRO_PARAM		_macroParam;
 static void		*_currentNativeMethodCalled;
 static int		_nparam,
 				_breaklevel,
+				_shortcutJumpLevel,
 				_iflevel;
 static      int  _currentFunctionCallParamIndices[32];
 static      int  *_currentFunctionCallParamIndexP = _currentFunctionCallParamIndices;
@@ -91,6 +92,8 @@ static 		char *lstartid  = "%ls%",
 				 *switchTableId  = "%sw%",
 				*lreturnid = "%rt%",
 				*iffailid  = "%if%",
+				*andid  = "%and%",
+				*orid  = "%or%",
 				*ifdoneid  = "%id%";
 
 extern 			int	_bInNativeDefinition;
@@ -815,8 +818,20 @@ binary_expression:
 			| binary_expression T_SHIFT_LEFT binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_LEFT}); }
 			| binary_expression T_SHIFT_RIGHT binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_SHIFT_RIGHT}); }
 			| binary_expression T_POWER_TO binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_POWER}); }
-			| binary_expression T_AND binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_AND}); }
-			| binary_expression T_OR binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_OR}); }
+			| binary_expression T_AND {
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, andid, _shortcutJumpLevel,BRA_TOS_IF_FALSE);
+				$$.num = _shortcutJumpLevel++;
+			} binary_expression { 
+				$$.ident.type = VT_BOOLEAN;
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, andid, (int)$3.num);
+			}
+			| binary_expression T_OR {
+				bytecode_emitGotoInstruction(_currentBytecodeBuffer, orid, _shortcutJumpLevel,BRA_TOS_IF_TRUE);
+				$$.num = _shortcutJumpLevel++;
+			} binary_expression { 
+				$$.ident.type = VT_BOOLEAN; 
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, orid, (int)$3.num);
+			}
 			| binary_expression '<' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
 			| binary_expression '>' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
 			| binary_expression T_LE binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
@@ -1308,6 +1323,7 @@ static void init_macroDefinition(void)
 	_nparam = 0;
 	_currentNativeMethodCalled  = 0;
 	_breaklevel = 0;
+	_shortcutJumpLevel = 0;
 	_iflevel    = 0;
 	_localVariableIndex = 0;
 	_currentIdentifierContext = sym_pushContext(_currentIdentifierContext, 0);

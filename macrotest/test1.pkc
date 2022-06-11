@@ -43,13 +43,33 @@ static void Setup-SuiteBaseTests() {
 }
 
 /*
+ * Tests Issue #6: whether short circuit evaluation (MCCarthy Evaluation) works
+ */
+static void Test-ShortcircuitEvaluation() {
+	string tester = "Hello";
+	
+	if (size(tester) > 5 && tester[5] == 'o') {
+		Fail("Wrong evaluation of wrong short circuit && expression");
+	}
+	if (size(tester) <= 5 || tester[5] == 'o') {
+		Success("Correctly evaluated short circuit || expression");
+	}
+	if (size(tester) > 4 && tester[4] == 'o') {
+		Success("Correctly evaluated short circuit && expression");
+	} else {
+		Fail("Wrong evaluation of correct short circuit && expression");
+	}
+}
+
+/*
  * Tests operations on files.
  */
 static void Test-FileIO() {
 	FILE fp;
 	string s;
+	string homeDir = PathCreateFromSegments(GetVariable("pks_sys"), "..");
 	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
-	string fn = "Actions.c";
+	string fn = PathCreateFromSegments(homeDir, "Actions.c");
 
 	AssertTrue(FileTest(fn), fn + " should exist");
 	AssertFalse(FileTest(fn, "-d"), fn + " not be a directory");

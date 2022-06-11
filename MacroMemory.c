@@ -566,6 +566,7 @@ PKS_VALUE memory_getNestedObject(PKS_VALUE v, int nIndex) {
 		}
 		interpreter_raiseError("Index %d out of range[%d..%d] for accessing array.", nIndex, 0, pPointer->od_capacity);
 	}
+	// TODO: should we raise an error here too?
 	return (PKS_VALUE) { 0 };
 }
 

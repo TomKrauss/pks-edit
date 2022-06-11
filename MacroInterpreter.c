@@ -851,6 +851,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 			}
 			NATIVE_FUNCTION* fup = &_functionTable[funcnum];
 			returnValue = ((PKS_VALUE (*)())fup->nf_execute)(pContext, pStack, nParametersPassed);
+			// TODO: memory leak, if an exception occurs during execute
 			free(pStack);
 		} else {
 			PKS_VALUE* pOld = pContext->ec_stackFrame;
@@ -992,26 +993,42 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		switch (cp->typ) {
 		case C_GOTO: {
 			BRANCH_TYPE bt = ((COM_GOTO*)cp)->branchType;
+			PKS_VALUE stackTop;
 			int val;
-			if (bt == BRA_ALWAYS) {
-				pInstr = COM1_INCR(cp, COM_GOTO, offset);
-				continue;
+			switch (bt) {
+			case BRA_ALWAYS:
+					pInstr = COM1_INCR(cp, COM_GOTO, offset);
+					continue;
+				case BRA_IF_FALSE:
+					stackTop = interpreter_popStackValue(pContext);
+					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					val = !stackTop.pkv_data.booleanValue;
+					break;
+				case BRA_TOS_IF_FALSE:
+					stackTop = interpreter_peekStackValue(pContext);
+					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					val = !stackTop.pkv_data.booleanValue;
+					break;
+				case BRA_TOS_IF_TRUE:
+					stackTop = interpreter_peekStackValue(pContext);
+					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					val = stackTop.pkv_data.booleanValue;
+					break;
+				case BRA_CASE: {
+					PKS_VALUE caseLabelValue = interpreter_popStackValue(pContext);
+					PKS_VALUE compareWith = interpreter_peekStackValue(pContext);
+					val = interpreter_testCaseLabelMatch(pContext, caseLabelValue, compareWith);
+				}
+				break;
+				default:
+					val = 0;
+					break;
 			}
-			else if (bt == BRA_IF_FALSE) {
-				PKS_VALUE stackTop = interpreter_popStackValue(pContext);
-				stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
-				val = !stackTop.pkv_data.booleanValue;
-			} else if (bt == BRA_CASE) {
-				PKS_VALUE caseLabelValue = interpreter_popStackValue(pContext);
-				PKS_VALUE compareWith = interpreter_peekStackValue(pContext);
-				val = interpreter_testCaseLabelMatch(pContext, caseLabelValue, compareWith);
+			if (val == TRUE) {
+				pInstr = COM1_INCR(cp, COM_GOTO, offset);
 			} else {
-				val = 0;
-			}
-			if (val == TRUE)
-				pInstr = COM1_INCR(cp, COM_GOTO, offset);
-			else
 				pInstr = COM_PARAMINCR(cp);
+			}
 			continue;
 		}
 		case C_POP_STACK:

@@ -230,8 +230,6 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
 		}
 		switch (op) {
 		case CT_NOT: bResult = !bBool1; break;
-		case CT_AND: bResult = bBool1 && bBool2; break;
-		case CT_OR: bResult = bBool1 || bBool2; break;
 		case CT_BRACKETS: bResult = bBool1;
 		default: goto notimpl;
 		}
@@ -360,7 +358,7 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
 		return;
 	}
-	if (op == BIN_AT && v2.pkv_type == VT_NUMBER && types_getObjectSize(v1.pkv_type) > 0) {
+	if (op == BIN_AT && v2.pkv_type == VT_NUMBER && v1.pkv_type != VT_STRING) {
 		int nIndex = v2.pkv_data.intValue;
 		interpreter_pushValueOntoStack(pContext, memory_getNestedObject(v1, nIndex));
 		return;

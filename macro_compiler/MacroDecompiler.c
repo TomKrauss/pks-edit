@@ -28,6 +28,11 @@
 #include "errordialogs.h"
 #include "arraylist.h"
 
+// Synthetic logical expressions not generated in the byte code this way, but introduced for easier
+// printing of logical expressions
+#define CT_AND			99
+#define CT_OR			100
+
 void bytecode_closeAutoLabels(void);
 int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
@@ -51,6 +56,8 @@ typedef enum {
 	CFM_ELSE,				// } else { ...
 	CFM_CONTINUE,			// continue...
 	CFM_BREAK,				// break...
+	CFM_AND,				// logical AND
+	CFM_OR,					// logical OR
 	CFM_END_BLOCK,			// }
 } CONTROL_FLOW_MARK;
 
@@ -79,8 +86,8 @@ static void decompile_print(STRING_BUF* pBuf, const char* fmt, ...) {
 static char *decompile_stringForTestOperator(unsigned char op)
 {
 	switch(op & (~0x10)) {
-		case CT_AND:	return "&&";
-		case CT_OR:	return "||";
+		case CT_OR: return "||";
+		case CT_AND: return "&&";
 		case CT_BRACKETS: return "()";
 		case CT_NOT:   return "!";
 		case CT_EQ:	return "==";
@@ -536,8 +543,6 @@ static DECOMPILATION_STACK_ELEMENT* decompile_function(COM_1FUNC* sp, DECOMPILAT
 static char* decompile_testOperationAsString(unsigned char op) {
 
 	switch (op) {
-	case CT_AND: return "and";
-	case CT_OR: return "or";
 	case CT_BRACKETS: return "()";
 	case CT_EQ: return "equals";
 	case CT_NE: return "not-equals";
@@ -569,15 +574,15 @@ static BOOL decompile_expressionNeedsBrackets(COM_BINOP* cp, DECOMPILATION_STACK
 /*
  * decompile_printBinaryExpression()
  */
-static DECOMPILATION_STACK_ELEMENT* decompile_printTestExpression(COM_BINOP* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+static DECOMPILATION_STACK_ELEMENT* decompile_printTestExpression(COM_0FUNC* pFunc, int nOperation, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
 	char* pRight = pStackCurrent > pStack ? pStackCurrent[-1].dse_printed : "";
-	char* pLeft = cp->op != CT_NOT && pStackCurrent > pStack-1 ? pStackCurrent[-2].dse_printed : "";
+	char* pLeft = nOperation != CT_NOT && pStackCurrent > pStack-1 ? pStackCurrent[-2].dse_printed : "";
 	char szBuf[512];
 
 	szBuf[0] = 0;
-	switch (cp->op) {
+	switch (nOperation) {
 	default:
-		sprintf(szBuf, "%s %s %s", pLeft, decompile_stringForTestOperator(cp->op), pRight);
+		sprintf(szBuf, "%s %s %s", pLeft, decompile_stringForTestOperator(nOperation), pRight);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 		break;
 	case CT_NOT:
@@ -585,7 +590,7 @@ static DECOMPILATION_STACK_ELEMENT* decompile_printTestExpression(COM_BINOP* cp,
 		break;
 	}
 	pStackCurrent = decompile_popStack(pStackCurrent, pStack);
-	pStackCurrent->dse_instruction = (COM_0FUNC*)cp;
+	pStackCurrent->dse_instruction = pFunc;
 	pStackCurrent->dse_printed = _strdup(szBuf);
 	pStackCurrent++;
 	return pStackCurrent;
@@ -722,6 +727,8 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 			case BRA_ALWAYS: decompile_print(pBuf, "goto 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			case BRA_CASE: decompile_print(pBuf, "branchCase 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			case BRA_IF_FALSE: decompile_print(pBuf, "branchIfFalse 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_TOS_IF_FALSE: decompile_print(pBuf, "branchTOSIfFalse 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
+			case BRA_TOS_IF_TRUE: decompile_print(pBuf, "branchTOSIfTrue 0x%x", nOffs + ((COM_GOTO*)sp)->offset); break;
 			}
 			break;
 		case C_BINOP: decompile_print(pBuf, "operation %s", decompile_binaryOperationAsString(((COM_BINOP*)sp)->op)); break;
@@ -838,6 +845,10 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 						}
 					}
 				}
+			} else if (pGoto->offset > 0 && (pGoto->branchType == BRA_TOS_IF_FALSE || pGoto->branchType == BRA_TOS_IF_TRUE)) {
+				int nOffs = pGoto->offset - sizeof(COM_GOTO);
+				COM_GOTO* pTarget = (COM_GOTO*)(pBytecode + nOffs);
+				pResult[nFound++] = (CONTROL_FLOW_MARK_INDEX){ .cfmi_mark = pGoto->branchType == BRA_TOS_IF_FALSE ? CFM_AND : CFM_OR, .cfmi_bytecodeAddress = (unsigned char*)pTarget };
 			} else if (pGoto->branchType == BRA_IF_FALSE && pGoto->offset > 0) {
 				BOOL bDone = FALSE;
 				int nOffs = pGoto->offset - sizeof(COM_GOTO);
@@ -1047,10 +1058,12 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 				if (pFoundMark->cfmi_mark == CFM_ELSE) {
 					decompile_indent(pBuf, nIndent - 1);
 					decompile_print(pBuf, "} else {\n");
-				} else if (pFoundMark->cfmi_mark == CFM_BREAK) {
+				}
+				else if (pFoundMark->cfmi_mark == CFM_BREAK) {
 					decompile_indent(pBuf, nIndent - 1);
 					decompile_print(pBuf, "break;\n");
-				} else if (pFoundMark->cfmi_mark == CFM_CONTINUE) {
+				}
+				else if (pFoundMark->cfmi_mark == CFM_CONTINUE) {
 					decompile_indent(pBuf, nIndent - 1);
 					decompile_print(pBuf, "continue;\n");
 				}
@@ -1058,7 +1071,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 					pFoundMark = 0;
 				}
 			}
-			if (!pFoundMark && cp->offset != sizeof(COM_GOTO)) {
+			if (!pFoundMark && cp->offset != sizeof(COM_GOTO) && cp->branchType != BRA_TOS_IF_FALSE && cp->branchType != BRA_TOS_IF_TRUE) {
 				decompile_indent(pBuf, nIndent);
 				decompile_print(pBuf, "%s %s;\n",
 					(cp->branchType == BRA_ALWAYS) ? "goto" : "braeq",
@@ -1074,7 +1087,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			}
 		}
 		else if (opCode == C_LOGICAL_OPERATION) {
-			pStackCurrent = decompile_printTestExpression((COM_BINOP*)sp, pStackCurrent, pStack);
+			pStackCurrent = decompile_printTestExpression((COM_0FUNC*)sp, ((COM_BINOP*)sp)->op, pStackCurrent, pStack);
 		} 
 		else if (opCode == C_SPREAD && pStackCurrent[-1].dse_printed) {
 			char* pszParam = pStackCurrent[-1].dse_printed;
@@ -1134,10 +1147,15 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			decompile_indent(pBuf, nIndent);
 			decompile_print(pBuf, "// format error in %s type=%x",MAC_NAME(mp),opCode);
 		}
-		if (pFoundMark && pFoundMark->cfmi_mark == CFM_END_BLOCK) {
-			nIndent--;
-			decompile_indent(pBuf, nIndent);
-			decompile_print(pBuf, "}\n");
+		if (pFoundMark) {
+			if (pFoundMark->cfmi_mark == CFM_END_BLOCK) {
+				nIndent--;
+				decompile_indent(pBuf, nIndent);
+				decompile_print(pBuf, "}\n");
+			}
+			else if (pFoundMark->cfmi_mark == CFM_AND || pFoundMark->cfmi_mark == CFM_OR) {
+				pStackCurrent = decompile_printTestExpression((COM_0FUNC*)sp, pFoundMark->cfmi_mark == CFM_AND ? CT_AND : CT_OR, pStackCurrent, pStack);
+			}
 		}
 		nPreviousOpCode = opCode;
 		sp += interpreter_getParameterSize(*sp,sp+1);
