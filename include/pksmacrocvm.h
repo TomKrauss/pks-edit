@@ -222,7 +222,7 @@ extern void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType);
  * Returns the enum value table for a PKSMacroC enum type plus the respective size. The type is searched,
  * where the enzm values start with a given prefix.
  */
-int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType);
+extern int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType);
 
 /*
  * Returns the name of a property of a structured object given the type index and the property index.
@@ -346,20 +346,20 @@ extern int interpreter_getParameterSize(unsigned char typ, const char* s);
 extern PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType);
 
 typedef struct tagCOM_1FUNC {
-	unsigned char	typ;			// C_1FUNC - carries one explicit param to pass
+	unsigned char	typ;			// Used with bytecde C_1FUNC - carries one explicit param to pass
 	unsigned char	funcnum;		// index into editor function table _functionTable
 	int				func_args;		// Number of arguments actually passed.
 	long			p;				// optional parameter to pass
 } COM_1FUNC;
 
 typedef struct tagCOM_0FUNC {
-	unsigned char typ;				// C_0FUNC all params are located on the stack
+	unsigned char typ;				// Used with bytecde C_0FUNC - all params are located on the stack
 	unsigned char funcnum;			// index in function table
 	int			  func_nargs;		// Number of arguments actually passed.
 } COM_0FUNC;
 
 typedef struct tagCOM_MAC {
-	unsigned char typ;				// C_MACRO, C_MACRO_REF
+	unsigned char typ;				// Used with bytecdes C_MACRO, C_MACRO_REF
 	unsigned char heapIndex;		// for C_MACRO_REF, if referring to local variable
 	int			  func_args;		// Number of arguments actually passed.
 	unsigned char name[1];			// 0-term. string padded to even #
@@ -375,12 +375,12 @@ typedef struct tagCOMMAND {
 } COMMAND;
 
 typedef struct tagCOM_ASSIGN {
-	unsigned char 	typ;			// C_ASSIGN assign current stack top to a variable or C_ASSIGN_SLOT with slot being stack top and value being next to top.
+	unsigned char 	typ;			// Used with bytecde C_ASSIGN - assign current stack top to a variable or C_ASSIGN_SLOT with slot being stack top and value being next to top.
 	unsigned char	name[1];		// variable name of variable assigned
 } COM_ASSIGN;
 
 typedef struct tagCOM_DEFINE_SYMBOL {
-	unsigned char 	typ;			// C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
+	unsigned char 	typ;			// Used with bytecdes C_DEFINE_PARAMETER or C_DEFINE_VARIABLE
 	unsigned char 	vartype;		// variable type
 	unsigned char	heapIndex;		// For non-global vars - the offset into the heap / the slot in the heap.
 	unsigned short	value;			// for array type variables the size of the array for parameters the index of the parameter or index for C_ASSIGN_SLOT
@@ -390,14 +390,16 @@ typedef struct tagCOM_DEFINE_SYMBOL {
 
 typedef enum {
 	BRA_ALWAYS = 0,					// Branch always independent of a condition / the value on the stack.
-	BRA_IF_FALSE = 1,				// Take the top value of the stack, If that is false -> perform a branch
-	BRA_CASE = 2					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they
+	BRA_IF_FALSE = 1,				// Pop the top value off the stack, If that is false -> perform a branch
+	BRA_CASE = 2,					// Used to evaluate case-labels of a switch expression. Will compare two stack top values and if they
 									// match, perform a branch
+	BRA_TOS_IF_FALSE = 3,			// Evaluate top of the stack (peek) and branch if false. Used in && expression for short circuit evaluations.
+	BRA_TOS_IF_TRUE = 4				// Evaluate top of the stack (peek) and branch if true. Used in || expression for short circuit evaluations.
 } BRANCH_TYPE;
 
 typedef struct tagCOM_GOTO {
-	unsigned char typ;				// C_GOTO, C_GOCOND */
-	unsigned char branchType;		// BRA_ALWAYS, BRA_IF_FALSE, BRA_CASE */
+	unsigned char typ;				// Used with bytecde C_GOTO*/
+	unsigned char branchType;		// BRA_ALWAYS, BRA_IF_FALSE, BRA_CASE, BRA_TOS_IF_FALSE, BRA_TOS_IF_TRUE */
 	int		    offset;
 } COM_GOTO;
 
