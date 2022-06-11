@@ -1097,6 +1097,11 @@ void EditDroppedFiles(HDROP hDrop)
 
 	nTotal = DragQueryFile( hDrop , 0xFFFFFFFF, NULL, 0 );
 
+	int nMax = GetConfiguration()->maximumNumberOfOpenWindows;
+	if (nMax > 0 && nTotal > nMax) {
+		error_showErrorById(IDS_TRYING_TO_OPEN_TOO_MANY_FILES, nMax);
+		nTotal = nMax;
+	}
 	for ( i = 0; i < nTotal; i++ )
 	{
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
