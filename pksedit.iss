@@ -11,7 +11,7 @@ Name: fileAssociation; Description: "{cm:AssociateFiles}"; GroupDescription: "{c
 
 [Setup]
 AppName=PKS-Edit
-AppVersion=2.2.0
+AppVersion=2.3.0
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit
 UsePreviousAppDir=yes
