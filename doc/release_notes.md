@@ -2,8 +2,13 @@
 
 This file contains the release notes for the latest **PKS Edit** releases.
 
---- 
-### 2.2.0
+## 2.3.0
+
+### Fixes
+- Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
+  and line numbers were not displayed up to the last visible line in hex editor mode.
+
+## 2.2.0
 
 This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
 Wysiwyg rendering of markdown documents and navigating in wysiwyg windows has been improved. Printing of
@@ -110,7 +115,7 @@ simple HTML formatting including hyperlink to more documentation.
 - A potential crash when redoing a sort operation was fixed.
 - Undoing a sort operation will correctly reset the line flags.
 
-### 2.1.0
+## 2.1.0
 
 #### New
 - PKS Edit does not use an out-dated MDI style user interface any more, but manages its windows now in tabs which can be attached

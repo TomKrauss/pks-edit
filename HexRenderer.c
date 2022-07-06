@@ -28,6 +28,8 @@
 #define	HEX_MAX_COL				4*HEX_BYTES_PER_LINE+HEX_ASCII_DISTANCE-1
 #define IS_IN_HEX_NUMBER_AREA(col)	(col < 3*HEX_BYTES_PER_LINE)
 
+extern int render_calculateScrollDelta(long val, long minval, long maxval, int scrollBy);
+
 typedef struct tagHEX_RENDERER_DATA {
 	LINE* pByteOffsetCache;	// Used to speed up the calculation of "byte offsets" into our line pointers (used in Hex editing)
 	long	nCachedByteOffset;	// See above - only valid if pByteOffsetCache is not null
@@ -525,6 +527,23 @@ PRINT_FRAGMENT_RESULT hex_print(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam,
 	return nMax >= nMaxLines ? PFR_END : PFR_END_PAGE;
 }
 
+static int hex_adjustScrollBounds(WINFO* wp) {
+	int ret = render_adjustScrollBounds(wp);
+	if (ret) {
+		return 1;
+	}
+	long nLine;
+	long nCol;
+	int dx = 0;
+	hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
+	int dy = render_calculateScrollDelta(nLine, wp->mincursln, wp->maxcursln, wp->vscroll);
+	if (dy) {
+		if (sl_scrollwinrange(wp, &dy, &dx))
+			sl_winchanged(wp, dy, dx);
+		return 1;
+	}
+	return 0;
+}
 
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
@@ -538,7 +557,7 @@ static RENDERER _hexRenderer = {
 	hex_allocData,
 	0,
 	wt_scrollxy,
-	render_adjustScrollBounds,
+	hex_adjustScrollBounds,
 	.r_updateCaretUI = hex_updateCaretUI,
 	hex_rendererSupportsMode,
 	caret_calculateOffsetFromScreen,

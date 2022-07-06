@@ -1534,14 +1534,18 @@ static void draw_lineNumbers(WINFO* wp) {
 	if (maxln > nMax-1) {
 		maxln = nMax-1;
 	}
+	// TODO: the assumption, that line pointers correspond to line numbers painted
+	// is currently true only for non-hex renderers.
 	LINE* lp = ww_getMinLine(wp, wp->minln);
 	int nRightPadding = LINE_ANNOTATION_WIDTH + (2 * LINE_ANNOATION_PADDING);
 	if (wp->comparisonLink != NULL) {
 		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
 	}
-	for (yPos = rect.top, row = wp->minln; lp && row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
+	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
-			lp = lp->next;
+			if (lp) {
+				lp = lp->next;
+			}
 			continue;
 		}
 		if (yPos > ps.rcPaint.bottom+wp->cheight) {
@@ -1550,7 +1554,7 @@ static void draw_lineNumbers(WINFO* wp) {
 		RECT textRect;
 		textRect.top = yPos;
 		textRect.bottom = yPos + wp->cheight;
-		if (wp->comparisonLink != NULL && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
+		if (wp->comparisonLink != NULL && lp && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
 			HBRUSH bgBrush2;
 			char* pszText;
 			if (lp->lflg & LN_COMPARE_MODIFIED) {
@@ -1576,21 +1580,24 @@ static void draw_lineNumbers(WINFO* wp) {
 		sprintf(text, "%d:", row + 1);
 		textLen = strlen(text);
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
-		if (lp->lflg & LNMODIFIED) {
-			RECT r;
-			r.left = rect.right - LINE_ANNOTATION_WIDTH - LINE_ANNOATION_PADDING;
-			r.right = rect.right - 2;
-			r.top = yPos;
-			r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
-			HBRUSH hBrush = hAnnotationBrush;
-			if (lp->lflg & LNUNDO_AFTER_SAVE) {
-				hBrush = hUndoAfterSavedBrush;
-			} else if (lp->lflg & LNSAVED) {
-				hBrush = hSavedBrush;
+		if (lp) {
+			if (lp->lflg & LNMODIFIED) {
+				RECT r;
+				r.left = rect.right - LINE_ANNOTATION_WIDTH - LINE_ANNOATION_PADDING;
+				r.right = rect.right - 2;
+				r.top = yPos;
+				r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
+				HBRUSH hBrush = hAnnotationBrush;
+				if (lp->lflg & LNUNDO_AFTER_SAVE) {
+					hBrush = hUndoAfterSavedBrush;
+				}
+				else if (lp->lflg & LNSAVED) {
+					hBrush = hSavedBrush;
+				}
+				FillRect(hdc, &r, hBrush);
 			}
-			FillRect(hdc, &r, hBrush);
+			lp = lp->next;
 		}
-		lp = lp->next;
 	}
 	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerBorderColor);
 	HPEN hPenOld = SelectObject(hdc, markerPen);
