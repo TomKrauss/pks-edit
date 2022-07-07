@@ -7,6 +7,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
 ### Fixes
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
   and line numbers were not displayed up to the last visible line in hex editor mode.
+- Convert spaces to tabs had been broken and is fixed.
 
 ## 2.2.0
 

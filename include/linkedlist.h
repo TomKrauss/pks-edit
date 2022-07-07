@@ -35,13 +35,13 @@ typedef struct linkedList {
 /**
  * Find the index of an element in a linked list or return -1 if not found.
  */
-extern long ll_indexOf(LINKED_LIST* pHead, LINKED_LIST* lp);
+extern long ll_indexOf(LINKED_LIST* pHead, const LINKED_LIST* lp);
 
 /**
  * Find the index of two elements in a linked list. If both elements are found (idx1 and idx2 can be determined),
  * return 1, 0 otherwise.
  */
-extern int ll_indexTwoElements(LINKED_LIST* pHead, void* lp1, void* lp2, long* pIdx1, long* pIdx2);
+extern int ll_indexTwoElements(LINKED_LIST* pHead, const void* lp1, const void* lp2, long* pIdx1, long* pIdx2);
 
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()

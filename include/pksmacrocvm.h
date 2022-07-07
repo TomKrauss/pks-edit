@@ -230,11 +230,6 @@ extern int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER
 extern const char* types_getPropertyName(PKS_VALUE_TYPE t, int aPropertyIndex);
 
 /*
- * Returns a pks-value-type for a given type name.
- */
-extern PKS_VALUE_TYPE types_typeIndexFor(const char* pszTypename);
-
-/*
  * Return the converter for a given value handle or 0 if not converter exists.
  */
 extern T_CONVERT_HANDLE types_getConverterToMemory(PKS_VALUE_TYPE vType);
@@ -571,7 +566,7 @@ extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS
 /*
  * Returns an array object with all keys contained in the map type value passed as single argument.
  */
-extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs);
 
 /*
  * If the passed value is of type "handle" (file handle, editor handle etc...), it is assumed,
@@ -589,12 +584,12 @@ extern PKS_VALUE memory_createHandleObject(EXECUTION_CONTEXT* pContext, PKS_VALU
 /*
  * Returns an array object with all values contained in the map type value passed as single argument.
  */
-extern PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+extern PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs);
 
 /*
  * Returns an array object with all MAP_ENTRY objects in the map type value passed as single argument.
  */
-extern PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs);
+extern PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs);
 
 /*
  * Return the "index" of one object in a give array type object.

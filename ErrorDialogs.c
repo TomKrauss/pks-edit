@@ -325,7 +325,7 @@ void error_displayGenericErrorNumber(int num)
 void error_openingFileFailed(char *fn, int fd)
 {
 	DWORD dw = GetLastError();
-	LPVOID lpMsgBuf;
+	LPVOID lpMsgBuf = 0;
 
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -336,7 +336,7 @@ void error_openingFileFailed(char *fn, int fd)
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
-	error_showErrorById(IDS_MSGOPEN,(LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
+	error_showErrorById(IDS_MSGOPEN, (LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
 

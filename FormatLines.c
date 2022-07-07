@@ -137,7 +137,6 @@ static INDENTATION_DELTA format_calculateCodeIndentationDelta(FORMATTER* pFormat
 		COMMENT_DESCRIPTOR* pCD = &fparam->fparam_cd;
 		BOOL nStartFound = FALSE;
 		for (int i = 0; i < nLen - 1; i++) {
-			BOOL bSpace = pBuf[i] == ' ' || pBuf[i] == '\t';
 			// todo: allow for case ignore comment introducers like "REM" / "rem"
 			if (pCD->comment_end && string_compareWithSecond(&pBuf[i+1], pCD->comment_end, FALSE) == 0) {
 				if (nStartFound) {
@@ -294,7 +293,7 @@ static void format_insertLine(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 	ll_add(pDest, (LINKED_LIST*) lpNew);
 }
 
-static LINE* format_textInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE* lp, LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
+static LINE* format_textInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LINE* lp, const LINE* lplast, FORMATTING_ALIGNMENT nAlignment) {
 	WINFO* wp = fparam->fparam_wp;
 	LINE* lpDest = 0;
 	int nCurrentScreenIndent;

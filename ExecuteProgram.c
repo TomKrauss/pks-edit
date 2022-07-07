@@ -105,7 +105,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 	si.wShowWindow = show;
-	if (flags & (EX_RDCONV|EX_RDOUT)) {
+	if (flags & (EX_RDCONV|EX_RDIN)) {
 		hStdin = CreateFile(
 			infile,
 			GENERIC_READ,
@@ -115,7 +115,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 			FILE_ATTRIBUTE_READONLY,
 			NULL);
 	}
-	if (flags & (EX_RDCONV | EX_RDOUT)) {
+	if (flags & (EX_RDCONV|EX_RDOUT)) {
 		hStdout = CreateFile(
 			outfile,
 			GENERIC_READ,

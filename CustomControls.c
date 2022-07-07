@@ -144,7 +144,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 		dwColtext = pTheme->th_dialogDisabled;
 	}
 	GetWindowText(hwnd,szBuff,sizeof szBuff);
-	hBrush = odItemState & STATE_CHECK ? theme_getDialogLightBackgroundBrush() : theme_getDialogBackgroundBrush();
+	hBrush = (odItemState & STATE_CHECK) ? theme_getDialogLightBackgroundBrush() : theme_getDialogBackgroundBrush();
 	SetBkMode(hdc,TRANSPARENT);
 
 	//InflateRect(rcp, -2, -2);

@@ -1264,17 +1264,6 @@ static void tabcontrol_openContextMenu(HWND hwnd, int x, int y) {
 }
 
 /*
- * Returns the "selected" window. This is either the window on which a context menu was opened or
- * it is the current editor window.
- */
-WINFO* mainframe_getSelectedEditorWindow() {
-	if (_selectedWindow) {
-		return _selectedWindow;
-	}
-	return ww_getCurrentEditorWindow();
-}
-
-/*
  * Window procedure of the main frame window.
  */
 static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {

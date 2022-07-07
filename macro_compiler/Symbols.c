@@ -306,15 +306,6 @@ ARRAY_LIST* sym_getVariables(IDENTIFIER_CONTEXT* pContext) {
 	return resultList;
 }
 
-/*
- * Can be used to define whether a variable in the given context is defined. 
- */
-BOOL sym_existsVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname) {
-	HASH_ENTRY entry;
-	IDENTIFIER_CONTEXT* pFound = sym_findContext(pContext, symbolname, &entry, FALSE);
-	return pFound != 0;
-}
-
 /*--------------------------------------------------------------------------
  * sym_getVariable()
  * Returns the value associated with a symbol.

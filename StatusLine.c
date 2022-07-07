@@ -192,6 +192,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc;
 			char szText[200];
+			memset(&rc, 0, sizeof rc);
 			SendMessage(hwndStatus, SB_GETRECT, i, (LPARAM)&rc);
 			if (rc.left > ps.rcPaint.right) {
 				break;

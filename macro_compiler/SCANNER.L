@@ -67,7 +67,7 @@ typedef void EDFUNCDEF;
 extern IDENTIFIER_CONTEXT* _currentIdentifierContext;
 extern FILE		*file_createTempFile(char *fnd, char *fn);
 extern int 		function_initializeFunctionsAndTypes(void);
-extern long 	function_enumValueFor(void *enp);
+extern long 	function_enumValueFor(const void *enp);
 extern int yylex_destroy ( void );
 
 COMPILER_CONFIGURATION* _compilerConfiguration;

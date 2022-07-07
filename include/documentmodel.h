@@ -362,7 +362,7 @@ extern FTABLE* ft_openBackupfile(FTABLE* fp);
  * are considered.
  * Return 1, if at least one line has changed.
  */
-extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, LINE* lpend, int flagsearch, int flagmark, int set);
+extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, const LINE* lpend, int flagsearch, int flagmark, int set);
 
 /*
  * Calculates the number of bytes occupied by one line.
@@ -729,7 +729,7 @@ extern unsigned char* ln_createMultipleLinesFromBuffer(FTABLE* fp, EDIT_CONFIGUR
  * Creates a line from a buffer p. The end of the buffer
  * is passed in pend.
  */
-extern unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, unsigned char* pend);
+extern unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, const unsigned char* pend);
 
 /*----------------------------------------------
  * ln_createAndAdd()

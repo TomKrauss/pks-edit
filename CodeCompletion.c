@@ -436,10 +436,9 @@ static void codecompletehelp_displayHelpText(HWND hwnd, HWND hwndHelp, CODE_COMP
  */
 static void codecomplete_displayHelpFor(HWND hwnd, CODE_COMPLETION_PARAMS* pParam) {
 	HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
-	CODE_ACTION* pSelected = 0;
 	const char* pszHelp = NULL;
 	if (pParam->ccp_selection >= 0) {
-		pSelected = (CODE_ACTION*)ll_at((LINKED_LIST*)pParam->ccp_actions, pParam->ccp_selection);
+		CODE_ACTION* pSelected = (CODE_ACTION*)ll_at((LINKED_LIST*)pParam->ccp_actions, pParam->ccp_selection);
 		if (pSelected) {
 			if (pSelected->ca_helpCB) {
 				pszHelp = pSelected->ca_helpCB(pSelected->ca_name, pSelected->ca_object);
@@ -821,7 +820,6 @@ void codecomplete_hideSuggestionWindow(WINFO* wp) {
   */
 int codecomplete_showSuggestionWindow(void) {
 	WINFO* wp;
-	static unsigned char id;
 
 	wp = ww_getCurrentEditorWindow();
 	if (wp == NULL) {

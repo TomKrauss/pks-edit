@@ -102,12 +102,12 @@ static BOOL bl_hasBackingFile(PASTELIST* pl) {
  * Save all named clipboards to external files. Invoked on exit.
  */
 void bl_autosavePasteBuffers() {
-	char szFileName[EDMAXPATHLEN];
 	PASTELIST* pl = _plist;
 	bl_withClipboardDirDo(bl_deleteClipboardFile);
 	if (GetConfiguration()->options & O_SAVE_CLIPBOARDS_ON_EXIT) {
 		while (pl != 0) {
 			if (bl_hasBackingFile(pl)) {
+				char szFileName[EDMAXPATHLEN];
 				bl_clipboardFilename(pl->pl_id, szFileName, TRUE);
 				bl_writePasteBufToFile(&pl->pl_pasteBuffer, szFileName, F_NORMOPEN);
 			}

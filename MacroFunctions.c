@@ -295,7 +295,7 @@ PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
  * Determine the index of one object in another. Supported combinations: search any type of object in an array
  * or search a substring or a character inside a string.
  */
-PKS_VALUE macroc_indexOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+PKS_VALUE macroc_indexOf(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs) {
 	macroc_expectNumberOfArgs(2, nArgs, "IndexOf");
 	PKS_VALUE vTarget = pValues[0];
 	PKS_VALUE vOf = pValues[1];

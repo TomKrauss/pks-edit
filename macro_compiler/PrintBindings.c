@@ -99,7 +99,7 @@ static void print_keybinding(FILE *fp, KEY_BINDING *kp)
 	print_getNameAndComment(kp->macref, comment, command);
  	fprintf(fp,"<tr><td><code>%s</code></td><td><em>%s</em></td><td>%s</td></tr>\n",
 		bindings_keycodeToString(kp->keycode),command,
-		comment ? comment : "");
+		comment);
 }
 
 /*
@@ -271,7 +271,7 @@ static void print_indent(FILE* fp, int nIndent) {
 	}
 }
 
-static print_menuText(FILE* fp, BOUND_TEXT* pText, MACROREF command) {
+static void print_menuText(FILE* fp, BOUND_TEXT* pText, MACROREF command) {
 	char szTooltip[256];
 	char szTemp[256];
 	const char* pszText = bindings_getBoundText(pText);

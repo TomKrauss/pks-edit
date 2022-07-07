@@ -157,7 +157,6 @@ int ln_pasteLines(WINFO* wp, LINE* lps, const LINE* lpLast, LINE* lpd, int col, 
 		if (lpd == fp->lastl) {
 			if ((lpnew = ln_create(0)) == (LINE*)0) return 0;
 			ln_insert(fp, lpd, lpnew);
-			LINE* lpDelete = lpnew;
 			// convert the inserted line to be the temp line and free the memory of the inserted
 			// line. Otherwise we produce a memory leak.
 			if ((lpd = ln_modify(fp, lpnew, lpnew->len, lpnew->len)) == (LINE*)0) {

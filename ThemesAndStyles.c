@@ -1049,11 +1049,11 @@ static LRESULT CALLBACK tabSubclassProc(
 		HPEN edgePen = CreatePen(0, 1, pTheme->th_dialogBorder);
 		HPEN holdPen = (HPEN)SelectObject(hdc, edgePen);
 
-		HRGN holdClip = CreateRectRgn(0, 0, 0, 0);
-		if (1 != GetClipRgn(hdc, holdClip))
+		HRGN hOldClip = CreateRectRgn(0, 0, 0, 0);
+		if (1 != GetClipRgn(hdc, hOldClip))
 		{
-			DeleteObject(holdClip);
-			holdClip = NULL;
+			DeleteObject(hOldClip);
+			hOldClip = NULL;
 		}
 
 		HFONT hFont = (HFONT)(SendMessage(hWnd, WM_GETFONT, 0, 0));
@@ -1111,15 +1111,14 @@ static LRESULT CALLBACK tabSubclassProc(
 
 				DeleteObject(hClip);
 
-				SelectClipRgn(hdc, holdClip);
+				SelectClipRgn(hdc, hOldClip);
 			}
 		}
 		SelectObject(hdc, hOldFont);
 
-		SelectClipRgn(hdc, holdClip);
-		if (holdClip) {
-			DeleteObject(holdClip);
-			holdClip = NULL;
+		if (hOldClip) {
+			SelectClipRgn(hdc, hOldClip);
+			DeleteObject(hOldClip);
 		}
 
 		DeleteObject(SelectObject(hdc, holdPen));

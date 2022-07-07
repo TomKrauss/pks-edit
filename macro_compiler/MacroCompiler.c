@@ -268,6 +268,8 @@ static BOOL macro_needsWrapper(const char* pszCode) {
 	RE_MATCH match;
 	char patternBuf[400];
 
+	// keep CPPCHECK happy
+	memset(&options, 0, sizeof options);
 	options.flags = RE_DOREX;
 	options.patternBuf = patternBuf;
 	options.endOfPatternBuf = &patternBuf[sizeof patternBuf];

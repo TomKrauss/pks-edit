@@ -1207,7 +1207,6 @@ static LEXICAL_CONTEXT grammar_lexicalContextDo(LEXICAL_CONTEXT nState, GRAMMAR*
 	}
 	COMMENT_DESCRIPTOR cd;
 	grammar_getCommentDescriptor(pGrammar, &cd);
-	int nDelta = 0;
 	for (int i = 0; i < nLen; i++) {
 		if (!callback(pGrammar, pBuf, i, nLen, nState, pParam)) {
 			break;

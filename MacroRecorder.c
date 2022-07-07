@@ -233,10 +233,10 @@ int recorder_recordOperation(PARAMS* pp)
 int recorder_toggleRecording(void) {
 	static KEYCODE scan = K_DELETED;
 	char    buf[MAC_COMMENTLEN];
-	static  int _macroIndexRecorded = 1;
 
 	if (recorder_isRecording()) {		// STOP RECORDING
 		if (_cmdfuncp && _currentRecordingBuffer.bb_current !=_currentRecordingBuffer.bb_start) {
+			static  int _macroIndexRecorded = 1;
 			wsprintf(buf, "RecordedMacro_%d", _macroIndexRecorded);
 			if (!macro_getIndexForKeycode(&scan, buf, -1)) {
 				recorder_setRecording(FALSE);

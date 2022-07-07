@@ -37,7 +37,7 @@ void bytecode_closeAutoLabels(void);
 int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
-char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp);
+char *bytecode_findAutoLabelForInstruction(const COM_GOTO *cp);
 extern char* mac_name(char* szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
 
 static TYPE_PROPERTY_DESCRIPTOR _propertyDescriptors[32];

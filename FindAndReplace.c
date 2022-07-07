@@ -517,7 +517,6 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 
 	s = pszSource;
 	col = 0;
-	FTABLE* fp = wp->fp;
 	char chSpace = ft_getSpaceFillCharacter(wp);
 	while (s < pszEnd && pszDest < pszDestEnd) {
 		nextTabStop = indent_calculateNextTabStop(col, &wp->indentation);
@@ -544,7 +543,7 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 					break;
 				}
 			}
-			break;
+			continue;
 		} else {
 			col++;
 		}

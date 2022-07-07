@@ -128,11 +128,6 @@ extern IDENTIFIER_CONTEXT* sym_popContext(IDENTIFIER_CONTEXT* pContext);
  */
 extern PKS_VALUE sym_getVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname);
 
-/*
- * Can be used to define whether a variable in the given context is defined.
- */
-extern BOOL sym_existsVariable(IDENTIFIER_CONTEXT* pContext, char* symbolname);
-
 #define	SYMBOLS_H
 # endif
 

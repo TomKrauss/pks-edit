@@ -642,9 +642,8 @@ char* macro_getKeyText(const char* pszActionContext, int nCmd) {
 /*------------------------------------------------------------
  * macro_getSelectedMacro()
  */
-static LONG macro_getSelectedMacro(HWND hwnd)
-{
-	LONG		nData;
+static LONG macro_getSelectedMacro(HWND hwnd) {
+	LONG		nData = 0;
 	LRESULT		item;
 
 	if ((item = SendDlgItemMessage(hwnd, IDD_MACROLIST, LB_GETCURSEL, 0, 0)) < 0)
@@ -1220,10 +1219,8 @@ upd: 				_macrosWereChanged = 1;
 /*--------------------------------------------------------------------------
  * EdMacrosEdit()
  */
-int EdMacrosEdit(void)
-{
+int EdMacrosEdit(void) {
 	int 				ret;
-	extern 	MACROREF	currentSelectedMacro;
 
 	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
 

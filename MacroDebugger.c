@@ -58,7 +58,7 @@ static void debugger_initVariablesView(HWND hwnd) {
   * debugger_addVariablesTypesToListView()
   * Adds all variable names+values to a list view.
   */
-static void debugger_addVariablesTypesToListView(HWND hwndList, INSPECTOR_VARIABLE *pVariables, int nSize) {
+static void debugger_addVariablesTypesToListView(HWND hwndList, const INSPECTOR_VARIABLE *pVariables, int nSize) {
 	ListView_DeleteAllItems(hwndList);
 	LVITEM lvI;
 
@@ -80,8 +80,6 @@ static void debugger_addVariablesTypesToListView(HWND hwndList, INSPECTOR_VARIAB
  * doctypes_fillListbox()
  */
 static void debugger_fillVariables(HWND hwnd, EXECUTION_CONTEXT* pContext) {
-	static INSPECTOR_VARIABLE _localVars[MAXVARS];
-	static INSPECTOR_VARIABLE _globalVars[MAXVARS];
 	TYPE_PROPERTY_DESCRIPTOR descriptors[MAXVARS];
 	HWND hwndList;
 
@@ -92,6 +90,7 @@ static void debugger_fillVariables(HWND hwnd, EXECUTION_CONTEXT* pContext) {
 		//debugger_addVariablesTypesToListView(hwndList, pContext->ec_identifierContext);
 		MACRO* mp = macro_getByIndex(nIndex);
 		int nVars = decompile_getLocalVariableInfo(mp, descriptors, DIM(descriptors));
+		static INSPECTOR_VARIABLE _localVars[MAXVARS];
 		for (int i = 0; i < nVars; i++) {
 			_localVars[i].iv_index = i;
 			_localVars[i].iv_name = (char*)descriptors[i].tpd_name;
@@ -105,6 +104,7 @@ static void debugger_fillVariables(HWND hwnd, EXECUTION_CONTEXT* pContext) {
 	if (nVars > MAXVARS) {
 		nVars = MAXVARS;
 	}
+	static INSPECTOR_VARIABLE _globalVars[MAXVARS];
 	for (int i = 0; i < nVars; i++) {
 		_globalVars[i].iv_index = i;
 		_globalVars[i].iv_name = (char*)arraylist_get(pVarnames, i);

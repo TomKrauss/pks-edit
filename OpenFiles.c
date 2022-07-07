@@ -1008,12 +1008,12 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		// Document type may have changed as a result of saving under a new name. Recalculate document descriptor.
 		doctypes_assignDocumentTypeDescriptor(fp, 0);
 		doctypes_documentTypeChanged(FALSE);
-		int flags = fp->flags;
+		int fpflags = fp->flags;
 		ft_forAllViews(fp, (int(*)(WINFO*,void*))ww_setwindowtitle, (void*)TRUE);
-		flags |= F_CHANGEMARK;
-		if (!(flags & F_APPEND)) flags |= F_SAVEAS;
-		flags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
-		ft_setFlags(fp, flags);
+		fpflags |= F_CHANGEMARK;
+		if (!(fpflags & F_APPEND)) fpflags |= F_SAVEAS;
+		fpflags &= ~(F_NEWFILE|F_NAME_INPUT_REQUIRED);
+		ft_setFlags(fp, fpflags);
 		if (!ft_writeFileWithAlternateName(fp)) {
 			return 0;
 		}

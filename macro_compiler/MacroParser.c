@@ -63,7 +63,7 @@ PARAMETER_ENUM_VALUE* function_getParameterEnumValue(const char* pszEnumType, co
 /*--------------------------------------------------------------------------
  * function_enumValueFor()
  */
-long function_enumValueFor(PARAMETER_ENUM_VALUE *enp)
+long function_enumValueFor(const PARAMETER_ENUM_VALUE *enp)
 {
 	return enp->pev_val;
 }
@@ -71,7 +71,7 @@ long function_enumValueFor(PARAMETER_ENUM_VALUE *enp)
 /*--------------------------------------------------------------------------
  * function_getIndexOfFunction()
  */
-int function_getIndexOfFunction(NATIVE_FUNCTION *ep)
+int function_getIndexOfFunction(const NATIVE_FUNCTION *ep)
 {
 	return (int)(size_t)(ep - _functionTable);
 }

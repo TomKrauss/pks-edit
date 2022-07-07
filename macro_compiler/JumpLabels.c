@@ -296,7 +296,7 @@ void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp)
 /*---------------------------------*/
 /* bytecode_findAutoLabelForInstruction()				*/
 /*---------------------------------*/
-char *bytecode_findAutoLabelForInstruction(COM_GOTO *cp)
+char *bytecode_findAutoLabelForInstruction(const COM_GOTO *cp)
 {	LABEL *lp;
 	int 	 i;
 

@@ -61,6 +61,7 @@ EXPORT int file_getFileMode(const char *s) {
 
 static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
 	ULARGE_INTEGER ui;
+	// do not remove - wrong CPP check warning - does not recognize, that QuadPart is build from low- and highpart
 	ui.LowPart = pTime->dwLowDateTime;
 	ui.HighPart = pTime->dwHighDateTime;
 	return ((LONGLONG)(ui.QuadPart - 116444736000000000) / 10000000);

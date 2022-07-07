@@ -385,7 +385,7 @@ static PKS_VALUE memory_collectElements(EXECUTION_CONTEXT* pContext, PKS_VALUE v
 /*
  * Returns an array object with all keys contained in the map type value passed as single argument.
  */
-PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs) {
 	if (nArgs >= 1) {
 		PKS_VALUE vTarget = pValues[0];
 		return memory_collectElements(pContext, vTarget, memory_collectKey);
@@ -397,7 +397,7 @@ PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nA
 /*
  * Returns an array object with all values contained in the map type value passed as single argument.
  */
-PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs) {
 	if (nArgs >= 1) {
 		PKS_VALUE vTarget = pValues[0];
 		return memory_collectElements(pContext, vTarget, memory_collectValue);
@@ -409,7 +409,7 @@ PKS_VALUE memory_mapValues(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 /*
  * Returns an array object with all MAP_ENTRY objects in the map type value passed as single argument.
  */
-PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+PKS_VALUE memory_mapEntries(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs) {
 	if (nArgs >= 1) {
 		PKS_VALUE vTarget = pValues[0];
 		return memory_collectElements(pContext, vTarget, memory_collectEntries);

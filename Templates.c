@@ -99,7 +99,6 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 					}
 					col += nIndent;
 				} else if (strcmp("tab", variable) == 0) {
-					FTABLE* fp = wp->fp;
 					for (int i = 0; i < fp->documentDescriptor->tabsize; i++) {
 						stringbuf_appendChar(pResult, chSpace);
 					}
@@ -228,8 +227,8 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord)
 			}
 			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
 				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];
-				int col = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : oldCaret.offset + pDelta->cd_deltaCol;
-				caret_addSecondary(wp, oldCaret.ln+pDelta->cd_deltaLn, col);
+				int secondaryCol = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : oldCaret.offset + pDelta->cd_deltaCol;
+				caret_addSecondary(wp, oldCaret.ln+pDelta->cd_deltaLn, secondaryCol);
 			}
 		}
 		ln_listfree(pasteBuffer.pln);

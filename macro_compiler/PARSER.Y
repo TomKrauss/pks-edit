@@ -104,7 +104,7 @@ extern STRING_BUF*    _yyCurrentComment;
 extern void		yyerror(const char* s, ...);
 extern void		yywarning(char* s, ...);
 extern void		yyrequire(const char* pszNamespace);
-int				function_getIndexOfFunction(void *ep);
+int				function_getIndexOfFunction(const void *ep);
 extern int macro_lookupNamespace(const char* pszNamespacename);
 extern void bytecode_emitGotoInstruction(BYTECODE_BUFFER* pBuffer, char *prefix, int level, int bratyp);
 extern unsigned char* bytecode_emitBinaryOperation(BYTECODE_BUFFER* pBuffer, int nOperationType, PKS_VALUE_TYPE nTargetType);

@@ -1745,6 +1745,7 @@ static void mdr_parseStyle(FONT_STYLE_DELTA* pFSD, const char* pszStyleSpec) {
 	char* pszValue;
 	char c;
 
+	szAttribute[0] = 0;
 	while (1) {
 		c = *pszStyleSpec++;
 		if (tState == 0) {
@@ -2126,18 +2127,6 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 	for (nColumn = 0; nColumn < MAX_TABLE_COLUMNS; nColumn++) {
 		pTable->rt_totalColumnWidth += pTable->rt_columnWidths[nColumn];
 	}
-}
-
-static BOOL mdr_supportsNestedTag(RENDER_VIEW_PART* pPart, MDR_ELEMENT_TYPE mNested) {
-	if (!pPart) {
-		return TRUE;
-	}
-	MDR_ELEMENT_TYPE mType = pPart->rvp_type;
-	if (mNested == MET_PARAGRAPH || mNested == MET_FENCED_CODE_BLOCK) {
-		return mType != MET_TABLE && mType != MET_FENCED_CODE_BLOCK && mType != MET_HORIZONTAL_RULE &&
-			mType != MET_UNORDERED_LIST && mType != MET_ORDERED_LIST;
-	}
-	return TRUE;
 }
 
 /*
@@ -2616,7 +2605,6 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 	long nNumber;
 	int nState = 0;
 	int nLevel = 0;
-	int nInPart = 0;
 
 	mdr_resetFontStyleDelta(pState->hps_currentStyle);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
@@ -3264,27 +3252,6 @@ void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, int nUpT
 	}
 }
 
-typedef struct tagSELECTION_PARAM {
-	LINE* sp_lp;
-	int   sp_offset;
-	int   sp_size;
-} SELECTION_PARAM;
-
-static int mdr_defineSelectionForRuns(TEXT_RUN* pRun, SELECTION_PARAM* pParam) {
-	while (pRun) {
-		int nStart = pParam->sp_offset - pRun->tr_lineOffset;
-		if (pRun->tr_lp == pParam->sp_lp && nStart >= 0 && nStart + pParam->sp_size <= pRun->tr_size) {
-			pRun->tr_selectionStart = nStart;
-			pRun->tr_selectionLength = pParam->sp_size;
-		}
-		else {
-			pRun->tr_selectionLength = 0;
-		}
-		pRun = pRun->tr_next;
-	}
-	return 1;
-}
-
 /*
  * Visitor function visiting all text runs traversable from a view part and executing a callback function on each list
  * of text runs with a custom parameter. If the callback returns 0, visiting stops.
@@ -3308,10 +3275,6 @@ static int mdr_forRunListDo(RENDER_VIEW_PART* pPart, int (*runCallback)(TEXT_RUN
 		}
 	}
 	return 1;
-}
-
-static void mdr_defineSelectionForPart(RENDER_VIEW_PART* pPart, LINE* lp, int nOffset, int nSize) {
-	mdr_forRunListDo(pPart, mdr_defineSelectionForRuns, &(SELECTION_PARAM){.sp_lp = lp, .sp_offset = nOffset, .sp_size = nSize});
 }
 
 static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA* pData, RECT* pClip, int nTopY) {
@@ -3604,7 +3567,6 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 			*ln = wp->caret.ln - dl;
 		}
 	}
-	int nColumn = *col;
 	if (!caret_placeCursorAndValidate(wp, ln, offset, col, updateVirtualOffset, xDelta)) {
 		return 0;
 	}

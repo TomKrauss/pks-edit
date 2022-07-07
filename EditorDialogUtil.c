@@ -491,8 +491,8 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
  * DlgInit()
  */
 static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag) {
-	static int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
-	static int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
+	static const int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
+	static const int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
 	DIALPARS *dp2;
 	int		nPars;
 
@@ -763,6 +763,8 @@ static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
 			fselbuf[0] = 0;
 			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
 			FILE_SELECT_PARAMS fsp;
+			// keep cppcheck happy.
+			memset(&fsp, 0, sizeof fsp);
 			fsp.fsp_saveAs = TRUE;
 			fsp.fsp_resultFile = _fseltarget;
 			fsp.fsp_inputFile = szBuff;

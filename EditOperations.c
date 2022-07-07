@@ -285,7 +285,7 @@ long long edit_toggleComment(WINFO* wp) {
 			strncpy(lpFirst->lbuf + nOffset, pszCommentStart, nLen);
 		}
 		if (nLen2 > 0) {
-			size_t nOffset = lpFirst->len;
+			nOffset = lpFirst->len;
 			if (addCommentFlag < 0) {
 				if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)(nOffset - nLen2))) == 0) {
 					break;

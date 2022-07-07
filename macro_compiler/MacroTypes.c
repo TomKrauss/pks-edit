@@ -127,7 +127,6 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	pDescriptor->ptd_isValueType = pTemplate->ptd_isValueType;
 	pDescriptor->ptd_isHandleType = pTemplate->ptd_isHandleType;
 	types_destroyDescriptorProperties(pDescriptor);
-	pDescriptor->ptd_numberOfProperties = pTemplate->ptd_numberOfProperties;
 	if (t >= _maxTypeIndex) {
 		_maxTypeIndex = t+1;
 	}
@@ -168,18 +167,6 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		}
 	}
 	return 1;
-}
-
-/*
- * Returns a pks-value-type for a given type name. 
- */
-PKS_VALUE_TYPE types_typeIndexFor(const char* pszTypename) {
-	char* ret;
-	SYMBOL sym = sym_find(sym_getKeywordContext(), pszTypename, &ret);
-	if (NULLSYM(sym) || sym.s_type != S_TYPE_IDENTIFIER) {
-		interpreter_raiseError("Illegal typename %s used", pszTypename);
-	}
-	return sym.s.symbol.s_valueType;
 }
 
 /*

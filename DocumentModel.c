@@ -54,7 +54,7 @@ static int  ln_newbl(WINFO* wp, MARK* mp) {
 /* to a specific line		*/
 /* lnew == 0 => free them	*/
 /*----------------------------*/
-static int ln_delmarks(WINFO* wp, LINE* lp) {
+static int ln_delmarks(WINFO* wp, const LINE* lp) {
 	MARK* mp = wp->fmark;
 	MARK* mp2 = 0;
 	int  	blflg = (wp->blstart && wp->blend);
@@ -139,9 +139,8 @@ static int ln_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 			}
 			pCaret = pCaret->next;
 		}
-		WINFO* wp = WIPOI(fp);
 		// TODO: should be performed for all views.
-		if (wp && wp->lpMinln == pChanged->lp) {
+		if (wp->lpMinln == pChanged->lp) {
 			wp->lpMinln = pChanged->lpNew;
 		}
 	}
@@ -225,7 +224,7 @@ void ft_bufdestroy(FTABLE* fp) {
  * are considered.
  * Return 1, if at least one line has changed.
  */
-int ln_changeFlag(FTABLE* fp, LINE *lpstart, LINE *lpend, int flagsearch, int flagmark, int set) {
+int ln_changeFlag(FTABLE* fp, LINE *lpstart, const LINE *lpend, int flagsearch, int flagmark, int set) {
 	if (!set) {
 		flagmark = ~flagmark;
 	}
@@ -861,7 +860,7 @@ EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
  * Creates a line from a buffer p. The end of the buffer
  * is passed in pend.
  */
-unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, unsigned char* pend) {
+unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, const unsigned char* pend) {
 	int  nl;
 	long size;
 	int rightMargin = documentDescriptor->rmargin;

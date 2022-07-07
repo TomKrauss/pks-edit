@@ -46,7 +46,7 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 	switch(type) {
 		case CMD_MACRO:  sprintf(szBuf,"%s",MAC_NAME(macro_getByIndex(nIndex))); break;
 		case CMD_CMDSEQ: 
-			if (nIndex < 0 || nIndex >= _commandTableSize) {
+			if (nIndex >= _commandTableSize) {
 				sprintf(szBuf,"@Unnamed-%d",nIndex);
 			} else {
 				strcpy(szBuf + 1, _commandTable[nIndex].c_name);

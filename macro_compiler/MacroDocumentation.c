@@ -105,8 +105,7 @@ static void macrodoc_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput
 				}
 				stringbuf_appendChar(pBuf, c);
 			}
-		}
-		else if (pszTag) {
+		} else {
 			if (!isalpha(c)) {
 				*pszTag = 0;
 				pszTag = 0;
@@ -222,7 +221,7 @@ static void macrodoc_printHelpForEnumValue(PARAMETER_ENUM_VALUE* pEnumValue, STR
 	if (!bTopLevel) {
 		stringbuf_appendString(pBuf, " = ");
 		char szText[128];
-		sprintf(szText, "0x%x", pEnumValue->pev_val);
+		sprintf(szText, "0x%lx", pEnumValue->pev_val);
 		stringbuf_appendString(pBuf, szText);
 	}
 	if (bTopLevel) {

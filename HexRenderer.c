@@ -181,7 +181,7 @@ static void render_matchMarker(HDC hdc, THEME_DATA* pTheme, int xOffset, int y, 
 	DeleteObject(hBrush);
 }
 
-static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOffset, LINE* lpSelection, int nStartColumn, int nNumberOfCharsSelected) {
+static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOffset, const LINE* lpSelection, int nStartColumn, int nNumberOfCharsSelected) {
 	int nByteOffset = 0;
 	while (lp) {
 		if (lp == lpSelection) {
@@ -513,12 +513,12 @@ PRINT_FRAGMENT_RESULT hex_print(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam,
 	rect.right = pExtents->xRMargin;
 	rect.top = pExtents->yTop;
 	rect.bottom = pExtents->yBottom;
-	int nOldDC = SaveDC(pRC->rc_hdc);
+	int nOldDC = SaveDC(hdc);
 	HBRUSH hBrush = CreateSolidBrush(pRC->rc_theme->th_defaultBackgroundColor);
-	IntersectClipRect(pRC->rc_hdc, rect.left, rect.top, rect.right, rect.bottom);
+	IntersectClipRect(hdc, rect.left, rect.top, rect.right, rect.bottom);
 	render_hexModeFromTo(pRC, &rect, hBrush, printLineParam->yPos, printLineParam->yOffset, nMax);
 	DeleteObject(hBrush);
-	RestoreDC(pRC->rc_hdc, nOldDC);
+	RestoreDC(hdc, nOldDC);
 	printLineParam->yOffset = nMax;
 	if (nMax < nMaxLines) {
 		printLineParam->pagenumber++;
