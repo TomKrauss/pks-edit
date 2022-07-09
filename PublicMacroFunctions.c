@@ -1549,9 +1549,6 @@ int EdFindInFileList(void)
 	if (!_currentSearchAndReplaceParams.filenamePattern[0] && hist_getString(FILE_PATTERNS, 0) == 0) {
 		strcpy(_currentSearchAndReplaceParams.filenamePattern, "*.*");
 	}
-	if (!_currentSearchAndReplaceParams.pathlist[0]) {
-		_getcwd(_currentSearchAndReplaceParams.pathlist, sizeof _currentSearchAndReplaceParams.pathlist);
-	}
 	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, _d, _tt, find_inFilesDialogProc);
 	if (ret == 0) {

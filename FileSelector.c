@@ -470,7 +470,6 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 		} else {
 			string_splitFilename(pszFileName, pszPath, szFileNameIn);
 		}
-		hist_saveString(PATHES, pszPath);
 	}
 
 	free(pszFileName);

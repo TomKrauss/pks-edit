@@ -27,7 +27,7 @@
 /*---------------------------------*/
 /* align_text()					*/
 /*---------------------------------*/
-EXPORT int align_text(char *pszSearch, int scope, char filler, ALIGN_FLAGS flags)
+EXPORT int align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAGS flags)
 {	int  col,firstcol,aligncol = -1,
 		firsti,besti,bestcol,nchars,ret;
 	long i;

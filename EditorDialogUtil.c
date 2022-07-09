@@ -438,6 +438,9 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				break;
 			case IDD_PATH1:
 				hist_fillComboBox(hDlg, item, PATHES, 1);
+				if (!((LPSTR)ip)[0]) {
+					break;
+				}
 				// drop through
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:

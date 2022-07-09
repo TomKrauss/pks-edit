@@ -4,6 +4,11 @@ This file contains the release notes for the latest **PKS Edit** releases.
 
 ## 2.3.0
 
+### Improved
+- PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active
+  editor. No pathes are stored any more in the history file, but pathes are derived also from the list of open files 
+  (e.g. to be selected in Find in Files).
+
 ### Fixes
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
   and line numbers were not displayed up to the last visible line in hex editor mode.

@@ -23,6 +23,7 @@
 #include "crossreferencelinks.h"
 #include "winterf.h"
 #include "findandreplace.h"
+#include "winfo.h"
 
 static JSON_MAPPING_RULE _dockRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(MAINFRAME_DOCK, do_name), sizeof(((MAINFRAME_DOCK*)NULL)->do_name)},
@@ -52,7 +53,6 @@ static JSON_MAPPING_RULE _sessionDataRules[] = {
 	{	RT_NESTED_OBJECT, "dock1", offsetof(SESSION_DATA, sd_dock1), {.r_t_nestedObjectRules = _dockRules}},
 	{	RT_NESTED_OBJECT, "dock2", offsetof(SESSION_DATA, sd_dock2), {.r_t_nestedObjectRules = _dockRules}},
 	{	RT_NESTED_OBJECT, "dock3", offsetof(SESSION_DATA, sd_dock3), {.r_t_nestedObjectRules = _dockRules}},
-	{	RT_STRING_ARRAY, "pathes", offsetof(SESSION_DATA, sd_histories[PATHES])},
 	{	RT_STRING_ARRAY, "search-patterns", offsetof(SESSION_DATA, sd_histories[SEARCH_PATTERNS])},
 	{	RT_STRING_ARRAY, "replace-patterns", offsetof(SESSION_DATA, sd_histories[SEARCH_AND_REPLACE])},
 	{	RT_STRING_ARRAY, "file-patterns", offsetof(SESSION_DATA, sd_histories[FILE_PATTERNS])},
@@ -144,12 +144,26 @@ EXPORT void hist_saveString(HISTORY_TYPE type, const char *string) {
 	arraylist_add(pArray, _strdup(string));
 }
 
+static ARRAY_LIST* hist_getOpenFilePathes() {
+	ARRAY_LIST* pArray = arraylist_create(4);
+	WINFO* wp = ww_getCurrentEditorWindow();
+	while (wp) {
+		char szPath[1024];
+		FTABLE* fp = wp->fp;
+		string_splitFilename(fp->fname, szPath, 0);
+		if (arraylist_indexOfComparing(pArray, szPath, strcmp) < 0) {
+			arraylist_insertAt(pArray, _strdup(szPath), 0);
+		}
+		wp = wp->next;
+	}
+	return pArray;
+}
 /*------------------------------------------------------------
  * hist_combo()
  */
 EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bForceInit)
 {	char *p,*q = 0;
-	ARRAY_LIST* pArray = hist_getHistoryArray(type);
+	ARRAY_LIST* pArray = type == PATHES ? hist_getOpenFilePathes() : hist_getHistoryArray(type);
 
 	SendDlgItemMessage(hDlg, nItem, CB_RESETCONTENT, 0,0L);
 	int nSize = (int)arraylist_size(pArray);
@@ -163,6 +177,9 @@ EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bFo
 	}
 	if (bForceInit && q) {
 		SetDlgItemText(hDlg, nItem, q);
+	}
+	if (type == PATHES) {
+		arraylist_destroyStringList(pArray);
 	}
 }
 

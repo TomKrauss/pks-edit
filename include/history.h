@@ -24,8 +24,8 @@ typedef enum {
 	SEARCH_AND_REPLACE = 1,
 	OPEN_FILES = 2,
 	FILE_PATTERNS = 3,
-	PATHES = 4,
-	OPEN_IN_EDITOR = 5
+	OPEN_IN_EDITOR = 4,
+	PATHES = 5
 } HISTORY_TYPE;
 
 // Describes the layout of the mainframe - one docking area

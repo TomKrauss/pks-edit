@@ -636,6 +636,11 @@ int fsel_selectFileWithTitle(int nCommand, char *result, FILE_SELECT_PARAMS* pFS
 	BOOL	bRet;
 
 	bRet = FALSE;
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (wp) {
+		FTABLE* fp = wp->fp;
+		string_splitFilename(fp->fname, _txtfninfo.path, 0);
+	}
 	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, nCommand, pFSP)) != 0) {
 		strcpy(result,fn);
 		bRet = TRUE;
