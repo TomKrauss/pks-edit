@@ -1237,6 +1237,41 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
 }
 
+/*
+ * Custom window procedure for listview headers.
+ */
+ static const uintptr_t headerSublassId = 2216;
+ static LRESULT CALLBACK headerSubclassProc(
+	 HWND hWnd,
+	 UINT uMsg,
+	 WPARAM wParam,
+	 LPARAM lParam,
+	 UINT_PTR uIdSubclass,
+	 DWORD_PTR dwRefData) {
+
+	 switch (uMsg) {
+	 case WM_NOTIFY:
+		 if (((LPNMHDR)lParam)->code == NM_CUSTOMDRAW) {
+			 LPNMCUSTOMDRAW nmcd = (LPNMCUSTOMDRAW)lParam;
+			 switch (nmcd->dwDrawStage) {
+			 case CDDS_PREPAINT:
+				 return CDRF_NOTIFYITEMDRAW;
+			 case CDDS_ITEMPREPAINT: {
+				 // does not work - for whatever reasons. SetTextColor(nmcd->hdc, theme_getDefault()->th_dialogForeground);
+				 SetTextColor(nmcd->hdc, RGB(255,255,255));
+				 return CDRF_DODEFAULT;
+			 }
+			 }
+		 }
+		 break;
+	 case WM_NCDESTROY: {
+		 RemoveWindowSubclass(hWnd, headerSubclassProc, uIdSubclass);
+		 break;
+	 }
+	 }
+	 return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+ }
+
 static void subclassComboBoxControl(HWND hwnd) {
 	SetWindowSubclass(hwnd, comboBoxSubclassProc, cbSubclassID, 0);
 }
@@ -1289,16 +1324,15 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 	} else if (strcmp(WC_LISTVIEW, szClassname) == 0) {
 		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isDarkMode) {
-			// This is supposed to work, but it does not.
 			HWND hwndHeader = ListView_GetHeader(hwndControl);
 			darkmode_allowForWindow(hwndHeader, TRUE);
 			SetWindowTheme(hwndHeader, L"ItemsView", 0);
 			darkmode_allowForWindow(hwndControl, TRUE);
-			SetWindowTheme(hwndHeader, L"Explorer", 0);
-			// Work around
+			SetWindowTheme(hwndControl, L"Explorer", 0);
 			ListView_SetBkColor(hwndControl, pTheme->th_dialogBackground);
 			ListView_SetTextColor(hwndControl, pTheme->th_dialogForeground);
 			ListView_SetTextBkColor(hwndControl, pTheme->th_dialogBackground);
+			SetWindowSubclass(hwndControl, headerSubclassProc, headerSublassId, 0);
 		}
 	}
 	return TRUE;
