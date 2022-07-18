@@ -4,6 +4,13 @@ This file contains the release notes for the latest **PKS Edit** releases.
 
 ## 2.3.0
 
+### New
+- The new `editing mode` __correct capitals__ allows to auto-correct lowercase / uppercase spelling as you type.
+  It will automatically correct words not written in upper case at the beginning of sentences and words containing
+  multiple upper case characters at the beginning (such as CApital) to be spelled correctly with respect to upper
+  case lower case spelling. The editing mode is enabled by default for all text document types (readme, .txt, .md, ... files).
+  Of course this can be changed in the configuration.
+
 ### Improved
 - PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active
   editor. No pathes are stored any more in the history file, but pathes are derived also from the list of open files 

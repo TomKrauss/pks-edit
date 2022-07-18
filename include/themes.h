@@ -93,7 +93,12 @@ extern THEME_DATA* theme_getThemes();
 /*
  * The dialog font is used by PKS edit e.g. in dialogs and in the window selector.
  */
-HFONT theme_createDialogFont(int nWeight);
+extern HFONT theme_createDialogFont(int nWeight);
+
+/*
+ * The small dialog font is used by PKS edit e.g. in explanations in dialogs.
+ */
+extern HFONT theme_getSmallDialogFont();
 
 /*
  * Prepare the passed window to be displayed in Windows dark mode look&feel or not,

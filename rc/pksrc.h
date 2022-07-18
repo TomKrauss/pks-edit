@@ -13,6 +13,7 @@
 #define IDD_FONTSELECT3                 94
 #define IDD_LOWOPT2                     101
 #define DLG_OPT_AUTOSAVE                110
+#define IDD_EXPLANATION                 115
 #define IDD_PRESERVE_CASE               135
 #define IDS_STRING148                   148
 #define IDC_CURSOR1                     153

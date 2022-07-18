@@ -410,6 +410,19 @@ HFONT theme_createDialogFont(int nWeight) {
 }
 
 /*
+ * The small dialog font is used by PKS edit e.g. in explanations in dialogs.
+ */
+HFONT theme_getSmallDialogFont() {
+	static HFONT smallFont;
+
+	if (!smallFont) {
+		THEME_DATA* pTheme = theme_getCurrent();
+		smallFont = font_createFontHandle("Helvetica", pTheme->th_smallFontSize, 0, FW_BOLD);
+	}
+	return smallFont;
+}
+
+/*
  * Set the default text colors for the given theme.
  */
 void font_setDefaultTextColors(HDC hdc, THEME_DATA* pTheme) {

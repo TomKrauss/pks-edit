@@ -51,6 +51,8 @@ typedef enum {
 	WM_ABBREV = 0x4,
 	WM_AUTOWRAP = 0x8,
 	WM_AUTOINDENT = 0x10,
+    // AUtomatically correct wrong capitals as in JAnuary->January or "sold. this is" -> sold. This is
+    WM_FIX_CAPITALS = 0x20, 
 	WM_WATCH_LOGFILE = 0x40,
 	WM_LINE_SELECTION = 0x80,
 	WM_AUTOFORMAT = 0x100,

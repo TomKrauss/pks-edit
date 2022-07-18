@@ -97,6 +97,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "showWysiwyg", offsetof(EDIT_CONFIGURATION, dispmode), SHOW_WYSIWYG_DISPLAY},
 	{	RT_FLAG, "insertMode", offsetof(EDIT_CONFIGURATION, workmode), WM_INSERT},
 	{	RT_FLAG, "autoIndent", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOINDENT},
+	{	RT_FLAG, "fixCapitals", offsetof(EDIT_CONFIGURATION, workmode), WM_FIX_CAPITALS},
 	{	RT_FLAG, "watchLogfile", offsetof(EDIT_CONFIGURATION, workmode), WM_WATCH_LOGFILE},
 	{	RT_FLAG, "autoWrap", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOWRAP},
 	{	RT_FLAG, "autoFormat", offsetof(EDIT_CONFIGURATION, workmode), WM_AUTOFORMAT},

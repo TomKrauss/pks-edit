@@ -930,6 +930,8 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
  */
 BOOL dlg_disableDarkHandling;
 INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
+	HWND hwndExplanation;
+
 	if (dlg_disableDarkHandling) {
 		return FALSE;
 	}
@@ -953,6 +955,10 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	case WM_INITDIALOG:
 		theme_enableDarkMode(hDlg);
 		theme_prepareChildrenForDarkmode(hDlg);
+		hwndExplanation = GetDlgItem(hDlg, IDD_EXPLANATION);
+		if (hwndExplanation) {
+			SendMessage(hwndExplanation, WM_SETFONT, (WPARAM)theme_getSmallDialogFont(), TRUE);
+		}
 		return TRUE;
 	}
 	return FALSE;

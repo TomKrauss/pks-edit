@@ -743,14 +743,148 @@ join_next_words:
 	return 1;
 }
 
-/*--------------------------------------------------------------------------
- * edit_autoFormat()
+typedef enum { FC_NONE = 0, FC_LOWER = 0x1, FC_UPPER = 0x2, FC_OK = 0x4, FC_CAPITAL_FIRST = 0x8} FIX_CAPITALS_STATE;
+
+/*
+ * Return 1, if the current offset points to the begin of a word,
+ * -1 if the current offset points to the begin of the 1st word in a sentence
+ * and 0 otherwise.
  */
-static int edit_autoFormat(WINFO *wp) {
-	if ((wp->workmode & WM_AUTOFORMAT) == 0) {
-		return 0;
+static int edit_classifyBeginWord(const char* pBuf, int nOffs) {
+	if (nOffs == 0) {
+		return 1;
 	}
-	return edit_autoFormatRange(wp);
+	nOffs--;
+	char c2 = (int)(unsigned char)pBuf[nOffs];
+	if (!isalpha(c2)) {
+		while (nOffs > 0 && pBuf[nOffs] == ' ') {
+			nOffs--;
+		}
+		if (pBuf[nOffs] == '.') {
+			if (nOffs > 0 && isalpha((int)(unsigned char)pBuf[nOffs - 1])) {
+				return -1;
+			}
+		}
+		return 1;
+	}
+	return 0;
+}
+
+/*
+ * Determine the type of the word entered with respect to capital chars used.
+ */
+static FIX_CAPITALS_STATE edit_determinePreviousWordState(CARET* pCaret) {
+	int nOffs = pCaret->offset;
+	const char* pBuf = pCaret->linePointer->lbuf;
+
+	FIX_CAPITALS_STATE state = FC_NONE;
+	if (nOffs <= 0) {
+		return state;
+	}
+	nOffs--;
+	if (isalpha((unsigned char)pBuf[nOffs])) {
+		return state;
+	}
+	while (--nOffs >= 0) {
+		int c = (int)(unsigned char)pBuf[nOffs];
+		if (!isalpha(c)) {
+			if (state == FC_LOWER && edit_classifyBeginWord(pBuf, nOffs + 1) == -1) {
+				state |= FC_CAPITAL_FIRST;
+			}
+			break;
+		}
+		if (isupper(c)) {
+			if (state == FC_LOWER) {
+				int nClass = edit_classifyBeginWord(pBuf, nOffs);
+				if (nClass) {
+					break;
+				}
+			}
+			if (state == (FC_LOWER | FC_UPPER)) {
+				state |= FC_CAPITAL_FIRST;
+				break;
+			}
+			state |= FC_UPPER;
+		} else {
+			if (state == FC_LOWER) {
+				int nClass = edit_classifyBeginWord(pBuf, nOffs);
+				if (nClass == -1) {
+					state |= FC_CAPITAL_FIRST;
+				}
+				if (nClass) {
+					break;
+				}
+			}
+			state |= FC_LOWER;
+		}
+	}
+	return state;
+}
+
+/*
+ * Fixes wrongly entered capitel characters such as in CApital.
+ */
+static int edit_fixCapitals(WINFO* wp, CARET* pCaret) {
+	FIX_CAPITALS_STATE state = edit_determinePreviousWordState(pCaret);
+	if (state & FC_CAPITAL_FIRST) {
+		FTABLE* fp = wp->fp;
+		LINE* lp = pCaret->linePointer;
+		int nOffset = pCaret->offset;
+		if (nOffset <= 0) {
+			return 0;
+		}
+		nOffset--;
+		undo_startModification(fp);
+		lp = ln_modify(fp, lp, nOffset, nOffset);
+		if (!lp) {
+			return 0;
+		}
+		while (--nOffset >= 0) {
+			char c = lp->lbuf[nOffset];
+			if (nOffset == 0 || !isalpha((int)(unsigned char)lp->lbuf[nOffset - 1])) {
+				if (islower((int)(unsigned char)c)) {
+					lp->lbuf[nOffset] = toupper((unsigned char)c);
+				}
+				break;
+			}
+			if (isupper((int)(unsigned char)c)) {
+				lp->lbuf[nOffset] = tolower((unsigned char)c);
+			}
+		}
+		render_repaintLine(fp, lp);
+	}
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * edit_postProcessEdit()
+ * Perform additional formatting / editing after simple insertion deleting operations.
+ */
+static int edit_postProcessEdit(WINFO *wp, CARET* pCaret, BOOL bAfterInsert) {
+	int workmode = wp->workmode;
+	if (_playing) {
+		return 1;
+	}
+
+	if (workmode & WM_ABBREV) {
+		template_expandAbbreviation(wp, pCaret->linePointer, pCaret->offset);
+	}
+	if (workmode & WM_SHOWMATCH) {
+		uc_showMatchingBracket(wp);
+	}
+	if (bAfterInsert && (workmode & WM_FIX_CAPITALS)) {
+		if (!edit_fixCapitals(wp, pCaret)) {
+			return 0;
+		}
+	}
+	BOOL bNeedsWrapping = workmode & WM_AUTOWRAP;
+	if ((workmode & WM_AUTOFORMAT) && edit_autoFormatRange(wp)) {
+		bNeedsWrapping = FALSE;
+	}
+	if (bNeedsWrapping && wp->caret.offset >= ww_getRightMargin(wp)) {
+		edit_wrapAround(wp, pCaret);
+	}
+	return 1;
 }
 
 /**
@@ -882,7 +1016,7 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 	} else {
 		render_repaintLine(fp, pCaret->linePointer);
 	}
-	edit_autoFormat(wp);
+	edit_postProcessEdit(wp, pCaret, FALSE);
 	codecomplete_updateCompletionList(wp, FALSE);
 
 	return 1;
@@ -970,27 +1104,16 @@ long long EdCharInsert(WINFO* wp, int c)
 		if (!nRet) {
 			return 0;
 		}
+		if (!edit_postProcessEdit(wp, pCaret, TRUE)) {
+			return 0;
+		}
 		pCaret = pCaret->next;
 	}
 	if (!bNormalChar) {
 		return 1;
 	}
 	codecomplete_updateCompletionList(wp, FALSE);
-	if (!_playing) {
 
-		if (workmode & WM_ABBREV) {
-			template_expandAbbreviation(wp,lp,offs);
-		}
-		if (workmode & WM_SHOWMATCH) {
-			uc_showMatchingBracket(wp);
-		}
-
-		if (!edit_autoFormat(wp) &&
-		    (workmode & WM_AUTOWRAP) && 
-			wp->caret.offset >= ww_getRightMargin(wp)) {
-			edit_wrapAround(wp, pCaret);
-		}
-	}
 	return 1;
 }
 
