@@ -21,6 +21,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   and line numbers were not displayed up to the last visible line in hex editor mode.
 - Convert spaces to tabs had been broken and is fixed.
 - Listviews in PKS-Edit dialogs correctly honor now dark mode.
+- A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
+  images (empty image description).
 
 ## 2.2.0
 

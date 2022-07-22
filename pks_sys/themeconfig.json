@@ -39,6 +39,10 @@
           "foregroundColor": "#777722"
         },
         {
+          "styleName": "classname",
+          "foregroundColor": "#aaaa22"
+        },
+        {
           "styleName": "keyword",
           "weight": 700,
           "foregroundColor": "#AA0000"
@@ -172,6 +176,10 @@
         {
           "styleName": "identifier",
           "foregroundColor": "#777722"
+        },
+        {
+          "styleName": "classname",
+          "foregroundColor": "#aaaa22"
         },
         {
           "styleName": "keyword  ",
@@ -312,6 +320,10 @@
           "foregroundColor": "#777722"
         },
         {
+          "styleName": "classname",
+          "foregroundColor": "#aaaa22"
+        },
+        {
           "styleName": "keyword  ",
           "weight": 700,
           "foregroundColor": "#61afef"
@@ -447,6 +459,10 @@
         {
           "styleName": "identifier",
           "foregroundColor": "#aaaa77"
+        },
+        {
+          "styleName": "classname",
+          "foregroundColor": "#eeeeaa"
         },
         {
           "styleName": "keyword",

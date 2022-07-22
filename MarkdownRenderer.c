@@ -2728,7 +2728,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 							nTextEnd--;
 						}
 					}
-					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nTextEnd - nTextStart);
+					int nLen = nTextEnd - nTextStart;
+					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nLen == 0 ? 1 : nLen);
 					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINK;
 					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					if (bImage) {
