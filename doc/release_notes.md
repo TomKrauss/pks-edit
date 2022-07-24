@@ -23,6 +23,7 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - Listviews in PKS-Edit dialogs correctly honor now dark mode.
 - A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
   images (empty image description).
+- an issue was fixed leading to corrupted recorded macros causing PKS-Edit to crash when playing them.
 
 ## 2.2.0
 

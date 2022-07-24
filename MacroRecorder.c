@@ -152,8 +152,10 @@ void recorder_recordFunctionWithParameters(int fnum, intptr_t p, intptr_t p2, ch
 		s1 = s2;
 		s2 = 0;
 	}
-	c.funcnum = fnum;
-	c.p = (long) p;
+	c = (COM_1FUNC) {
+		.funcnum = fnum,
+		.p = (long)p
+	};
 
 	recorder_pushSequence(C_1FUNC, (void*)&c);
 	if (p2) recorder_pushSequence(C_PUSH_LONG_LITERAL, (void*)p2);
