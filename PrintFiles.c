@@ -526,13 +526,11 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 {	char 		message[128];
 	long		oldpageno;
 	HDC			hdc = pRC->rc_hdc;
-	BOOL		printing = TRUE;
 	DEVEXTENTS	de;
 	TEXTMETRIC	textMetrics;
 	FTABLE*		fp = _currentPrintScope.fp;
 	PRTPARAM	*pp = config_getPrintConfiguration();
 	PRINT_LINE	printLineParam;
-
 
 	print_getDeviceExtents(hdc, &de);
 	print_selectfont(hdc,&pp->font);
@@ -561,6 +559,7 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 	}
 	while (printLineParam.pElement) {
 		if (oldpageno != printLineParam.pagenumber) {
+			BOOL printing;
 			if (measureOnly) {
 				printing = TRUE;
 			} else {
@@ -912,7 +911,6 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 	BOOL			bFileRead = FALSE;
 	HDC 			hdcPrn;
 	int 			ret = 0;
-	int				nFunc = 0;
 	int				errEscape;
 	char 			message[128];
 	WINFO			winfo;

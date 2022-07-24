@@ -246,7 +246,6 @@ int EdScrollScreen(WINFO* wp, int mtype)
 
 	if (!wp)
 		return 0;
-	FTABLE* fp = wp->fp;
 
 	switch(mtype) {
 		case MOT_SINGLE:

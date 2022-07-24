@@ -620,33 +620,49 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	pPart->rvp_layouted = TRUE;
 }
 
+static BOOL mdr_loadAndMeasureImage(MD_IMAGE* pImage, const char* pszImageName, int *pWidth, int * pHeight, int *pOrigWidth, int *pOrigHeight) {
+	if (!pImage->mdi_image) {
+		char* pszExt = strrchr(pszImageName, '.');
+		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
+			pImage->mdi_image = loadimage_load((char*)pszImageName);
+		} else {
+			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+		}
+	}
+	if (pImage->mdi_image) {
+		BITMAP bitmap;
+		GetObject(pImage->mdi_image, sizeof(bitmap), &bitmap);
+		*pOrigWidth = bitmap.bmWidth;
+		*pOrigHeight = bitmap.bmHeight;
+		* pWidth = pImage->mdi_width ? pImage->mdi_width :
+			(pImage->mdi_height ? bitmap.bmWidth * pImage->mdi_height / bitmap.bmHeight : bitmap.bmWidth);
+		* pHeight = pImage->mdi_height ? pImage->mdi_height :
+			(pImage->mdi_width ? bitmap.bmHeight * pImage->mdi_width / bitmap.bmWidth : bitmap.bmHeight);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*
  * Paint an image displayed in a markdown text.
  */
-static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE* pSize, float zoomFactor, BOOL bMeasureOnly) {
+static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, SIZE* pSize, float zoomFactor, BOOL bMeasureOnly) {
 	MD_IMAGE* pImage = pTR->tr_image;
 	if (!pImage) {
 		pSize->cx = 20;
 		pSize->cy = 20;
 		return;
 	}
-	if (!pImage->mdi_image) {
-		char* pszExt = strrchr(pTR->tr_link, '.');
-		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
-			pImage->mdi_image = loadimage_load(pTR->tr_link);
-		} else {
-			pImage->mdi_image = LoadImage(NULL, pTR->tr_link, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-		}
-	}
-	if (pImage->mdi_image) {
-		BITMAP          bitmap;
+	int nWidth;
+	int nHeight;
+	int nOrigWidth;
+	int nOrigHeight;
+	if (mdr_loadAndMeasureImage(pImage, pTR->tr_link, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
 		HGDIOBJ         oldBitmap;
 		HDC             hdcMem;
-		GetObject(pImage->mdi_image, sizeof(bitmap), &bitmap);
-		int nWidth = pImage->mdi_width ? pImage->mdi_width : 
-			(pImage->mdi_height ? bitmap.bmWidth * pImage->mdi_height / bitmap.bmHeight : bitmap.bmWidth);
-		int nHeight = pImage->mdi_height ? pImage->mdi_height : 
-			(pImage->mdi_width ? bitmap.bmHeight * pImage->mdi_width / bitmap.bmWidth : bitmap.bmHeight);
+		if (nWidth > nMaxWidth) {
+			nWidth = nMaxWidth;
+		}
 		nWidth = (int)(nWidth * zoomFactor);
 		nHeight = (int)(nHeight * zoomFactor);
 		int nBorder = pImage->mdi_borderWidth;
@@ -655,7 +671,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, SIZE* pSize, fl
 			oldBitmap = SelectObject(hdcMem, pImage->mdi_image);
 			SetStretchBltMode(hdc, COLORONCOLOR);
 			int nDelta = nBorder / 2;
-			StretchBlt(hdc, x+nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY);
+			StretchBlt(hdc, x+nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, nOrigWidth, nOrigHeight, SRCCOPY);
 			SelectObject(hdcMem, oldBitmap);
 			DeleteDC(hdcMem);
 			if (nBorder) {
@@ -802,7 +818,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			x += pTR->tr_attributes.indent;
 		}
 		if (pTR->tr_image) {
-			mdr_paintImage(hdc, pTR, x, y, &size, pRFP->rfp_zoomFactor, pRFP->rfp_measureOnly);
+			mdr_paintImage(hdc, pTR, x, y, nRight-x, &size, pRFP->rfp_zoomFactor, pRFP->rfp_measureOnly);
 			if (size.cy > nHeight) {
 				nHeight = size.cy;
 			}
@@ -1550,6 +1566,9 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 		stringbuf_appendString(pState->hps_text, szTemp);
 		TEXT_RUN* pRun = mdr_appendRun(&pFlow->tf_runs, pFormat, nUrlLen, &(FONT_STYLE_DELTA){ATTR_LINK, 
 			.fsd_textColor = NO_COLOR, 0, .fsd_fillColor = NO_COLOR, .fsd_strokeColor = NO_COLOR}, lp, nLineOffset, 0);
+		if (pRun == 0) {
+			return FALSE;
+		}
 		int nWidth = 0;
 		int nHeight = 0;
 		if (!mdr_parseLinkUrl(0, szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
@@ -2100,12 +2119,21 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
 		while (pCell) {
 			if (pCell->rtc_flow.tf_text) {
-				size_t nLen = strlen(pCell->rtc_flow.tf_text);
-				if (nLen > 100) {
-					// Force wrapping of long column contents
-					nLen = 100;
+				int nWidth;
+				TEXT_RUN* pRun = pCell->rtc_flow.tf_runs;
+				if (pRun && pRun->tr_image) {
+					int nHeight;
+					int nOrigWidth;
+					int nOrigHeight;
+					mdr_loadAndMeasureImage(pRun->tr_image, pRun->tr_link, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
+				} else {
+					size_t nLen = strlen(pCell->rtc_flow.tf_text);
+					if (nLen > 100) {
+						// Force wrapping of long column contents
+						nLen = 100;
+					}
+					nWidth = (int)nLen * 6;
 				}
-				int nWidth = (int)nLen * 6;
 				nWidth += 30 + _tableMargins.m_left + _tableMargins.m_right;
 				if (nWidth > pTable->rt_columnWidths[nColumn]) {
 					pTable->rt_columnWidths[nColumn] = nWidth;
@@ -2729,8 +2757,13 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 						}
 					}
 					int nLen = nTextEnd - nTextStart;
-					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nLen == 0 ? 1 : nLen);
+					if (nLen == 0) {
+						szLinkText[nTextEnd++] = ' ';
+						nLen = 1;
+					}
+					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nLen);
 					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINK;
+					int nLastOffset = pState->hps_lastTextOffset;
 					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					if (bImage) {
 						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
@@ -2738,7 +2771,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 						pRun->tr_image->mdi_width = nWidth;
 					}
 					if (bImage && !pTitle) {
-						pTitle = _strdup(&stringbuf_getString(pState->hps_text)[pState->hps_lastTextOffset]);
+						pTitle = _strdup(&stringbuf_getString(pState->hps_text)[nLastOffset]);
 					}
 					pRun->tr_link = pLink;
 					pRun->tr_title = pTitle;
@@ -3746,7 +3779,7 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 		POINT pt;
 		RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView, pMatchR);
 		pt.x = rb.left1;
-		pt.y = rb.top1 - 20;
+		pt.y = y - 20;
 		ClientToScreen(hwnd, &pt);
 		SendMessage(pData->md_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x, pt.y));
 	} else {

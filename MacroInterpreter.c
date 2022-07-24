@@ -808,6 +808,9 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	if (bNativeCall && !_currentFormInstruction) {
 		NATIVE_FUNCTION* fup = &_functionTable[funcnum];
 		int i;
+		if (nParametersPassed > DIM(tempStack)) {
+			nParametersPassed = DIM(tempStack);
+		}
 		for (i = 0; i < nParametersPassed; i++) {
 			tempStack[i] = interpreter_popStackValue(pContext);
 		}
@@ -969,7 +972,6 @@ static int interpreter_spread(EXECUTION_CONTEXT* pContext) {
 #define COM1_INCR(pLocalInstructionPointer,type,offset) (((unsigned char *)pLocalInstructionPointer)+((type *)pLocalInstructionPointer)->offset)
 #define COM_PARAMINCR(pLocalInstructionPointer)		(((unsigned char *)pLocalInstructionPointer)+interpreter_getParameterSize(pLocalInstructionPointer->typ,&pLocalInstructionPointer->funcnum));
 static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* mpMacro) {
-	char* pszFunctionName = mpMacro->mc_name;
 	COM_1FUNC* cp = (COM_1FUNC*)mpMacro->mc_bytecodes;
 	int nArgumentDelta = 0;
 	COM_1FUNC* cpmax = (COM_1FUNC*)(mpMacro->mc_bytecodes + mpMacro->mc_bytecodeLength);

@@ -258,7 +258,6 @@ static void undo_deallocateExecutedCommands(UNDO_STACK* pStack, FTABLE* fp, BOOL
 		if (pCommand == NULL) {
 			continue;
 		}
-		UNDO_OPERATION* pStep = pCommand->atomicSteps;
 		undo_destroyCommand(pStack->commands[i], fp, bFreeLines);
 		pStack->commands[i] = NULL;
 	}

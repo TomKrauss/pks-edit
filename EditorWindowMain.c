@@ -466,10 +466,7 @@ int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp) {
 	pIndentation->tabsize = ts;
 	memset(pIndentation->tbits, 0, sizeof(pIndentation->tbits));
 	tDelta = lp->tabulatorSizes[iTabSizes];
-	if (tDelta == 0) {
-		tDelta = ts;
-	}
-	else {
+	if (tDelta != 0) {
 		iTabSizes++;
 	}
 	for (i = 0, nextIndent = ts; i < MAXLINELEN; i++) {
@@ -1409,7 +1406,6 @@ static void draw_ruler(WINFO *wp) {
 	int			width;
 	int			nMiddle;
 	RECT			rect;
-	FTABLE *		fp = wp->fp;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
 	THEME_DATA* pTheme = theme_getCurrent();
@@ -1511,7 +1507,6 @@ static void draw_lineNumbers(WINFO* wp) {
 	size_t		textLen;
 	FTABLE* fp = wp->fp;
 	int maxln = wp->maxln;
-	EDIT_CONFIGURATION* lin = fp->documentDescriptor;
 	HDC 		hdc;
 	PAINTSTRUCT ps;
 	THEME_DATA* pTheme = theme_getCurrent();
