@@ -757,10 +757,12 @@ static int edit_classifyBeginWord(const char* pBuf, int nOffs) {
 	nOffs--;
 	char c2 = (int)(unsigned char)pBuf[nOffs];
 	if (!isalpha(c2)) {
+		BOOL bSpace = FALSE;
 		while (nOffs > 0 && pBuf[nOffs] == ' ') {
 			nOffs--;
+			bSpace = TRUE;
 		}
-		if (pBuf[nOffs] == '.') {
+		if (bSpace && pBuf[nOffs] == '.') {
 			if (nOffs > 0 && isalpha((int)(unsigned char)pBuf[nOffs - 1])) {
 				return -1;
 			}
