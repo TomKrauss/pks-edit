@@ -749,7 +749,7 @@ void macro_getLabelFor(MACRO* mp, char* pszBuf, size_t nBufferSize) {
 			isUpper = TRUE;
 			continue;
 		}
-		if (!isUpper && isupper(c)) {
+		if (!isUpper && isupper((unsigned char)c)) {
 			*pszBuf++ = ' ';
 			isUpper = TRUE;
 		} else {

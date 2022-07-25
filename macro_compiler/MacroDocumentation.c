@@ -95,18 +95,18 @@ static void macrodoc_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput
 					}
 					continue;
 				}
-				if (bHighlightWord == 1 && isalpha(c)) {
+				if (bHighlightWord == 1 && isalpha((unsigned char)c)) {
 					stringbuf_appendString(pBuf, "<em>");
 					bHighlightWord = 2;
 				}
-				else if (bHighlightWord == 2 && !isalpha(c)) {
+				else if (bHighlightWord == 2 && !isalpha((unsigned char)c)) {
 					stringbuf_appendString(pBuf, "</em> - ");
 					bHighlightWord = 0;
 				}
 				stringbuf_appendChar(pBuf, c);
 			}
 		} else {
-			if (!isalpha(c)) {
+			if (!isalpha((unsigned char)c)) {
 				*pszTag = 0;
 				pszTag = 0;
 				if (strcmp("param", szTag) == 0) {

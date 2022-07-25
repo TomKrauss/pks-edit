@@ -63,7 +63,7 @@ static void analyzer_extractWords(WINFO* wp, int (*fMatch)(const char* pszMatch)
 			if (char_isIdentifier(c)) {
 				stringbuf_appendChar(pBuf, c);
 			} else {
-				if (isspace(c)) {
+				if (isspace((unsigned char)c)) {
 					char* pszWord = stringbuf_getString(pBuf);
 					if (*pszWord) {
 						if (fMatch(pszWord)) {

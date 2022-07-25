@@ -1558,7 +1558,7 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 		}
 	}
 	szTemp[nUrlLen] = 0;
-	if (bDot) {
+	if (bDot && pFlow) {
 		size_t nSize = stringbuf_size(pState->hps_text) - nLastOffset;
 		mdr_appendRun(&pFlow->tf_runs, pFormat, nSize, pFSD, lp, nLineOffset, 0);
 		char* pszLink;
@@ -2940,7 +2940,7 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 	STREAM_OFFSET offsetCurrent = pStream->is_positionToLineStart(pStream, 1);
 	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
 		if (nColumn == -1) {
-			if (isspace(c)) {
+			if (isspace((unsigned char)c)) {
 				continue;
 			}
 			if (c == '|' || c == '-' || c == '=' || c == ':') {
