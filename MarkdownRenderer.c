@@ -1620,6 +1620,11 @@ static BOOL mdr_isIndentedFencedBlock(INPUT_STREAM* pStream, int mType) {
 	STREAM_OFFSET offset = pStream->is_tell(pStream);
 	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
 		if (c == '\t') {
+			if (cColumn > 0 && cColumn < 4) {
+				// we do not allow the line to start with a number of spaces < 4 and then tab
+				// this has to match the algorithm in mdr_parsePreformattedCodeBlock.
+				break;
+			}
 			cColumn = 4;
 			continue;
 		}
