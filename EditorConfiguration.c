@@ -171,6 +171,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "lock-files-for-edit", offsetof(EDITOR_CONFIGURATION, options), O_LOCKFILES},
 	{	RT_FLAG, "save-clipboards-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_CLIPBOARDS_ON_EXIT},
 	{	RT_FLAG, "maintain-clipboard-history", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_CLIPBOARD_HISTORY},
+	{	RT_FLAG, "reuse-application-running-instance", offsetof(EDITOR_CONFIGURATION, options), O_REUSE_APPLICATION_INSTANCE},
 	{	RT_FLAG, "save-macros-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_MACROS_ON_EXIT},
 	{	RT_FLAG, "save-settings-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_SETTINGS_ON_EXIT},
 	{	RT_FLAG, "show-error-toast", offsetof(EDITOR_CONFIGURATION, options), O_SHOW_MESSAGES_IN_SNACKBAR},
@@ -259,12 +260,6 @@ int config_read(const char* pszfilename) {
 		_configuration = config.ac_editorConfiguration;
 		_configuration.autosaveOnExit = config_autosaveConfiguration;
 		_prtparams = config.ac_printConfiguration;
-		if (_configuration.themeName[0]) {
-			theme_setCurrent(_configuration.themeName);
-		}
-		if (_configuration.language[0]) {
-			ui_switchToLanguage(_configuration.language);
-		}
 		return 1;
 	}
 	return 0;
@@ -405,6 +400,7 @@ static DIALPARS _dMisc[] = {
 	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
 	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
 	IDD_OPT4,		O_LOCKFILES,					& _configuration.options,
+	IDD_OPT5,		O_REUSE_APPLICATION_INSTANCE,& _configuration.options,
 	IDD_STRINGLIST3, 0,								& _searchEnginelist,
 	IDD_STRINGLIST2, 0,								&_themelist,
 	IDD_STRINGLIST1, 0,								&_localeslist,

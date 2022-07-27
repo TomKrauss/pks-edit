@@ -135,6 +135,9 @@ void action_registerAction(int commandId, int nType, ACTION_BINDING binding, BOO
  * Remove all actions and action bindings. 
  */
 void action_destroyAll() {
+	if (_allActions == 0) {
+		return;
+	}
 	size_t nActions = arraylist_size(_allActions);
 	for (int i = 0; i < nActions; i++) {
 		free(arraylist_get(_allActions, i));

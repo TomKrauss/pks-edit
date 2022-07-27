@@ -201,14 +201,19 @@ static void checkCommonControlLibraryVersion() {
  * InitInstance()
  */
 static BOOL InitInstance(LPSTR lpCmdLine) {
-	wchar_t				szwLocale[64];
-	char				szLocale[64];
 
 	darkmode_initialize();
 	hLanguageInst = hInst;
-	GetUserDefaultLocaleName(szwLocale, 64);
-	wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);
-	ui_switchToLanguage(szLocale);
+	if (GetConfiguration()->language[0]) {
+		ui_switchToLanguage(GetConfiguration()->language);
+	}
+	else {
+		wchar_t		szwLocale[64];
+		char		szLocale[64];
+		GetUserDefaultLocaleName(szwLocale, 64);
+		wcstombs(szLocale, szwLocale, wcslen(szwLocale) + 1);
+		ui_switchToLanguage(szLocale);
+	}
 	// Initialize common controls.
 	INITCOMMONCONTROLSEX icex = {
 		.dwSize = sizeof(INITCOMMONCONTROLSEX)
@@ -218,8 +223,10 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	string_initDateformats();
 	checkCommonControlLibraryVersion();
 	arguments_getForPhase1(lpCmdLine);
-	init_readConfigFiles();
 	bl_restorePasteBuffers();
+	if (GetConfiguration()->themeName[0]) {
+		theme_setCurrent(GetConfiguration()->themeName);
+	}
 	hDefaultMenu = menu_createMenubar();
 	hwndMain = mainframe_open(hDefaultMenu);
 	 
@@ -296,7 +303,24 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 	return 0;
 }
 
-static int InitDDE(void) {
+static void dde_uninitialize() {
+	if (hDDE) {
+		if (hDDEService) {
+			DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
+			hDDEService = 0;
+		}
+		DdeFreeStringHandle(hDDE, hszDDECommandLine);
+		DdeFreeStringHandle(hDDE, hszDDEExecuteMacro);
+		DdeFreeStringHandle(hDDE, hszDDEService);
+		DdeUninitialize(hDDE);
+		hDDE = 0;
+	}
+}
+
+/*
+ * Initialize the PKS-Edit DDE server allowing to process command line arguments.
+ */
+static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 	UINT	result;
 
 	if (hDDE) {
@@ -312,95 +336,48 @@ static int InitDDE(void) {
 		error_displayAlertDialog("Got error %d initializing DDE");
 		hDDE = 0;
 	} else {
-		hszDDECommandLine = DdeCreateStringHandle(hDDE, "commandline", CP_WINANSI);
 		hszDDEService = DdeCreateStringHandle(hDDE, "PKSEdit.1", CP_WINANSI);
+		hDDEService = DdeNameService(hDDE, hszDDEService, 0, DNS_REGISTER | DNS_FILTERON);
+		hszDDECommandLine = DdeCreateStringHandle(hDDE, "commandline", CP_WINANSI);
 		hszDDEExecuteMacro = DdeCreateStringHandle(hDDE, "macro", CP_WINANSI);
-	}
-	return 1;
-}
-
-static void dde_uninitialize(void) {
-	if (hDDE) {
-		if (hDDEService) {
-			DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
-			hDDEService = 0;
+		HCONVLIST hList;
+		hList = DdeConnectList(hDDE, hszDDEService, hszDDECommandLine, 0, 0);
+		if (hList) {
+			HCONV hPrev = DdeQueryNextServer(hList, 0);
+			if (hPrev) {
+				DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
+				hDDEService = 0;
+				*pDDEOtherInstanceExists = TRUE;
+				EdTRACE(log_errorArgs(DEBUG_TRACE, "There is already a running DDE Server."));
+				return 1;
+			}
 		}
-		DdeFreeStringHandle(hDDE, hszDDECommandLine);
-		DdeFreeStringHandle(hDDE, hszDDEExecuteMacro);
-		DdeFreeStringHandle(hDDE, hszDDEService);
-		DdeUninitialize(hDDE);
-		hDDE = 0;
 	}
-}
-
-#if 0
-static int DelegateArguments(LPSTR lpCmdLine) {
-	HCONV		hconv;
-	HDDEDATA	hData;
-	if ((hconv = DdeConnect(hDDE, hszDDEService, hszDDECommandLine, 0)) != 0) {
-		hData = DdeCreateDataHandle(hDDE, lpCmdLine, 256, 0, 0, CF_TEXT, 0);
-		DdeClientTransaction(hData, 0xFFFFFFFF, hconv, 0, 0, XTYP_EXECUTE, 5000, 0);
-	} else {
-		return 0;
-	}
-	DdeDisconnect(hconv);
 	return 1;
 }
-#endif
-static void RegisterServerDDE(void) {
-	hDDEService = DdeNameService(hDDE, hszDDEService, 0, DNS_REGISTER|DNS_FILTERON);
-}
 
-
-/*------------------------------------------------------------
- * WinMain()
+/*
+ * This implements the "reuse single instance of PKS-Edit" feature. When another PKS-Edit DDE Server is active (other instance 
+ * is running), pass on the command line to this instance using DDE and return 1 indicating, that the job is done and this
+ * instance may terminate.
  */
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
-
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
-	hInst = hInstance;
-	if (!ft_initializeReadWriteBuffers()) {
-		return FALSE;
+static int dde_delegateArguments(LPSTR lpCmdLine) {
+	HCONV		hconv = 0;
+	int ret = 0;
+	if ((GetConfiguration()->options & O_REUSE_APPLICATION_INSTANCE)  && 
+			lpCmdLine && 
+			lpCmdLine[0] && 
+			(hconv = DdeConnect(hDDE, hszDDEService, hszDDECommandLine, 0)) != 0) {
+		HDDEDATA hReturn = DdeClientTransaction(lpCmdLine, (DWORD)(strlen(lpCmdLine)+1), hconv, 0, 0, XTYP_EXECUTE, 5000, 0);
+		if (hReturn) {
+			DdeFreeDataHandle(hReturn);
+			ret = 1;
+		}
 	}
-	if (!init_initializeVariables()) {	/* need environment for sizing the frame window... */
-		return FALSE;
+	if (hconv) {
+		DdeDisconnect(hconv);
 	}
-	RegisterServerDDE();
-	if (!hPrevInstance) {
-		if (!InitApplication())
-		    return (FALSE);
-	}
-	if (!InitInstance(lpCmdLine)) {
-		return (FALSE);
-	}
-
-	ft_restorePreviouslyOpenedWindows();
-	if (!InitDDE()) {
-		return FALSE;
-	}
-	arguments_getPhase2(lpCmdLine);
-
-	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
-		EdEditFile(0L,(char*)0);
-	}
-	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
-	/* show PKS Edit now! */
-	main_restoreSizeAndMakeVisible();
-	return mainframe_messageLoop();
-
-}
-
-/*------------------------------------------------------------
- * FinalizePksEdit()
- * 
- * Invoked, when PKS Edit exits to perform final tasks.
- */
-void FinalizePksEdit(void)
-{
-	GetConfiguration()->autosaveOnExit();
-	bl_autosavePasteBuffers();
-	ft_saveWindowStates();
+	return ret;
 }
 
 /*
@@ -427,6 +404,61 @@ void main_cleanup(void) {
 	ww_destroyAll();
 	config_destroy();
 	function_destroy();
+}
+
+/*------------------------------------------------------------
+ * WinMain()
+ */
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
+
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	hInst = hInstance;
+	if (!ft_initializeReadWriteBuffers()) {
+		return FALSE;
+	}
+	if (!init_initializeVariables()) {	/* need environment for sizing the frame window... */
+		return FALSE;
+	}
+	if (!hPrevInstance) {
+		if (!InitApplication())
+		    return (FALSE);
+	}
+	BOOL bDDEOtherInstanceExists = FALSE;
+	init_readConfigFiles();
+	if (!dde_initialize(&bDDEOtherInstanceExists)) {
+		return FALSE;
+	}
+	if (bDDEOtherInstanceExists && dde_delegateArguments(lpCmdLine)) {
+		main_cleanup();
+		return FALSE;
+	}
+	if (!InitInstance(lpCmdLine)) {
+		return (FALSE);
+	}
+	ft_restorePreviouslyOpenedWindows();
+	arguments_getPhase2(lpCmdLine);
+
+	if (!ww_getNumberOfOpenWindows() && _runInteractive) {
+		EdEditFile(0L,(char*)0);
+	}
+	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
+	/* show PKS Edit now! */
+	main_restoreSizeAndMakeVisible();
+	return mainframe_messageLoop();
+
+}
+
+/*------------------------------------------------------------
+ * FinalizePksEdit()
+ * 
+ * Invoked, when PKS Edit exits to perform final tasks.
+ */
+void FinalizePksEdit(void)
+{
+	GetConfiguration()->autosaveOnExit();
+	bl_autosavePasteBuffers();
+	ft_saveWindowStates();
 }
 
 

@@ -10,6 +10,8 @@ This file contains the release notes for the latest **PKS Edit** releases.
   multiple upper case characters at the beginning (such as CApital) to be spelled correctly with respect to upper
   case lower case spelling. The editing mode is enabled by default for all text document types (readme, .txt, .md, ... files).
   Of course this can be changed in the configuration.
+- The new option `Reuse running PKS-Edit instance` allows to force a single running PKS-Edit instance editing multiple
+  files opened from e.g. the Windows Explorer. 
 
 ### Improved
 - PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active

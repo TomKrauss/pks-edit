@@ -56,7 +56,9 @@ typedef enum {
 	// save and restore named clipboards when 
 	O_SAVE_CLIPBOARDS_ON_EXIT = 0x4000,
 	// whether a history of the clipboard contents is automatically maintained
-	O_SAVE_CLIPBOARD_HISTORY = 0x8000
+	O_SAVE_CLIPBOARD_HISTORY = 0x8000,
+	// whether we should enforce to re-use the single running instance of PKS-Edit
+	O_REUSE_APPLICATION_INSTANCE = 0x10000
 } CONFIGURATION_FLAG;
 
 /* Editor configuration layout options: fkeys, optionbar, statusline */

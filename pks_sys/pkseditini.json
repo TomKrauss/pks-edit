@@ -9,6 +9,7 @@
         "hide-selection-on-move": true,
         "save-clipboards-on-exit": true,
         "maintain-clipboard-history": true,
+        "reuse-application-running-instance": true,
         "save-settings-on-exit": true,
         "show-error-toast": true,
         "undo-enabled": true,
