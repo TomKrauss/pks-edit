@@ -814,6 +814,16 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	while (pTR) {
 		SIZE size;
 		int nFit = 0;
+		if (pTR->tr_attributes.style) {
+			pTR->tr_attributes.bgColor = theme_textStyleBackground(pTheme, pTR->tr_attributes.style, RGB(100, 100, 25));
+		}
+		if (pTR->tr_attributes.bgColor == NO_COLOR) {
+			SetBkMode(hdc, TRANSPARENT);
+		}
+		else {
+			SetBkMode(hdc, OPAQUE);
+			SetBkColor(hdc, pTR->tr_attributes.bgColor);
+		}
 		if (bRunBegin) {
 			x += pTR->tr_attributes.indent;
 		}
@@ -953,16 +963,6 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			DeleteObject(SelectObject(hdc, hOldFont));
 			hFont = mdr_createFont(hdc, &pTR->tr_attributes, pRFP->rfp_zoomFactor);
 			hOldFont = SelectObject(hdc, hFont);
-			if (pTR->tr_attributes.style) {
-				pTR->tr_attributes.bgColor = theme_textStyleBackground(pTheme, pTR->tr_attributes.style, RGB(100, 100, 25));
-			}
-			if (pTR->tr_attributes.bgColor == NO_COLOR) {
-				SetBkMode(hdc, TRANSPARENT);
-			}
-			else {
-				SetBkMode(hdc, OPAQUE);
-				SetBkColor(hdc, pTR->tr_attributes.bgColor);
-			}
 		}
 	}
 	DeleteObject(SelectObject(hdc, hOldFont));
@@ -1870,6 +1870,9 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 	pFSD->fsd_styleName = 0;
 	while (nDestSize > 1) {
 		char c = pStream->is_getc(pStream);
+		if (c == 0) {
+			break;
+		}
 		switch (nState) {
 		case HPS_INIT:
 			if (isalnum((unsigned char)c)) {
@@ -2644,7 +2647,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 	BOOL bEnforceBreak = TRUE;
 	while (pStream->is_peekc(pStream, 0)) {
 		BOOL bSkipped = FALSE;
-		char lastC = 0;
+		char lastC ;
 		char cNext;
 		char c = 0;
 		int nLineOffset = 0;
@@ -2813,6 +2816,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				}
 			}
 			if (c != '\n') {
+				if (c == lastC && c == ' ' && pStream->is_peekc(pStream, 1) == '\n') {
+					break;
+				}
 				stringbuf_appendChar(pState->hps_text, c);
 			}
 		}

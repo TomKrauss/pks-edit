@@ -752,16 +752,18 @@ BEGIN
     CONTROL         "Formulare nahe Mauszeiger öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
     LTEXT           "&Maximale Anzahl Fenster:",-1,12,46,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,139,46,77,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Theme:",-1,12,127,84,12,NOT WS_GROUP
-    LTEXT           "&Anwendungssprache:",-1,12,144,84,12,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST1,139,141,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDD_STRINGLIST2,139,124,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",-1,12,158,205,15,NOT WS_GROUP
-    CONTROL         "Dateien beim Editieren locken",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,11,96,204,12
-    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,176,77,14,NOT WS_TABSTOP
-    LTEXT           "Standardte&xtfont:",-1,12,177,84,11,NOT WS_GROUP
-    LTEXT           "Verwendete Suchmaschine:",-1,12,195,103,11,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST3,139,194,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Theme:",-1,12,129,84,12,NOT WS_GROUP
+    LTEXT           "&Anwendungssprache:",-1,12,146,84,12,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST1,139,143,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDD_STRINGLIST2,139,126,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",IDD_EXPLANATION,12,158,205,18,NOT WS_GROUP
+    CONTROL         "Dateien beim Editieren locken",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,96,204,12
+    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,178,77,14,NOT WS_TABSTOP
+    LTEXT           "Standardte&xtfont:",-1,12,179,84,11,NOT WS_GROUP
+    LTEXT           "Verwendete Suchmaschine:",-1,12,197,103,11,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST3,139,196,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Laufende Instanz von PKS-Edit wieder verwenden",IDD_OPT5,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,110,204,12
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 110
