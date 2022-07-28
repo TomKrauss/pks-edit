@@ -678,7 +678,7 @@ macro_definition: { init_macroDefinition(); }
 				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 				macro_validateMacroName($2.ident.s, -1, 1);
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
-				_compilerConfiguration->cb_showStatus("Defining macro %s",$2.ident.s);
+				_compilerConfiguration->cb_showStatus("Defining macro %.200s",$2.ident.s);
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
 				macro_processAnnotations(&_macroParam, _currentMethodAnnotations);
 				_macroParam.mp_name = $2.ident.s;

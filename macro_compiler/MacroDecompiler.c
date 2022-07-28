@@ -38,7 +38,7 @@ int  bytecode_makeAutoLabel(COM_GOTO *cp);
 void bytecode_initializeAutoLabels(void);
 void bytecode_startNextAutoLabel(char **name, COM_GOTO **cp);
 char *bytecode_findAutoLabelForInstruction(const COM_GOTO *cp);
-extern char* mac_name(char* szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
+extern char* mac_name(char* szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize);
 
 static TYPE_PROPERTY_DESCRIPTOR _propertyDescriptors[32];
 static int _numberOfLocalVars;
@@ -1252,12 +1252,12 @@ ARRAY_LIST* decompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, 
  * Decompilation may be performed by printing the code as source code or by printing the low level instructions
  */
 int decompile_saveMacrosAndDisplay(MACROREF *pSelectedMacro, DECOMPILATION_MODE nMode) {
-	char szBuf[128];
+	char szBuf[64];
 	char* pszExtension = nMode == DM_CODE ? ".pkc" : ".pkobj";
 
 	_selectedMacro = pSelectedMacro;
 	if (pSelectedMacro) {
-		mac_name(szBuf, pSelectedMacro->index, pSelectedMacro->typ);
+		mac_name(szBuf, pSelectedMacro->index, pSelectedMacro->typ, sizeof szBuf-10);
 	} else {
 		strcpy(szBuf, "macros");
 	}

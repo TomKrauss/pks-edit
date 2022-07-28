@@ -2711,7 +2711,7 @@ yyreduce:
 				bytecode_destroyAutoLabelNamePrefix(lreturnid,0);
 				macro_validateMacroName(yyvsp[-1].ident.s, -1, 1);
 				YY_EMIT(C_STOP, (GENERIC_DATA){1});
-				_compilerConfiguration->cb_showStatus("Defining macro %s",yyvsp[-1].ident.s);
+				_compilerConfiguration->cb_showStatus("Defining macro %.200s",yyvsp[-1].ident.s);
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
 				macro_processAnnotations(&_macroParam, _currentMethodAnnotations);
 				_macroParam.mp_name = yyvsp[-1].ident.s;

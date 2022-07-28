@@ -46,7 +46,7 @@ extern long		_multiplier;
 
 extern void			yywarning(char* s, ...);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
-extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
+extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize);
 /*
  * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory.
  */
@@ -890,7 +890,7 @@ static void macro_updateCommentAndName(HWND hwnd)
 	nIndex = (MACROREFIDX)HIWORD(nSelected);
 	type = (MACROREFTYPE)LOWORD(nSelected);
 	DlgInitString(hwnd, IDD_STRING1, 
-				mac_name(szName,nIndex,type), MAC_NAMELEN);
+				mac_name(szName,nIndex,type, (int)sizeof szName), MAC_NAMELEN);
 	if (type == CMD_NAMESPACE) {
 		DlgInitString(hwnd, IDD_STRING2, "", MAC_COMMENTLEN);
 	}
@@ -977,7 +977,7 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 	if (nID == IDD_LISTBOX2) {
 		lstrcpy(szBuf,bindings_keycodeToString((KEYCODE) par));
 	} else {
-		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par));
+		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par), (int)sizeof szBuf);
 	}
 	TextOut(hdc, rcp->left, rcp->top, szBuf, (int)strlen(szBuf));
 }
@@ -1028,7 +1028,7 @@ static int macro_charItemNextSelected(HWND hwndList, unsigned char ucKey)
 			nPos = 0;
 		}
 		lValue = SendMessage(hwndList, LB_GETITEMDATA, nPos, 0);
-		mac_name(szBuf, (MACROREFIDX)HIWORD(lValue), (MACROREFTYPE)LOWORD(lValue));
+		mac_name(szBuf, (MACROREFIDX)HIWORD(lValue), (MACROREFTYPE)LOWORD(lValue), (int)sizeof szBuf);
 
 		ucCmp = (szBuf[0] == '@') ? szBuf[1] : szBuf[0];
 		if (ucCmp >= 'A' && ucCmp <= 'Z') {
@@ -1105,8 +1105,8 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 		case WM_COMPAREITEM:
 			cp = (COMPAREITEMSTRUCT*)lParam;
 			return lstrcmp(
-				mac_name(szName, (MACROREFIDX)HIWORD(cp->itemData1), (MACROREFTYPE)LOWORD(cp->itemData1)),
-				mac_name(szN2, (MACROREFIDX)HIWORD(cp->itemData2), (MACROREFTYPE)LOWORD(cp->itemData2)));
+				mac_name(szName, (MACROREFIDX)HIWORD(cp->itemData1), (MACROREFTYPE)LOWORD(cp->itemData1), (int) sizeof szName),
+				mac_name(szN2, (MACROREFIDX)HIWORD(cp->itemData2), (MACROREFTYPE)LOWORD(cp->itemData2), (int)sizeof szN2));
 
 		case WM_COMMAND: 
 			nSelected = macro_getSelectedMacro(hwnd);

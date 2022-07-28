@@ -38,7 +38,7 @@
 #define COL_FUNCTION	30
 
 extern	MACRO *	macro_getByIndex(int i);
-extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type);
+extern 	char *	mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize);
 
 static char *print_buttonEvent(char *b, int button, int shift, int nclicks)
 {
@@ -82,7 +82,7 @@ static void print_getNameAndComment(MACROREF macroref, char* comment, char* comm
 		findex = -1;
 		break;
 	}
-	mac_name(command, findex, (MACROREFTYPE)macroref.typ);
+	mac_name(command, findex, (MACROREFTYPE)macroref.typ, (int)sizeof command);
 }
 
 /*--------------------------------------------------------------------------

@@ -41,10 +41,12 @@ int macro_getFunctionNumberForCommand(int nCommand, long long* llParam) {
 /*------------------------------------------------------------
  * mac_name()
  */
-char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
-{
+char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize) {
 	switch(type) {
-		case CMD_MACRO:  sprintf(szBuf,"%s",MAC_NAME(macro_getByIndex(nIndex))); break;
+		case CMD_MACRO:
+			strncpy(szBuf, MAC_NAME(macro_getByIndex(nIndex)), (size_t)nBufSize); 
+			szBuf[nBufSize - 1] = 0;
+			break;
 		case CMD_CMDSEQ: 
 			if (nIndex >= _commandTableSize) {
 				sprintf(szBuf,"@Unnamed-%d",nIndex);
@@ -54,9 +56,9 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type)
 			}
 			break;
 		case CMD_NAMESPACE:
-			sprintf(szBuf, "Namespace '%s'", MAC_NAME(macro_getNamespaceByIdx(nIndex)));
+			sprintf(szBuf, "Namespace '%.64s'", MAC_NAME(macro_getNamespaceByIdx(nIndex)));
 			break;
-		default: sprintf(szBuf,"??"); break;
+		default: strcpy(szBuf, "??"); break;
 	}
 	return szBuf;
 }
