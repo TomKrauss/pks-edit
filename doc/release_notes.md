@@ -26,6 +26,9 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
   images (empty image description).
 - an issue was fixed leading to corrupted recorded macros causing PKS-Edit to crash when playing them.
+- Strings containing some special characters not supported by Windows (characters 129, 141, 143, 144, and 157), were
+  painted _wrong_ leading to misplaced carets making editing impossible. As a work around PKS-Edit will now display a '?'
+  to represent these characters.
 
 ## 2.2.0
 
