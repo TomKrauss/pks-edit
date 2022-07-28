@@ -12,8 +12,9 @@ void ConvertOemToAnsi()
  */
 void ConvertAnsiToOem()
 {
-	Replace(FORM_INIT,"[הצüִײÜß]","\\[הצüִײÜß=„”™ב]\\&",
+	Replace(FORM_INIT,"[הצüִײÜß]","\\[הצüִײÜß=„”™ב]\\.",
 		REP_REPLACE, RNG_GLOBAL, RE_WRAPSCAN|RE_DOREX, 0);
 }
+
 
 

@@ -149,6 +149,14 @@ static void render_secondaryCaret(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, C
 	}
 }
 
+/**
+ * This function checks, whether a character is supported by windows drawing - if not we will paint
+ * '?' instead.
+ */
+static int char_supportedByWindows(unsigned char c) {
+	return c < 129 || (c != 129 && c != 141 && c != 143 && c != 144 && c != 157);
+}
+
 /*--------------------------------------------------------------------------
  * render_singleLineOnDevice()
  */
@@ -199,6 +207,9 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 			newstate = RS_SPACE;
 		} else if (c >= ' ') {
 			newstate = RS_WORD;
+			if (!char_supportedByWindows(c)) {
+				c = '?';
+			}
 		} else if (c == '\t') {
 			indent = indent_calculateTabStop(i, &wp->indentation);
 			i--;
