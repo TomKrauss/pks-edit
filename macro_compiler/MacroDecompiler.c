@@ -946,7 +946,7 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 		stringbuf_appendString(pBuf, "static ");
 	}
 	const char* pszType = types_nameFor(mp->mc_returnType);
-	decompile_print(pBuf, "%s %s(", pszType, decompile_quoteString(MAC_NAME(mp)));
+	decompile_print(pBuf, "%.128s %.512s(", pszType, decompile_quoteString(MAC_NAME(mp)));
 	while (sp < spend) {
 		if (*sp != C_DEFINE_PARAMETER) {
 			break;
@@ -959,7 +959,7 @@ unsigned char* decompile_printMacroSignature(MACRO* mp, STRING_BUF* pBuf, unsign
 		if (printType) {
 			pszType = printType(pszType);
 		}
-		decompile_print(pBuf, "%s %s", pszType, pSym->name);
+		decompile_print(pBuf, "%.128s %.512s", pszType, pSym->name);
 		sp += interpreter_getParameterSize(*sp, sp + 1);
 	}
 	decompile_print(pBuf, ")");
@@ -1252,6 +1252,7 @@ ARRAY_LIST* decompile_macroNamed(const char* pszName, DECOMPILATION_MODE nMode, 
  * Decompilation may be performed by printing the code as source code or by printing the low level instructions
  */
 int decompile_saveMacrosAndDisplay(MACROREF *pSelectedMacro, DECOMPILATION_MODE nMode) {
+	// Has to be at least 70 chars (+ size of extension) long - mac_name requires a buffer size of at least this size.
 	char szBuf[64];
 	char* pszExtension = nMode == DM_CODE ? ".pkc" : ".pkobj";
 

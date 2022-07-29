@@ -108,6 +108,11 @@ extern HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueB
  */
 extern HWND cust_createToolTooltip(HWND hwndTool);
 
+/*
+ * Utility to check, whether a window refers to an edit field.
+ */
+extern BOOL cust_isEditField(HWND hwnd);
+
 #define CUSTOMCONTROLS_H
 
 #endif // !CUSTOMCONTROLS_H

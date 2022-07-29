@@ -55,8 +55,16 @@ char *mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize)
 				szBuf[0] = '@';
 			}
 			break;
-		case CMD_NAMESPACE:
-			sprintf(szBuf, "Namespace '%.64s'", MAC_NAME(macro_getNamespaceByIdx(nIndex)));
+		case CMD_NAMESPACE: {
+				char* pszNamespace = MAC_NAME(macro_getNamespaceByIdx(nIndex));
+				if (nBufSize < 77) {
+					strncpy(szBuf, pszNamespace, (size_t)nBufSize);
+					szBuf[nBufSize - 1] = 0;
+				}
+				else {
+					sprintf(szBuf, "Namespace '%.64s'", pszNamespace);
+				}
+			}
 			break;
 		default: strcpy(szBuf, "??"); break;
 	}

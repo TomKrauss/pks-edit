@@ -48,6 +48,7 @@ static void Setup-SuiteBaseTests() {
 static void Test-ShortcircuitEvaluation() {
 	string tester = "Hello";
 	
+	very
 	if (size(tester) > 5 && tester[5] == 'o') {
 		Fail("Wrong evaluation of wrong short circuit && expression");
 	}

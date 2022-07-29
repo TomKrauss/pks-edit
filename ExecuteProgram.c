@@ -56,19 +56,22 @@ static void exec_error(char *cmd, int errcode)
  */
 int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	int				show;
-	char			szTemp[256];
-	char			outfile[256];
-	char			infile[256];
+	char			szTemp[1024];
+	char			outfile[1024];
+	char			infile[1024];
 	char *			tmp = file_getTempDirectory();
 	char *			getenv(const char *);
 	BOOL			bUInited;
-	HANDLE			hStdin, hStdout;
+	HANDLE			hStdin;
+	HANDLE			hStdout;
 
 	if (!cmdline) {
 		return 0;
 	}
 	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 	hStdin = GetStdHandle(STD_INPUT_HANDLE);
+	BOOL bConsumer = flags & (EX_RDCONV | EX_RDIN);
+	BOOL bProducer = flags & (EX_RDCONV | EX_RDOUT);
 
 	bUInited = FALSE;
 
@@ -77,25 +80,20 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	}
 
 	show = (flags & EX_SYMBOL) ? SW_SHOWMINIMIZED : SW_SHOWNORMAL;
-
+	DWORD dwCreationFlags = 0;
 	if (flags & EX_DOS) {
 
 		string_concatPathAndFilename(infile, tmp, "IN.___");
 		string_concatPathAndFilename(outfile, tmp, "OUT.___");
 
-		if (flags & EX_RDOUT) {
-			if (!bl_writeToFile(ww_getCurrentEditorWindow(), infile)) {
-				return 0;
-			}
-		}
-
 		if (errfile && errfile[0]) {
-			flags |= EX_RDIN;
+			flags |= EX_RDOUT;
 			lstrcpy(outfile, errfile);
 		}
 
 		wsprintf(szTemp,"cmd /e:1024 /c %s", cmdline);
 		cmdline = szTemp;
+		dwCreationFlags = CREATE_NO_WINDOW;
 	}
 
 	PROCESS_INFORMATION pi;
@@ -105,45 +103,60 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 	si.wShowWindow = show;
-	if (flags & (EX_RDCONV|EX_RDIN)) {
+	SECURITY_ATTRIBUTES saAttr = {
+		.nLength = sizeof(saAttr),
+		.bInheritHandle = TRUE
+	};
+	if (bConsumer) {
+		if (!bl_writeToFile(ww_getCurrentEditorWindow(), infile)) {
+			return 0;
+		}
 		hStdin = CreateFile(
 			infile,
 			GENERIC_READ,
 			0,
-			NULL,
+			&saAttr,
 			OPEN_EXISTING,
 			FILE_ATTRIBUTE_READONLY,
 			NULL);
 	}
-	if (flags & (EX_RDCONV|EX_RDOUT)) {
+	if (bProducer) {
 		hStdout = CreateFile(
 			outfile,
-			GENERIC_READ,
+			GENERIC_WRITE,
 			0,
-			NULL,
-			OPEN_EXISTING,
-			FILE_ATTRIBUTE_READONLY,
+			&saAttr,
+			CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL,
 			NULL);
 	}
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 	si.hStdInput = hStdin;
 	si.hStdOutput = hStdout;
 	si.dwFlags |= STARTF_USESTDHANDLES;
-	if (!CreateProcess(NULL, cmdline, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+	if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, dwCreationFlags, NULL, NULL, &si, &pi)) {
 		exec_error(cmdline, (int) GetLastError());
 		return 0;
 	}
 
 	// Wait until child process exits.
-	WaitForSingleObject(pi.hProcess, INFINITE);
-
+	if (bProducer) {
+		if (WaitForSingleObject(pi.hProcess, 5000) == WAIT_FAILED) {
+			exec_error(cmdline, (int)GetLastError());
+		}
+		CloseHandle(hStdout);
+	}
+	if (bConsumer) {
+		CloseHandle(hStdin);
+	}
 	// Close process and thread handles. 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 	WINFO* wp = ww_getCurrentEditorWindow();
+	FTABLE* fp = wp ? wp->fp : 0;
 
 	if ((flags & EX_RDCONV) && wp) {
-		undo_startModification(wp->fp);
+		undo_startModification(fp);
 		bUInited = TRUE;
 		EdBlockDelete(wp, 0);
 	}
@@ -151,9 +164,9 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 
 	if (errfile && errfile[0]) {
 		xref_openSearchList(errfile, 1);
-	} else if (wp && wp->fp && (flags & EX_RDIN)) {
+	} else if (wp && bProducer) {
 		if (!bUInited) {
-			undo_startModification(wp->fp);
+			undo_startModification(fp);
 		}
 		bl_insertPasteBufFromFile(wp, outfile);
 	}

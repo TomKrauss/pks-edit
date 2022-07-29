@@ -24,6 +24,7 @@
 #include "winterf.h"
 #include "findandreplace.h"
 #include "winfo.h"
+#include "customcontrols.h"
 
 static JSON_MAPPING_RULE _dockRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(MAINFRAME_DOCK, do_name), sizeof(((MAINFRAME_DOCK*)NULL)->do_name)},
@@ -163,14 +164,19 @@ static ARRAY_LIST* hist_getOpenFilePathes() {
  */
 EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bForceInit)
 {	char *p,*q = 0;
+	HWND hwnd = GetDlgItem(hDlg, nItem);
+	if (cust_isEditField(hwnd)) {
+		return;
+	}
 	ARRAY_LIST* pArray = type == PATHES ? hist_getOpenFilePathes() : hist_getHistoryArray(type);
 
 	SendDlgItemMessage(hDlg, nItem, CB_RESETCONTENT, 0,0L);
 	int nSize = (int)arraylist_size(pArray);
 	for (int i = nSize; --i >= 0; ) {
 		p = arraylist_get(pArray, i);
-		if (!q)
+		if (!q) {
 			q = p;
+		}
 		if (SendDlgItemMessage(hDlg, nItem, CB_ADDSTRING, 0, (LPARAM)p) < 0) {
 			break;
 		}

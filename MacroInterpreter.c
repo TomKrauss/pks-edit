@@ -85,8 +85,8 @@ static const PKS_VALUE NIL = { .pkv_type = VT_NIL };
  * An error has occurred during execution of a macro. Display a descriptive error and abort the execution.
  */
 void interpreter_raiseError(const char* pFormat, ...) {
-	char szBuffer[256];
-	char szMessage[512];
+	char szBuffer[1024];
+	char szMessage[1024];
 	va_list ap;
 
 	va_start(ap, pFormat);
@@ -96,7 +96,7 @@ void interpreter_raiseError(const char* pFormat, ...) {
 		error_showMessage(szBuffer);
 		return;
 	}
-	sprintf(szMessage, "%s during execution of %s", szBuffer, _currentExecutionContext->ec_currentFunction);
+	sprintf(szMessage, "%.256s during execution of %.256s", szBuffer, _currentExecutionContext->ec_currentFunction);
 	DEBUG_ACTION action = debugger_open(_currentExecutionContext, szMessage);
 	if (action == DA_ABORT) {
 		longjmp(_currentJumpBuffer, 1);
@@ -1155,7 +1155,7 @@ int interpreter_initializeNamespace(MACRO* mpNamespace, BOOL bSetJump) {
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT ecNamespace;
 	memset(&ecNamespace, 0, sizeof ecNamespace);
-	sprintf(szBuf, "namespace %s", mpNamespace->mc_name);
+	sprintf(szBuf, "namespace %.100s", mpNamespace->mc_name);
 	ecNamespace.ec_currentFunction = szBuf;
 	_currentExecutionContext = &ecNamespace;
 	interpreter_allocateStack(_currentExecutionContext);

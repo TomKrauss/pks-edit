@@ -1100,7 +1100,7 @@ static int xref_shellExecute(char* pszCommand) {
 	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
 		return 1;
 	}
-	error_displayErrorInToastWindow("Cannot open %s", pszCommand);
+	error_displayErrorInToastWindow("Cannot open %.512s", pszCommand);
 	return 0;
 }
 

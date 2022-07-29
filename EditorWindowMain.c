@@ -335,7 +335,7 @@ static void mainframe_destroyEditorIcon(HICON hIcon) {
  */
 int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {	
 	int nr;
-	char buf[512];
+	char buf[EDMAXPATHLEN+10];
 
 	if (!wp->edwin_handle)
 		return 1;

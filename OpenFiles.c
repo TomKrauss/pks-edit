@@ -406,10 +406,11 @@ FTABLE *ft_new(void)
  * ft_visibleName()
  */
 char *ft_visibleName(FTABLE *fp) {	
-	static char buf[512];
+	static char buf[EDMAXPATHLEN];
 
-	if (fp)
-		OemToAnsi(fp->fname,buf);
+	if (fp) {
+		OemToAnsi(fp->fname, buf);
+	}
 	return buf;
 }
 

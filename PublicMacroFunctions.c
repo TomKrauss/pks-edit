@@ -1688,10 +1688,10 @@ int EdListBindings(LIST_BINDING_OPTION lWhich)
  */
 int EdCommandExecute(void)
 {
-	static char	cmd[256];
-	static char	dir[256];
+	static char	cmd[512];
+	static char	dir[512];
 	static char	errlist[64];
-	static int  	opt;
+	static int  opt;
 	static int	redir;
 	static ITEMS	_i   =  	{ 
 		{ C_PUSH_STRING_LITERAL, 	cmd }, 
@@ -1711,13 +1711,16 @@ int EdCommandExecute(void)
 		0
 	};
 
-	bl_getSelectedText(ww_getCurrentEditorWindow(), cmd, 1, sizeof cmd);
 	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
 		return 0;
 	}
-
-	return EdExecute((long)(opt | (EX_RDNONE<<redir)), 
-		cmd, dir, errlist);
+	int nExecuteOptions = opt;
+	switch (redir) {
+	case 1: nExecuteOptions |= EX_RDOUT; break;
+	case 2: nExecuteOptions |= EX_RDIN; break;
+	case 3: nExecuteOptions |= EX_RDCONV; break;
+	}
+	return EdExecute((long)nExecuteOptions, cmd, dir, errlist);
 }
 
 /*--------------------------------------------------------------------------

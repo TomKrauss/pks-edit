@@ -789,3 +789,14 @@ HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueBanner, 
 	return hwnd;
 }
 
+/*
+ * Utility to check, whether a window refers to an edit field.
+ */
+BOOL cust_isEditField(HWND hwnd) {
+	char szClassname[32];
+	GetClassName(hwnd, szClassname, sizeof szClassname);
+	if (strcmp(WC_EDIT, szClassname) == 0) {
+		return TRUE;
+	}
+	return FALSE;
+}
