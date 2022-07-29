@@ -552,7 +552,7 @@ static int tabcontrol_selectPage(HWND hwnd, const HWND hwndPage) {
  * Add a new window with a given tab button to select it. 
  */
 static int tabcontrol_addTab(HWND hwnd, HWND hwndTab, BOOL bSelect) {
-	char szTitle[128];
+	char szTitle[EDMAXPATHLEN];
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	TAB_PAGE* pData = calloc(1, sizeof * pData);
 	int idx = (int)arraylist_size(pControl->tc_pages);
@@ -652,7 +652,7 @@ static void tabcontrol_paintWidget(HDC hdc, TAB_WIDGET* pWidget) {
  * Measure the extends of one tab of the tabstrip of our tab control displaying the edit tabs.
  */
 static void tabcontrol_measureTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected) {
-	char szBuffer[128];
+	char szBuffer[EDMAXPATHLEN];
 	char* pszTitle;
 	int nIconSize = TAB_ICON_SIZE;
 	int nMargin = TAB_ICON_MARGIN;
@@ -761,7 +761,7 @@ HICON mainframe_getDefaultEditorIcon() {
  * Paint one tab of the tabstrip of our tab control displaying the edit tabs. 
  */
 static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL bRollover, int x, int y, int height, int xMax) {
-	char szBuffer[128];
+	char szBuffer[EDMAXPATHLEN];
 	char* pszTitle;
 	THEME_DATA* pTheme = theme_getCurrent();
 	int nIconSize = TAB_ICON_SIZE;
@@ -1111,7 +1111,6 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 	}
 	BOOL bShow = nTabIndex >= 0;
 	if (nTabIndex != pControl->tc_activeTooltipIndex) {
-		char szBuffer[128];
 		// Activate the tooltip.
 		TTTOOLINFO toolinfo = { 0 };
 		toolinfo.cbSize = sizeof(toolinfo);
@@ -1119,6 +1118,7 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 		toolinfo.hinst = hInst;
 		TAB_PAGE* pPage = nTabIndex >= 0 ? arraylist_get(pControl->tc_pages, nTabIndex) : 0;
 		if (pPage) {
+			char szBuffer[EDMAXPATHLEN];
 			GetWindowText(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
 			toolinfo.lpszText = szBuffer;
 			SendMessage(pControl->tc_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
