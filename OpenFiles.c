@@ -1079,8 +1079,12 @@ void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
  */
 void ft_setTitle(FTABLE* fp, char* pNewName) {
 	char oldName[256];
-	if (fp->title && strcmp(fp->title, pNewName) == 0) {
-		return;
+	if (fp->title) {
+		if (strcmp(fp->title, pNewName) == 0) {
+			return;
+		}
+		free(fp->title);
+		fp->title = 0;
 	}
 	strcpy(oldName, pNewName);
 	PROPERTY_CHANGE change;

@@ -241,7 +241,6 @@ namespace pkseditTests
 			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, '-'));
 			Assert::AreEqual(1, regex_matchesFirstChar(&pattern, 'a'));
 
-
 			options = createOptions("\"([^\"])+\"", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
@@ -344,6 +343,11 @@ namespace pkseditTests
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
 			Assert::AreEqual(0, (int)(match.loc1 - expr));
 			Assert::AreEqual(12, (int)(match.loc2 - match.loc1));
+
+			// No regex
+			options = createOptions("abc", RE_IGNCASE);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			Assert::AreEqual(3, regex_getMinimumMatchLength(&pattern));
 
 			// ignore case
 			options = createOptions("a+b+c+", RE_DOREX|RE_IGNCASE);

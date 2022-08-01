@@ -50,9 +50,10 @@ static struct tagSEARCH_CONTEXT {
 	size_t sc_matches;
 	size_t sc_files;
 	size_t sc_filesScanned;
+	size_t sc_filesSkipped;
+	int    sc_trymatch;
+	int    sc_abortOnFirstMatch;
 } _searchContext;
-
-static int 	 _abortOnFirstMatch,_trymatch;
 
 static const char* _grepFileFormat = "\"%s\", line %ld: %s";
 
@@ -149,7 +150,7 @@ longline_scan:
 				while (q < stepend && regex_match(_compiledPattern, q, stepend, &match)) {
 					find_inFilesMatchFound((char*)pFilename, (int)(match.loc1 - pLineStart), (int)(match.loc2 - match.loc1), pLineStart);
 					q = match.loc2;
-					if (_abortOnFirstMatch) {
+					if (_searchContext.sc_abortOnFirstMatch) {
 						return 0;
 					}
 				}
@@ -178,16 +179,18 @@ static int scan_isBinaryFile(int fd) {
 	int nControl = 0;
 
 	nBytesRead = _lread(fd, buffer, sizeof buffer);
-	for (int i = 0; i < nBytesRead; i++) {
-		unsigned char c = (unsigned char)buffer[i];
-		if (c != '\n' && c != '\t' && c != '\r' && iscntrl(c)) {
-			if (++nControl > 5) {
-				return 1;
+	if (nBytesRead > 10) {
+		for (int i = 0; i < nBytesRead; i++) {
+			unsigned char c = (unsigned char)buffer[i];
+			if (c == 0 || c == 129 || (c != '\n' && c != '\t' && c != '\r' && iscntrl(c))) {
+				if (++nControl > 5) {
+					return 1;
+				}
 			}
 		}
 	}
 	_llseek(fd, 0l, SEEK_SET);
-	return nControl > 5;
+	return 0;
 }
 
 /*
@@ -239,11 +242,13 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 		return 1;
 	}
 
-	if (!_searchContext.sc_ignoreBinary || !scan_isBinaryFile(fd)) {
+	if (_searchContext.sc_ignoreBinary && scan_isBinaryFile(fd)) {
+		_searchContext.sc_filesSkipped++;
+	} else {
         _searchContext.sc_filesScanned++;
 		size_t nOldFound = _searchContext.sc_matches;
 		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
-		if (!_trymatch) {
+		if (!_searchContext.sc_trymatch) {
 			find_inFilesMatchFound(pszFile, -1, 0, 0);
 		}
 		else {
@@ -327,15 +332,15 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
 int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACTION fAction) {
 	char *		pathlist;
 	char		stepfile[512];
-	char		title[512];
+	char		title[EDMAXPATHLEN];
 	char* pPathes = pParams->pathlist;
 	char* pFilenamePattern = pParams->filenamePattern;
 	char* pSearchExpression = pParams->searchPattern;
 	int nOptions = pParams->options;
 	HASHMAP* pFilesMap = NULL;
 
-	_abortOnFirstMatch = (nOptions & RE_SEARCH_ONCE) || fAction == FIF_REPLACE;
 	memset(&_searchContext, 0, sizeof _searchContext);
+	_searchContext.sc_abortOnFirstMatch = (nOptions & RE_SEARCH_ONCE) || fAction == FIF_REPLACE;
 	_searchContext.sc_ignoreBinary = nOptions & RE_IGNORE_BINARY;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
@@ -345,19 +350,19 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 		pFilesMap = find_collectFiles(stepfile);
 	}
 	if (!*pSearchExpression) {
-		_trymatch = 0;
+		_searchContext.sc_trymatch = 0;
 	} else {
 		if ((_compiledPattern = regex_compileWithDefault(pSearchExpression)) == NULL) {
 			return 0;
 		}
-		_trymatch = 1;
+		_searchContext.sc_trymatch = 1;
 	}
 
 	pathlist = malloc(1024);
 	_searchContext.sc_fileName = stepfile;
 	char* pMode = nOptions & RE_APPEND_TO_SEARCH_RESULTS ? "a" : "w";
 	_searchContext.sc_file = _fsopen(stepfile, pMode, _SH_DENYNO);
-	sprintf(title, "Matches of '%s' in '%s'", pSearchExpression, pPathes);
+	sprintf(title, "Matches of '%s' in '%s'\n", pSearchExpression, pPathes);
 	fprintf(_searchContext.sc_file, "%s\n", title);
 	FTABLE* fp;
 	if (ft_activateWindowOfFileNamed(stepfile)) {
@@ -385,8 +390,8 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	if (_searchContext.sc_openFailures) {
 		fprintf(_searchContext.sc_file, "Could not open %ld files during scan because of opening errors.\n", (long)_searchContext.sc_openFailures);
 	}
-	fprintf(_searchContext.sc_file, "Scanned %ld files, found %ld matches in %ld files", 
-		(long)_searchContext.sc_filesScanned, (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
+	fprintf(_searchContext.sc_file, "Scanned %ld files, skipped %ld files, found %ld matches in %ld files", 
+		(long)_searchContext.sc_filesScanned, (long)_searchContext.sc_filesSkipped, (long)_searchContext.sc_matches, (long)_searchContext.sc_files);
 	fclose(_searchContext.sc_file);
 	progress_closeMonitor(0);
 	free(pathlist);

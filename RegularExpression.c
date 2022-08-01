@@ -1007,6 +1007,7 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
 	int ret;
 	if ((pOptions->flags & (RE_SHELLWILD | RE_DOREX)) == 0) {
 		ret = regex_compileSimpleStringMatch(pOptions, pResult, pInput, pPatternStart);
+		pPatternEnd = pResult->compiledExpressionEnd;
 	} else {
 		ret = regex_compileSubExpression(pOptions, pResult, pInput, pPatternStart, &pExprEnd, &pPatternEnd, 0) == NULL ? 0 : 1;
 	}
@@ -1416,15 +1417,22 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 	} else {
 		const char* pszMax = minLen == 0 ? endOfStringToMatch : (endOfStringToMatch - minLen + 1);
 		char fastC = 0;
+		char fastC2 = 0;
 		if (pMatcher->m_type == STRING) {
 			fastC = pMatcher->m_param.m_string.m_chars[0];
 		} else if (pMatcher->m_type == SINGLE_CHAR) {
 			fastC = pMatcher->m_param.m_char;
+		} else if (pMatcher->m_type == CASE_IGNORE_CHAR) {
+			fastC = pMatcher->m_param.m_caseChar.m_c1;
+			fastC2 = pMatcher->m_param.m_caseChar.m_c2;
 		}
 		while (stringToMatch < pszMax) {
-			if (fastC && *stringToMatch != fastC) {
-				stringToMatch++;
-				continue;
+			if (fastC) {
+				char c = *stringToMatch;
+				if (c != fastC && (!fastC2 || fastC2 != c)) {
+					stringToMatch++;
+					continue;
+				}
 			}
 			if (regex_advance((char*)pszBegin, (unsigned char*)stringToMatch, (unsigned char*)endOfStringToMatch, (unsigned char*)pMatcher, 
 					pPattern->compiledExpressionEnd, pMatch, pPattern->debug, 0)) {
