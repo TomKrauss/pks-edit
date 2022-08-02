@@ -52,22 +52,24 @@ typedef struct tagRE_MATCH {
 } RE_MATCH;
 
 typedef struct tagRE_OPTIONS {
-	char* expression;			/* the actual expression to compile */
-	char* patternBuf;			/* space into which the regular expression is compiled */
-	char* endOfPatternBuf;		/* marks the end of the space into which the expression is compiled */
-	unsigned char eof;			/* "END OF INPUT" character if any */
-	int	flags;					/* some of the RE_CONSTANTS above */
+	char* expression;				// the actual expression to compile
+	char* patternBuf;				// space into which the regular expression is compiled
+	char* endOfPatternBuf;			// marks the end of the space into which the expression is compiled
+	unsigned char eof;				// "END OF INPUT" character if any 
+	int	flags;						// some of the RE_CONSTANTS above
 } RE_OPTIONS;
 
 typedef struct tagRE_PATTERN {
 	int		errorCode;				// the resource ID in case of an error, which can be used for error reporting.
-	char*	compiledExpression;
+	char*	compiledExpression;		// The pointer to the compiled expression. Points to the pattern buf passed in the RE_OPTIONS.
+									// contains the "bytecodes" of the matcher or the expression itself in case of the boyer match.
 	char*	compiledExpressionEnd;	// points to the end of the compiled expression after the compilation
 	const char*	beginOfLine;		// may be set to the beginning of a line to make <> matches more correct.
-	int		circf;					// set to true to not advance during matching, but to match only the beginning of the string.
-	int		noAdvance;				// set to true to only match exactly at the current position.
+	int		circf : 1;				// set to true to not advance during matching, but to match only the beginning of the string.
+	int		noAdvance : 1;			// set to true to only match exactly at the current position.
+	int		boyerMatch : 1;			// set to true to perform a boyer match (bad suffix part used only)
 	int		debug;					// set to true to print debugging information
-	int		nbrackets;
+	int		nbrackets;				// Number of brackets in match.
 } RE_PATTERN;
 
 typedef enum enumCAPTURING_GROUP_RESULT {

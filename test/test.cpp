@@ -138,6 +138,27 @@ namespace pkseditTests
 			regex_getCapturingGroup(&match, 1, group, sizeof group);
 			Assert::AreEqual("blabla", group);
 
+			options = createOptions("glockenturm", 0);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "1234567glockenturmaaaaaaa";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(11, (int)(match.loc2 - match.loc1));
+			Assert::AreEqual(7, (int)(match.loc1 - expr));
+
+			options = createOptions("glockenturm", 0);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "123glocglockenturmaaaaaaa";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(11, (int)(match.loc2 - match.loc1));
+			Assert::AreEqual(7, (int)(match.loc1 - expr));
+
+			options = createOptions("abcd", 0);
+			Assert::AreEqual(1, regex_compile(options, &pattern));
+			expr = "abcabdabcadabcdcdba";
+			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)expr, NULL, &match));
+			Assert::AreEqual(4, (int)(match.loc2 - match.loc1));
+			Assert::AreEqual(11, (int)(match.loc1 - expr));
+
 			options = createOptions("Regul&äre Ausdrücke", 0);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
 			expr = "Regul&äre Ausdrücke";

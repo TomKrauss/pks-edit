@@ -95,7 +95,8 @@ typedef enum {
 	WORD_CCLASS = 15,
 	END_OF_PATTERN = 16,			// marks the end of the pattern
 	NON_WHITE_SPACE_CCLASS = 17,
-	HEADER = 18,
+	BOYER = 18,
+	HEADER = 19,
 } MATCH_TYPE;
 
 static char* _matchTypeNames[] = {
@@ -117,6 +118,7 @@ static char* _matchTypeNames[] = {
 	"word",
 	"eof",
 	"nonws",
+	"boyer",
 	"head"
 };
 
@@ -125,6 +127,8 @@ typedef struct tag_MATCH_RANGE {
 	char m_lazy : 1;				// non gridy match, if != 0 try to match minOccurrence times.
 	char m_maxOccurrence;			// max number of occurrence- only define in case of ..._RANGE types
 } MATCH_RANGE;
+
+#define BADCHAR_POINTER(matcher)	(matcher->m_param.m_boyer.m_chars + matcher->m_param.m_boyer.m_length)
 
 typedef struct tagMATCHER {
 	char m_type	 : 7;					// MATCH_TYPE as defined above
@@ -148,6 +152,10 @@ typedef struct tagMATCHER {
 			char m_c1;
 			char m_c2;
 		} m_caseChar;
+		struct tagBOYER {
+			char m_length;
+			char m_chars[1];
+		} m_boyer;
 		struct tagSTRING {
 			char m_length;
 			char m_chars[1];
@@ -180,6 +188,7 @@ static int matcherSizes[HEADER + 1] = {
 	/* WORD_CCLASS */		2,
 	/* END_OF_PATTERN */		1,
 	/* NON_WHITE_SPACE_CCLASS */ 2,
+	/* BOYER */				2,
 	/* HEADER */			2
 };
 
@@ -202,6 +211,7 @@ static int matcherSimpleLength[HEADER + 1] = {
 	/* WORD_CCLASS */		1,
 	/* END_OF_PATTERN */		0,
 	/* NON_WHITE_SPACE_CCLASS*/ 1,
+	/* BOYER */				-1,			// dynamic
 	/* HEADER */			0
 };
 
@@ -501,7 +511,10 @@ static int regex_expressionOffset(MATCHER* pMatcher, RE_MATCH* pResult, int bDon
 		return pMatcher->m_param.m_group.m_groupEnd;
 	}
 	if (pMatcher->m_type == STRING) {
-		return pMatcher->m_param.m_string.m_length + 2;
+		return pMatcher->m_param.m_string.m_length + 1 + sizeof(pMatcher->m_param.m_string.m_length);
+	}
+	if (pMatcher->m_type == BOYER) {
+		return pMatcher->m_param.m_boyer.m_length + sizeof(pMatcher->m_param.m_boyer.m_length) + 256;
 	}
 	int tDelta = matcherSizes[pMatcher->m_type];
 	if (pMatcher->m_range) {
@@ -578,11 +591,10 @@ static int regex_calculateMinMatchLen(unsigned char* pExpression, unsigned char*
 			}
 			pExpression = pExpressionEndGroup;
 		} else {
-			if (pMatcher->m_type == STRING) {
+			if (pMatcher->m_type == STRING || pMatcher->m_type == BOYER) {
 				nDelta = pMatcher->m_param.m_string.m_length;
-				pExpression += nDelta+2;
-			}
-			else {
+				pExpression += regex_expressionOffset(pMatcher,0 ,0);
+			} else {
 				nDelta = matcherSimpleLength[pMatcher->m_type];
 				pExpression += matcherSizes[pMatcher->m_type];
 			}
@@ -954,9 +966,22 @@ static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pRes
 			}
 		}
 		else {
-			pMatcher->m_type = STRING;
-			pMatcher->m_param.m_string.m_length = (char)strlen(pExpression);
-			memcpy(pMatcher->m_param.m_string.m_chars, pExpression, pMatcher->m_param.m_string.m_length);
+			int nLen = strlen(pExpression);
+			pMatcher->m_param.m_string.m_length = nLen;
+			memcpy(pMatcher->m_param.m_string.m_chars, pExpression, nLen);
+			if (nLen < 256 && nLen > 2) {
+				pMatcher->m_type = BOYER;
+				pResult->boyerMatch = 1;
+				unsigned char* pBadchars = BADCHAR_POINTER(pMatcher);
+				for (int i = 0; i < 256; i++) {
+					pBadchars[i] = nLen;
+				}
+				for (int i = 0; i < nLen ; i++) {
+					pBadchars[(unsigned char)pExpression[i]] = i;
+				}
+			} else {
+				pMatcher->m_type = STRING;
+			}
 			pMatcher = (MATCHER*)(pPatternStart + regex_expressionOffset(pMatcher, 0, 0));
 		}
 	}
@@ -1376,6 +1401,33 @@ int regex_matchWordStart(RE_PATTERN* pPattern) {
 	return pMatcher->m_type == START_OF_IDENTIFIER;
 }
 
+static char* regex_boyerMatch(const unsigned char* stringToMatch, const unsigned char* endOfStringToMatch, 
+	int nLen, const unsigned char* pPattern, const unsigned char* pBadChars) {
+
+	while (stringToMatch + nLen <= endOfStringToMatch) {
+		int i = nLen-1;
+		while (1) {
+			if (i < 0) {
+				return 0;
+			}
+			unsigned char cP = pPattern[i];
+			unsigned char cS = stringToMatch[i];
+			if (cP != cS) {
+				int nOffs = i - pBadChars[cS];
+				if (nOffs <= 0) {
+					nOffs = 1;
+				}
+				stringToMatch += nOffs;
+				break;
+			}
+			if (i == 0) {
+				return stringToMatch;
+			}
+			i--;
+		}
+	}
+	return 0;
+}
 /*--------------------------------------------------------------------------
  * regex_match()
  * The workhorse of the regular expression matching feature - try to match an input string
@@ -1415,6 +1467,17 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 			return 1;
 		}
 	} else {
+		if (pPattern->boyerMatch) {
+			MATCHER* pMatcher = regex_getFirstMatchSection(pPattern);
+			if ((pMatch->loc1 = regex_boyerMatch((unsigned char*)pszBegin, (unsigned char*)endOfStringToMatch,
+				pMatcher->m_param.m_boyer.m_length, pMatcher->m_param.m_boyer.m_chars, BADCHAR_POINTER(pMatcher))) != 0) {
+				pMatch->loc2 = pMatch->loc1 + pMatcher->m_param.m_boyer.m_length;
+				pMatch->matches = 1;
+				return 1;
+			}
+			pMatch->matches = 0;
+			return 0;
+		}
 		const char* pszMax = minLen == 0 ? endOfStringToMatch : (endOfStringToMatch - minLen + 1);
 		char fastC = 0;
 		char fastC2 = 0;
