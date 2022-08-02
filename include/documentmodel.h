@@ -822,7 +822,8 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 
 /*---- SIZE OF EXPRESSION BUFFERS -----------------------------*/
 
-#define	ESIZE		256		 		// maximum Expressionsize in standard search expressions
+#define	ESIZE		560		 		// maximum Expressionsize in standard search expressions 
+									// - must have at least a size of 256 bytes + length of pattern for Boyer matches + RE-BUFFER header
 
 #ifndef 	DIM
 #define	DIM(x)		(sizeof(x)/sizeof(x[0]))

@@ -964,12 +964,11 @@ static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pRes
 				char c = *pExpression++;
 				pMatcher = (MATCHER*)regex_compileSingleChar(pMatcher, pOptions->flags, c);
 			}
-		}
-		else {
-			int nLen = strlen(pExpression);
+		} else {
+			int nLen = (int)strlen(pExpression);
 			pMatcher->m_param.m_string.m_length = nLen;
 			memcpy(pMatcher->m_param.m_string.m_chars, pExpression, nLen);
-			if (nLen < 256 && nLen > 2) {
+			if (nLen < 256 && nLen > 2 && (int)(pOptions->endOfPatternBuf-pPatternStart) > nLen + 260) {
 				pMatcher->m_type = BOYER;
 				pResult->boyerMatch = 1;
 				unsigned char* pBadchars = BADCHAR_POINTER(pMatcher);
@@ -1401,7 +1400,7 @@ int regex_matchWordStart(RE_PATTERN* pPattern) {
 	return pMatcher->m_type == START_OF_IDENTIFIER;
 }
 
-static char* regex_boyerMatch(const unsigned char* stringToMatch, const unsigned char* endOfStringToMatch, 
+static const char* regex_boyerMatch(const unsigned char* stringToMatch, const unsigned char* endOfStringToMatch, 
 	int nLen, const unsigned char* pPattern, const unsigned char* pBadChars) {
 
 	while (stringToMatch + nLen <= endOfStringToMatch) {
@@ -1469,7 +1468,7 @@ int regex_match(RE_PATTERN* pPattern, const unsigned char* stringToMatch, const 
 	} else {
 		if (pPattern->boyerMatch) {
 			MATCHER* pMatcher = regex_getFirstMatchSection(pPattern);
-			if ((pMatch->loc1 = regex_boyerMatch((unsigned char*)pszBegin, (unsigned char*)endOfStringToMatch,
+			if ((pMatch->loc1 = (char*)regex_boyerMatch((unsigned char*)pszBegin, (unsigned char*)endOfStringToMatch,
 				pMatcher->m_param.m_boyer.m_length, pMatcher->m_param.m_boyer.m_chars, BADCHAR_POINTER(pMatcher))) != 0) {
 				pMatch->loc2 = pMatch->loc1 + pMatcher->m_param.m_boyer.m_length;
 				pMatch->matches = 1;
