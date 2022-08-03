@@ -915,13 +915,15 @@ static MATCHER* regex_compileSubExpression(RE_OPTIONS* pOptions, RE_PATTERN* pRe
 					if (c2 == '\\') {
 						c2 = *pStart++;
 						if (c2 != '\\' && !ISTHERE(_reSpecialChars, c2)) {
+							pStart--;
 							break;
 						}
 					} else if (ISTHERE(_reSpecialChars, c2)) {
+						pStart--;
 						break;
 					}
 				}
-				int len = (int)(pStart - pInput)-1;
+				int len = (int)(pStart - pInput);
 				if (len >= 2) {
 					pMatcher->m_type = STRING;
 					pStart = pInput-1;
@@ -953,6 +955,32 @@ endcompile:
 }
 
 /*
+ * Try to turn single string matches into Boyer matches
+ */
+static void regex_optimize(RE_PATTERN* pResult, int nAvailable) {
+	MATCHER* pMatcher = regex_getFirstMatchSection(pResult);
+	MATCHER* pNext = (MATCHER*)(((char*)pMatcher) + regex_expressionOffset(pMatcher, pResult, 0));
+	if (pMatcher->m_type == STRING && pNext->m_type == END_OF_PATTERN) {
+		int nLen = pMatcher->m_param.m_string.m_length;
+		if (nLen < 256 && nLen > 2 && (int)(nAvailable) > nLen + 260) {
+			pMatcher->m_type = BOYER;
+			pResult->boyerMatch = 1;
+			char* pBadchars = BADCHAR_POINTER(pMatcher);
+			for (int i = 0; i < 256; i++) {
+				pBadchars[i] = -1;
+			}
+			char* pExpression = pMatcher->m_param.m_string.m_chars;
+			for (int i = 0; i < nLen; i++) {
+				pBadchars[(unsigned char)pExpression[i]] = i;
+			}
+			pMatcher = (MATCHER*)((char*)pMatcher + regex_expressionOffset(pMatcher, 0, 0));
+			pMatcher->m_type = END_OF_PATTERN;
+			pResult->compiledExpressionEnd = ((char*)pMatcher) + matcherSizes[END_OF_PATTERN];
+		}
+	}
+}
+
+/*
  * Produce a pre-compiled expression, when matching simple strings.
  */
 static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pResult, char* pExpression, char* pPatternStart) {
@@ -968,19 +996,7 @@ static int regex_compileSimpleStringMatch(RE_OPTIONS* pOptions, RE_PATTERN* pRes
 			int nLen = (int)strlen(pExpression);
 			pMatcher->m_param.m_string.m_length = nLen;
 			memcpy(pMatcher->m_param.m_string.m_chars, pExpression, nLen);
-			if (nLen < 256 && nLen > 2 && (int)(pOptions->endOfPatternBuf-pPatternStart) > nLen + 260) {
-				pMatcher->m_type = BOYER;
-				pResult->boyerMatch = 1;
-				char* pBadchars = BADCHAR_POINTER(pMatcher);
-				for (int i = 0; i < 256; i++) {
-					pBadchars[i] = -1;
-				}
-				for (int i = 0; i < nLen ; i++) {
-					pBadchars[(unsigned char)pExpression[i]] = i;
-				}
-			} else {
-				pMatcher->m_type = STRING;
-			}
+			pMatcher->m_type = STRING;
 			pMatcher = (MATCHER*)(pPatternStart + regex_expressionOffset(pMatcher, 0, 0));
 		}
 	}
@@ -1037,6 +1053,9 @@ int regex_compile(RE_OPTIONS* pOptions, RE_PATTERN* pResult) {
 	}
 	if (ret) {
 		pResult->noAdvance = (pOptions->flags & RE_NOADVANCE) ? 1 : 0;
+		if (!pResult->noAdvance) {
+			regex_optimize(pResult, (int)(pOptions->endOfPatternBuf - pOptions->patternBuf));
+		}
 		pResult->debug = (pOptions->flags & RE_DEBUG) ? 1 : 0;
 		pMatcher->m_param.m_header.m_minMatchSize = regex_calculateMinMatchLen(pPatternStart, pPatternEnd);
 	}
