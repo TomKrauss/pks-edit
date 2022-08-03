@@ -728,11 +728,12 @@ int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex) {
 	*pFirstIndex = -1;
 	*pLastIndex = -1;
 	if (wp->blstart && wp->blend) {
-		*pFirstIndex = ln_indexOf(wp->fp, wp->blstart->m_linePointer);
-		if (wp->blstart->m_linePointer == wp->blend->m_linePointer) {
+		LINE* pStartPointer = wp->blstart->m_linePointer;
+		*pFirstIndex = pStartPointer == wp->caret.linePointer ? wp->caret.ln : ln_indexOf(wp->fp, pStartPointer);
+		if (pStartPointer == wp->blend->m_linePointer) {
 			*pLastIndex = *pFirstIndex;
 		} else {
-			int nDelta = ll_indexOf((LINKED_LIST*)wp->blstart->m_linePointer, (LINKED_LIST*)wp->blend->m_linePointer);
+			int nDelta = ll_indexOf((LINKED_LIST*)pStartPointer, (LINKED_LIST*)wp->blend->m_linePointer);
 			if (wp->blend->m_column == 0) {
 				nDelta--;
 			}
