@@ -74,7 +74,7 @@ static int ft_generateAutosavePathname(char *destinationName, const char *fname)
 
 	string_splitFilename(fname,(char *)0,fn);
 	string_concatPathAndFilename(szBuff, config_getPKSEditTempPath(),fn);
-	string_getFullPathName(destinationName,szBuff);
+	string_getFullPathName(destinationName,szBuff,EDMAXPATHLEN);
 	return 1;
 }
 
@@ -658,7 +658,7 @@ int ft_activateWindowOfFileNamed(const char *fn) {
 	FTABLE 	*fp;
 	char 	fullname[EDMAXPATHLEN];
 
-	string_getFullPathName(fullname,fn);
+	string_getFullPathName(fullname,fn, sizeof fullname);
 	fp = ft_fpbyname(fullname);
 	if (fp == NULL) {
 		return 0;
@@ -686,7 +686,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	szAsPath[0] = 0;
 	lastSelectedDocType = 0;
 	if (fn) {
-		string_getFullPathName(szResultFn,fn);
+		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
 	}
 	if (fn && ft_editing(fn) != 0) {
@@ -1117,10 +1117,11 @@ void EditDroppedFiles(HDROP hDrop)
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
 		pszFileName = malloc(nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );
-		if (!EdEditFile(OPEN_NOFN, pszFileName)) {
+		long long nSuccess = EdEditFile(OPEN_NOFN, pszFileName);
+		free(pszFileName);
+		if (!nSuccess) {
 			break;
 		}
-		free(pszFileName);
 	}
 }
 

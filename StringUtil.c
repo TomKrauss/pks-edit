@@ -144,10 +144,10 @@ void string_splitFilename(const char *completeFileName, char *pathName, char *fi
  * string_getFullPathName()
  * make full pathname
  */
-char *string_getFullPathName(const char *path, const char *fn) {
+char *string_getFullPathName(const char *path, const char *fn, size_t maxPathLen) {
 	char *		pszFn;
 
-	GetFullPathName(fn, 256, (char *)path, &pszFn);
+	GetFullPathName(fn, (DWORD)maxPathLen, (char *)path, &pszFn);
 	return (char*)path;
 }
 

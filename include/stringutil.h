@@ -89,7 +89,7 @@ extern char* string_abbreviateFileNameOem(const char* fn);
  * string_getFullPathName()
  * make full pathname
  */
-extern char* string_getFullPathName(const char* path, const char* fn);
+extern char* string_getFullPathName(const char* path, const char* fn, size_t maxPathLen);
 
 /*
  * Free the dereferenced pointer and initialize the space pointed to with NULL.

@@ -130,7 +130,7 @@ static int arguments_parsePhase2(char *arg)
 static int arguments_get(char *args, int (*argfunc)(char *arg))
 {
 	char *	dend;
-	char 	argument[256];
+	char 	argument[EDMAXPATHLEN];
 	
 	dend = &argument[sizeof argument-1];
 	while(*args) {

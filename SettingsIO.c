@@ -67,7 +67,7 @@ static int LocatePksEditIni(void)
 void prof_setinifile(char *fn)
 {
 	if (file_exists(fn) == 0) {
-		string_getFullPathName(_pksEditIniFilename, fn);
+		string_getFullPathName(_pksEditIniFilename, fn, sizeof _pksEditIniFilename);
 	}
 }
 

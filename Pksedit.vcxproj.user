@@ -9,8 +9,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>
-    </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>C:\source\arp\rp-omnichannelsolution-master2\git\managed-checkout\mco-application\mco\mco-application-application-adapter-client-grpc\src\main\protobuf\de\gebit\rp\managedcheckoutapp\appadapter\v1\receiptrepository\datatype\receipt_repository_datatype.proto</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>
