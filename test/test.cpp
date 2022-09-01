@@ -721,7 +721,19 @@ namespace pkseditTests
 			Assert::AreEqual((size_t)12, delta);
 		}
 	};
-
+	TEST_CLASS(character_classes)
+	{
+	public:
+		TEST_METHOD(basic_chars) {
+			regex_compileCharacterClasses((const unsigned char*)"a-z=A-Z");
+			Assert::IsTrue(pks_isalpha('z'));
+			Assert::IsTrue(pks_isalpha('ß'));
+			Assert::IsTrue(pks_islower('ß'));
+			Assert::IsTrue(pks_isalpha('ö'));
+			Assert::IsTrue(pks_isalpha('Ö'));
+			Assert::IsTrue(pks_isupper('Ü'));
+		}
+	};
 	TEST_CLASS(strings)
 	{
 	public:

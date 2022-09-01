@@ -31,6 +31,7 @@
 #define	MAXCTAB					32		/* maximum byte length of chartestset */
 #define	BIG						32000	/* big Range Size used by: +,*,{x,} */
 
+static int _asciitabInitialized;
 static int 	_chsetinited;
 unsigned char bittab[8] = { 1,2,4,8,16,32,64,128 };
 unsigned char _asciitab[256] =
@@ -54,9 +55,6 @@ static unsigned char* _transtabs[8];
 static char			  _reSpecialChars[MAXCTAB];
 
 #define	DIM(tab)		(sizeof(tab)/sizeof(tab[0]))
-
-#define	makeUpperCase(c)		_l2uset[((unsigned char)c)]
-#define	makeLowerCase(c)		_u2lset[((unsigned char)c)]
 
 /***************************************************************************/
 /* ERRORS:													*/
@@ -396,9 +394,9 @@ static void regex_addCharacterToCharacterClass(unsigned char* pCharTable, unsign
 	int c2;
 
 	if (flags & RE_IGNCASE) {
-		c2 = makeUpperCase(c);
+		c2 = pks_toupper(c);
 		pCharTable[c2 >> 3] |= bittab[c2 & 07];
-		c = makeLowerCase(c);
+		c = pks_tolower(c);
 	}
 	pCharTable[c >> 3] |= bittab[c & 07];
 }
@@ -417,6 +415,17 @@ void regex_compileCharacterClasses(const unsigned char* pLowerToUpperPattern) {
 
 	if (_chsetinited && pLowerToUpperPattern == NULL) {
 		return;
+	}
+	if (!_asciitabInitialized) {
+		unsigned char* pszUmlautsLower = "öäüß";
+		unsigned char* pszUmlautsUpper = "ÖÄÜ";
+		while (*pszUmlautsLower) {
+			_asciitab[*pszUmlautsLower++] = _L;
+		}
+		while (*pszUmlautsUpper) {
+			_asciitab[*pszUmlautsUpper++] = _U;
+		}
+		_asciitabInitialized = 1;
 	}
 	_chsetinited = 1;
 	unsigned char* pRegexSpecial = "[{*.?(<^$+|])";
@@ -482,8 +491,8 @@ int regex_parseOctalNumber(register unsigned char* s)
  */
 static char* regex_compileSingleChar(MATCHER* pPattern, int options, char c) {
 	if (options & RE_IGNCASE) {
-		char c1 = makeUpperCase(c);
-		char c2 = makeLowerCase(c);
+		char c1 = pks_toupper(c);
+		char c2 = pks_tolower(c);
 		if (c1 == c2) {
 			pPattern->m_param.m_char = c1 ? c1 : c;
 			pPattern->m_type = SINGLE_CHAR;
@@ -959,7 +968,7 @@ endcompile:
  */
 static void regex_optimize(RE_PATTERN* pResult, int nAvailable) {
 	MATCHER* pMatcher = regex_getFirstMatchSection(pResult);
-	MATCHER* pNext = (MATCHER*)(((char*)pMatcher) + regex_expressionOffset(pMatcher, pResult, 0));
+	MATCHER* pNext = (MATCHER*)(((char*)pMatcher) + regex_expressionOffset(pMatcher, 0, 0));
 	if (pMatcher->m_type == STRING && pNext->m_type == END_OF_PATTERN) {
 		int nLen = pMatcher->m_param.m_string.m_length;
 		if (nLen < 256 && nLen > 2 && (int)(nAvailable) > nLen + 260) {

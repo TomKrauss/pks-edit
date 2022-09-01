@@ -24,6 +24,7 @@
 #include "grammar.h"
 #include "brackets.h"
 #include "edierror.h"
+#include "edctype.h"
 #include "pksedit.h"
 #include "textblocks.h"
 #include "editorconfiguration.h"
@@ -755,15 +756,15 @@ static int edit_classifyBeginWord(const char* pBuf, int nOffs) {
 		return 1;
 	}
 	nOffs--;
-	int c2 = (int)(unsigned char)pBuf[nOffs];
-	if (!isalpha(c2)) {
+	unsigned char c2 = (unsigned char)pBuf[nOffs];
+	if (!pks_isalpha(c2)) {
 		BOOL bSpace = FALSE;
 		while (nOffs > 0 && pBuf[nOffs] == ' ') {
 			nOffs--;
 			bSpace = TRUE;
 		}
 		if (bSpace && pBuf[nOffs] == '.') {
-			if (nOffs > 0 && isalpha((int)(unsigned char)pBuf[nOffs - 1])) {
+			if (nOffs > 0 && pks_isalpha((unsigned char)pBuf[nOffs - 1])) {
 				return -1;
 			}
 		}
@@ -784,18 +785,18 @@ static FIX_CAPITALS_STATE edit_determinePreviousWordState(CARET* pCaret) {
 		return state;
 	}
 	nOffs--;
-	if (isalpha((unsigned char)pBuf[nOffs])) {
+	if (pks_isalpha((unsigned char)pBuf[nOffs])) {
 		return state;
 	}
 	while (--nOffs >= 0) {
-		int c = (int)(unsigned char)pBuf[nOffs];
-		if (!isalpha(c)) {
+		unsigned char c = (unsigned char)pBuf[nOffs];
+		if (!pks_isalpha(c)) {
 			if (state == FC_LOWER && edit_classifyBeginWord(pBuf, nOffs + 1) == -1) {
 				state |= FC_CAPITAL_FIRST;
 			}
 			break;
 		}
-		if (isupper(c)) {
+		if (pks_isupper(c)) {
 			if (state == FC_LOWER) {
 				int nClass = edit_classifyBeginWord(pBuf, nOffs);
 				if (nClass) {
@@ -843,14 +844,14 @@ static int edit_fixCapitals(WINFO* wp, CARET* pCaret) {
 		}
 		while (--nOffset >= 0) {
 			char c = lp->lbuf[nOffset];
-			if (nOffset == 0 || !isalpha((int)(unsigned char)lp->lbuf[nOffset - 1])) {
-				if (islower((int)(unsigned char)c)) {
-					lp->lbuf[nOffset] = toupper((unsigned char)c);
+			if (nOffset == 0 || !pks_isalpha((unsigned char)lp->lbuf[nOffset - 1])) {
+				if (pks_islower((unsigned char)c)) {
+					lp->lbuf[nOffset] = pks_toupper((unsigned char)c);
 				}
 				break;
 			}
-			if (isupper((int)(unsigned char)c)) {
-				lp->lbuf[nOffset] = tolower((unsigned char)c);
+			if (pks_isupper((unsigned char)c)) {
+				lp->lbuf[nOffset] = pks_tolower((unsigned char)c);
 			}
 		}
 		render_repaintLine(fp, lp);

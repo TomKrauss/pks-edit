@@ -129,11 +129,6 @@ extern BOOL char_isIdentifier(unsigned char c);
  */
 extern BOOL char_isNospace(unsigned char c);
 
-/*
- * Return true, if the character is a valid filename character on the current platform.
- */
-extern BOOL char_isFilename(unsigned char c);
-
 /*--------------------------------------------------------------------------
  * string_initDateformats()
  * Initialize the PKS Edit date format.

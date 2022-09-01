@@ -260,6 +260,7 @@
         "showSyntaxHighlight": true,
         "insertMode": true,
         "autoIndent": true,
+        "fixCapitals": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "tabCharacter": " ",

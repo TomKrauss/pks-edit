@@ -18,14 +18,24 @@
 extern unsigned char _asciitab[];
 extern unsigned char _l2uset[256],_u2lset[256];
 
-#define	pks_isalpha(c)		(_asciitab[(c)]&(_U|_L))
-#define	pks_isupper(c)		(_asciitab[(c)]&_U)
-#define	pks_islower(c)		(_asciitab[(c)]&_L)
-#define	pks_isdigit(c)		(_asciitab[(c)]&_N)
-#define	pks_isalnum(c)		(_asciitab[(c)]&(_U|_L|_N))
-#define	pks_isspace(c)		(_asciitab[(c)]&_S)
-#define	pks_isumlaut(c)     (_asciitab[(c)]&(_UU))
-#define	isident(c)   		(_asciitab[(c)]&_C)
-#define	istosfname(c)		(_asciitab[(c)]&_T)
+#define	pks_isalpha(c)		(_asciitab[((unsigned char)c)]&(_U|_L))
+#define	pks_isupper(c)		(_asciitab[((unsigned char)c)]&_U)
+#define	pks_islower(c)		(_asciitab[((unsigned char)c)]&_L)
+#define	pks_isdigit(c)		(_asciitab[((unsigned char)c)]&_N)
+#define	pks_isalnum(c)		(_asciitab[((unsigned char)c)]&(_U|_L|_N))
+#define	pks_isspace(c)		(_asciitab[((unsigned char)c)]&_S)
+#define	pks_isumlaut(c)     (_asciitab[((unsigned char)c)]&(_UU))
+#define	isident(c)   		(_asciitab[((unsigned char)c)]&_C)
+#define	istosfname(c)		(_asciitab[((unsigned char)c)]&_T)
+
+/*
+ * Convert a character to upper case considering PKS-Edit character classes. 
+ */
+#define	pks_toupper(c)		_l2uset[((unsigned char)c)]
+
+/*
+ * Convert a character to lower case considering PKS-Edit character classes.
+ */
+#define	pks_tolower(c)		_u2lset[((unsigned char)c)]
 
 #endif
