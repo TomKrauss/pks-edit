@@ -1,6 +1,4 @@
-# PKS Edit
-
-This file contains the release notes for the latest **PKS Edit** releases.
+# PKS-Edit Release Notes
 
 ## 2.3.0
 
@@ -27,11 +25,13 @@ This file contains the release notes for the latest **PKS Edit** releases.
 - Listviews in PKS-Edit dialogs correctly honor now dark mode.
 - A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
   images (empty image description).
-- an issue was fixed leading to corrupted recorded macros causing PKS-Edit to crash when playing them.
+- an issue was fixed leading to corrupted macros causing PKS-Edit to crash when playing them.
 - Strings containing some special characters not supported by Windows (characters 129, 141, 143, 144, and 157), were
   painted _wrong_ leading to misplaced carets making editing impossible. As a work around PKS-Edit will now display a '?'
   to represent these characters.
-
+- Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS-Edit with
+  path names longer than 256 characters did not work for instance.
+  
 ## 2.2.0
 
 This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
