@@ -183,7 +183,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		HPEN hPen = CreatePen(0, 1, pTheme->th_dialogBorder);
 		SetBkMode(hdc, TRANSPARENT);
 		SelectObject(hdc, hPen);
-		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont());
+		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont(hwnd));
 		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
 		RECT rect;
 		GetClientRect(hwnd, &rect);

@@ -37,7 +37,7 @@
 #include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
-extern void tb_updateImageList(wchar_t* tbIcons, int nCount);
+extern void tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
 
 static EDITOR_CONFIGURATION _configuration;
 
@@ -539,7 +539,7 @@ void EdOptionSet(void) {
 		config_saveConfiguration(FALSE);
 		fkey_visibilitychanged();
 		mainframe_windowTitleChanged(); 
-		tb_updateImageList(NULL, 0);
+		tb_updateImageList(hwndMain, NULL, 0);
 	}
 }
 

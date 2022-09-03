@@ -32,6 +32,7 @@
 #include "xdialog.h"
 #include "streams.h"
 #include "htmlrendering.h"
+#include "dpisupport.h"
 
 #define GWL_HELPWINDOW_VIEWPARTS		0
 #define GWL_HELPWINDOW_PARAMS			GWL_HELPWINDOW_VIEWPARTS+sizeof(void*)
@@ -306,7 +307,7 @@ static void codecomplete_paint(HWND hwnd) {
 		int x = CC_PADDING;
 		int y = 0;
 		int nDelta = CC_PADDING;
-		int nIconSize = 16;
+		int nIconSize = dpisupport_getSize(16);
 		for (int i = 0; up; i++) {
 			if (i >= pCC->ccp_topRow) {
 				if (i == nSelectedIndex) {

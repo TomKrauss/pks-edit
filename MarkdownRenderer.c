@@ -38,6 +38,7 @@
 #include "printing.h"
 #include "streams.h"
 #include "htmlrendering.h"
+#include "dpisupport.h"
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -449,7 +450,7 @@ static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom)
 	if (pAttrs->subscript || pAttrs->superscript) {
 		nHeight = nHeight < 0 ? -nHeight : nHeight/2;
 	}
-	_lf.lfHeight = nHeight;
+	_lf.lfHeight = dpisupport_getSize(nHeight);
 	if (pAttrs->style) {
 		const char* pszFontface = theme_textStyleFontface(pAttrs->style, 0);
 		if (pszFontface) {

@@ -786,7 +786,7 @@ CAPTION "Datei vergleichen"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LISTBOX         IDD_WINDOWLIST,6,42,336,114,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
-    LTEXT           "c:\\source\\pksedit\\atol.c",IDD_RO1,6,26,206,8,NOT WS_GROUP
+    LTEXT           "atol.c",IDD_RO1,6,26,206,8,NOT WS_GROUP
     PUSHBUTTON      "Abbruch",IDCANCEL,220,155,120,14
     DEFPUSHBUTTON   "... mit ausge&wähltem Fenster",1,222,6,120,14
     PUSHBUTTON      "... mit letzter &Version",IDD_BUT3,222,24,120,14

@@ -18,17 +18,43 @@
 #include <windows.h>
 #include "editorconfiguration.h"
 
+extern HWND hwndMain;
+
+static float scale;
+
+/*
+ * Initializes the scaling factor for a given window.
+ */
+float dpisupport_initScalingFactor(HWND hwnd) {
+	if (scale == 0) {
+		float dpi = (float)GetDpiForWindow(hwnd);
+		scale = dpi / 96.0f;
+	}
+	return scale;
+}
+
 /*
  * Returns the scaling factor in X / the width of one logical pixel in physical pixels.
  */
 float dpisupport_getScalingFactorX() {
-	return 1.0f;
+	if (scale == 0 && hwndMain == 0) {
+		// This is actually bad - should not happen.
+		return (float)GetSystemMetrics(SM_CXICON) / 32;
+	}
+	return dpisupport_initScalingFactor(hwndMain);
+}
+
+/*
+ * Multiplies an arbitrary value by a dpi scaling factor.
+ */
+int dpisupport_getSize(int nBaseValue) {
+	return (int)(dpisupport_getScalingFactorX() * nBaseValue);
 }
 
 /*
  * Returns the configured toolbar icon size in pixels.
  */
-int dpisupport_getTbIconSize() {
+int dpisupport_getTbIconSize(HWND hwnd) {
 	int nSize;
 	switch (GetConfiguration()->iconSize) {
 	case ICS_MEDIUM: nSize = 24; break;
@@ -37,6 +63,6 @@ int dpisupport_getTbIconSize() {
 	default: nSize = 16; break;
 	}
 	nSize += 2; // margins
-	return (int)(nSize * dpisupport_getScalingFactorX());
+	return (int)(nSize * dpisupport_initScalingFactor(hwnd));
 }
 

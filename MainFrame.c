@@ -36,6 +36,7 @@
 #include "uahmenubar.h"
 #include "darkmode.h"
 #include "menu.h"
+#include "dpisupport.h"
 
 extern HINSTANCE		hInst;
 extern void 	st_init(HWND hwndDaddy);
@@ -46,7 +47,7 @@ extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern void		tb_updateImageList(wchar_t* tbIcons, int nCount);
+extern void		tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
 
 static const char* _applicationName = "PKS EDIT";
 static WINFO* _selectedWindow;
@@ -213,6 +214,10 @@ static HWND dragproxy_open(RECT* pRect, TAB_PAGE *pPage) {
 	MoveWindow(hwndProxy, pRect->left, pRect->top, pRect->right - pRect->left, pRect->bottom - pRect->top, TRUE);
 	ShowWindow(hwndProxy, SW_SHOW);
 	return hwndProxy;
+}
+
+static int tabcontrol_getCloserSize() {
+	return dpisupport_getSize(CLOSER_SIZE);
 }
 
 /*
@@ -471,7 +476,7 @@ static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	int xMax = rect.right;
-	xMax -= CLOSER_SIZE + 2 * CLOSER_DISTANCE;
+	xMax -= tabcontrol_getCloserSize()  + 2 * CLOSER_DISTANCE;
 	int nLen = (int)arraylist_size(pControl->tc_pages);
 	int x = pControl->tc_tabstripRect.left;
 	for (int i = pControl->tc_firstVisibleTab; i < nLen; i++) {
@@ -588,8 +593,8 @@ static void tabcontrol_removeTab(TAB_CONTROL *pControl, TAB_PAGE *pPage) {
  * Calculate the rectangle occupied by the closer button. 
  */
 static void tabcontrol_getCloserRect(TAB_PAGE* pPage, int x, int height, RECT* pRect) {
-	int nCloserSize = CLOSER_SIZE;
-	pRect->left = x + pPage->tp_width - CLOSER_SIZE - CLOSER_DISTANCE;
+	int nCloserSize = tabcontrol_getCloserSize();
+	pRect->left = x + pPage->tp_width - nCloserSize - CLOSER_DISTANCE;
 	pRect->top = (height - nCloserSize) / 2 + 2;
 	pRect->right = pRect->left + nCloserSize;
 	pRect->bottom = pRect->top + nCloserSize;
@@ -654,15 +659,15 @@ static void tabcontrol_paintWidget(HDC hdc, TAB_WIDGET* pWidget) {
 static void tabcontrol_measureTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected) {
 	char szBuffer[EDMAXPATHLEN];
 	char* pszTitle;
-	int nIconSize = TAB_ICON_SIZE;
-	int nMargin = TAB_ICON_MARGIN;
+	int nIconSize = dpisupport_getSize(TAB_ICON_SIZE);
+	int nMargin = dpisupport_getSize(TAB_ICON_MARGIN);
 
 	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
 	size_t nLen = strlen(pszTitle);
 	SIZE sText;
 	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
 	GetTextExtentPoint(hdc, pszTitle, (int)nLen, &sText);
-	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + CLOSER_SIZE + 2 * CLOSER_DISTANCE;
+	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + tabcontrol_getCloserSize() + 2 * CLOSER_DISTANCE;
 	DeleteObject(SelectObject(hdc, hFont));
 }
 
@@ -684,13 +689,14 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 		pControl->tc_closer.tw_bounds.left = rect.right;
 	}
 	else {
+		int nCloserSize = tabcontrol_getCloserSize();
 		pControl->tc_closer.tw_visible = TRUE;
 		pRect = &pControl->tc_closer.tw_bounds;
 		pRect->right = rect.right - CLOSER_DISTANCE;
-		pRect->left = pRect->right - CLOSER_SIZE;
-		int dDelta = (pControl->tc_stripHeight - CLOSER_SIZE) / 2;
+		pRect->left = pRect->right - nCloserSize;
+		int dDelta = (pControl->tc_stripHeight - nCloserSize) / 2;
 		pRect->top = rect.top + dDelta;
-		pRect->bottom = rect.top + pRect->top + CLOSER_SIZE;
+		pRect->bottom = rect.top + pRect->top + nCloserSize;
 	}
 	pControl->tc_tabstripRect.right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
 	pControl->tc_tabstripRect.top = rect.top;
@@ -1275,10 +1281,10 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	case WM_CREATE:
 		pControl = calloc(1, sizeof * pControl);
 		pControl->tc_pages = arraylist_create(5);
-		pControl->tc_stripHeight = 26;
+		pControl->tc_stripHeight = dpisupport_getSize(26);
 		pControl->tc_activeTab = -1;
 		pControl->tc_rolloverTab = -1;
-		pControl->tc_firstTabOffset = 5;
+		pControl->tc_firstTabOffset = dpisupport_getSize(5);
 		pControl->tc_hwnd = hwnd;
 		pControl->tc_leftScroller.tw_type = TW_SCROLL_LEFT;
 		pControl->tc_rightScroller.tw_type = TW_SCROLL_RIGHT;
@@ -1913,7 +1919,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		darkmode_allowForApp(theme_getCurrent()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
-		tb_updateImageList(NULL, 0);
+		tb_updateImageList(hwnd, NULL, 0);
 		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
 		// TODO: title bar is not correctly repainted upon theme change.
 		SetWindowPos(hwndMain, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);

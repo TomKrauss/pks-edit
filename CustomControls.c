@@ -23,6 +23,7 @@
 #include "winfo.h"
 #include "winutil.h"
 #include "themes.h"
+#include "dpisupport.h"
 #include <commctrl.h>
 
 #pragma hdrstop
@@ -96,11 +97,12 @@ static LOGFONT _lf =  {
 /**
  * Return a handle to a small editor font.
  */
-HFONT cust_getSmallEditorFont(void) {
+HFONT cust_getSmallEditorFont(HWND hwnd) {
 	static HFONT hSmallFont;
 
 	if (!hSmallFont) {
-		_lf.lfHeight = 6;
+		dpisupport_initScalingFactor(hwnd);
+		_lf.lfHeight = dpisupport_getSize(-10);
 		hSmallFont = CreateFontIndirect(&_lf);
 	}
 	return hSmallFont;
@@ -113,7 +115,7 @@ HFONT cust_getDefaultEditorFont(void) {
 	static HFONT hNormalFont;
 
 	if (!hNormalFont) {
-		_lf.lfHeight = 8;
+		_lf.lfHeight = dpisupport_getSize(-12);
 		hNormalFont = CreateFontIndirect(&_lf);
 	}
 	return hNormalFont;
@@ -134,7 +136,7 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 	char 	szBuff[128];
 	THEME_DATA* pTheme = theme_getCurrent();
 
-	hFont = SelectObject(hdc, cust_getSmallEditorFont());
+	hFont = SelectObject(hdc, cust_getSmallEditorFont(hwnd));
 	if (odItemState & STATE_CHECK) {
 		dwColtext = pTheme->th_dialogHighlightText;
 	} else {
@@ -222,7 +224,7 @@ int cust_calculateButtonCharacterHeight(HWND hwnd)
 
 	hdc = GetDC(hwnd);
 	SetMapMode(hdc,MM_TEXT);
-	hFont = SelectObject(hdc, cust_getSmallEditorFont());
+	hFont = SelectObject(hdc, cust_getSmallEditorFont(hwnd));
 	GetTextMetrics(hdc,&tm);
 	fkcharheight = tm.tmHeight + tm.tmExternalLeading;
 	SelectObject(hdc,hFont);
@@ -303,7 +305,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
  * Create the font for the char set window procedure
  */
 static HFONT charset_createFont(THEME_DATA* pTheme, int nWeight) {
-	return font_createFontHandle(pTheme->th_smallFontName, 15, 0, nWeight);
+	return font_createFontHandle(pTheme->th_smallFontName, dpisupport_getSize(-12), 0, nWeight);
 }
 
 static void charset_notifyCharChange(HWND hwnd, int nNewChar) {
@@ -555,8 +557,8 @@ static WINFUNC ToastWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	PAINTSTRUCT	ps;
 	RECT rc;
-	static int iconPadding = 5;
-	static int iconSize = 18;
+	int iconPadding = dpisupport_getSize(5);
+	int iconSize = dpisupport_getSize(18);
 
 	switch (message) {
 	case WM_CREATE: {
@@ -600,8 +602,8 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		GetClientRect(hwnd, &rc);
 		rc.left += 2*iconPadding + iconSize - 2;
 		rc.right -= iconSize;
-		rc.top += 5;
-		rc.bottom -= 5;
+		rc.top += dpisupport_getSize(5);
+		rc.bottom -= dpisupport_getSize(5);
 		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
 		if (hwndChild) {
 			MoveWindow(hwndChild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
@@ -699,9 +701,10 @@ HWND cust_createToastWindow(char* pszText) {
 	if (!IsWindowVisible(hwndToastWindow)) {
 		RECT rect;
 		GetClientRect(hwndMain, &rect);
-		rect.top = rect.bottom-toastWindowHeight;
+		int nHeight = dpisupport_getSize(toastWindowHeight);
+		rect.top = rect.bottom- nHeight;
 		int width = rect.right - rect.left;
-		SetWindowPos(hwndToastWindow, HWND_TOP, 0, rect.bottom-toastWindowHeight, width, toastWindowHeight, 
+		SetWindowPos(hwndToastWindow, HWND_TOP, 0, rect.bottom- nHeight, width, nHeight,
 			SWP_DEFERERASE | SWP_NOACTIVATE);
 		AnimateWindow(hwndToastWindow, 300, AW_VER_NEGATIVE);
 	}
@@ -761,7 +764,7 @@ void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp) {
 void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText) {
 	int x;
 	int y;
-	int iconWidth = 16;
+	int iconWidth = dpisupport_getSize(16);
 	TEXTMETRIC textmetric;
 
 	x = rcp->left + 2;

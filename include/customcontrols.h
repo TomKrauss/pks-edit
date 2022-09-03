@@ -38,7 +38,7 @@ extern void cust_paintButton(HDC hdc, RECT* rcp, HWND hwnd, int ww);
 /**
  * Return a handle to a small editor font.
  */
-extern HFONT cust_getSmallEditorFont(void);
+extern HFONT cust_getSmallEditorFont(HWND hwnd);
 
 /**
  * Return a handle to a default font used by controls in PKS Edit.

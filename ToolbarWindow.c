@@ -146,7 +146,7 @@ static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t ico
  */
 static wchar_t* _currentIconList;
 static int _currentIconCount;
-void tb_updateImageList(wchar_t *tbIcons, int nCount) {
+void tb_updateImageList(HWND hwnd, wchar_t *tbIcons, int nCount) {
     HIMAGELIST hOld1 = hImageList;
     HIMAGELIST hOldDisabled = hImageListDisabled;
     static int nOldIconSize;
@@ -159,7 +159,7 @@ void tb_updateImageList(wchar_t *tbIcons, int nCount) {
         _currentIconList = tbIcons;
         _currentIconCount = nCount;
     }
-    int nIconSize = dpisupport_getTbIconSize();
+    int nIconSize = dpisupport_getTbIconSize(hwnd);
     COLORREF cIconColor = theme_getCurrent()->th_iconColor;
     if (nOldIconSize == nIconSize && cIconColor == cOldIconColor) {
         return;
@@ -254,7 +254,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
         tbb[nButton].fsState = TBSTATE_ENABLED;
         pButtons = pButtons->tbb_next;
     }
-    tb_updateImageList(pwImageCodes, nImageIndex);
+    tb_updateImageList(hwndToolbar, pwImageCodes, nImageIndex);
     SendMessage(hwndToolbar, TB_ADDBUTTONS, (WPARAM) nButtons, (LPARAM) (LPTBBUTTON) tbb);
     for (int i = 0; i < nButtons; i++) {
         if (tbb[i].iString) {
@@ -332,9 +332,10 @@ static void tb_enableEntryField(ACTION_BINDING * pBinding, PROPERTY_CHANGE_TYPE 
     }
 }
 static HWND tb_initSearchEntryField(HWND hwndOwner) {
+    float nFactor = dpisupport_initScalingFactor(hwndOwner);
     hwndIncrementalSearchField = CreateWindowEx(0, WC_EDIT, "",
         WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT | ES_NOHIDESEL | ES_WANTRETURN,
-        0, 0, 180, CW_USEDEFAULT,
+        0, 0, (int)(nFactor * 180), CW_USEDEFAULT,
         hwndOwner, (HMENU)IDM_INCREMENTAL_SEARCH,
         hInst, NULL);
     SendMessage(hwndIncrementalSearchField, WM_SETFONT, (WPARAM)cust_getDefaultEditorFont(), 0);
@@ -457,10 +458,10 @@ HWND tb_initRebar(HWND hwndOwner) {
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)0, (LPARAM)&rbBand);
 
     rbBand.hwndChild = hwndLabel;
-    rbBand.cxMinChild = 300;
-    rbBand.cyMinChild = 25;
+    rbBand.cxMinChild = dpisupport_getSize(300);
+    rbBand.cyMinChild = dpisupport_getSize(25);
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
-    rbBand.cx = 300;
+    rbBand.cx = rbBand.cxMinChild;
 
     // Add the band that has the entry field.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)1, (LPARAM)&rbBand);

@@ -26,6 +26,7 @@
 #include "edierror.h"
 #include "jsonparser.h"
 #include "editorconfiguration.h"
+#include "dpisupport.h"
 
 #include "themes.h"
 #include "winfo.h"
@@ -163,6 +164,7 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	if (pFont->zoomFactor > 0.2) {
 		size = (int)(size * pFont->zoomFactor);
 	}
+	size = dpisupport_getSize(size);
 	_lf.lfHeight = size;
 	_lf.lfWidth = 0;
 	_lf.lfCharSet = pFont->charset;
@@ -406,7 +408,7 @@ HFONT theme_createSmallFixedFont() {
  */
 HFONT theme_createDialogFont(int nWeight) {
 	THEME_DATA* pTheme = theme_getCurrent();
-	return font_createFontHandle(pTheme->th_fontName, pTheme->th_fontSize, 0, nWeight);
+	return font_createFontHandle(pTheme->th_fontName, dpisupport_getSize(pTheme->th_fontSize), 0, nWeight);
 }
 
 /*
@@ -417,7 +419,7 @@ HFONT theme_getSmallDialogFont() {
 
 	if (!smallFont) {
 		THEME_DATA* pTheme = theme_getCurrent();
-		smallFont = font_createFontHandle("Helvetica", pTheme->th_smallFontSize, 0, FW_BOLD);
+		smallFont = font_createFontHandle("Helvetica", dpisupport_getSize(pTheme->th_smallFontSize), 0, FW_BOLD);
 	}
 	return smallFont;
 }

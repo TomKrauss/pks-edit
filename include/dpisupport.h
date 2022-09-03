@@ -26,7 +26,17 @@ extern float dpisupport_getScalingFactorX();
 /*
  * Returns the configured toolbar icon size in physical pixels.
  */
-extern int dpisupport_getTbIconSize();
+extern int dpisupport_getTbIconSize(HWND hwnd);
+
+/*
+ * Multiplies an arbitrary value by a dpi scaling factor.
+ */
+extern int dpisupport_getSize(int nBaseValue);
+
+/*
+ * Initializes the scaling factor for a given window.
+ */
+float dpisupport_initScalingFactor(HWND hwnd);
 
 #define DPISUPPORT_H
 
