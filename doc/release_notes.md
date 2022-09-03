@@ -17,6 +17,7 @@
   (e.g. to be selected in Find in Files).
 - When searching simple regular expressions PKS-Edit uses now Boyer matches internally speeding up the performance of
   of simple searches considerably.
+- PKS-Edit is no better usable on Hi DPI devices and will scale appropriately.
 
 ### Fixes
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before

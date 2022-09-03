@@ -770,8 +770,8 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	char szBuffer[EDMAXPATHLEN];
 	char* pszTitle;
 	THEME_DATA* pTheme = theme_getCurrent();
-	int nIconSize = TAB_ICON_SIZE;
-	int nMargin = TAB_ICON_MARGIN;
+	int nIconSize = dpisupport_getSize(TAB_ICON_SIZE);
+	int nMargin = dpisupport_getSize(TAB_ICON_MARGIN);
 	RECT rect;
 	
 	tabcontrol_measureTab(hdc, pPage, bSelected);

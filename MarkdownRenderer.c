@@ -1023,10 +1023,10 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 		HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
 		HFONT hOldFont = SelectObject(hdc, hFont);
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
-			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
+			TextOutW(hdc, x - (int)(dpisupport_getSize(15)* pParams->rfp_zoomFactor), y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
 		else if (pPart->rvp_type == MET_TASK_LIST) {
-			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
+			mdr_paintCheckmark(pParams, x - (int)(dpisupport_getSize(20) * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
 			char szBuf[20];
