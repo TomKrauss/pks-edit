@@ -112,7 +112,7 @@ static EDTEXTSTYLE defaultTextStyle = {
 	"default",
 	"Consolas",
 	ANSI_CHARSET,
-	15,
+	-12,
 	RGB(0, 0, 0),
 	-1
 };
@@ -164,7 +164,6 @@ static HFONT font_createFontWithStyle(EDTEXTSTYLE *pFont) {
 	if (pFont->zoomFactor > 0.2) {
 		size = (int)(size * pFont->zoomFactor);
 	}
-	size = dpisupport_getSize(size);
 	_lf.lfHeight = size;
 	_lf.lfWidth = 0;
 	_lf.lfCharSet = pFont->charset;
@@ -211,10 +210,10 @@ static THEME_DATA defaultTheme = {
 	MAIN_WINDOW_BACKGROUND_COLOR,
 	DIALOG_LIGHT_BACKGROUND_COLOR,
 	"Helv",						// (T) use in dialogs.
-	8,
+	-12,
 	"Consolas",
-	12,
-	5
+	-12,
+	-9
 };
 
 static JSON_MAPPING_RULE _edTextStyleRules[] = {
@@ -400,7 +399,7 @@ HFONT font_createFontHandle(char* pszFontName, int size, int bOem, int nWeight) 
  */
 HFONT theme_createSmallFixedFont() {
 	THEME_DATA* pTheme = theme_getCurrent();
-	return font_createFontHandle(pTheme->th_smallFontName, pTheme->th_smallFontSize, 0, FW_NORMAL);
+	return font_createFontHandle(pTheme->th_smallFontName, dpisupport_getSize(pTheme->th_smallFontSize), 0, FW_NORMAL);
 }
 
 /*

@@ -46,6 +46,7 @@
 #include "mainframe.h"
 #include "hashmap.h"
 #include "codecompletion.h"
+#include "dpisupport.h"
 
 #define	TABTHERE(indent,i)		(indent->tbits[i >> 3] &  bittab[i & 07])
 #define	TABPLACE(indent,i)		indent->tbits[i >> 3] |= bittab[i & 07]
@@ -765,7 +766,7 @@ static WINFO *ww_new(FTABLE *fp,HWND hwnd) {
 	wp->edwin_handle = hwnd;
 
 	ww_applyDisplayProperties(wp);
-	wp->zoomFactor = 1.0;
+	wp->zoomFactor = dpisupport_initScalingFactor(hwnd);
 	wp->win_id = ++nwindows;
 	wp->maxVisibleLineLen = -1;
 	return wp;

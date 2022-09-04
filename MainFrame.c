@@ -787,18 +787,19 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	rect.bottom = y + height;
 	HBRUSH hBrush = CreateSolidBrush(bSelected ? pTheme->th_defaultBackgroundColor : pTheme->th_dialogLight);
 	HBRUSH hOld = SelectObject(hdc, hBrush);
+	int border = dpisupport_getSize(2);
 	if (bSelected) {
 		rect.bottom++;
 	} else {
-		rect.top += 2;
+		rect.top += border;
 	}
 	FillRect(hdc, &rect, hBrush);
 	DeleteObject(SelectObject(hdc, hOld));
 	SetBkMode(hdc, TRANSPARENT);
 	SetTextColor(hdc, pTheme->th_dialogForeground);
 	if (!bSelected) {
-		rect.top += 2;
-		rect.left += 2;
+		rect.top += border;
+		rect.left += border;
 	}
 	int yIcon = (height - nIconSize) / 2;
 	HICON hIcon = pPage->tp_hwnd ? (HICON)SendMessage(pPage->tp_hwnd, WM_GETICON, ICON_SMALL, 0L) : (HICON)NULL;
@@ -809,13 +810,13 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	rect.left += 2 * nMargin + nIconSize;
 	DrawText(hdc, pszTitle, (int)nLen, &rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 	DeleteObject(SelectObject(hdc, hFont));
-	HPEN hPen = CreatePen(PS_SOLID, 1, pTheme->th_dialogBorder);
+	HPEN hPen = CreatePen(PS_SOLID, border/2, pTheme->th_dialogBorder);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	tabcontrol_getCloserRect(pPage, x, height, &rect);
 	tabcontrol_paintWidgetContents(hdc, &rect, bRollover, TW_CLOSER);
 	if (!bSelected) {
-		y += 2;
-		height -= 2;
+		y += border;
+		height -= border;
 	}
 	MoveToEx(hdc, x, y+height, NULL);
 	LineTo(hdc, x, y);
@@ -839,10 +840,10 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 		brush.lbColor = pTheme->th_dialogActiveTab;
 		brush.lbHatch = 0;
 		brush.lbStyle = PS_SOLID;
-		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 3, &brush, 0, NULL);
+		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, dpisupport_getSize(3), &brush, 0, NULL);
 		hPenOld = SelectObject(hdc, hPen);
-		MoveToEx(hdc, x + 1, y + 1, NULL);
-		LineTo(hdc, x + pPage->tp_width-2, y+1);
+		MoveToEx(hdc, x + border/2, y + border/2, NULL);
+		LineTo(hdc, x + pPage->tp_width-border, y+border/2);
 		DeleteObject(SelectObject(hdc, hPenOld));
 	}
 	return TRUE;
@@ -1137,8 +1138,9 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 		GetWindowRect(hwnd, &r);
 		POINT pt;
 		GetCursorPos(&pt);
-		pt.y = r.top + pControl->tc_stripHeight + 10;
-		SendMessage(pControl->tc_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x + 10, pt.y));
+		int delta = dpisupport_getSize(10);
+		pt.y = r.top + pControl->tc_stripHeight + delta;
+		SendMessage(pControl->tc_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x + delta, pt.y));
 		pControl->tc_activeTooltipIndex = nTabIndex;
 		bTrackChanged = TRUE;
 	}

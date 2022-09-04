@@ -102,7 +102,7 @@ HFONT cust_getSmallEditorFont(HWND hwnd) {
 
 	if (!hSmallFont) {
 		dpisupport_initScalingFactor(hwnd);
-		_lf.lfHeight = dpisupport_getSize(-10);
+		_lf.lfHeight = dpisupport_getSize(theme_getCurrent()->th_smallFontSize);
 		hSmallFont = CreateFontIndirect(&_lf);
 	}
 	return hSmallFont;
@@ -115,7 +115,7 @@ HFONT cust_getDefaultEditorFont(void) {
 	static HFONT hNormalFont;
 
 	if (!hNormalFont) {
-		_lf.lfHeight = dpisupport_getSize(-12);
+		_lf.lfHeight = dpisupport_getSize(theme_getCurrent()->th_fontSize);
 		hNormalFont = CreateFontIndirect(&_lf);
 	}
 	return hNormalFont;

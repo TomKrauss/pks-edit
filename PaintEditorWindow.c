@@ -21,6 +21,7 @@
 #include "edierror.h"
 #include "customcontrols.h"
 #include "syntaxhighlighting.h"
+#include "dpisupport.h"
 
 #include "winfo.h"
 #include "winterf.h"
@@ -715,10 +716,11 @@ long long ww_zoomWindow(WINFO* wp, int anIncreaseFactor) {
 	} else {
 		zoomFactor = 10 * zoomFactor / 11;
 	}
-	if (zoomFactor < 0.4) {
-		zoomFactor = 0.4f;
-	} else if (zoomFactor > 2.5) {
-		zoomFactor = 2.5f;
+	float dpiFactor = dpisupport_getScalingFactorX();
+	if (zoomFactor < 0.4 * dpiFactor) {
+		zoomFactor = 0.4f * dpiFactor;
+	} else if (zoomFactor > 2.5 * dpiFactor) {
+		zoomFactor = 2.5f * dpiFactor;
 	}
 	ww_setZoom(wp, zoomFactor);
 	COMPARISON_LINK* cpl = wp->comparisonLink;
