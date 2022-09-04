@@ -1180,10 +1180,10 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 		Rectangle(hdc, 0, 0, rc.right, rc.bottom);
 
 		HBRUSH holdBrush = SelectObject(hdc, theme_getDialogBackgroundBrush());
-
+		int delta = dpisupport_getSize(1);
 		RECT arrowRc = {
-		rc.right - 17, rc.top + 1,
-		rc.right - 1, rc.bottom - 1
+		rc.right - dpisupport_getSize(17), rc.top + delta,
+		rc.right - delta, rc.bottom - delta
 		};
 
 		// CBS_DROPDOWN text is handled by parent by WM_CTLCOLOREDIT
@@ -1191,9 +1191,9 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 		if ((style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST)
 		{
 			RECT bkRc = rc;
-			bkRc.left += 1;
-			bkRc.top += 1;
-			bkRc.right = arrowRc.left - 1;
+			bkRc.left += delta;
+			bkRc.top += delta;
+			bkRc.right = arrowRc.left - delta;
 			bkRc.bottom -= 1;
 			FillRect(hdc, &bkRc, theme_getDialogBackgroundBrush());
 			LRESULT index = SendMessage(hWnd, CB_GETCURSEL, 0, 0);
@@ -1205,8 +1205,8 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 				SendMessage(hWnd, CB_GETLBTEXT, index, (LPARAM)buffer);
 
 				RECT textRc = rc;
-				textRc.left += 4;
-				textRc.right = arrowRc.left - 5;
+				textRc.left += dpisupport_getSize(4);
+				textRc.right = arrowRc.left - dpisupport_getSize(5);
 
 				DrawText(hdc, buffer, -1, &textRc, DT_NOPREFIX | DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 				free(buffer);
@@ -1222,7 +1222,7 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 		SetTextColor(hdc, isHot ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);
 		SetBkColor(hdc, isHot ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
 		ExtTextOutW(hdc,
-			arrowRc.left + (arrowRc.right - arrowRc.left) / 2 - 4,
+			arrowRc.left + (arrowRc.right - arrowRc.left) / 2 - dpisupport_getSize(4),
 			arrowRc.top + 3,
 			ETO_OPAQUE | ETO_CLIPPED,
 			&arrowRc, L"\u02C5",

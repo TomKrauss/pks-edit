@@ -247,7 +247,28 @@ void darkmode_flushMenuThemes() {
 }
 
 BOOL darkmode_isSelectedByDefault() {
-	return _ShouldAppsUseDarkMode ? _ShouldAppsUseDarkMode() : FALSE;
+	char buffer[4];
+	DWORD cbData[4];
+	LRESULT res = RegGetValueW(
+		HKEY_CURRENT_USER,
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+		L"AppsUseLightTheme",
+		RRF_RT_REG_DWORD, // expected value type
+		0,
+		buffer,
+		cbData);
+
+	if (res != ERROR_SUCCESS) {
+		return _ShouldAppsUseDarkMode ? _ShouldAppsUseDarkMode() : FALSE;
+	}
+
+	// convert bytes written to our buffer to an int, assuming little-endian
+	int i = (int)(buffer[3] << 24 |
+		buffer[2] << 16 |
+		buffer[1] << 8 |
+		buffer[0]);
+
+	return i != 1;
 }
 
 /*

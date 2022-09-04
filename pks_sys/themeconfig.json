@@ -18,6 +18,7 @@
       "rulerBackgroundColor": "#fafafa",
       "mainWindowBackgroundColor": "#eeeeee",
       "dialogActiveTab": "#cc6600",
+      "mainframeMargin": 10,
       "textStyles": [
         {
           "styleName": "wysiwyg",

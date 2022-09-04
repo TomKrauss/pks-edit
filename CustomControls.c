@@ -576,8 +576,9 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		FillRect(ps.hdc, &ps.rcPaint, theme_getDialogBackgroundBrush());
 		HBRUSH hOldBrush = SelectObject(ps.hdc, GetStockObject(HOLLOW_BRUSH));
 		BOOL bFocus = GetFocus() == hwndChild;
-		paint_roundedRect(ps.hdc, bFocus ? pTheme->th_iconColor : pTheme->th_dialogLight, bFocus ? 2.0f : 1.0f, 1, 1, rect.right - 4, rect.bottom - 4, 12);
-		DrawIconEx(ps.hdc, iconPadding, 4, hIcon, iconSize, iconSize, 0, NULL, DI_NORMAL);
+		int delta = dpisupport_getSize(4);
+		paint_roundedRect(ps.hdc, bFocus ? pTheme->th_iconColor : pTheme->th_dialogLight, bFocus ? 2.0f : 1.0f, 1, 1, rect.right - delta, rect.bottom - delta, 3*delta);
+		DrawIconEx(ps.hdc, iconPadding, delta, hIcon, iconSize, iconSize, 0, NULL, DI_NORMAL);
 		SelectObject(ps.hdc, hOldBrush);
 		EndPaint(hwnd, &ps);
 	}

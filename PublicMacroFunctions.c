@@ -50,6 +50,7 @@
 #include "linkedlist.h"
 #include "editoperations.h"
 #include "mainframe.h"
+#include "dpisupport.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -1034,18 +1035,18 @@ static void doctype_initListView(HWND hwnd) {
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.iSubItem = 0;
 	lvc.pszText = "Type";
-	lvc.cx = 100;
+	lvc.cx = dpisupport_getSize(100);
 	lvc.fmt = LVCFMT_LEFT;
 
 	ListView_InsertColumn(hwnd, 0, &lvc);
 
 	lvc.pszText = "Description";
-	lvc.cx = 250;
+	lvc.cx = dpisupport_getSize(250);
 	lvc.iSubItem = 1;
 	ListView_InsertColumn(hwnd, 1, &lvc);
 
 	lvc.pszText = "Name pattern";
-	lvc.cx = 100;
+	lvc.cx = dpisupport_getSize(100);
 	lvc.iSubItem = 2;
 	ListView_InsertColumn(hwnd, 2, &lvc);
 }
