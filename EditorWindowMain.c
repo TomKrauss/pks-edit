@@ -132,7 +132,7 @@ static int ruler_getLeft(WINFO* wp) {
 	if (wp->comparisonLink != NULL) {
 		nWidth += COMPARISON_ANNOTATION_WIDTH;
 	}
-	return nWidth;
+	return dpisupport_getSize(nWidth);
 }
 
 static int ww_useDisplayMode(WINFO* wp, int aFlag) {
@@ -159,7 +159,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	w = rect.right-rect.left;
 	h = rect.bottom-rect.top;
 
-	rh = rulerWindowHeight;
+	rh = dpisupport_getSize(rulerWindowHeight);
 	pRuler->x = 0;
 	pRuler->w = w;
 	pRuler->y = 0;
@@ -1426,21 +1426,22 @@ static void draw_ruler(WINFO *wp) {
 	HPEN markerPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerForegroundColor);
 	HPEN hPenOld = SelectObject(hdc, markerPen);
 	xPos = ruler_getLeft(wp);
-	int xMin = ps.rcPaint.left - 20;
-	int xMax = ps.rcPaint.right + 20;
+	int xMin = ps.rcPaint.left - dpisupport_getSize(20);
+	int xMax = ps.rcPaint.right + dpisupport_getSize(20);
+	int delta = dpisupport_getSize(3);
 	for (col = wp->mincol; col <= wp->maxcol; col++, xPos += width) {
 		if (xPos < xMin || xPos > xMax) {
 			continue;
 		}
 		if (TABTHERE((&wp->indentation),col) || col == wp->lmargin || col == wp->rmargin) {
-			MoveTo(hdc, xPos, nMiddle - 3);
+			MoveTo(hdc, xPos, nMiddle - delta);
 			if (col == wp->lmargin || col == rmargin) {
 				SelectObject(hdc, fatMarkerPen);
 			}
 			else {
 				SelectObject(hdc, markerPen);
 			}
-			LineTo(hdc, xPos, nMiddle + 3);
+			LineTo(hdc, xPos, nMiddle + delta);
 		}
 	}
 	HPEN borderPen = CreatePen(PS_SOLID, 1, pTheme->th_rulerBorderColor);
@@ -1505,7 +1506,7 @@ static WINFUNC RulerWndProc(
 static void draw_lineNumbers(WINFO* wp) {
 	int 		row;
 	int			yPos;
-	RECT			rect;
+	RECT		rect;
 	size_t		textLen;
 	FTABLE* fp = wp->fp;
 	int maxln = wp->maxln;
@@ -1538,6 +1539,7 @@ static void draw_lineNumbers(WINFO* wp) {
 	if (wp->comparisonLink != NULL) {
 		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
 	}
+	nRightPadding = dpisupport_getSize(nRightPadding);
 	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
 			if (lp) {
@@ -1564,8 +1566,8 @@ static void draw_lineNumbers(WINFO* wp) {
 				pszText = "+";
 				bgBrush2 = CreateSolidBrush(pTheme->th_compareAddedColor);
 			}
-			textRect.left = rect.right - nRightPadding + 4;
-			textRect.right = textRect.left + COMPARISON_ANNOTATION_WIDTH - 2;
+			textRect.left = rect.right - nRightPadding + dpisupport_getSize(4);
+			textRect.right = textRect.left + dpisupport_getSize(COMPARISON_ANNOTATION_WIDTH - 2);
 			FillRect(hdc, &textRect, bgBrush2);
 			DeleteObject(bgBrush2);
 			SetTextColor(hdc, pTheme->th_dialogForeground);
@@ -1580,8 +1582,8 @@ static void draw_lineNumbers(WINFO* wp) {
 		if (lp) {
 			if (lp->lflg & LNMODIFIED) {
 				RECT r;
-				r.left = rect.right - LINE_ANNOTATION_WIDTH - LINE_ANNOATION_PADDING;
-				r.right = rect.right - 2;
+				r.left = rect.right - dpisupport_getSize(LINE_ANNOTATION_WIDTH + LINE_ANNOATION_PADDING);
+				r.right = rect.right - dpisupport_getSize(2);
 				r.top = yPos;
 				r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
 				HBRUSH hBrush = hAnnotationBrush;
