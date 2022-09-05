@@ -219,7 +219,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		pCC->ccp_actions = pAction;
 	}
 	arraylist_destroy(_actionList);
-	pCC->ccp_size = (long)nSize;
+	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }
@@ -377,10 +377,10 @@ static void codecomplete_updateHelpWindowPosition(HWND hwnd) {
 		RECT rcOld;
 		GetClientRect(hwndSecondary, &rcOld);
 		int nFlags = SWP_SHOWWINDOW | SWP_NOACTIVATE;
-		if (rcOld.right - rcOld.left >= 100) {
+		if (rcOld.right - rcOld.left >= dpisupport_getSize(100)) {
 			nFlags |= SWP_NOSIZE;
 		}
-		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, CC_HELP_LINE_LEN * 7, rect.bottom - rect.top, nFlags);
+		SetWindowPos(hwndSecondary, NULL, rect.right + 5, rect.top, dpisupport_getSize(CC_HELP_LINE_LEN * 7), rect.bottom - rect.top, nFlags);
 	}
 }
 
@@ -827,8 +827,8 @@ int codecomplete_showSuggestionWindow(void) {
 		return 0;
 	}
 	POINT pt;
-	int width = CC_WIDTH;
-	int height = CC_HEIGHT;
+	int width = dpisupport_getSize(CC_WIDTH);
+	int height = dpisupport_getSize(CC_HEIGHT);
 	if (wp->codecomplete_handle == NULL) {
 		codecomplete_calculateWindowPos(wp, &pt, height);
 		wp->codecomplete_handle = CreateWindow(CLASS_CODE_COMPLETION, NULL, WS_POPUP|WS_SIZEBOX|WS_VSCROLL|WS_BORDER, 

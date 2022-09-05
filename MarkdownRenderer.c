@@ -3339,7 +3339,7 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 	FillRect(hdc, pClip, hBrushBg);
 	DeleteObject(hBrushBg);
 	rect.top -= nTopY;
-	float zoomFactor = pRC->rc_wp ? pRC->rc_wp->zoomFactor : 1.0f;
+	float zoomFactor = pRC->rc_wp ? pRC->rc_wp->zoomFactor : dpisupport_getScalingFactorX();
 	RENDER_FLOW_PARAMS rfp = {
 		.rfp_focus = GetFocus() == hwnd,
 		.rfp_hdc = hdc,

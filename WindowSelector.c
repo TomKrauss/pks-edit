@@ -23,6 +23,7 @@
 #include "winfo.h"
 #include "xdialog.h"
 #include "windowselector.h"
+#include "dpisupport.h"
 
 #define CLASS_WINDOW_SELECTOR "WindowSelector"
 #define GWL_WINDOW_SELECTOR_PARAMS 0
@@ -48,7 +49,8 @@ static void windowselector_paint(HWND hwnd) {
 	PAINTSTRUCT paint;
 	TEXTMETRIC textmetric;
 	WINDOW_SELECTOR_PARAMS* pWSP;
-	int nLineHeight = WSP_LINE_HEIGHT;
+	int nLineHeight = dpisupport_getSize(WSP_LINE_HEIGHT);
+	int nPadding = dpisupport_getSize(WSP_PADDING);
 	THEME_DATA* pTheme = theme_getCurrent();
 
 	pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
@@ -58,14 +60,14 @@ static void windowselector_paint(HWND hwnd) {
 	HFONT hFontBold = theme_createDialogFont(FW_BOLD);
 	HFONT hFont = SelectObject(paint.hdc, hFontNormal);
 	GetTextMetrics(paint.hdc, &textmetric);
-	pWSP->wsp_lineHeight = textmetric.tmHeight + WSP_PADDING;
+	pWSP->wsp_lineHeight = textmetric.tmHeight + nPadding;
 	WINFO* wp = ww_getCurrentEditorWindow();
 	SetTextColor(paint.hdc, pTheme->th_dialogForeground);
-	int y = paint.rcPaint.top + WSP_PADDING;
+	int y = paint.rcPaint.top + nPadding;
 	for (int i = 0; wp; i++) {
 		RECT rect;
 		GetClientRect(hwnd, &rect);
-		rect.left = WSP_PADDING;
+		rect.left = nPadding;
 		rect.top = y;
 		rect.bottom = rect.top + nLineHeight;
 		BOOL bSelected = i == pWSP->wsp_current;
@@ -103,6 +105,7 @@ static void windowselector_selectWindow(HWND hwnd) {
   */
 static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	WINDOW_SELECTOR_PARAMS* pWSP;
+	int nLineHeight = dpisupport_getSize(WSP_LINE_HEIGHT);
 
 	switch (message) {
 	case WM_CREATE: 
@@ -137,9 +140,10 @@ static LRESULT windowselector_wndProc(HWND hwnd, UINT message, WPARAM wParam, LP
 		windowselector_paint(hwnd);
 		break;
 	case WM_LBUTTONDOWN: {
-		int y = GET_Y_LPARAM(lParam) - WSP_PADDING;
+		int nPadding = dpisupport_getSize(WSP_PADDING);
+		int y = GET_Y_LPARAM(lParam) - nPadding;
 		pWSP = (WINDOW_SELECTOR_PARAMS*)GetWindowLongPtr(hwnd, GWL_WINDOW_SELECTOR_PARAMS);
-		pWSP->wsp_current = (y + (WSP_LINE_HEIGHT / 2)) / WSP_LINE_HEIGHT;
+		pWSP->wsp_current = (y + (nLineHeight / 2)) / nLineHeight;
 		windowselector_selectWindow(hwnd);
 		ShowWindow(hwnd, SW_HIDE);
 	}
@@ -200,6 +204,8 @@ int windowselector_registerWindowClass() {
  * Shows the window selector list.
  */
 long long windowselector_showWindowList(void) {
+	int nLineHeight = dpisupport_getSize(WSP_LINE_HEIGHT);
+	int nPadding = dpisupport_getSize(WSP_PADDING);
 	int nWindows = ww_getNumberOfOpenWindows();
 	if (nWindows < 1) {
 		return 0;
@@ -217,10 +223,10 @@ long long windowselector_showWindowList(void) {
 	RECT rect;
 	GetWindowRect(hwndMain, &rectParent);
 	
-	int nHeight = nWindows * WSP_LINE_HEIGHT + (2 * WSP_PADDING);
+	int nHeight = nWindows * nLineHeight + (2 * nPadding);
 	int nParentHeight = rectParent.bottom - rectParent.top;
 	int nParentWidth = rectParent.right - rectParent.left;
-	int nWidth = 600;
+	int nWidth = dpisupport_getSize(600);
 	rect.top = rectParent.top + (nParentHeight - nHeight) / 2;
 	rect.left = rectParent.left + (nParentWidth - nWidth) / 2;
 	if (hwndSelector == NULL) {

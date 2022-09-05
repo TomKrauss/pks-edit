@@ -767,13 +767,15 @@ void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText)
 	int y;
 	int iconWidth = dpisupport_getSize(16);
 	TEXTMETRIC textmetric;
+	int nDelta = dpisupport_getSize(2);
+	int nRowHeight = dpisupport_getSize(LB_ROW_WITH_ICON_HEIGHT);
 
-	x = rcp->left + 2;
+	x = rcp->left + nDelta;
 	y = rcp->top;
 	GetTextMetrics(hdc, &textmetric);
-	DrawIconEx(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT-iconWidth)/2, hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
-	x += iconWidth + (2 * 2);
-	TextOut(hdc, x, y + (LB_ROW_WITH_ICON_HEIGHT - textmetric.tmHeight) / 2, pszText, (int)strlen(pszText));
+	DrawIconEx(hdc, x, y + (nRowHeight-iconWidth)/2, hIcon, iconWidth, iconWidth, 0, NULL, DI_NORMAL);
+	x += iconWidth + (2 * nDelta);
+	TextOut(hdc, x, y + (nRowHeight - textmetric.tmHeight) / 2, pszText, (int)strlen(pszText));
 
 }
 
