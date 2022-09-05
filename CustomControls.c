@@ -756,7 +756,7 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
  * Measure a list box row in an owner drawn listbox painting an icon + a text.
  */
 void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp) {
-	mp->itemHeight = LB_ROW_WITH_ICON_HEIGHT;
+	mp->itemHeight = dpisupport_getSize(LB_ROW_WITH_ICON_HEIGHT);
 }
 
 /*

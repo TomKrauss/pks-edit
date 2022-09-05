@@ -45,6 +45,7 @@
 #include "textblocks.h"
 #include "mainframe.h"
 #include "codeanalyzer.h"
+#include "dpisupport.h"
 
 typedef enum TAG_KIND {
 	TK_FUNCTION = 'f', TK_MEMBER = 'm', TK_VARIABLE = 'v', TK_STRUCT = 's', TK_NUMBER_VALUE = 'n', TK_BOOLEAN_VALUE = 'b', TK_STRING_VALUE = 's', TK_OTHER
@@ -246,7 +247,7 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 		xref_destroyTagTable();
 	}
 	_allTags.tt_directory = _strdup(dirname);
-	if (!file_exists(fn)) {
+	if (file_exists(fn) != 0) {
 		return 0;
 	}
 	return xref_readTagFile(fn,fp);
@@ -258,8 +259,8 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 #define		TAGLISTITEMHEIGHT			28
 static void taglist_measureitem(MEASUREITEMSTRUCT *mp)
 {
-	mp->itemHeight = TAGLISTITEMHEIGHT;
-	mp->itemWidth = 800;
+	mp->itemHeight = dpisupport_getSize(TAGLISTITEMHEIGHT);
+	mp->itemWidth = dpisupport_getSize(800);
 }
 
 #define TAGLIST_COL_WIDTH_ICON			60
@@ -282,13 +283,15 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	if (par == 0) {
 		return;
 	}
+	int nItemHeight = dpisupport_getSize(TAGLISTITEMHEIGHT);
+	int nTagWidth = dpisupport_getSize(TAGLIST_COL_WIDTH_TAGNAME);
 	pTag = tp->pTag;
 	lExtent = win_getTextExtent(hdc, pTag->tagname, (int)strlen(pTag->tagname));
 	hDelta = HIWORD(lExtent);
-	hDelta = (TAGLISTITEMHEIGHT - hDelta) / 2;
+	hDelta = (nItemHeight - hDelta) / 2;
 	char* pszFile = string_abbreviateFileName(tp->filename);
 	TextOut(hdc, rcp->left + nIconDelta, rcp->top + hDelta, pTag->tagname, (int)strlen(pTag->tagname));
-	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
+	TextOut(hdc, rcp->left + nIconDelta + nTagWidth, rcp->top + hDelta, pszFile, (int)strlen(pszFile));
 
 	hIcon = LoadIcon (hInst, tp->isDefinition ? "NEXT" : "PREVIOUS");
 	DrawIconEx(hdc,
@@ -299,7 +302,7 @@ static void taglist_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
 	if (!pszComment) {
 		pszComment = tp->searchCommand;
 	}
-	TextOut(hdc, rcp->left + nIconDelta + TAGLIST_COL_WIDTH_TAGNAME + TAGLIST_COL_WIDTH_FILE,
+	TextOut(hdc, rcp->left + nIconDelta + nTagWidth + dpisupport_getSize(TAGLIST_COL_WIDTH_FILE),
 		rcp->top + hDelta, pszComment, (int)strlen(pszComment));
 	DestroyIcon(hIcon);
 }
@@ -751,7 +754,7 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 				ret = 1;
 				break;
 			}
-		} else if (strcmp(TST_HYPERLINK, ttl->type) == 0) {
+		} else if (!bForceDialog && strcmp(TST_HYPERLINK, ttl->type) == 0) {
 			ret = xref_navigateToHyperlink(ttl->fn, s);
 		}
 		ttl = ttl->next;

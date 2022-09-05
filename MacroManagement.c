@@ -41,6 +41,7 @@
 #include "editorconfiguration.h"
 #include "funcdef.h"
 #include "actionbindings.h"
+#include "dpisupport.h"
 
 extern long		_multiplier;
 
@@ -1097,6 +1098,12 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 			hwndListBox = GET_WM_CHARTOITEM_HWND(wParam, lParam);
 			nKey = GET_WM_CHARTOITEM_CHAR(wParam, lParam); 
 			return macro_charItemNextSelected(hwndListBox, nKey);
+
+		case WM_MEASUREITEM: {
+			MEASUREITEMSTRUCT* mp = (MEASUREITEMSTRUCT*)lParam;
+			mp->itemHeight = dpisupport_getSize(18);
+			return TRUE;
+		}
 
 		case WM_DRAWITEM:
 			return cust_drawComboBoxOwnerDraw((DRAWITEMSTRUCT*)lParam,
