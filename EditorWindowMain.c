@@ -120,7 +120,13 @@ static int ww_createOrDestroyChildWindowOfEditor(
 	*hwndChild = CreateWindow( szClass, NULL,
 		winFlags, XYPxy->x, XYPxy->y, XYPxy->w, XYPxy->h, 
 		hwnd, NULL, hInst, (LPVOID)wp);
-	return *hwndChild != 0;
+	if (*hwndChild != 0) {
+		if (strcmp(szClass, szWorkAreaClass) == 0) {
+			theme_enableDarkMode(*hwndChild);
+		}
+		return 1;
+	}
+	return 0;
 }
 
 static int ruler_getLeft(WINFO* wp) {
@@ -191,9 +197,6 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	int ret = ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_HSCROLL|WS_VSCROLL|WS_CHILD|WS_VISIBLE/*|WS_CLIPSIBLINGS*/,
 		TRUE,&wp->ww_handle,szWorkAreaClass,pWork, wp);
-	if (ret) {
-		theme_enableDarkMode(wp->ww_handle);
-	}
 	return ret;
 }
 
@@ -1038,21 +1041,21 @@ WINFUNC EditWndProc(
 		XYWH xyWork, xyRuler, xyLineWindowSize;
 
 		ww_createSubWindows(hwnd, wp,&xyWork,&xyRuler, &xyLineWindowSize);
+		BOOL bRepaint = 1;
 		if (wp->ww_handle) {
 			MoveWindow(wp->ww_handle,xyWork.x,xyWork.y,
-					xyWork.w,xyWork.h,1);
+					xyWork.w,xyWork.h,bRepaint);
 			if (message == WM_SHOWWINDOW) {
 				SendMessage(wp->ww_handle, message, wParam, lParam);
 			}
 		}
 		if (wp->ru_handle) {
 			MoveWindow(wp->ru_handle,xyRuler.x,xyRuler.y,
-					xyRuler.w,xyRuler.h,1);
-			win_sendRedrawToWindow(wp->ru_handle);
+					xyRuler.w,xyRuler.h,bRepaint);
 		}
 		if (wp->lineNumbers_handle) {
 			MoveWindow(wp->lineNumbers_handle, xyLineWindowSize.x, xyLineWindowSize.y,
-				xyLineWindowSize.w, xyLineWindowSize.h, 1);
+				xyLineWindowSize.w, xyLineWindowSize.h, bRepaint);
 		}
 		break;
 		}
@@ -1311,7 +1314,7 @@ WINFUNC render_defaultWindowProc(
 		return 0;
 
 	case WM_ERASEBKGND:
-		return 0;
+		return 1;
 
 	case WM_PAINT:
 		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {

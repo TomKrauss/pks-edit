@@ -1348,13 +1348,43 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	case WM_ERASEBKGND:
 		return FALSE;
 
-	case WM_SIZE:
-		// (T) optimize
-		InvalidateRect(hwnd, NULL, TRUE); 
-		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
-		tabcontrol_makeActiveTabVisible(hwnd, pControl);
-		tabcontrol_resizeActiveTabContents(hwnd, pControl);
+	case WM_WINDOWPOSCHANGING: {
+		LPWINDOWPOS pwp = (LPWINDOWPOS)lParam;
+		if (!(pwp->flags & SWP_NOREDRAW)) {
+			RECT r;
+			GetWindowRect(hwnd, &r);
+			MapWindowPoints(HWND_DESKTOP, GetParent(hwnd), (LPPOINT)&r, 2);
+			if (r.top == pwp->y && r.left == pwp->x) {
+				GetClientRect(hwnd, &r);
+				if (pwp->cy < r.bottom || pwp->cx < r.right) {
+					break;
+				}
+				if (pwp->cy != r.bottom - r.top) {
+					int bottom = r.bottom;
+					r.bottom = r.top + pwp->cy;
+					r.top = bottom - 5;
+				}
+				if (pwp->cx != r.right - r.left) {
+					int right = r.right;
+					r.right = r.left + pwp->cx;
+					r.left = right - 5;
+				}
+				InvalidateRect(hwnd, &r, FALSE);
+				break;
+			}
+			InvalidateRect(hwnd, NULL, FALSE);
+		}
+		break;
+	}
+	case WM_WINDOWPOSCHANGED: {
+		LPWINDOWPOS pwp = (LPWINDOWPOS)lParam;
+		if (!(pwp->flags & SWP_NOSIZE)) {
+			pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+			tabcontrol_makeActiveTabVisible(hwnd, pControl);
+			tabcontrol_resizeActiveTabContents(hwnd, pControl);
+		}
 		return TRUE;
+	}
 
 	case WM_DESTROY:
 		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
@@ -1472,6 +1502,12 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 	int width = rect.right - rect.left - dDelta;
 	int height = rect.bottom - rect.top - dDelta;
 	while (pSlot) {
+		if (pSlot->ds_wratio < 0.1) {
+			pSlot->ds_wratio = 0.1f;
+		}
+		if (pSlot->ds_hratio < 0.1) {
+			pSlot->ds_hratio = 0.1f;
+		}
 		int x = rect.left + dDelta + (int)(width * pSlot->ds_xratio);
 		int y = rect.top + dDelta + (int)(height * pSlot->ds_yratio);
 		int w = (int)(width * pSlot->ds_wratio) - dDelta;
