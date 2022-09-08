@@ -5,7 +5,7 @@
       "navigation": [
         {
           "name": "html-link",
-          "pattern": "[\"'](https?:[^\"]+)[\"']",
+          "pattern": "[\"'](https?:[^\"]+|[a-zA-Z0-9._/-]+)[\"']",
           "filenameCapture": 1
         }
       ],
