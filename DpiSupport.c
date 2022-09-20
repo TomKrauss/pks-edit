@@ -16,6 +16,7 @@
  */
 
 #include <windows.h>
+#include "dpisupport.h"
 #include "editorconfiguration.h"
 
 extern HWND hwndMain;
@@ -31,6 +32,17 @@ float dpisupport_initScalingFactor(HWND hwnd) {
 		scale = dpi / 96.0f;
 	}
 	return scale;
+}
+
+/*
+ * Invoked, when the scaling has probably changed for the main window. Re-initialize the scaling
+ * factor and return true if it really has changed.
+ */
+BOOL dpisupport_scalingChanged(HWND hwnd) {
+	float oldscale = scale;
+	scale = 0;
+	dpisupport_initScalingFactor(hwnd);
+	return scale != oldscale;
 }
 
 /*

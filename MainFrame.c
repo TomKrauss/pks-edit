@@ -1933,6 +1933,14 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	case WM_WININICHANGE:
 		darkmode_IsColorSchemeChangeMessage(message, lParam);
 		string_initDateformats();
+		if (dpisupport_scalingChanged(hwnd)) {
+			WINFO* wp = ww_getCurrentEditorWindow();
+			if (wp) {
+				ww_setZoom(wp, wp->zoomMagnifier);
+			}
+			// todo: force repaint with new font-size in open windows.
+			goto repaintUI;
+		}
 		break;
 
 	case WM_MENUSELECT:
@@ -1957,6 +1965,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		darkmode_allowForApp(theme_getCurrent()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
+repaintUI:
 		tb_updateImageList(hwnd, NULL, 0);
 		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
 		// TODO: title bar is not correctly repainted upon theme change.

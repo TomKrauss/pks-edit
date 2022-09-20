@@ -688,6 +688,8 @@ EXPORT void render_repaintLineRangeWindow(WINFO* wp, LINE* lpStart, LINE* lpEnd)
  * Set a fixed zoom factor for a window. 
  */
 void ww_setZoom(WINFO* wp, float newFactor) {
+	wp->zoomMagnifier = newFactor;
+	newFactor *= dpisupport_getScalingFactorX();
 	if (wp->zoomFactor == newFactor) {
 		return;
 	}
@@ -710,17 +712,16 @@ long long ww_zoomWindow(WINFO* wp, int anIncreaseFactor) {
 	if (wp == 0) {
 		return 0;
 	}
-	float zoomFactor = wp->zoomFactor;
+	float zoomFactor = wp->zoomMagnifier;
 	if (anIncreaseFactor) {
 		zoomFactor = 11 * zoomFactor / 10;
 	} else {
 		zoomFactor = 10 * zoomFactor / 11;
 	}
-	float dpiFactor = dpisupport_getScalingFactorX();
-	if (zoomFactor < 0.4 * dpiFactor) {
-		zoomFactor = 0.4f * dpiFactor;
-	} else if (zoomFactor > 2.5 * dpiFactor) {
-		zoomFactor = 2.5f * dpiFactor;
+	if (zoomFactor < 0.4) {
+		zoomFactor = 0.4f;
+	} else if (zoomFactor > 2.5) {
+		zoomFactor = 2.5f;
 	}
 	ww_setZoom(wp, zoomFactor);
 	COMPARISON_LINK* cpl = wp->comparisonLink;

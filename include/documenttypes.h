@@ -37,11 +37,6 @@ extern void doctypes_destroyAllDocumentTypes();
 extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
 /*--------------------------------------------------------------------------
- * doctypes_countDocumentTypes()
- */
-extern int doctypes_countDocumentTypes(void);
-
-/*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescription()
  * Returns the properties for a document type (primarily for the purpose of displaying
  * it in a UI).

@@ -292,7 +292,8 @@ typedef struct tagWINFO {
     long   maxVisibleLineLen;       // The maximum length of a line in columns - used to calculate the size of the horizontal scrollbar
                                     // Is reset to -1 on model changes and recalculated when needed.
      void	*	fp;
-     float      zoomFactor;         // The text font size zoom factor.
+     float      zoomMagnifier;      // The current magnification multiplier (> 1 -> font is bigger than system font, 1 -> font is same size, < 1 -> font is smaller).
+     float      zoomFactor;         // The result text font size zoom factor by multipliying the zoomMagnifier with the dpi-factor
      COMPARISON_LINK* comparisonLink;
      void* r_data;                  // optionally used by the renderer for internal book keeping
      char actionContext[32];        // allows us to have window specific key-, mouse- and other action bindings.

@@ -34,6 +34,12 @@ extern int dpisupport_getTbIconSize(HWND hwnd);
 extern int dpisupport_getSize(int nBaseValue);
 
 /*
+ * Invoked, when the scaling has probably changed for the main window. Re-initialize the scaling
+ * factor and return true if it really has changed.
+ */
+extern BOOL dpisupport_scalingChanged(HWND hwnd);
+
+/*
  * Initializes the scaling factor for a given window.
  */
 float dpisupport_initScalingFactor(HWND hwnd);

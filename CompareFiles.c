@@ -184,7 +184,7 @@ EXPORT int compare_files(WINFO* wp0, WINFO* wp1) {
 	}
 	mainframe_moveWindowAndActivate(wp1->edwin_handle, DOCK_NAME_RIGHT, TRUE);
 	mainframe_moveWindowAndActivate(wp0->edwin_handle, DOCK_NAME_DEFAULT, TRUE);
-	ww_setZoom(wp1, wp0->zoomFactor);
+	ww_setZoom(wp1, wp0->zoomMagnifier);
 	return compare_diffFiles(wp0,wp1);
 }
 
