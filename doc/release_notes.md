@@ -15,15 +15,15 @@
 - PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active
   editor. No pathes are stored any more in the history file, but pathes are derived also from the list of open files 
   (e.g. to be selected in Find in Files).
-- When searching simple regular expressions PKS-Edit uses now Boyer matches internally speeding up the performance of
-  of simple searches considerably.
-- PKS-Edit is no better usable on Hi DPI devices and will scale appropriately.
+- When searching simple regular expressions PKS-Edit uses the [boyer moore algorithm](https://de.wikipedia.org/wiki/Boyer-Moore-Algorithmus) 
+  now internally speeding up the performance of simple searches considerably.
+- The tag search list ui was overhauled and uses a Windows list view now.  
+- PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
 
 ### Fixes
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
   and line numbers were not displayed up to the last visible line in hex editor mode.
 - Convert spaces to tabs had been broken and is fixed.
-- Listviews in PKS-Edit dialogs correctly honor now dark mode.
 - A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
   images (empty image description).
 - an issue was fixed leading to corrupted macros causing PKS-Edit to crash when playing them.
@@ -32,6 +32,7 @@
   to represent these characters.
 - Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS-Edit with
   path names longer than 256 characters did not work for instance.
+- Some dark theme related issues were fixed. List Views for instance are now correctly displayed also in dark mode.
   
 ## 2.2.0
 
