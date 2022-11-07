@@ -2,6 +2,13 @@
   "grammars": [
     {
       "scopeName": "properties",
+      "navigation": [
+        {
+          "name": "html-link",
+          "pattern": "(https?:[a-zA-Z0-9._/-]+|[a-zA-Z0-9._/-]+)",
+          "filenameCapture": 1
+        }
+      ],
       "patterns": [
         {
           "match": "^#.*",
