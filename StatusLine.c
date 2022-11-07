@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <windowsx.h>
+#include "dpisupport.h"
 #include "alloc.h"
 #include "pksrc.h"
 #include "trace.h"
@@ -96,9 +97,9 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 		}
 	}
 	if (nSegments != SendMessage(hwndStatus, SB_GETPARTS, 0, 0)) {
-		for (i = 0, offset = 100; i < nSegments; i++) {
+		for (i = 0, offset = dpisupport_getSize(150); i < nSegments; i++) {
 			pSegments[i] = offset;
-			offset += 100;
+			offset += dpisupport_getSize(150);
 		}
 		pSegments[nSegments] = -1;
 		SendMessage(hwndStatus, SB_SETPARTS, nSegments + 1, (LPARAM)pSegments);
@@ -191,7 +192,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		LineTo(hdc, rect.right, rect.top);
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc;
-			char szText[512];
+			char szText[1024];
 			memset(&rc, 0, sizeof rc);
 			SendMessage(hwndStatus, SB_GETRECT, i, (LPARAM)&rc);
 			if (rc.left > ps.rcPaint.right) {
