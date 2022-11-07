@@ -1295,7 +1295,7 @@ BEGIN
     IDS_MSGEXPANDTABS       "Replaced %ld tabs in %ld lines"
     IDS_MSGWIREGDEF         "Window register #%d defined"
     IDS_MSGAUBE             "~Autosaving %s finished"
-    IDS_MSGINWORK           "%s is being edited already.\nDo you want to open it again"
+    IDS_MSGINWORK           "%s is being edited already.\nDo you want to edit another copy of the file?"
     IDS_MSGDELICON          "Remove icon %s from the PKS Edit desktop"
     IDS_MSGNOTIMER          "No timer available"
     IDS_MSGNOPRINTER        "!No printer installed"
