@@ -349,8 +349,10 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 				hDDEService = 0;
 				*pDDEOtherInstanceExists = TRUE;
 				EdTRACE(log_errorArgs(DEBUG_TRACE, "There is already a running DDE Server."));
+				DdeDisconnectList(hList);
 				return 1;
 			}
+			DdeDisconnectList(hList);
 		}
 	}
 	return 1;
