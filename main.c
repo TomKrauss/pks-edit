@@ -317,14 +317,27 @@ static void dde_uninitialize() {
 	}
 }
 
+#define PKS_EDIT_APPLICATION_ID "PKSEdit.1"
+
+HANDLE pksEditMutex;
+
 /*
  * Initialize the PKS-Edit DDE server allowing to process command line arguments.
  */
 static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 	UINT	result;
-
+	
 	if (hDDE) {
 		return 1;
+	}
+	pksEditMutex = OpenMutex(
+		MUTEX_ALL_ACCESS, 0, PKS_EDIT_APPLICATION_ID);
+	if (pksEditMutex) {
+		*pDDEOtherInstanceExists = TRUE;
+		pksEditMutex = 0;
+	} else {
+		pksEditMutex = CreateMutex(0, 0, PKS_EDIT_APPLICATION_ID);
+		*pDDEOtherInstanceExists = FALSE;
 	}
 	result = DdeInitialize(&hDDE, EdDDECallback, 
 		APPCLASS_STANDARD | 
@@ -336,23 +349,19 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 		error_displayAlertDialog("Got error %d initializing DDE");
 		hDDE = 0;
 	} else {
-		hszDDEService = DdeCreateStringHandle(hDDE, "PKSEdit.1", CP_WINANSI);
+		hszDDEService = DdeCreateStringHandle(hDDE, PKS_EDIT_APPLICATION_ID, CP_WINANSI);
 		hDDEService = DdeNameService(hDDE, hszDDEService, 0, DNS_REGISTER | DNS_FILTERON);
 		hszDDECommandLine = DdeCreateStringHandle(hDDE, "commandline", CP_WINANSI);
 		hszDDEExecuteMacro = DdeCreateStringHandle(hDDE, "macro", CP_WINANSI);
-		HCONVLIST hList;
-		hList = DdeConnectList(hDDE, hszDDEService, hszDDECommandLine, 0, 0);
-		if (hList) {
-			HCONV hPrev = DdeQueryNextServer(hList, 0);
+		if (*pDDEOtherInstanceExists) {
+			HCONV hPrev = DdeConnect(hDDE, hszDDEService, hszDDECommandLine, 0);
 			if (hPrev) {
 				DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
 				hDDEService = 0;
 				*pDDEOtherInstanceExists = TRUE;
 				EdTRACE(log_errorArgs(DEBUG_TRACE, "There is already a running DDE Server."));
-				DdeDisconnectList(hList);
 				return 1;
 			}
-			DdeDisconnectList(hList);
 		}
 	}
 	return 1;
@@ -406,6 +415,10 @@ void main_cleanup(void) {
 	ww_destroyAll();
 	config_destroy();
 	function_destroy();
+	if (pksEditMutex) {
+		ReleaseMutex(pksEditMutex);
+		pksEditMutex = 0;
+	}
 }
 
 /*------------------------------------------------------------
