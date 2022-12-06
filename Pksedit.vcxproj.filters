@@ -648,6 +648,7 @@
     <None Include="doc\manual\sort.md" />
     <None Include="doc\manual\navigate.md" />
     <None Include="doc\manual\using_mouse.md" />
+    <None Include="pksedit.iss" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

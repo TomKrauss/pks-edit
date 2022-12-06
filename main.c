@@ -373,13 +373,24 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
  * instance may terminate.
  */
 static int dde_delegateArguments(LPSTR lpCmdLine) {
-	HCONV		hconv = 0;
+	HCONV hconv = 0;
 	int ret = 0;
 	if ((GetConfiguration()->options & O_REUSE_APPLICATION_INSTANCE)  && 
 			lpCmdLine && 
 			lpCmdLine[0] && 
 			(hconv = DdeConnect(hDDE, hszDDEService, hszDDECommandLine, 0)) != 0) {
-		HDDEDATA hReturn = DdeClientTransaction(lpCmdLine, (DWORD)(strlen(lpCmdLine)+1), hconv, 0, 0, XTYP_EXECUTE, 5000, 0);
+		char szBuf[EDMAXPATHLEN];
+
+		strcpy(szBuf, "/p");
+		if (GetCurrentDirectory(sizeof szBuf - 3, szBuf + 2) == 0) {
+			return 0;
+		}
+		strcat(szBuf, " ");
+		if (strlen(szBuf + strlen(lpCmdLine)) > sizeof szBuf) {
+			return 0;
+		}
+		strcat(szBuf, lpCmdLine);
+		HDDEDATA hReturn = DdeClientTransaction(szBuf, (DWORD)(strlen(szBuf)+1), hconv, 0, 0, XTYP_EXECUTE, 5000, 0);
 		if (hReturn) {
 			DdeFreeDataHandle(hReturn);
 			ret = 1;

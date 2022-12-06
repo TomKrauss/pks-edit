@@ -55,26 +55,32 @@ static int argument_open(const char* pszFilespec, DTA* p) {
 	return 0;
 }
 
-static void argument_openFiles(const char* pszFilespec) {
+static void argument_openFiles(const char* pszDirectory, const char* pszFilespec) {
 	_maxMultiFileCount = GetConfiguration()->maximumNumberOfOpenWindows;
 	if (_maxMultiFileCount <= 0) {
 		_maxMultiFileCount = 32000;
 	}
+
 	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
-		_ftw(".", argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
-	}
-	else {
-		xref_openFile(pszFilespec, 0L, (void*)0);
+		_ftw(pszDirectory, argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
+	} else {
+		if (strchr(pszFilespec, '/') == 0 && strchr(pszFilespec, '\\') == 0 && pszDirectory[0] != 0) {
+			char szDest[EDMAXPATHLEN];
+			string_concatPathAndFilename(szDest, pszDirectory, pszFilespec);
+			xref_openFile(szDest, 0L, (void*)0);
+		} else {
+			xref_openFile(pszFilespec, 0L, (void*)0);
+		}
 	}
 }
 
 /*------------------------------------------------------------
  * arguments_parsePhase1()
  */
-static int arguments_parsePhase2(char *arg)
-{
+static int arguments_parsePhase2(char *arg) {
+	static char szPath[EDMAXPATHLEN] = ".";
 	if (*arg != '-' && *arg != '/') {
-		argument_openFiles(arg);
+		argument_openFiles(szPath, arg);
 	} else {
 		long line;
 		WINFO* wp = ww_getCurrentEditorWindow();
@@ -86,6 +92,9 @@ static int arguments_parsePhase2(char *arg)
 				lstrcpy(_currentSearchAndReplaceParams.searchPattern,arg);
 				find_expressionAgainInCurrentFile(wp, 1);
 			}
+			break;
+		case 'p':
+			strcpy(szPath, arg);
 			break;
 		case 'l':
 		case 'g':	
@@ -117,7 +126,7 @@ static int arguments_parsePhase2(char *arg)
 			xref_openSearchList(arg,1); 		/* Edit Compiler-Errors 	*/
 			break;
 		default:
-			argument_openFiles(arg);
+			argument_openFiles(szPath, arg);
 			break;
 		}
 	}

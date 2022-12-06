@@ -1221,6 +1221,7 @@
     <None Include="macro_compiler\SCANNER.L" />
     <None Include="packages.config" />
     <None Include="PKSEDIT.DEF" />
+    <None Include="pksedit.iss" />
     <None Include="rc\CLIP.ICO" />
     <None Include="rc\CLIPEMPT.ICO" />
     <None Include="rc\COPY.CUR" />
