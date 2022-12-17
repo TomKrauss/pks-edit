@@ -1425,6 +1425,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 	int nLinkStart = -1;
 	char c;
 	char* szLinkEnd = szLinkText + 255;
+	STREAM_OFFSET savedOffset = pStream->is_tell(pStream);
 	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
 		if (nLinkStart < 0) {
 			if (c == ']' && pStream->is_peekc(pStream, 0) == '(') {
@@ -1452,6 +1453,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 			}
 		}
 	}
+	pStream->is_seek(pStream, savedOffset);
 	return FALSE;
 }
 
@@ -4003,7 +4005,7 @@ typedef struct tagANCHOR_MATCH {
  * Match an anchor agains the anchor added to a run.
  */
 static int mdr_matchAnchor(TEXT_RUN* pRun, ANCHOR_MATCH* pMatch) {
-	if (pRun->tr_anchor && mdr_titleMatchesAnchor(0, pRun->tr_anchor, pMatch->am_matchAnchor)) {
+	if (pRun && pRun->tr_anchor && mdr_titleMatchesAnchor(0, pRun->tr_anchor, pMatch->am_matchAnchor)) {
 		pMatch->am_matched = 1;
 		return 0;
 	}

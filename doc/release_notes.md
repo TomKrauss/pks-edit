@@ -33,6 +33,7 @@
 - Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS-Edit with
   path names longer than 256 characters did not work for instance.
 - Some dark theme related issues were fixed. List Views for instance are now correctly displayed also in dark mode.
+- A crash which could happen upong the attempt to follow a link in large markdown documents with links in tables was fixed.
   
 ## 2.2.0
 
