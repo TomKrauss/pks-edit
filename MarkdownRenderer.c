@@ -2658,7 +2658,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 		for (; (cNext = pStream->is_peekc(pStream, 0)) != 0 && c != '\n'; pStream->is_skip(pStream, 1)) {
 			lastC = c;
 			c = cNext;
-			if (nLineOffset == 0 && mdr_isIndentedFencedBlock(pStream, mType)) {
+			if (nLineOffset == 0 && pState->hps_blockLevel == 0 && mdr_isIndentedFencedBlock(pStream, mType)) {
 				mType = MET_FENCED_CODE_BLOCK;
 				pState->hps_blockFormat = _formatFenced;
 				mdr_parsePreformattedCodeBlock(pStream, pState, TRUE, 0);

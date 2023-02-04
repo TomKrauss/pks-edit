@@ -649,6 +649,10 @@
     <None Include="doc\manual\navigate.md" />
     <None Include="doc\manual\using_mouse.md" />
     <None Include="pksedit.iss" />
+    <None Include="CODE_OF_CONDUCT.md" />
+    <None Include="LICENSE" />
+    <None Include="SECURITY.md" />
+    <None Include="doc\markdown_test.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">

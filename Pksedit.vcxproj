@@ -1198,6 +1198,7 @@
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CODE_OF_CONDUCT.md" />
     <None Include="doc\document_types.md" />
     <None Include="doc\manual\commandline.md" />
     <None Include="doc\manual\configuration.md" />
@@ -1216,7 +1217,9 @@
     <None Include="doc\manual\saving_files.md" />
     <None Include="doc\manual\using_mouse.md" />
     <None Include="doc\markdown.md" />
+    <None Include="doc\markdown_test.md" />
     <None Include="doc\release_notes.md" />
+    <None Include="LICENSE" />
     <None Include="macro_compiler\PARSER.Y" />
     <None Include="macro_compiler\SCANNER.L" />
     <None Include="packages.config" />
@@ -1243,6 +1246,7 @@
     <None Include="rc\TRASH.ICO" />
     <None Include="rc\UNDO.ICO" />
     <None Include="README.md" />
+    <None Include="SECURITY.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PKSEDIT.RC">
