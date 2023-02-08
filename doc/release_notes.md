@@ -21,6 +21,8 @@
 - PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
 
 ### Fixes
+- a repaint bug in main frame tabs fixed causing repaint artifacts being visible after dragging the splitter.
+- causing artifacts in tab bar
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
   and line numbers were not displayed up to the last visible line in hex editor mode.
 - Convert spaces to tabs had been broken and is fixed.

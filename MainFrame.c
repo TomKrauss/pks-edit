@@ -1365,9 +1365,8 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 					r.top = bottom - 5;
 				}
 				if (pwp->cx != r.right - r.left) {
-					int right = r.right;
-					r.right = r.left + pwp->cx;
-					r.left = right - 5;
+					r.right = pwp->cx;
+					r.left = pwp->x;
 				}
 				InvalidateRect(hwnd, &r, FALSE);
 				break;
