@@ -87,6 +87,7 @@ char   szAppName[] = "PKSEDIT";
 
 int		_runInteractive = TRUE;
 int		_openIconic = FALSE;
+BOOL	_startupComplete = FALSE;
 
 /*------------------------------------------------------------
  * win_registerWindowClass()
@@ -471,6 +472,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 	/* show PKS Edit now! */
 	main_restoreSizeAndMakeVisible();
+	_startupComplete = TRUE;
 	return mainframe_messageLoop();
 
 }

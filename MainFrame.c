@@ -199,6 +199,10 @@ static LRESULT dragproxy_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
+static BOOL mainframe_useFullScreenMode() {
+	return _fullscreenMode && dockingSlots->ds_next == NULL;
+}
+
 /*
  * Opens a drag-proxy for a tab to be dragged around the screen. 
  */
@@ -458,7 +462,7 @@ static void tabcontrol_resizeActiveTabContents(HWND hwnd, TAB_CONTROL* pControl)
 			int h = rect.bottom - rect.top - pControl->tc_stripHeight - 2;
 			int x = rect.left + 1;
 			int w = rect.right - rect.left - 2;
-			if (_fullscreenMode) {
+			if (mainframe_useFullScreenMode()) {
 				x--;
 				w += 2;
 				y = rect.top;
@@ -1488,7 +1492,7 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 
 	mainframe_getDockingRect(hwnd, &rect);
 	DOCKING_SLOT* pSlot;
-	if (_fullscreenMode) {
+	if (mainframe_useFullScreenMode()) {
 		pSlot = mainframe_getDockingParent(GetParent(GetFocus()));
 		if (pSlot) {
 			MoveWindow(pSlot->ds_hwnd, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, 1);

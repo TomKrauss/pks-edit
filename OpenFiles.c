@@ -20,6 +20,7 @@
 #include "edierror.h"
 #include "pksrc.h"
 #include "errordialogs.h"
+#include "resource.h"
 #include "editorconfiguration.h"
 
 #include "winfo.h"
@@ -700,6 +701,10 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	}
 	if (fn && file_exists(fn) < 0) {
 		nFileCreationFlags = F_NEWFILE;
+		if (pOptions->fo_openHistory) {
+			error_showErrorById(IDS_WARN_FILE_MOVED_OR_DELETED, fn);
+			return 0;
+		}
 		if (!pOptions->fo_isNewFile && error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
 			return 0;
 		}

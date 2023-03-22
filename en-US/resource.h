@@ -184,6 +184,7 @@
 #define IDS_EVALUATION_FAILED           197
 #define IDS_TT_SORT_FIELD_SEPARATOR     205
 #define IDS_TT_SORT_FIELD_OPTIONS       206
+#define IDS_WARN_FILE_MOVED_OR_DELETED  207
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
 #define IDM_ERASEBLOCK                  212
@@ -216,7 +217,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        205
+#define _APS_NEXT_RESOURCE_VALUE        207
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101

@@ -1427,6 +1427,7 @@ BEGIN
                             "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
     IDS_TT_SORT_FIELD_OPTIONS 
                             "Enter the comparison options for sorting the individual fields / columns.\nUse the syntax {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+ to define one sort field (delimited by ,), where\nl is the line number (in clustered sorting),\nf is the field number and\nw is the width of a field\no is the offset for a field.\nt is the option for sorting a field:\n  d = sort numerically\n  D = sort as Date\n  i = sort strings case ignore\n  b = skip blanks when comparing\n  a = use keyword chars only for comparison\n  - = sort descending"
+    IDS_WARN_FILE_MOVED_OR_DELETED "File %s was moved or deleted"
 END
 
 STRINGTABLE

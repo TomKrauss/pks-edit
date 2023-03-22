@@ -194,7 +194,7 @@ static void error_displayErrorToast(const char* fmt, va_list ap) {
 	wvsprintf(szBuf,bShowToast ? fmt:fmt+1,ap);
 	st_setStatusLineMessage(szBuf);
 
-	if (bShowToast && (GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
+	if (_startupComplete && bShowToast && (GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {
 		cust_createToastWindow(szBuf);
 	}
 }

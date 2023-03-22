@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch C:\source\pksedit\PKSEDIT.RC
+// Verwendet durch C:\source\pks-edit\PKSEDIT.RC
 //
 #define ID_COMPARE_BACKUP               3
 #define IDD_APP_ICON                    3
@@ -44,6 +44,7 @@
 #define IDS_ICON_SIZE_LARGE             204
 #define IDS_TT_SORT_FIELD_SEPARATOR     205
 #define IDS_TT_SORT_FIELD_OPTIONS       206
+#define IDS_WARN_FILE_MOVED_OR_DELETED  207
 #define IDS_FONT_AWESOME                224
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
@@ -84,7 +85,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        227
+#define _APS_NEXT_RESOURCE_VALUE        228
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

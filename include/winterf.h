@@ -82,6 +82,7 @@ extern HINSTANCE ui_getResourceModule();
  */
 extern void ui_switchToLanguage(char* pszLanguage);
 
+extern int		_startupComplete;
 extern UINT		WM_PKSBROADCAST;
 
 #define WINTERF_H
