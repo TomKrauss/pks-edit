@@ -12,35 +12,36 @@
   files opened from e.g. the Windows Explorer. 
 
 ### Improved
+- PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
 - PKSEDIT-15: When opening a file from the history list, which has been deleted or moved since the last PKS-Edit session,
   only a small statusbar message is being displayed rather than annoying blocking dialogs.
 - PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active
   editor. No pathes are stored any more in the history file, but pathes are derived also from the list of open files 
   (e.g. to be selected in Find in Files).
-- When searching simple regular expressions PKS-Edit uses the [boyer moore algorithm](https://de.wikipedia.org/wiki/Boyer-Moore-Algorithmus) 
+- When searching simple regular expressions PKS-Edit uses the [Boyer Moore algorithm](https://de.wikipedia.org/wiki/Boyer-Moore-Algorithmus) 
   now internally speeding up the performance of simple searches considerably.
-- The tag search list ui was overhauled and uses a Windows list view now.  
-- PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
+- The tag search list ui was overhauled and uses a Windows list view now.
 
 ### Fixes
-- a repaint bug in main frame tabs fixed causing repaint artifacts being visible after dragging the splitter.
+- A repaint bug in main frame tabs fixed causing repaint artifacts being visible after dragging the splitter.
 - causing artifacts in tab bar
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
   and line numbers were not displayed up to the last visible line in hex editor mode.
 - Convert spaces to tabs had been broken and is fixed.
 - A crash in the markdown renderer was fixed, that occurred when using \[](imagename) as the syntax for including
   images (empty image description).
-- Various markdown parsing an rendering issues affecting the display of fenced code blocks were fixed.
-- an issue was fixed leading to corrupted macros causing PKS-Edit to crash when playing them.
+- Various markdown parsing and rendering issues affecting the display of `fenced code blocks` were fixed.
+- A crash which could happen upong the attempt to follow a link in large markdown documents with links in tables was fixed.
+- An issue was fixed which had lead to corrupted macros. PKS-Edit had crashed when playing the corrupted macros.
 - Strings containing some special characters not supported by Windows (characters 129, 141, 143, 144, and 157), were
   painted _wrong_ leading to misplaced carets making editing impossible. As a work around PKS-Edit will now display a '?'
   to represent these characters.
 - Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS-Edit with
-  path names longer than 256 characters did not work for instance.
+  path names longer than 256 characters was not possible in elder releases.
 - Some dark theme related issues were fixed. List Views for instance are now correctly displayed also in dark mode.
-- A crash which could happen upong the attempt to follow a link in large markdown documents with links in tables was fixed.
-- Fullscreenmode did produce strange layout, if more than 1 mainframe dock was open (one dock was using fullscreen layout, the others
-  not). Now fullscreen mode will only maximize one tab hiding the tabstrip, if only one dock is being displayed.
+- Fullscreenmode did produce a strange screen layout, if more than 1 `mainframe dock` was open (one dock was using 
+  fullscreen layout, the others not). Now fullscreen mode will only maximize one tab hiding the tabstrip, if 
+  only one dock is being displayed.
 
 ## 2.2.0
 

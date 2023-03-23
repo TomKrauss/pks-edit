@@ -1484,6 +1484,8 @@ BEGIN
                             "Geben Sie die Trennzeichen für die Trennung in Felder ein, z.B. ""\\t ,;"" um Tabs, Leerzeichen, Komma oder Semikolon zu verwenden"
     IDS_TT_SORT_FIELD_OPTIONS 
                             "Geben Sie die Vergleichsoptionen für das Sortieren von Feldern / Spalten mit folgender Syntax an: {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+. Sortfelddefinitionen werden mit , getrennt. l wird von Zeilennummer (in Records) gefolgt, f ist die Feldnummer\n w ist die Breite des Felds\n und o ist der Offset eines Felds.\nOptionen für das Sortieren eines Felds: d = numerischer Vergleich, D = Datumsvergleich,  i = Ignoriere Groß/Klein, b = Leerzeichen ignorieren, a = Schlüsselwortzeichen für den Vergleich verwenden, - = absteigend sortieren"
+    IDS_WARN_FILE_MOVED_OR_DELETED 
+                            "Die Datei %s wurde verschoben oder gelöscht"
 END
 
 STRINGTABLE
