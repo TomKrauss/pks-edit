@@ -1,0 +1,34 @@
+{
+  "grammars": [
+    {
+      "scopeName": "yaml",
+      "patterns": [
+        {
+          "match": "<(true|false|null)>",
+          "name": "keyword.control.yaml",
+          "style": "keyword"
+        },
+        {
+          "match": "<[0-9.]+>",
+          "name": "constant.numeric",
+          "style": "literal"
+        },
+        {
+          "match": "[A-Za-z0-9_.-]+:",
+          "name": "string.yaml.key",
+          "style": "string"
+        },
+        {
+          "match": "[A-Za-z@0-9_.:/-]+",
+          "name": "string.yaml.value",
+          "style": "identifier"
+        },
+        {
+          "match": "#.*",
+          "name": "comment.yaml",
+          "style": "comment"
+        }
+      ]
+    }
+  ]
+}

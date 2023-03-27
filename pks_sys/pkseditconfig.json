@@ -197,6 +197,13 @@
         "filenamePatterns": "*.json"
     },
     {
+        "name": "yaml-files",
+        "description": "YAML files (*.yaml)",
+        "grammar": "yaml",
+        "editorConfiguration": "yaml",
+        "filenamePatterns": "*.yml;*.yaml"
+    },
+    {
         "name": "markdown",
         "description": "Markdown files (*.md)",
         "grammar": "markdown",
@@ -370,6 +377,29 @@
         "scrollVerticallyBy": 0,
         "scrollHorizontallyBy": 0,
         "scrollVerticalBorder": 1,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true
+    },
+    {
+        "name": "yaml",
+        "id": 6,
+        "leftMargin": 0,
+        "rightMargin": 80,
+        "tabSize": 2,
+        "codepage": 0,
+        "shiftWidth": 4,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
+        "insertMode": true,
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
         "caretSearchPlacement": 1,
         "scrollSupportTrackThumb": true,
         "caretPreserveColumn": true,

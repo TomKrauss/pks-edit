@@ -5,6 +5,7 @@
 ### New
 
 ### Improved
+- Grammar files for editing yaml format were added.
 
 ### Fixes
 
