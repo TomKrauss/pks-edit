@@ -1,5 +1,13 @@
 # PKS-Edit Release Notes
 
+## 2.4.0
+
+### New
+
+### Improved
+
+### Fixes
+
 ## 2.3.0
 
 ### New
