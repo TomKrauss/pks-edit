@@ -361,6 +361,14 @@
       "command": "@zoom-decrease"
     },
     {
+      "key": "Ctrl+OEM_PLUS",
+      "command": "@zoom-increase"
+    },
+    {
+      "key": "Ctrl+OEM_MINUS",
+      "command": "@zoom-decrease"
+    },
+    {
       "key": "Ctrl+F1",
       "command": "@find-tag-under-cursor"
     },
@@ -1175,6 +1183,15 @@
     {
       "command": "@toggle-comment",
       "icon": "fa-comment"
+    },
+    { "separator": true },
+    {
+      "icon": "fa-plus-circle",
+      "command": "@zoom-increase"
+    },
+    {
+      "icon": "fa-minus-circle",
+      "command": "@zoom-decrease"
     },
     { "separator": true },
     {

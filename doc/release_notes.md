@@ -6,8 +6,12 @@
 
 ### Improved
 - Grammar files for editing yaml format were added.
+- Zoom plus and zoom minus icons have been added to the toolbar. Action Bindings to Ctrl++ and Ctrl+- were also added. Before
+  one needed to use the num block for zooming.
 
 ### Fixes
+- When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this
+  tab was not initially visible on HiDPI devices. This is fixed.
 
 ## 2.3.0
 

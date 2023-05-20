@@ -480,6 +480,9 @@ static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	int xMax = rect.right;
+	if (rect.right - rect.left <= 10) {
+		return;
+	}
 	xMax -= tabcontrol_getCloserSize()  + 2 * CLOSER_DISTANCE;
 	int nLen = (int)arraylist_size(pControl->tc_pages);
 	int x = pControl->tc_tabstripRect.left;
@@ -569,7 +572,7 @@ static int tabcontrol_addTab(HWND hwnd, HWND hwndTab, BOOL bSelect) {
 	pData->tp_hwnd = hwndTab;
 	char* pszTitle = tabcontrol_getTitle(pData->tp_hwnd, szTitle, sizeof szTitle);
 	// Rough estimate for now - the correct size is measured later in repaint.
-	pData->tp_width = 30 + (int)strlen(pszTitle) * 7;
+	pData->tp_width = (30 + (int)strlen(pszTitle) * 7) * dpisupport_getScalingFactorX();
 	RECT rect;
 	GetClientRect(hwndTab, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight;
