@@ -4,17 +4,21 @@
       "scopeName": "json",
       "patterns": [
         {
-          "match": "<\"[A-Za-z0-9_-]+\":>",
+          "match": "<\"[A-Za-z0-9_-]+\":",
           "name": "string.json.key",
           "style": "string"
         },
         {
-          "match": "<\"[^\"]+\">",
+          "match": "\"(?:\\\"|[^\"])+?\"",
           "name": "string.json.value",
           "style": "literal"
         },
         {
-          "match": "<(true|false|null)>",
+          "keywords": [
+            "true",
+            "false",
+            "null"
+          ],
           "name": "keyword.control.json",
           "style": "keyword"
         },
