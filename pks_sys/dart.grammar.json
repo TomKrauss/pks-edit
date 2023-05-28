@@ -50,6 +50,7 @@
             "new",
             "as",
             "default",
+            "late",
             "final",
             "null",
             "throw",

@@ -471,8 +471,9 @@ void render_invalidateRect(WINFO* wp, RECT* pRect) {
 		if (pRect) {
 			GetClientRect(wp->lineNumbers_handle, &r2);
 			pRect->right = r2.right;
+		} else {
+			InvalidateRect(wp->lineNumbers_handle, pRect, 0);
 		}
-		InvalidateRect(wp->lineNumbers_handle, pRect, 0);
 	}
 	if (wp->ru_handle != NULL) {
 		InvalidateRect(wp->ru_handle, pRect, 0);
@@ -554,28 +555,39 @@ static int render_repaintLineForWindow(WINFO* wp, struct tagLINE_REDRAW* pRedraw
 }
 
 int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol) {
-	if (wp->ww_handle && nFirstLine >= wp->minln && nLastLine <= wp->maxln) {
-		RECT  	r;
-		int col1 = nFirstCol;
-		int col2 = nLastCol;
-		if (col2 < 0) {
-			col2 = wp->maxcol;
-		}
-		GetClientRect(wp->ww_handle, &r);
-		if (col1 < wp->mincol) {
-			col1 = wp->mincol;
-		}
-		if (col2 > wp->maxcol) {
-			col2 = wp->maxcol;
-		}
-		r.left += (col1 - wp->mincol) * wp->cwidth;
-		r.right = r.left + (col2 - col1) * wp->cwidth;
-		r.top += wp->cheight * (nFirstLine - wp->minln);
-		r.bottom = r.top + (nLastLine-nFirstLine+1)*wp->cheight;
-		render_invalidateRect(wp, &r);
-		return 1;
+	if (!wp->ww_handle) {
+		return 0;
 	}
-	return 0;
+	if (nFirstLine > wp->maxln || nLastLine < wp->minln) {
+		return 0;
+	}
+	if (nFirstLine < wp->minln) {
+		nFirstLine = wp->minln;
+		nFirstCol = 0;
+	}
+	if (nLastLine > wp->maxln) {
+		nLastLine = wp->maxln;
+		nLastCol = wp->maxcol;
+	}
+	RECT  	r;
+	int col1 = nFirstCol;
+	int col2 = nLastCol;
+	if (col2 < 0) {
+		col2 = wp->maxcol;
+	}
+	GetClientRect(wp->ww_handle, &r);
+	if (col1 < wp->mincol) {
+		col1 = wp->mincol;
+	}
+	if (col2 > wp->maxcol) {
+		col2 = wp->maxcol;
+	}
+	r.left += (col1 - wp->mincol) * wp->cwidth;
+	r.right = r.left + (col2 - col1) * wp->cwidth;
+	r.top += wp->cheight * (nFirstLine - wp->minln);
+	r.bottom = r.top + (nLastLine-nFirstLine+1)*wp->cheight;
+	render_invalidateRect(wp, &r);
+	return 1;
 }
 
 /*--------------------------------------------------------------------------

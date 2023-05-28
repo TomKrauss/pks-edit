@@ -149,9 +149,13 @@ int caret_isBeforeOther(LINE* lpFirst, int col1, const LINE* fpcl, int col, int 
 	LINE* lpBack = mlm;
 	LINE* lpForward = mlm;
 
-	while (fpcl != lpBack && fpcl != lpForward && lpBack && lpForward) {
-		lpBack = lpBack->prev;
-		lpForward = lpForward->next;
+	while (fpcl != lpBack && fpcl != lpForward && (lpBack || lpForward)) {
+		if (lpBack) {
+			lpBack = lpBack->prev;
+		}
+		if (lpForward) {
+			lpForward = lpForward->next;
+		}
 	}
 	return bMarkEnd ? (fpcl != lpForward) : fpcl == lpForward;
 }

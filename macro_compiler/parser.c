@@ -4062,7 +4062,7 @@ void YYtrace(char *fmt, ...)
 
 	if (fp == 0 && (fp = fopen("O:\\PROT","w")) == 0)
 		return;
-	va_start(fmt, ap);
+	va_start(ap, fmt);
 	vfprintf(fp,fmt,ap);
 	va_end(ap);
 	fflush(fp);
