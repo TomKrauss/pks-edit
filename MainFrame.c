@@ -572,7 +572,7 @@ static int tabcontrol_addTab(HWND hwnd, HWND hwndTab, BOOL bSelect) {
 	pData->tp_hwnd = hwndTab;
 	char* pszTitle = tabcontrol_getTitle(pData->tp_hwnd, szTitle, sizeof szTitle);
 	// Rough estimate for now - the correct size is measured later in repaint.
-	pData->tp_width = (30 + (int)strlen(pszTitle) * 7) * dpisupport_getScalingFactorX();
+	pData->tp_width = (int)((30 + (int)strlen(pszTitle) * 7) * dpisupport_getScalingFactorX());
 	RECT rect;
 	GetClientRect(hwndTab, &rect);
 	rect.bottom = rect.top + pControl->tc_stripHeight;

@@ -8,6 +8,13 @@
         {
           "match": "///.*",
           "style": "comment",
+          "patterns": [
+            {
+              "match": "\\[[a-zA-Z_0-9.]+\\]",
+              "style": "annotation",
+              "name": "dartdoc.reference"
+            }
+          ],
           "name": "comment.documentation"
         },
         {
@@ -26,6 +33,11 @@
           "match": "<_[a-zA-Z][a-zA-Z_0-9]*>",
           "style": "identifier",
           "name": "private.identifier"
+        },
+        {
+          "match": "<[A-Z][a-zA-Z_0-9]*>",
+          "style": "classname",
+          "name": "class.identifier"
         },
         {
           "keywords": [
@@ -53,6 +65,7 @@
             "dynamic",
             "get",
             "set",
+            "sealed",
             "rethrow",
             "typedef",
             "else",
@@ -83,6 +96,9 @@
             "const",
             "factory",
             "library",
+            "mixin",
+            "final",
+            "hide",
             "synch"
           ],
           "style": "keyword",
