@@ -47,7 +47,7 @@ To sort for the weight (3rd column) descending, one can specify `f2d-` (3<sup>rd
 
 To sort the following CSV file, select \(highlight) the data lines of the following text, set the field separator to ";".
 
-```
+```csv
 ID;Person;Birthday
 1;Hans Miller;1983/1/3
 2;Oscar Meyer;1988/4/12

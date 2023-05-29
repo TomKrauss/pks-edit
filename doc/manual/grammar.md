@@ -42,11 +42,10 @@ definitions have preference over the correspondigly defined grammar aspects in t
 Here is an example for a grammar for C-files importing a grammar defining defaults for languages with a C- like syntax
 and grammar.
 
-```
+```json
  "scopeName": "cpp",
  "description":  "Grammar for C++- and C-code files",
  "import": [ "commonc" ],
-....
 ```
 
 ### Templates
@@ -88,7 +87,7 @@ The following variables are supported:
 PKS-Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single
 string pairs as in the following sample for a C code file, which defines opening and closing curly braces to pair:
 
-```
+```json
 "highlightBrackets": [
     {
       "left": "{",
@@ -100,7 +99,7 @@ string pairs as in the following sample for a C code file, which defines opening
 The definition of matching brackets maybe however be a bit more tricky. Assume the following start- and end-tags
 to be matched during ediuting from a LaTeX source file:
 
-```
+```latex
 \begin{document} 
 ...
 \end{document} 
@@ -114,7 +113,7 @@ to be of type regular expression and by setting the `dynamic-match` property of 
 works this way: if a match of a begi or end is found, the match group (`document`) is extracted from the match and the reverse
 match is calculated by replacing the match group in the reverse match to the string found -> we will match `\end{document}` for instance.
 
-```
+```json
 "highlightBrackets": [
 {
   "left": "\\\\begin\\{([a-zA-Z0-9-]+)\\}",
@@ -124,5 +123,3 @@ match is calculated by replacing the match group in the reverse match to the str
 }
 ],
 ```
-
-
