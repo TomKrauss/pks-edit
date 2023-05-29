@@ -515,7 +515,7 @@
           "styleName": "code",
           "faceName": "Consolas",
           "weight": 700,
-          "backgroundColor": "#4e4e4e"
+          "backgroundColor": "#6e6e6e"
         },
         {
           "styleName": "highlight",
