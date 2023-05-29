@@ -101,7 +101,7 @@ and you may use Macro->Insert Keycode to insert a keyboard keycode into the file
 The following example binds the key `END` to moving the caret to the end of the line and binds the pressing the Space Bar to opening the 
 error list match under the caret - but only in action context `search-list`. 
 
-```
+```json
   "key-bindings": [
     {
       "key": "END",
@@ -131,7 +131,7 @@ Key bindings support the following properties:
 The following example binds a single right mouse button click to opening the context menu and pressing Shfit + a single right mouse button to mark
 one line at the same time displaying an info message.
 
-```
+```json
   "mouse-bindings": [
     {
       "mouse": "MRight(1)",
@@ -162,7 +162,7 @@ with a label of "Find" and two sub-menu items to find a string and to replace a 
 - by specifying a `label-id` which is interpreted as an integer value into PKS-Edits internal string table
 - for menu items bound to commands, PKS-Edit may derive an automatic label for the corresponding command (see example `@find-string` and `@replace-string`)
 
-```
+```json
   "context-menu": [
     {
 	  "label": "Select all",
@@ -196,7 +196,7 @@ Using `toolbar` one can define the toolbar buttons of PKS-Edit. The following ex
 the complete text a button replace a string. The icons are named as the corresponding AwesomeFont Version 5 icon (PKS-Edit uses Awesome Font icons
 internally wherever appropriate). Toolbar labels can be defined similar to menu item labels, but are used as tooltips in the toolbar.
 
-```
+```json
   "toolbar": [
     {
 	  "icon": "fa-heart",
@@ -227,7 +227,7 @@ Some configuration options can only be configured in the `pkseditini.json` file 
 Put a property named `sound-name` into the configuration section to configure the error sound played upon errors. 
 The following sample selects a high beep tone as the error sound. 
 
-```
+```json
     "sound-name": "HighBeep", 
 ...
 ```

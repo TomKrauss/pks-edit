@@ -244,6 +244,12 @@ typedef struct tagRENDER_BOX_DECORATION {
 	BOOL	 rbd_useThemeStrokeColor;	// Flag: we use a default theme dependent stroke color
 } RENDER_BOX_DECORATION;
 
+typedef struct tag_RENDER_VIEW_PART_PARAM {
+	long rvp_number;					// for numbered lists
+	int	rvp_level;						// for headers and lists - the level.
+	char* rvp_grammar;					// for fenced code blocks - the name of the used grammar (if defined)
+} RENDER_VIEW_PART_PARAM;
+
 struct tagRENDER_VIEW_PART {
 	struct tagRENDER_VIEW_PART* rvp_next;
 	LINE* rvp_lpStart;
@@ -254,8 +260,7 @@ struct tagRENDER_VIEW_PART {
 	int rvp_height;						// The height in pixels.
 	BOOL rvp_layouted;					// TRUE, if the layout bounds of the view part are valid.
 	MDR_ELEMENT_TYPE rvp_type;
-	long rvp_number;					// for numbered lists
-	int	rvp_level;						// for headers and lists - the level.
+	RENDER_VIEW_PART_PARAM rvp_param;
 	SIZE_SPECIFICATION rvp_width;		// width of the part 
 	union {
 		TEXT_FLOW rvp_flow;
@@ -1023,14 +1028,14 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 		HFONT hFont = mdr_createFont(hdc, &pPart->rvp_data.rvp_flow.tf_runs->tr_attributes, pParams->rfp_zoomFactor);
 		HFONT hOldFont = SelectObject(hdc, hFont);
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
-			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_level == 1 ? L"\u25CF" : (pPart->rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
+			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_param.rvp_level == 1 ? L"\u25CF" : (pPart->rvp_param.rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
 		else if (pPart->rvp_type == MET_TASK_LIST) {
-			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_number == 1);
+			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_param.rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
 			char szBuf[20];
-			sprintf(szBuf, "%ld.", pPart->rvp_number);
+			sprintf(szBuf, "%ld.", pPart->rvp_param.rvp_number);
 			TextOut(hdc, x - (int)(20*pParams->rfp_zoomFactor), y, szBuf, (int)strlen(szBuf));
 		}
 		if (pPart->rvp_decoration) {
@@ -1041,11 +1046,11 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	int nDCId = SaveDC(hdc);
 	if (pFlow->tf_text && pFlow->tf_runs) {
 		mdr_renderTextFlow(&m, pFlow, &renderBounds, &pPart->rvp_bounds, pUsed,
-				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_level : 0, pFlow->tf_align, pParams);
+				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_param.rvp_level : 0, pFlow->tf_align, pParams);
 	} else {
 		pUsed->bottom = y + 10 + m.m_bottom;
 	}
-	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_level < 3) {
+	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_param.rvp_level < 3) {
 		int nMargin = (int)(DEFAULT_LEFT_MARGIN * pParams->rfp_zoomFactor);
 		mdr_paintRule(pParams, renderBounds.left + nMargin, renderBounds.right - nMargin, pUsed->bottom - 2, 1);
 	}
@@ -1185,17 +1190,17 @@ static MDR_ELEMENT_FORMAT* mdr_getFormatFor(MDR_ELEMENT_TYPE mType, int nLevel) 
 /*
  * Parse a top level markup element (list, header, code block etc...) 
  */
-static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, int* pLevel, long* pNumber) {
+static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, RENDER_VIEW_PART_PARAM *pParam) {
 	char c = pStream->is_peekc(pStream, 0);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 
 	if (c == '#') {
 		mType = MET_HEADER;
-		*pLevel = 1;
+		pParam->rvp_level = 1;
 		pStream->is_skip(pStream, 1);
 		while (pStream->is_peekc(pStream, 0) == '#') {
 			pStream->is_skip(pStream, 1);
-			(* pLevel)++;
+			pParam->rvp_level++;
 		}
 	} else if (IS_UNORDERED_LIST_START(c)) {
 		mType = MET_UNORDERED_LIST;
@@ -1203,31 +1208,31 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, int*
 			pStream->is_positionToLineStart(pStream, 1);
 			return MET_HORIZONTAL_RULE;
 		}
-		*pLevel = mdr_getLevelFromIndent(pStream, c);
+		pParam->rvp_level = mdr_getLevelFromIndent(pStream, c);
 		BOOL bSpaceFound = mdr_skipSpace(pStream, 1);
 		if (bSpaceFound) {
 			if (pStream->is_peekc(pStream, 1) == '[' && pStream->is_peekc(pStream, 3) == ']') {
 				mType = MET_TASK_LIST;
 				char cX = pStream->is_peekc(pStream, 2);
-				*pNumber = cX == 'x' || cX == 'X' ? 1 : 0;
+				pParam->rvp_number = cX == 'x' || cX == 'X' ? 1 : 0;
 				pStream->is_skip(pStream, 3);
 			}
 		} else {
 			mType = MET_NORMAL;
 		}
 	} else if (c == '>') {
-		*pLevel = 1;
+		pParam->rvp_level = 1;
 		mType = MET_BLOCK_QUOTE;
 		pStream->is_skip(pStream, 1);
 		while (pStream->is_peekc(pStream, 0) == '>') {
-			(*pLevel)++;
+			pParam->rvp_level++;
 			pStream->is_skip(pStream, 1);
 		}
 	} else if (isdigit((unsigned char)c)) {
-		*pNumber = (c - '0');
+		pParam->rvp_number = (c - '0');
 		while ((c = pStream->is_peekc(pStream, 1)) != 0) {
 			if (isdigit((unsigned char)c)) {
-				*pNumber = 10 * (*pNumber) + (c - '0');
+				pParam->rvp_number = 10 * pParam->rvp_number + (c - '0');
 			} else if (c == '.') {
 				pStream->is_skip(pStream, 2);
 				mType = MET_ORDERED_LIST;
@@ -1235,8 +1240,19 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, int*
 			}
 			pStream->is_skip(pStream, 1);
 		}
-		*pLevel = mdr_getLevelFromIndent(pStream, c);
+		pParam->rvp_level = mdr_getLevelFromIndent(pStream, c);
 	} else if ((c == '`' || c == '~') && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
+		pStream->is_skip(pStream, 3);
+		int i = 0;
+		char szName[128];
+		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < sizeof szName && c != '\n') {
+			szName[i] = c;
+			i++;
+		}
+		if (i > 0) {
+			szName[i] = 0;
+			pParam->rvp_grammar = _strdup(szName);
+		}
 		pStream->is_positionToLineStart(pStream, 1);
 		mType = MET_FENCED_CODE_BLOCK;
 	}
@@ -1500,7 +1516,7 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 			pStream->is_positionToLineStart(pStream, 1);
 			return;
 		}
-		pPart->rvp_number++;
+		pPart->rvp_param.rvp_number++;
 		int nRunStart = pStream->is_inputMark(pStream, &lp);
 		pStream->is_skip(pStream, nOffs);
 		while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
@@ -2062,7 +2078,7 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	}
 	pPart->rvp_type = mType;
 	pState->hps_blockFormat = *mdr_getFormatFor(mType, nLevel);
-	pPart->rvp_level = nLevel;
+	pPart->rvp_param.rvp_level = nLevel;
 	mdr_applyFormat(pPart, &pState->hps_blockFormat);
 	FONT_STYLE_DELTA* pFSD = pState->hps_currentStyle;
 	if (pFSD->fsd_strokeColor != NO_COLOR || pFSD->fsd_fillColor != NO_COLOR) {
@@ -2486,7 +2502,7 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 			pState->hps_blockLevel = 0;
 		}
 		if (mType == MET_ORDERED_LIST) {
-			pState->hps_part->rvp_number = pState->hps_orderedListIndices[nLevel-1]++;
+			pState->hps_part->rvp_param.rvp_number = pState->hps_orderedListIndices[nLevel-1]++;
 		}
 		*pState->hps_currentStyle = fsd;
 		if (mType != MET_FENCED_CODE_BLOCK) {
@@ -2506,8 +2522,7 @@ static void mdr_onBlockLevelTag(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState
 			if (stringbuf_size(pState->hps_text)) {
 				pState->hps_part->rvp_data.rvp_flow.tf_text = _strdup(stringbuf_getString(pState->hps_text));
 				stringbuf_reset(pState->hps_text);
-			}
-			else {
+			} else {
 				free(pState->hps_part->rvp_decoration);
 				pState->hps_part->rvp_decoration = 0;
 			}
@@ -2641,9 +2656,8 @@ static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pS
 static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 	stringbuf_reset(pState->hps_text);
 	pState->hps_lastTextOffset = 0;
-	long nNumber;
 	int nState = 0;
-	int nLevel = 0;
+	RENDER_VIEW_PART_PARAM param = { 0 };
 
 	mdr_resetFontStyleDelta(pState->hps_currentStyle);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
@@ -2674,15 +2688,17 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			}
 			if (nState == 0) {
 				if (pState->hps_blockLevel == 0) {
-					mType = mdr_determineTopLevelElement(pStream, &nLevel, &nNumber);
-					pState->hps_part = mdr_newPart(pStream, pState, mType, nLevel);
+					mType = mdr_determineTopLevelElement(pStream, &param);
+					pState->hps_part = mdr_newPart(pStream, pState, mType, param.rvp_level);
 					if (mType == MET_HORIZONTAL_RULE) {
 						return;
 					}
 					if (mType == MET_ORDERED_LIST || mType == MET_TASK_LIST) {
-						pState->hps_part->rvp_number = nNumber;
+						pState->hps_part->rvp_param.rvp_number = param.rvp_number;
 					}
 					if (mType == MET_FENCED_CODE_BLOCK) {
+						pState->hps_part->rvp_param.rvp_grammar = param.rvp_grammar;
+						param.rvp_grammar = 0;
 						mdr_parsePreformattedCodeBlock(pStream, pState, FALSE, 0);
 						pState->hps_lastTextOffset = (int)stringbuf_size(pState->hps_text);
 						goto outer;
@@ -2803,8 +2819,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				STREAM_OFFSET offset = pStream->is_tell(pStream);
 				FONT_STYLE_DELTA fsdNext = *pState->hps_currentStyle;
 				pStream->is_skip(pStream, 1);
-				int bSucces = mdr_getTag(pStream, &fsdNext, &tag);
-				if (bSucces) {
+				int bSuccess = mdr_getTag(pStream, &fsdNext, &tag);
+				if (bSuccess) {
 					if (!tag.ht_isClose) {
 						mdr_endRun(pStream, pState, FALSE);
 					}
@@ -2834,7 +2850,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
 		}
 		mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
-		if (mdr_isTopLevelOrBreak(pStream, mType, nLevel)) {
+		if (mdr_isTopLevelOrBreak(pStream, mType, param.rvp_level)) {
 			break;
 		}
 		nState = 1;
@@ -3507,6 +3523,9 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 	} else {
 		free(pRVP->rvp_data.rvp_flow.tf_text);
 		ll_destroy(&pRVP->rvp_data.rvp_flow.tf_runs, mdr_destroyRun);
+	}
+	if (pRVP->rvp_param.rvp_grammar != 0) {
+		free(pRVP->rvp_param.rvp_grammar);
 	}
 	free(pRVP->rvp_decoration);
 	return 1;
