@@ -740,7 +740,7 @@ GRAMMAR* grammar_findNamed(const char* pszGrammarName) {
 	while (bFirstTry) {
 		pFirst = _grammarDefinitions.gd_grammars;
 		while (pFirst != NULL) {
-			if (strcmp(pszGrammarName, pFirst->scopeName) == 0) {
+			if (_stricmp(pszGrammarName, pFirst->scopeName) == 0) {
 				return pFirst;
 			}
 			pFirst = pFirst->next;
@@ -880,7 +880,7 @@ static int grammar_tokenFound(GRAMMAR* pGrammar, LEXICAL_ELEMENT pResult[MAX_LEX
 }
 
 /*
- * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexial
+ * This method will parse the characters in pszBuf (assumed length is lLength) and determine the lexical
  * tokens defined as LEXICAL_ELEMENTs to be placed in the result buffer. If successful return the state at the
  * end of the line.
  */

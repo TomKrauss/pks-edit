@@ -3,6 +3,7 @@
 ## 2.4.0
 
 ### New
+- Markdown rendering supports now syntax highlighting in fenced code blocks.
 
 ### Improved
 - Grammar files for editing yaml format were added.

@@ -81,32 +81,6 @@ static void button_closeTheme(BUTTON_PAINT_DATA* pData) {
 	}
 }
 
-/*
- * The style of a selected font
- */
-typedef struct tagEDFONTATTRIBUTES {
-	int			strikeout;
-	int			italic;
-	int			underline;
-	int			weight;			// 0 == default font everything else between 0 and 999 is interpreted as weight
-} EDFONTATTRIBUTES;
-
-/*
- * Reusable font/color style object.
- */
-typedef struct tagEDTEXTSTYLE {
-	struct tagEDTEXTSTYLE* next;
-	char		styleName[32];
-	char		faceName[32];
-	char		charset;
-	int			size;
-	long		fgcolor;
-	long		bgcolor;
-	float		zoomFactor;
-	HFONT		hfont;				// cached font handle.
-	EDFONTATTRIBUTES style;
-} EDTEXTSTYLE;
-
 static EDTEXTSTYLE defaultTextStyle = {
 	NULL,
 	"default",
@@ -120,7 +94,7 @@ static EDTEXTSTYLE defaultTextStyle = {
 /*
  * Returns the text style for a given style class.
  */
-static EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, FONT_STYLE_CLASS nIndex) {
+EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, int nIndex) {
 	theme_initThemes();
 	EDTEXTSTYLE* pStyle;
 	if (nIndex < DIM(pTheme->th_styleLookup)) {

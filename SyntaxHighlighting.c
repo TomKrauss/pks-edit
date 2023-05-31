@@ -21,6 +21,7 @@
 #include "grammar.h"
 #include "syntaxhighlighting.h"
 #include "editorfont.h"
+#include "themes.h"
 
 #define WINDOW_SIZE		100
 
@@ -138,6 +139,7 @@ static LEXICAL_STATE highlight_getPreviousLineTokenType(HIGHLIGHTER* pHighlighte
 	}
 	return tType;
 }
+
 
 /*
  * A highlighter which passes on tokenization to a generic grammar driven tokenizer.
@@ -267,3 +269,11 @@ LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WIN
 	return lCtx == LC_SINGLE_LINE_COMMENT ? LC_START : lCtx;
 }
 
+/*
+ * Returns the text style for a lexical state.
+ */
+EDTEXTSTYLE* highlight_getTextStyleForLexicalState(HIGHLIGHTER* pHighlighter, LEXICAL_STATE state) {
+	FONT_STYLE_CLASS style = pHighlighter->h_tokenTypeToStyleTable[state];
+	THEME_DATA* pTheme = theme_getCurrent();
+	return font_getTextStyleForIndex(pTheme, style);
+}

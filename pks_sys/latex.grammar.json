@@ -27,7 +27,7 @@
           "style": "literal"
         },
         {
-          "match": "\\\\[a-z]+{[a-zA-Z0-9,-]+\\}",
+          "match": "\\\\[a-z]+\\{[a-zA-Z0-9,-]+\\}",
           "style": "operator",
           "name": "arbitrary.tex.selector"
         },

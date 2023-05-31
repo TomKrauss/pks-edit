@@ -39,6 +39,9 @@
 #include "streams.h"
 #include "htmlrendering.h"
 #include "dpisupport.h"
+#include "grammar.h"
+
+#include "syntaxhighlighting.h"
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -56,6 +59,8 @@ static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|&";
 
 // Loads the an image with a name and a format into a HBITMAP.
 extern HBITMAP loadimage_load(char* pszName);
+
+extern EDTEXTSTYLE* highlight_getTextStyleForLexicalState(HIGHLIGHTER* pHighlighter, LEXICAL_STATE state);
 
 typedef struct tagRENDER_FLOW_PARAMS {
 	RENDER_VIEW_PART* rfp_part;
@@ -1244,8 +1249,8 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 	} else if ((c == '`' || c == '~') && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
 		pStream->is_skip(pStream, 3);
 		int i = 0;
-		char szName[128];
-		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < sizeof szName && c != '\n') {
+		char szName[128] = { 0 };
+		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName-1) && c != '\n') {
 			szName[i] = c;
 			i++;
 		}
@@ -2304,6 +2309,67 @@ static TEXT_FLOW* mdr_endRun(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, B
 	return pFlow;
 }
 
+/*
+ * Apply a grammar on a fenced code block and add color coding.
+ */
+static void mdr_applyGrammar(RENDER_VIEW_PART* pPart) {
+	if (pPart->rvp_param.rvp_grammar == NULL) {
+		return;
+	}
+	GRAMMAR* pGrammar = grammar_findNamed(pPart->rvp_param.rvp_grammar);
+	if (pGrammar == NULL) {
+		return;
+	}
+	TEXT_FLOW* pFlow = &pPart->rvp_data.rvp_flow;
+	if (pFlow->tf_text == NULL) {
+		return;
+	}
+	HIGHLIGHTER* pHighlighter = highlight_createHighlighter(pGrammar);
+	TEXT_RUN* pRun = pFlow->tf_runs;
+	LEXICAL_ELEMENT elements[MAX_LEXICAL_ELEMENT];
+	int lineEndSpanning = 0;
+	LEXICAL_STATE startState = INITIAL;
+	int nOffset = 0;
+	THEME_DATA* pTheme = theme_getCurrent();
+	while (pRun != NULL) {
+		size_t lLength = pRun->tr_size;
+		TEXT_RUN* pNext = pRun->tr_next;
+		int nTokens = grammar_parse(pGrammar, elements, startState, &pFlow->tf_text[nOffset], lLength, &lineEndSpanning);
+		nOffset += (int)lLength;
+		if (nTokens > 0) {
+			startState = elements[nTokens - 1].le_state;
+		}
+		for (int i = 0; i < nTokens && pRun; i++) {
+			LEXICAL_ELEMENT state = elements[i];
+			EDTEXTSTYLE* pStyle = highlight_getTextStyleForLexicalState(pHighlighter, state.le_state);
+			pRun->tr_size = state.le_length;
+			if (state.le_length > lLength) {
+				lLength = 0;
+			} else {
+				lLength -= state.le_length;
+			}
+			if (i < nTokens-1) {
+				// Insert new run
+				pRun->tr_attributes.lineBreak = 0;
+				TEXT_RUN* pNew = calloc(1, sizeof(*pRun));
+				pNew->tr_size = state.le_length;
+				pNew->tr_attributes = pRun->tr_attributes;
+				pRun->tr_attributes.lineBreak = 0;
+				pNew->tr_next = pRun->tr_next;
+				pRun->tr_next = pNew;
+			} else {
+				pRun->tr_attributes.lineBreak = 1;
+				pRun->tr_size = state.le_length;
+			}
+			pRun->tr_attributes.fgColor = pStyle->fgcolor;
+			pRun->tr_attributes.bgColor = pStyle->bgcolor;
+			pRun = pRun->tr_next;
+		}
+		pRun = pNext;
+	}
+	highlight_destroy(pHighlighter);
+}
+
 static void mdr_closeTextElement(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bForced) {
 	TEXT_FLOW* pFlow = mdr_endRun(pStream, pState, bForced);
 	if (!pFlow) {
@@ -2313,6 +2379,7 @@ static void mdr_closeTextElement(INPUT_STREAM* pStream, HTML_PARSER_STATE* pStat
 	stringbuf_reset(pState->hps_text);
 	pState->hps_lastTextOffset = 0;
 	pState->hps_tableCell = 0;
+	mdr_applyGrammar(pState->hps_part);
 }
 
 static void mdr_finalizeParserState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {

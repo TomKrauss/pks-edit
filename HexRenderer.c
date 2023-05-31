@@ -17,6 +17,7 @@
 #include "alloc.h"
 #include <windows.h>
 #include "caretmovement.h"
+#include "editorfont.h"
 #include "winfo.h"
 #include "documentmodel.h"
 #include "themes.h"

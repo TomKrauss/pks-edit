@@ -104,7 +104,7 @@ The following HTML tags in comments are supported:
 One can currently link to other help content (either description of a macro, native function or enum value) using the
 `@see` tag. Here is an example (note the syntax for enum values).
 
-```
+```C
 /*
  * Cut or copies a selected block of text from the passed editor with the given flags.
  * @param editor the editor in which the current selection is copied/cut. As always

@@ -18,7 +18,6 @@
 # ifndef 	_WINFO_H
 
 #include "syntaxhighlighting.h"
-#include "editorfont.h"
 
 /*----- display modes --------------*/
 

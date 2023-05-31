@@ -56,6 +56,32 @@ typedef struct tagTHEME_DATA {
 	EDTEXTSTYLE* th_styleLookup[50];		// pre-processed array of styles for lookup
 } THEME_DATA;
 
+/*
+ * The style of a selected font
+ */
+typedef struct tagEDFONTATTRIBUTES {
+	int			strikeout;
+	int			italic;
+	int			underline;
+	int			weight;			// 0 == default font everything else between 0 and 999 is interpreted as weight
+} EDFONTATTRIBUTES;
+
+/*
+ * Reusable font/color style object.
+ */
+typedef struct tagEDTEXTSTYLE {
+	struct tagEDTEXTSTYLE* next;
+	char		styleName[32];
+	char		faceName[32];
+	char		charset;
+	int			size;
+	long		fgcolor;
+	long		bgcolor;
+	float		zoomFactor;
+	HFONT		hfont;				// cached font handle.
+	EDFONTATTRIBUTES style;
+} EDTEXTSTYLE;
+
 #define SYSTEM_DEFAULT_THEME		"system default"
 
 /*
@@ -78,6 +104,11 @@ extern THEME_DATA* theme_getDefault();
  * Destroy all theme data loaded.
  */
 extern void theme_destroyAllThemeData();
+
+/*
+ * Returns the text style for a given style class.
+ */
+extern EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, int nIndex);
 
 /*
  * The small fixed font is used by PKS edit e.g. in code completion windows or the
