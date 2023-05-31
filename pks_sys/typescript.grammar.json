@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "typescript",
+      "languages": ["ts"],
       "patterns": [
         {
           "begin": "/*",

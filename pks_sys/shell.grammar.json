@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "shell",
+      "languages": ["bash", "sh", "csh", "zsh"],
       "patterns": [
         {
           "match": "#!.*",
@@ -27,7 +28,7 @@
           "match": "^([A-Z]+)\\s*=",
           "captures": [
             {
-              "pattern": "shell.variable"
+              "name": "shell.variable"
             }
           ],
            "style": "identifier",

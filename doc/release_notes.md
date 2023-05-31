@@ -5,8 +5,14 @@
 ### New
 - Markdown rendering supports now syntax highlighting in fenced code blocks.
 
+### Changed
+- The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name
+  of the matched pattern for better compatibility with TextMate grammars.
+
 ### Improved
 - Grammar files for editing yaml format were added.
+- A Grammar may define now multiple alternative language names for languages to be matched by the grammar. This is in particular
+  useful when referring to a language from a fenced code block.
 - Zoom plus and zoom minus icons have been added to the toolbar. Action Bindings to Ctrl++ and Ctrl+- were also added. Before
   one needed to use the num block for zooming.
 

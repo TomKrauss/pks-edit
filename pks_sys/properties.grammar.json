@@ -22,7 +22,7 @@
           "name": "properties.start",
           "captures": [
             {
-              "pattern": "properties.key"
+              "name": "properties.key"
             }
           ]
         },

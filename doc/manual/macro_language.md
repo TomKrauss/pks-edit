@@ -39,7 +39,7 @@ There is no explicit memory management necessary - the macro interpreter perform
 Here is a sample showing a piece of macro code, which will calculate the factorial of a number to enter and display the
 result in a message box:
 
-```C
+```c
 /*
  * Calculate the factorial of a number input into a message box.
  * Note: PKSMakroC - PKSMacroC Integers are 64 bit big, this macro
@@ -104,7 +104,7 @@ The following HTML tags in comments are supported:
 One can currently link to other help content (either description of a macro, native function or enum value) using the
 `@see` tag. Here is an example (note the syntax for enum values).
 
-```C
+```c
 /*
  * Cut or copies a selected block of text from the passed editor with the given flags.
  * @param editor the editor in which the current selection is copied/cut. As always
@@ -143,7 +143,7 @@ Values may have one of the following types:
 PKSMacoC will try to coerce values to their "right" types or you may `cast` a value type to another explicitly using a cast operator. The following examples
 shows implicit and explicit coercions.
 
-```C
+```c
 (int)"123" -> 123
 (string)1 -> "1"
 // implicit coercion
@@ -157,7 +157,7 @@ syntax, _enum types_ using a C-like enum syntax and document an builtin type usi
 
 Here are examples for the three different type definitions available:
 
-```C
+```c
 typedef enum { FORM_OPEN = 0x0, FORM_SHOW = 0x1 } FORM_OPTION;
 // Represents one element in a hashmap
 typedef struct {
@@ -251,7 +251,7 @@ when a macro is compiled as their respective literal and cannot be changed as th
 
 Here is an example for a declaration of some common constants:
 
-```C
+```c
 const TAB = '\t';
 const PI = 3.14159265359d;
 ```
@@ -264,7 +264,7 @@ PKSMacroC currently supports the following control flow expressions:
 - `goto label` allows you to jump to a given label defined with `label_name:`.
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
 - `for (initializer; condition; incrementExpression) {...}` - regular C-style for loop. E.g. 
-```C
+```c
     for (int i = 0; i < 100; i += 3) {
         println(i);
     }
@@ -279,7 +279,7 @@ In PKSMacroC, case labels must uniquely select the statements to execute or a co
 either a number, a number range (a..b), a string or the default case, Case labels must uniquely select a block of statements
 to execute. Here is an example for a PKSMacroC switch statement.
 
-```C
+```c
 switch (myNumber) {
     case 1: println("1"); break;
     case 2..5: println("range selected"); break;
@@ -316,7 +316,7 @@ On a long term run static methods can only be called by methods defined in the s
 You may import declarations from another namespace (see caveats for comments) using the `require` statement. Here
 is an example:
 
-```C
+```c
 require "unittest";
 ```
 
@@ -329,7 +329,7 @@ relative to the path of the file using the require statement (or absolut, which 
 One can extend PKSMacroC to some extent using native method bindings. A native method binding is defined
 in the header of a PKSMacroC file as shown in the following example:
 
-```C
+```java
 /*
  * Retrieves the calling thread's last-error code value. The last-error code is maintained on a per-thread basis.
  * Multiple threads do not overwrite each other's last-error code.
@@ -344,7 +344,7 @@ are supported.
 
 The next example is used to document a defined PKS-Edit standard native method:
 
-```C
+```java
 /*
  * Inserts the passed string into the currently active editor or into the editor passed as 1st parameter.
  */
@@ -360,7 +360,7 @@ Finally one may pass information about the signature of the method not expressib
 The following example defines the MacroC `signature` of the method also specifying enum values which can be used for
 parameters.
 
-```C
+```java
 /*
  * Replace all occurrences of the search string with the replacement parameter using
  * the specified regular expression flags in a given range. Besides replacing this method

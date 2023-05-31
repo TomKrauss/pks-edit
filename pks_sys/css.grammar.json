@@ -18,10 +18,10 @@
           "name": "string.css.propertyDefinition",
           "captures": [
             {
-              "pattern": "string.css.property"
+              "name": "string.css.property"
             },
             {
-              "pattern": "string.css.value"
+              "name": "string.css.value"
             }
           ]
         },

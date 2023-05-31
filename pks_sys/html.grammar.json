@@ -61,10 +61,10 @@
           "name": "string.xml.propertyDefinition2",
           "captures": [
             {
-              "pattern": "string.xml.attribute"
+              "name": "string.xml.attribute"
             },
             {
-              "pattern": "string.xml.value"
+              "name": "string.xml.value"
             }
           ]
         },
@@ -73,10 +73,10 @@
           "name": "string.xml.propertyDefinition1",
           "captures": [
             {
-              "pattern": "string.xml.attribute"
+              "name": "string.xml.attribute"
             },
             {
-              "pattern": "string.xml.value"
+              "name": "string.xml.value"
             }
           ]
         },

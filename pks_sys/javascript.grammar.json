@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "javascript",
+      "languages": [ "js" ],
       "increaseIndentPatterns": [
         { "pattern": "{" },
         { "pattern": "(" },

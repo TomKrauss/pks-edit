@@ -80,7 +80,7 @@
           "name": "qualified.identifier",
           "captures": [
             {
-              "pattern": "qualified.identifier.match"
+              "name": "qualified.identifier.match"
             }
           ]
         },

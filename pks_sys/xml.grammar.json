@@ -60,10 +60,10 @@
           "name": "string.xml.propertyDefinition",
           "captures": [
             {
-              "pattern": "string.xml.attribute"
+              "name": "string.xml.attribute"
             },
             {
-              "pattern": "string.xml.value"
+              "name": "string.xml.value"
             }
           ]
         },
