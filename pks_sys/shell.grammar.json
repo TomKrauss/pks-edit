@@ -2,7 +2,6 @@
   "grammars": [
     {
       "scopeName": "shell",
-      "languages": ["bash", "sh", "csh", "zsh"],
       "patterns": [
         {
           "match": "#!.*",

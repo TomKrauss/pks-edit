@@ -2,7 +2,6 @@
   "grammars": [
     {
       "scopeName": "cpp",
-      "languages": ["c++"],
       "description":  "Grammar for C++- and C-code files",
       "import": [ "commonc" ],
       "tagSources": [
@@ -82,6 +81,9 @@
             "bool",
             "import",
             "extern",
+            "switch",
+            "case",
+            "default",
             "static",
             "register",
             "struct",

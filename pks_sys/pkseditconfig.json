@@ -6,13 +6,14 @@
         "editorConfiguration": "default",
         "filenamePatterns": "*.*"
     },
-    {
+      {
         "name": "c+cpp",
         "description": "C/ C++ files (*.c,*.h,*.cpp,*.hpp)",
+        "languages": [ "c++", "c" ],
         "grammar": "cpp",
         "editorConfiguration": "default",
         "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
-    },
+      },
     {
         "name": "text",
         "description": "Text Files (*.txt)",
@@ -84,13 +85,14 @@
         "filenamePatterns": "*.xml;*.xsd;.trend;*.vcxproj",
         "firstlineMatch": "^\\<\\?xml.*\\?\\>$"
     },
-    {
+      {
         "name": "html",
         "description": "HTML (*.html; *.htm)",
         "grammar": "html",
+        "languages": [ "xhtml", "rss", "svg", "plist" ],
         "editorConfiguration": "default",
         "filenamePatterns": "*.html;*.htm"
-    },
+      },
     {
         "name": "css",
         "description": "CSS Files (*.css; *.scss)",
@@ -126,13 +128,14 @@
         "editorConfiguration": "default",
         "filenamePatterns": "*.integrity"
     },
-    {
+      {
         "name": "makefile",
         "description": "Makefiles (makefile, *.mak)",
         "grammar": "makefile",
+        "languages": [ "mk", "mak", "make" ],
         "editorConfiguration": "default",
         "filenamePatterns": "makefile;*.mak"
-    },
+      },
     {
         "name": "proto",
         "description": "Protobuf files (*.proto)",
@@ -140,13 +143,14 @@
         "editorConfiguration": "default",
         "filenamePatterns": "*.proto"
     },
-    {
+      {
         "name": "pascal",
+        "languages": [ "pas", "delphi", "dpr", "dfm" ],
         "description": "Pascal files (*.pas)",
         "grammar": "pascal",
         "editorConfiguration": "default",
         "filenamePatterns": "*.pas"
-    },
+      },
     {
         "name": "batch-files",
         "description": "Batch files (*.bat, *.cmd)",
@@ -161,27 +165,30 @@
         "editorConfiguration": "default",
         "filenamePatterns": "*.rc"
     },
-    {
+      {
         "name": "typescript",
+        "languages": [ "ts" ],
         "description": "Typescript files (*.ts)",
         "grammar": "typescript",
         "editorConfiguration": "default",
         "filenamePatterns": "*.ts"
-    },
-    {
+      },
+      {
         "name": "javascript",
+        "languages": [ "js" ],
         "description": "Javascript files (*.js)",
         "grammar": "javascript",
         "editorConfiguration": "default",
         "filenamePatterns": "*.js"
-    },
-    {
+      },
+      {
         "name": "shell-files",
         "description": "Shell files (*.sh, *.ora)",
         "grammar": "shell",
+        "languages": [ "bash", "sh", "csh", "zsh" ],
         "editorConfiguration": "default",
         "filenamePatterns": "*.sh;*.ora"
-    },
+      },
     {
         "name": "pksbinding",
         "description": "PKS Edit binding files (*binding.json)",
@@ -203,17 +210,19 @@
         "editorConfiguration": "yaml",
         "filenamePatterns": "*.yml;*.yaml"
     },
-    {
+      {
         "name": "markdown",
+        "languages": [ "md", "mkd", "mkdown" ],
         "description": "Markdown files (*.md)",
         "grammar": "markdown",
         "editorConfiguration": "readme",
         "filenamePatterns": "*.md"
-    },
+      },
     {
         "name": "pksmacro",
         "description": "PKS Edit macro files (*.pkc,*.mac)",
         "grammar": "pksedit",
+        "languages": ["pksmacroc", "pksc"],
         "editorConfiguration": "default",
         "filenamePatterns": "*.pkc;*.mac"
     },

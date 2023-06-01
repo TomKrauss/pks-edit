@@ -14,7 +14,7 @@
       ],
       "analyzer": "pks-macros",
       "evaluator": "pks-macros",
-      "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
+      "wordCharacterClass": "a-zï¿½ï¿½ï¿½=A-Zï¿½ï¿½ï¿½ï¿½_0-9@-",
       "patterns": [
         {
           "begin": "/*",
@@ -79,6 +79,7 @@
             "goto",
             "char",
             "int",
+            "any",
             "string",
             "long",
             "boolean",

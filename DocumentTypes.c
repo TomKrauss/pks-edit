@@ -25,6 +25,7 @@
 
 #include "alloc.h"
 #include "tos.h"
+#include "arraylist.h"
 #include "funcdef.h"
 #include "jsonparser.h"
 #include "linkedlist.h"
@@ -51,7 +52,8 @@ typedef struct tagDOCUMENT_TYPE {
 	 */
 	struct tagDOCUMENT_TYPE *	ll_next;
 	char				ll_name[32];						// name of the document type.
-	char				ll_grammarScope[32];					// name of the grammar associated with this file type.
+	char				ll_grammarScope[32];				// name of the grammar associated with this file type - is also used as primary language name.
+	ARRAY_LIST*			ll_languages;						// The list of alternative language names - if any.
 	char				ll_description[80];					// Description for file selector.
 	int					ll_privateEditorConfiguration;		// Whether this is a private configuration. If true, this is used for single files explicitly
 	char				ll_editorConfigurationName[32];		// Editor configuration name
@@ -68,6 +70,7 @@ FSELINFO _linfsel = {	"", "pkseditconfig.json", "*.json" };
 
 static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(DOCUMENT_TYPE, ll_name), sizeof(((DOCUMENT_TYPE*)NULL)->ll_name)},
+	{	RT_STRING_ARRAY, "languages", offsetof(DOCUMENT_TYPE, ll_languages), sizeof(((DOCUMENT_TYPE*)NULL)->ll_languages)},
 	{	RT_CHAR_ARRAY, "description", offsetof(DOCUMENT_TYPE, ll_description), sizeof(((DOCUMENT_TYPE*)NULL)->ll_description)},
 	{	RT_CHAR_ARRAY, "grammar", offsetof(DOCUMENT_TYPE, ll_grammarScope), sizeof(((DOCUMENT_TYPE*)NULL)->ll_grammarScope)},
 	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
@@ -378,6 +381,33 @@ static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filenam
 	return TRUE;
 }
 
+/*
+ * Find a grammar given the name of a programming language for which a grammar is found.
+ * Several different type of syntax to specify the language name are supported:
+ * - if the name starts with "lang-" the prefix is skipped.
+ * - upper / lower case of language name is ignored.
+ * - for every langugage a list of alternate names can be defined (PASCAL, DELPHI, PAS)
+ */
+GRAMMAR* doctypes_findGrammarForLanguage(const char* pszGrammarName) {
+	DOCUMENT_TYPE* llp;
+	if (strncmp(pszGrammarName, "lang-", 5) == 0) {
+		pszGrammarName += 5;
+	}
+	for (llp = config.dc_types; llp != 0; llp = llp->ll_next) {
+		if (_stricmp(pszGrammarName, llp->ll_grammarScope) == 0) {
+			return grammar_findNamed(llp->ll_grammarScope);
+		}
+		if (llp->ll_languages != NULL) {
+			for (int i = 0; i < arraylist_size(llp->ll_languages); i++) {
+				if (_strcmpi(arraylist_get(llp->ll_languages, i), pszGrammarName) == 0) {
+					return grammar_findNamed(llp->ll_grammarScope);
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
 /*--------------------------------------------------------------------------
  * doctypes_assignDocumentTypeDescriptor()
  * assign document type properties / descriptor to file
@@ -489,6 +519,7 @@ static BOOL doctypes_freeDocumentType(DOCUMENT_TYPE* dt) {
 	if (dt->ll_privateEditorConfiguration && dt->ll_documentDescriptor) {
 		free(dt->ll_documentDescriptor);
 	}
+	arraylist_destroyStringList(dt->ll_languages);
 	return TRUE;
 }
 

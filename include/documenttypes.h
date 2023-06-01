@@ -112,5 +112,16 @@ extern int doctypes_documentTypeChanged(int bSave);
  */
 extern EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor();
 
+/*
+ * Find a grammar given the name of a programming language for which a grammar is found.
+ * Several different type of syntax to specify the language name are supported:
+ * - if the name starts with "lang-" the prefix is skipped.
+ * - upper / lower case of language name is ignored.
+ * - for every langugage a list of alternate names can be defined (PASCAL, DELPHI, PAS)
+ */
+#ifdef GRAMMAR_H
+extern GRAMMAR* doctypes_findGrammarForLanguage(const char* pszGrammarName);
+#endif
+
 #endif
 

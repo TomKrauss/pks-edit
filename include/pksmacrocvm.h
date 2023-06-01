@@ -220,7 +220,7 @@ extern void types_destroyDescriptor(PKS_TYPE_DESCRIPTOR* pType);
 
 /*
  * Returns the enum value table for a PKSMacroC enum type plus the respective size. The type is searched,
- * where the enzm values start with a given prefix.
+ * where the enum values start with a given prefix.
  */
 extern int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType);
 

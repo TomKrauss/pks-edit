@@ -157,7 +157,7 @@ syntax, _enum types_ using a C-like enum syntax and document an builtin type usi
 
 Here are examples for the three different type definitions available:
 
-```c
+```pksedit
 typedef enum { FORM_OPEN = 0x0, FORM_SHOW = 0x1 } FORM_OPTION;
 // Represents one element in a hashmap
 typedef struct {
@@ -265,9 +265,9 @@ PKSMacroC currently supports the following control flow expressions:
 - `if (condition) ... [else ...]` - allows to conditionally execute one block with an optional else clause.
 - `for (initializer; condition; incrementExpression) {...}` - regular C-style for loop. E.g. 
 ```c
-    for (int i = 0; i < 100; i += 3) {
-        println(i);
-    }
+for (int i = 0; i < 100; i += 3) {
+    println(i);
+}
 ```
 - `for(type var : expression) {}` - a foreach loop iterating over the elements of the result of evaluating `expression` setting the 
    variable `v` to the elements produced. Currently one can iterate strings and ranges.

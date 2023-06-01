@@ -12,7 +12,8 @@
 ### Improved
 - Grammar files for editing yaml format were added.
 - A Grammar may define now multiple alternative language names for languages to be matched by the grammar. This is in particular
-  useful when referring to a language from a fenced code block.
+  useful when referring to a language from a fenced code block. The alternate languages are specified on the corresponding document
+  types.
 - Zoom plus and zoom minus icons have been added to the toolbar. Action Bindings to Ctrl++ and Ctrl+- were also added. Before
   one needed to use the num block for zooming.
 

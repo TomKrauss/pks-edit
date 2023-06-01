@@ -83,7 +83,6 @@ typedef struct tagGRAMMAR {
 	struct tagGRAMMAR* next;			// Grammars are maintained - like many things in PKS Edit - in a linked list.
 	char scopeName[32];					// Unique name of the grammar. One can associate document types with the scope name of a grammar
 										// in the document type definition.
-	ARRAY_LIST* languages;		// The list of alternative language names - if any.
 	char  u2lset[32];					// wordset and u2l ("abc=xyz") 
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
@@ -240,7 +239,6 @@ static int grammar_doImport(GRAMMAR* pTargetGrammar, const char* pszScope) {
 
 static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "scopeName", offsetof(GRAMMAR, scopeName), sizeof(((GRAMMAR*)NULL)->scopeName)},
-	{	RT_STRING_ARRAY, "languages", offsetof(GRAMMAR, languages), sizeof(((GRAMMAR*)NULL)->languages)},
 	{	RT_STRING_CALLBACK, "import", 0, .r_descriptor = { .r_t_callback = grammar_doImport}},
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
@@ -341,7 +339,6 @@ static int grammar_destroyGrammar(GRAMMAR* pGrammar) {
 	ll_destroy((LINKED_LIST**)&pGrammar->navigation, grammar_destroyNavigationPattern);
 	ll_destroy((LINKED_LIST**)&pGrammar->tagSources, grammar_destroyTagSource);
 	ll_destroy((LINKED_LIST**)&pGrammar->templates, grammar_destroyTemplates);
-	arraylist_destroyStringList(pGrammar->languages);
 	arraylist_destroyStringList(pGrammar->importedGrammarNames);
 	free(pGrammar->analyzer);
 	free(pGrammar->evaluator);
@@ -743,15 +740,8 @@ GRAMMAR* grammar_findNamed(const char* pszGrammarName) {
 	while (bFirstTry) {
 		pFirst = _grammarDefinitions.gd_grammars;
 		while (pFirst != NULL) {
-			if (_stricmp(pszGrammarName, pFirst->scopeName) == 0) {
+			if (strcmp(pszGrammarName, pFirst->scopeName) == 0) {
 				return pFirst;
-			}
-			if (pFirst->languages != NULL) {
-				for (int i = 0; i < arraylist_size(pFirst->languages); i++) {
-					if (_strcmpi(arraylist_get(pFirst->languages, i), pszGrammarName) == 0) {
-						return pFirst;
-					}
-				}
 			}
 			pFirst = pFirst->next;
 		}

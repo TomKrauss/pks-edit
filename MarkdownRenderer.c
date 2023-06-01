@@ -40,6 +40,7 @@
 #include "htmlrendering.h"
 #include "dpisupport.h"
 #include "grammar.h"
+#include "documenttypes.h"
 
 #include "syntaxhighlighting.h"
 
@@ -2316,7 +2317,7 @@ static void mdr_applyGrammar(RENDER_VIEW_PART* pPart) {
 	if (pPart->rvp_param.rvp_grammar == NULL) {
 		return;
 	}
-	GRAMMAR* pGrammar = grammar_findNamed(pPart->rvp_param.rvp_grammar);
+	GRAMMAR* pGrammar = doctypes_findGrammarForLanguage(pPart->rvp_param.rvp_grammar);
 	if (pGrammar == NULL) {
 		return;
 	}
