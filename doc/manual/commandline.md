@@ -5,8 +5,8 @@
 
 PKS-Edit can be started using DDE, which makes it possible to open documents in already running instances of PKS-Edit.
 
-To use this featzre, you have to create the following registry entries (the PKS-Edit installer will do that automatically for you):
-```
+To use this feature, you have to create the following registry entries (the PKS-Edit installer will do that automatically for you):
+```reg
 HKEY_CLASSES_ROOT
    PKSEdit.1
       (Default) = PKSEdit.1 Application

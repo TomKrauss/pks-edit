@@ -1,0 +1,52 @@
+{
+  "grammars": [
+    {
+      "scopeName": "reg",
+      "description": "Grammar for Registry files",
+      "patterns": [
+        {
+          "match": ";.*",
+          "style": "comment",
+          "name": "comment.documentation"
+        },
+        {
+          "match": "[\"'](?:\\\"|[^\"])+[\"']",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "[a-z()0-9]+:",
+          "style": "annotation",
+          "name": "typeIdentifier"
+        },
+        {
+          "match": "[-+&|<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "keywords": [
+            "HKEY_LOCAL_MACHINE",
+            "HKLM",
+			"HKEY_PERFORMANCE_DATA",
+            "SOFTWARE",
+            "HKEY_CLASSES_ROOT",
+            "HKEY_CURRENT_CONFIG",
+			"HKCC",
+            "HKEY_CURRENT_USER",
+            "HKEY_USERS",
+			"HKU",
+			"HKEY_DYN_DATA"
+          ],
+          "style": "keyword",
+          "name": "keyword.reg"
+        }
+      ]
+    }
+  ]
+}

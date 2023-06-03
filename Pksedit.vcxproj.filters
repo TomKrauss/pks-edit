@@ -653,6 +653,7 @@
     <None Include="LICENSE" />
     <None Include="SECURITY.md" />
     <None Include="doc\markdown_test.md" />
+    <None Include="..\..\Users\tom\Downloads\sample.reg" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="pksedit.rc">
