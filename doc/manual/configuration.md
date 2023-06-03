@@ -241,8 +241,3 @@ The following sound names may be used:
 - `Exclamation` plays the windows "Exclamation" sound.
 - `Question` plays the windows "Question" sound.
 
-```
-[desk]
-ErrorSound=HighBeep
-.....
-```

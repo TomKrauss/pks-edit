@@ -88,10 +88,23 @@ Here is an example of a document type descriptor for C and C++ files, which asso
         "name": "c+cpp",
         "description": "C/ C++ files (*.c,*.h,*.cpp,*.hpp)",
         "grammar": "cpp",
+        "languages": ["c", "c++", "cpp"],
         "editorConfiguration": "default",
         "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
     },
 ...
 
 ```
+
+The following properties describe a document type:
+- `name` a descriptive name used as a reference e.g. in the UI of PKS-Edit
+- `description` documents the purpose of the document type and is also displayed in the file-selector of PKS-Edit to help selecting documents
+  of the given type.
+- `grammar` will be matched with a **grammar file** named `$grammar.grammar.json`, which describes the [grammar](grammar.md) of the documents
+  of the given type. Is also used as the primary `language` name of the programming language of the given documents.
+- `languages` optional alternate language names. These are used e.g. when matching languages specified in *fenced code blocks*  in mark down
+  documents.
+- `editorConfiguration` refers to a previously defined editor configuration, which describes tab settings etc...
+- `filenamePatterns` used to match a file opened with a document type. For each document type defined the file selector will display an
+  entry in the file type selection dropdown list in the file selector.
 
