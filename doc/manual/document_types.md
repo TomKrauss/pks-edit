@@ -15,7 +15,7 @@ A grammar is defined by a name and configured in corresponding JSON file name `g
 ## Editor Configuration
 The following example defines an editor configuration `default`, which defines some standard tabstops, margins, tabsizes, and options for editing and displaying text.
 
-```
+```json
     "editorConfigurations": [
     {
         "name": "default",
@@ -81,7 +81,7 @@ Here is a description of some of the defined properties of an `editor configurat
 ## Example
 Here is an example of a document type descriptor for C and C++ files, which associates the files with a grammar named `cpp` and connects the files with a `default` editor configuration.
 
-```
+```json
 {
     "documentTypes": [
     {
