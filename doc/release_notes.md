@@ -21,6 +21,7 @@
 - When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this
   tab was not initially visible on HiDPI devices. This is fixed.
 - Fixed selection not being properly extended sometimes, when `Shift+PageUp` / `Shift+PageDown` is pressed.
+- A bug was fixed causing the toolbar to show a strange layout after restoring PKS-Edit from icon size.
 
 ## 2.3.0
 

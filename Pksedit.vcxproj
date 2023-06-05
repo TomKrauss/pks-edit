@@ -1198,7 +1198,6 @@
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\Users\tom\Downloads\sample.reg" />
     <None Include="CODE_OF_CONDUCT.md" />
     <None Include="doc\document_types.md" />
     <None Include="doc\manual\commandline.md" />

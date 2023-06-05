@@ -278,15 +278,16 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
     static HWND previousFocusWnd;
     LRESULT nRet;
     char pszBuf[256];
+    static int direction = 1;
 
     switch (msg) {
     case WM_CHAR:
-        if (wParam == VK_RETURN || wParam == VK_ESCAPE) {
+        if (wParam == VK_RETURN || wParam == VK_ESCAPE || wParam == VK_UP) {
             return 0;
         }
         nRet = CallWindowProc(oldEditProc, hwnd, msg, wParam, lParam);
         Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
-        find_incrementally(pszBuf, RE_IGNCASE | RE_WRAPSCAN, 1, FALSE);
+        find_incrementally(pszBuf, RE_IGNCASE | RE_WRAPSCAN, direction, FALSE);
         return nRet;
     case WM_SETFOCUS:
         if (previousFocusWnd == NULL) {
@@ -308,8 +309,17 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         case VK_RETURN:
             //Do your stuff
             Edit_GetText(hwnd, pszBuf, sizeof pszBuf);
-            find_incrementally(pszBuf, RE_IGNCASE| RE_WRAPSCAN, 1, TRUE);
+            find_incrementally(pszBuf, RE_IGNCASE| RE_WRAPSCAN, direction, TRUE);
             return 0;
+        case VK_DOWN:
+        case VK_UP: {
+                int nVirtState = GetKeyState(VK_CONTROL);
+                if (nVirtState) {
+                    direction = wParam == VK_DOWN ? 1 : -1;
+                    return 0;
+                }
+            }
+            break;
         case VK_ESCAPE:
             if (previousFocusWnd != NULL) {
                 SetFocus(previousFocusWnd);
@@ -396,7 +406,9 @@ HWND tb_initRebar(HWND hwndOwner) {
     HWND hwndEntryField;
     HWND hwndToolbar;
     wchar_t searchIcons[] = {
-        FA_ICON_SEARCH
+        FA_ICON_SEARCH,
+        FA_ICON_ARROW_UP,
+        FA_ICON_ARROW_DOWN
     };
 
     if (hwndRebar) {
@@ -427,7 +439,7 @@ HWND tb_initRebar(HWND hwndOwner) {
     hwndEntryField = tb_initSearchEntryField(hwndRebar);
     char szText[80];
     tb_initSearchEntryCueBanner(szText);
-    HIMAGELIST hImageListSearch = tb_createImageList(TB_IMAGE_SIZE, RGB(88, 88, 88), searchIcons, 1);
+    HIMAGELIST hImageListSearch = tb_createImageList(TB_IMAGE_SIZE, RGB(88, 88, 88), searchIcons, DIM(searchIcons));
     HWND hwndLabel = cust_createLabeledWindow(hwndRebar, ImageList_GetIcon(hImageListSearch, 0, ILD_TRANSPARENT), TEXT(szText), hwndEntryField);
     ImageList_Destroy(hImageListSearch);
 
@@ -459,6 +471,7 @@ HWND tb_initRebar(HWND hwndOwner) {
 
     rbBand.hwndChild = hwndLabel;
     rbBand.cxMinChild = dpisupport_getSize(300);
+    rbBand.cxIdeal = dpisupport_getSize(320);
     rbBand.cyMinChild = dpisupport_getSize(25);
     // The default width should be set to some value wider than the text. The entry field itself will expand to fill the band.
     rbBand.cx = rbBand.cxMinChild;

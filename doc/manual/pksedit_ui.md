@@ -9,10 +9,12 @@ The UI of PKS-Edit typically displays the following areas:
 
 
 - the `toolbar` gives you access to the most common used editing functions such as copying or pasting text or undo. You
-may configure the size of the toolbar buttons or hide them in the [layout settings](configuration.md#layout_options).
+  may configure the size of the toolbar buttons or hide them in the [layout settings](configuration.md#layout_options).
 - the `incremental search` field can be used to _search as you type_ text in the current editor document. You start incremental
   search by using the configured shortcut (`Ctrl+Alt+S` by default) and return the focus back to the editing window by
   pressing the `Escape` key. To repeat a search in the incremental search fiel press the `Enter` key.
+  You may switch search direction from forward to backward pressing `Ctrl+Arrow Up` and from backword to forward
+  pressing `Ctrl+Arrow Down`.
 - the `option bar` displays and allows to change the editing options for the active document such as _automatic indenting_ automatic
   wrapping of text (when a maximum number of columns is reached) or the text selection shape. For further details refer to 
   [editing files](editing_files.md#options_affecting_the_editing_of_text).

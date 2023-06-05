@@ -1875,7 +1875,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
 		if (hwndRebar) {
 			ShowWindow(hwndRebar, nToolbarHeight ? SW_SHOW : SW_HIDE);
-			if (nToolbarHeight) {
+			if (nToolbarHeight && wParam == SIZE_RESTORED) {
 				SendMessage(hwndRebar, message, wParam, lParam);
 			}
 		}
@@ -2155,7 +2155,7 @@ static int mainframe_translateAccelerator(HWND hwnd, MSG* msg) {
 			break;
 		}
 		if (!ww_workWinHasFocus()) {
-			if (!(msg->hwnd == hwndFrameWindow || GetKeyState(VK_CONTROL) < 0)) {
+			if (!(msg->hwnd == hwndFrameWindow)) {
 				break;
 			}
 		}
