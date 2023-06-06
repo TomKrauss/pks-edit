@@ -2020,17 +2020,17 @@ repaintUI:
 		}
 		break;
 	case WM_COMMAND:
-		idCtrl = (int)wParam;
+		idCtrl = LOWORD(wParam);
 		if (idCtrl < 0) {
+			break;
+		}
+		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
 			break;
 		}
 		// special hack for toolbars supporting only 16 bit commands ??
 		int nType = idCtrl >> 8;
 		if (nType == CMD_CMDSEQ || nType == CMD_MACRO) {
 			idCtrl = (nType << 16) + (idCtrl & 0xFF);
-		}
-		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
-			break;
 		}
 		int nCommand = macro_translateToOriginalMenuIndex(idCtrl);
 		if (bHelp) {

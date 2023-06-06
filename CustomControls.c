@@ -31,6 +31,12 @@
 #define GWW_CUSTOMVAL		0
 #define GWW_CUSTOMEXTRA		GWW_CUSTOMVAL+sizeof(WORD)
 
+#define GWW_ICON0			0
+#define GWW_ICON1			sizeof(HICON)
+#define GWW_ICON2			GWW_ICON1+sizeof(HICON)
+#define GWW_POSTFIX_ICON	GWW_ICON2+sizeof(HICON)
+#define GWW_LABELED_EXTRA	GWW_POSTFIX_ICON+sizeof(HICON)
+
  /*
   * Draws a rounded rectangle in an antialiased way.
   */
@@ -427,7 +433,7 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			GetClientRect(hwnd, &rc);
 			FillRect(hdc, &rc, theme_getDialogBackgroundBrush());
 		}
-	  return 1;
+		return 1;
 
 		case WM_CHARCHANGE: {
 			RECT rcPaint;
@@ -563,11 +569,16 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 	switch (message) {
 	case WM_CREATE: {
 		LPCREATESTRUCT pCS = (LPCREATESTRUCT)lParam;
-		SetWindowLongPtr(hwnd, GWW_CUSTOMVAL, (LONG_PTR)pCS->lpCreateParams);
+		HICON* icons = (HICON*)pCS->lpCreateParams;
+		SetWindowLongPtr(hwnd, GWW_ICON0, (LONG_PTR)icons[0]);
+		SetWindowLongPtr(hwnd, GWW_ICON1, (LONG_PTR)icons[1]);
+		SetWindowLongPtr(hwnd, GWW_ICON2, (LONG_PTR)icons[2]);
+		SetWindowLongPtr(hwnd, GWW_POSTFIX_ICON, (LONG_PTR)icons[1]);
 		break;
 	}
 	case WM_PAINT: {
-		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_CUSTOMVAL);
+		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_ICON0);
+		HICON hPostIcon1 = (HICON)GetWindowLongPtr(hwnd, GWW_POSTFIX_ICON);
 		THEME_DATA* pTheme = theme_getCurrent();
 		BeginPaint(hwnd, &ps);
 		RECT rect;
@@ -579,6 +590,7 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		int delta = dpisupport_getSize(4);
 		paint_roundedRect(ps.hdc, bFocus ? pTheme->th_iconColor : pTheme->th_dialogLight, bFocus ? 2.0f : 1.0f, 1, 1, rect.right - delta, rect.bottom - delta, 3*delta);
 		DrawIconEx(ps.hdc, iconPadding, delta, hIcon, iconSize, iconSize, 0, NULL, DI_NORMAL);
+		DrawIconEx(ps.hdc, rect.right-delta-iconSize, delta, hPostIcon1, iconSize, iconSize, 0, NULL, DI_NORMAL);
 		SelectObject(ps.hdc, hOldBrush);
 		EndPaint(hwnd, &ps);
 	}
@@ -602,7 +614,7 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 	case WM_SIZE: {
 		GetClientRect(hwnd, &rc);
 		rc.left += 2*iconPadding + iconSize - 2;
-		rc.right -= iconSize;
+		rc.right -= rc.left+iconSize+iconPadding;
 		rc.top += dpisupport_getSize(5);
 		rc.bottom -= dpisupport_getSize(5);
 		HWND hwndChild = GetWindow(hwnd, GW_CHILD);
@@ -610,11 +622,18 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 			MoveWindow(hwndChild, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, TRUE);
 		}
 	}
-				break;
+	break;
+
 	case WM_DESTROY: {
-		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_CUSTOMVAL);
+		HICON hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_ICON0);
 		DestroyIcon(hIcon);
-		SetWindowLongPtr(hwnd, GWW_CUSTOMVAL, 0l);
+		hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_ICON1);
+		DestroyIcon(hIcon);
+		hIcon = (HICON)GetWindowLongPtr(hwnd, GWW_ICON2);
+		DestroyIcon(hIcon);
+		SetWindowLongPtr(hwnd, GWW_ICON0, 0l);
+		SetWindowLongPtr(hwnd, GWW_ICON1, 0l);
+		SetWindowLongPtr(hwnd, GWW_ICON2, 0l);
 		break;
 	}
 
@@ -667,12 +686,21 @@ EXPORT int cust_registerControls(void)
 	}
 
 	wc.lpfnWndProc = labeled_windowProcedure;
+	wc.cbWndExtra = GWW_LABELED_EXTRA;
 	wc.lpszClassName = LABELED_CLASS;
-	wc.cbWndExtra = sizeof(LONG_PTR);
 	if (!RegisterClass(&wc)) {
 		return 0;
 	}
 	return 1;
+}
+
+/*
+ * Select one of the pre-defined postfix icons for a labeled window.
+ */
+void cust_setPostfixIcon(HWND hwndLabeled, int index) {
+	HICON icon = (HICON) GetWindowLongPtr(hwndLabeled, index == 0 ? GWW_ICON1 : GWW_ICON2);
+	SetWindowLongPtr(hwndLabeled, GWW_POSTFIX_ICON, (LONG_PTR) icon);
+	InvalidateRect(hwndLabeled, 0, FALSE);
 }
 
 /*
@@ -783,9 +811,9 @@ void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText)
  * Create a window which displays a child window + an associated prefix icon painting a border around the resulting
  * element..
  */
-HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueBanner, HWND hwndChild) {
+HWND cust_createLabeledWindow(HWND hwndParent, HICON *hIcons, char* pszCueBanner, HWND hwndChild) {
 	HWND hwnd = CreateWindow(LABELED_CLASS, NULL, WS_CHILDWINDOW | WS_CLIPCHILDREN | WS_VISIBLE, 0, 0, CW_USEDEFAULT, CW_USEDEFAULT,
-		hwndParent, NULL, hInst, hIcon);
+		hwndParent, NULL, hInst, hIcons);
 	if (!hwnd) {
 		log_lastWindowsError("createLabeledWindow");
 		return 0;

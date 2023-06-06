@@ -92,10 +92,15 @@ extern void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* p
 extern HWND cust_createToastWindow(char* pszText);
 
 /*
- * Create a window which displays a child window + an associated prefix icon painting a border around the resulting
- * element..
+ * Select one of the pre-defined postfix icons for a labeled window.
  */
-extern HWND cust_createLabeledWindow(HWND hwndParent, HICON hIcon, char* pszCueBanner, HWND hwndChild);
+extern void cust_setPostfixIcon(HWND hwndLabeled, int index);
+
+/*
+ * Create a window which displays a child window + an associated prefix icon painting a border around the resulting
+ * element. Additional Icons are displayed as postfix icons.
+ */
+extern HWND cust_createLabeledWindow(HWND hwndParent, HICON* hIcons, char* pszCueBanner, HWND hwndChild);
 
 /*
  * A child of a labeled window got / lost the focus. WPARAM is true for focus gain. 

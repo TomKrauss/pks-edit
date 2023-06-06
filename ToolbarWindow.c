@@ -41,6 +41,7 @@
 
 #define M(T,CMD)      ((int)(T<<8)|CMD)
 
+static HWND hwndSearchBarLabel;
 static HWND	hwndToolbar;
 static int nToolbarButtons;
 static HIMAGELIST hImageList;
@@ -316,6 +317,7 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
                 int nVirtState = GetKeyState(VK_CONTROL);
                 if (nVirtState) {
                     direction = wParam == VK_DOWN ? 1 : -1;
+                    cust_setPostfixIcon(hwndSearchBarLabel, direction == 1 ? 0 : 1);
                     return 0;
                 }
             }
@@ -407,8 +409,8 @@ HWND tb_initRebar(HWND hwndOwner) {
     HWND hwndToolbar;
     wchar_t searchIcons[] = {
         FA_ICON_SEARCH,
-        FA_ICON_ARROW_UP,
-        FA_ICON_ARROW_DOWN
+        FA_ICON_ARROW_DOWN,
+        FA_ICON_ARROW_UP
     };
 
     if (hwndRebar) {
@@ -440,7 +442,11 @@ HWND tb_initRebar(HWND hwndOwner) {
     char szText[80];
     tb_initSearchEntryCueBanner(szText);
     HIMAGELIST hImageListSearch = tb_createImageList(TB_IMAGE_SIZE, RGB(88, 88, 88), searchIcons, DIM(searchIcons));
-    HWND hwndLabel = cust_createLabeledWindow(hwndRebar, ImageList_GetIcon(hImageListSearch, 0, ILD_TRANSPARENT), TEXT(szText), hwndEntryField);
+    HICON icons[DIM(searchIcons)] = { 0 };
+    for (int i = 0; i < DIM(searchIcons); i++) {
+        icons[i] = ImageList_GetIcon(hImageListSearch, i, ILD_TRANSPARENT);
+    }
+    hwndSearchBarLabel = cust_createLabeledWindow(hwndRebar, icons, TEXT(szText), hwndEntryField);
     ImageList_Destroy(hImageListSearch);
 
     // Initialize band info used by both bands.
@@ -469,7 +475,7 @@ HWND tb_initRebar(HWND hwndOwner) {
     // Add the band that has the toolbar.
     SendMessage(hwndRebar, RB_INSERTBAND, (WPARAM)0, (LPARAM)&rbBand);
 
-    rbBand.hwndChild = hwndLabel;
+    rbBand.hwndChild = hwndSearchBarLabel;
     rbBand.cxMinChild = dpisupport_getSize(300);
     rbBand.cxIdeal = dpisupport_getSize(320);
     rbBand.cyMinChild = dpisupport_getSize(25);
