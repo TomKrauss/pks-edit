@@ -66,7 +66,7 @@ extern void main_cleanup(void);
 
 extern void fkey_visibilitychanged(void);
 
-#define CLOSER_SIZE				16
+#define CLOSER_SIZE				13
 #define CLOSER_DISTANCE			8
 #define SCROLL_BUTTON_WIDTH		16
 #define SCROLL_BUTTON_PADDING	4
@@ -618,7 +618,7 @@ static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover,
 	brush.lbColor = pTheme->th_dialogBorder;
 	brush.lbHatch = 0;
 	brush.lbStyle = PS_SOLID;
-	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
+	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, bRollover && twWidgetType == TW_CLOSER ? 4 : 2, &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	h2 = (pRect->bottom - pRect->top) / 2;
 	if (bRollover) {
@@ -2020,11 +2020,11 @@ repaintUI:
 		}
 		break;
 	case WM_COMMAND:
-		idCtrl = LOWORD(wParam);
-		if (idCtrl < 0) {
+		if (LOWORD(wParam) == IDM_INCREMENTAL_SEARCH) {
 			break;
 		}
-		if (idCtrl == IDM_INCREMENTAL_SEARCH) {
+		idCtrl = (int)(wParam);
+		if (idCtrl < 0) {
 			break;
 		}
 		// special hack for toolbars supporting only 16 bit commands ??
