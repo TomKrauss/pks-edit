@@ -106,6 +106,19 @@ static void tb_updateColors() {
     SendMessage(hwndRebar, RB_SETBKCOLOR, 0, pData->th_dialogBackground);
 }
 
+static void tb_loadFont(int id) {
+    HINSTANCE hInstance = hInst; // Or could even be a DLL's HINSTANCE
+    HRSRC  hFntRes = FindResource(hInstance, MAKEINTRESOURCE(id), RT_FONT);
+    if (hFntRes) { // If we have found the resource ... 
+        HGLOBAL hFntMem = LoadResource(hInstance, hFntRes); // Load it
+        if (hFntMem != NULL) {
+            void* pFontData = LockResource(hFntMem); // Lock it into accessible memory
+            DWORD len = SizeofResource(hInstance, hFntRes);
+            paint_loadFontAwesome(pFontData, len);
+            FreeResource(hFntMem);
+        }
+    }
+}
 /*
  * Load the font-awesome font.
  */
@@ -116,17 +129,8 @@ static void tb_loadFontAwesome() {
         return;
     }
     fontLoaded = TRUE;
-    HINSTANCE hInstance = hInst; // Or could even be a DLL's HINSTANCE
-    HRSRC  hFntRes = FindResource(hInstance, MAKEINTRESOURCE(IDS_FONT_AWESOME), RT_FONT);
-    if (hFntRes) { // If we have found the resource ... 
-        HGLOBAL hFntMem = LoadResource(hInstance, hFntRes); // Load it
-        if (hFntMem != NULL) {
-            void* pFontData = LockResource(hFntMem); // Lock it into accessible memory
-            DWORD len = SizeofResource(hInstance, hFntRes);
-            paint_loadFontAwesome(pFontData, len);
-            FreeResource(hFntMem);
-        }
-    }
+    tb_loadFont(IDS_FONT_AWESOME);
+    //tb_loadFont(IDS_FONT_AWESOME_SOLID);
 }
 
 /*

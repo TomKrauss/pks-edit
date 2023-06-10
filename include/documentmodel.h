@@ -384,8 +384,8 @@ extern void ft_deleteautosave(FTABLE* fp);
 extern void ft_destroy(FTABLE* fp);
 extern FTABLE* ft_new(void);
 
-/*------------------------------*/
-/* ft_initializeReadWriteBuffers()			  */
+/*------------------------------
+ * ft_initializeReadWriteBuffers()
 /*------------------------------*/
 extern BOOL ft_initializeReadWriteBuffers(void);
 
@@ -419,14 +419,14 @@ extern int ft_readfile(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, long 
  */
 extern int ft_writefileMode(FTABLE* fp, int writeFlags);
 
-/*---------------------------------*/
-/* ft_writeFileWithAlternateName()			*/
-/*---------------------------------*/
+/*---------------------------------
+ * ft_writeFileWithAlternateName()
+ */
 extern int ft_writeFileWithAlternateName(FTABLE* fp);
 
-/*---------------------------------*/
-/* ft_writefileAsWithFlags()
-/*---------------------------------*/
+/*---------------------------------
+ * ft_writefileAsWithFlags()
+ */
 extern int ft_writefileAsWithFlags(FTABLE* fp, char* fn, int flags, BOOL bVerbose);
 
 /*---------------------------------
@@ -443,10 +443,10 @@ extern int ft_readfileWithOptions(FTABLE* fp, FILE_READ_OPTIONS* pOptions);
 
 extern void ft_checkForChangedFiles(BOOL bActive);
 
-/*---------------------------------*/
-/* ft_triggerAutosaveAllFiles()					*/
-/* do an autosave				*/
-/*---------------------------------*/
+/*---------------------------------
+ * ft_triggerAutosaveAllFiles()
+ * do an autosave
+ *---------------------------------*/
 extern int ft_triggerAutosaveAllFiles(void);
 
 /*---------------------------------
@@ -455,9 +455,9 @@ extern int ft_triggerAutosaveAllFiles(void);
  ---------------------------------*/
 extern void ft_saveWindowStates(void);
 
-/*---------------------------------*/
-/* ft_restorePreviouslyOpenedWindows()					*/
-/*---------------------------------*/
+/*---------------------------------
+ * ft_restorePreviouslyOpenedWindows()
+ *---------------------------------*/
 extern int ft_restorePreviouslyOpenedWindows(void);
 
 /*------------------------------------------------------------

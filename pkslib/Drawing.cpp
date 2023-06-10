@@ -49,12 +49,18 @@ static void paint_awesomeIcons(HDC hdc, WCHAR* pszText, int nLen, COLORREF cColo
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
 	PointF pointF((float)x, (float)y);
-	Gdiplus::Font myFont(L"Font Awesome 5 Free Solid", (float)(nIconSize-2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFont(L"Font Awesome 6 Free Solid", (float)(nIconSize-2), FontStyleRegular, UnitPixel, awesomeFontCollection);
 
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	x -= nIconSize / 8;
+	int delta = nIconSize / 8;
+	x -= delta;
 	for (int i = 0; i < nLen; i++) {
 		pointF.X = x + (float)nIconSize * i;
+
+		// Work around for the fact, that the FA Icons are not quadratic: clip excessively wide characters
+		Region region(Rect((int)pointF.X, (int)pointF.Y, (int)pointF.Y+nIconSize+delta, (int)pointF.Y + nIconSize));
+		HRGN hRegion = region.GetHRGN(&graphics);
+		graphics.SetClip(hRegion);
 		auto s = graphics.DrawString(&pszText[i], 1, &myFont, pointF, &brush);
 		if (s != Ok) {
 			return;

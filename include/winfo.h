@@ -688,5 +688,5 @@ extern long long EdOptionToggle(WINFO* wp, long option);
 
 
 #define	_WINFO_H
-#endif	_WINFO_H
+#endif
 

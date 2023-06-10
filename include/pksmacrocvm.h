@@ -369,6 +369,8 @@ typedef struct tagCOMMAND {
 	char*	  c_name;				// name of the command used in macros
 } COMMAND;
 
+extern COMMAND	_commandTable[];
+
 typedef struct tagCOM_ASSIGN {
 	unsigned char 	typ;			// Used with bytecde C_ASSIGN - assign current stack top to a variable or C_ASSIGN_SLOT with slot being stack top and value being next to top.
 	unsigned char	name[1];		// variable name of variable assigned

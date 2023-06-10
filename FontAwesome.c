@@ -47,6 +47,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-gear",  L'\uf013' },
 { "fa-cog",  L'\uf013' },
 { "fa-trash-o",  L'\uf014' },
+{ "fa-trash-can",  L'\uf2ed' },
 { "fa-home",  L'\uf015' },
 { "fa-file-o",  L'\uf016' },
 { "fa-clock-o",  L'\uf017' },
@@ -807,11 +808,21 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-imdb",  L'\uf2d8' },
 { "fa-ravelry",  L'\uf2d9' },
 { "fa-eercast",  L'\uf2da' },
-{ "fa-microchip",  L'\uf2db' },
 { "fa-snowflake-o",  L'\uf2dc' },
 { "fa-superpowers",  L'\uf2dd' },
 { "fa-wpexplorer",  L'\uf2de' },
-{ "fa-meetup",  L'\uf2e0' }};
+{ "fa-meetup",  L'\uf2e0' },
+{ "fa-message", L'\uf27a' },
+{ "fa-comment-slash", L'\uf4b3' },
+{ "fa-laptop-code", L'\uf5fc' },
+{ "fa-hashtag", L'\u0023' },
+{ "fa-list-check", L'\uf0ae' },
+{ "fa-folder-tree", L'\uf802' },
+{ "fa-searchengin", L'\uf3eb' },
+{ "fa-magnifying-glass-arrow-right", L'\ue521' },
+{ "fa-microchip", L'\uf2db' },
+{ "fa-delete-left", L'\uf55a' }
+};
 
 static HASHMAP* _faIconNameMap;
 
@@ -820,7 +831,7 @@ static HASHMAP* _faIconNameMap;
  */
 wchar_t faicon_codeForName(const char* pszIconName) {
 	if (!_faIconNameMap) {
-		_faIconNameMap = hashmap_create(128, 0, 0);
+		_faIconNameMap = hashmap_create(512, 0, 0);
 		for (int i = 0; i < sizeof(_faIcons)/sizeof(_faIcons[0]); i++) {
 			hashmap_put(_faIconNameMap, _faIcons[i].fa_name, (intptr_t)_faIcons[i].fa_code);
 		}

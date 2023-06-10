@@ -1113,7 +1113,7 @@
     { "separator": true },
     {
       "command": "@erase-block",
-      "icon": "fa-eraser"
+      "icon": "fa-trash-can"
     },
     {
       "command": "@delete-block",
@@ -1134,7 +1134,7 @@
     },
     {
       "command": "@find-in-filelist",
-      "icon": "fa-search-plus"
+      "icon": "fa-folder-tree"
     },
     { "separator": true },
     {
@@ -1186,11 +1186,11 @@
     },
     { "separator": true },
     {
-      "icon": "fa-plus-circle",
+      "icon": "fa-search-plus",
       "command": "@zoom-increase"
     },
     {
-      "icon": "fa-minus-circle",
+      "icon": "fa-search-minus",
       "command": "@zoom-decrease"
     },
     { "separator": true },
@@ -1209,7 +1209,7 @@
     { "separator": true },
     {
       "command": "FormatSingleLineComments",
-      "icon": "fa-code"
+      "icon": "fa-list-check"
     },
     {
       "command": "TrimTrailingBlanks",

@@ -1195,6 +1195,9 @@
     <ClInclude Include="include\winfo.h" />
     <ClInclude Include="include\winterf.h" />
     <ClInclude Include="include\xdialog.h" />
+    <ClInclude Include="rc\helpidx.h" />
+    <ClInclude Include="rc\helpitem.h" />
+    <ClInclude Include="rc\pksedit.h" />
     <ClInclude Include="rc\pksrc.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1289,8 +1292,11 @@
   </ItemGroup>
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
-    <Font Include="rc\Font Awesome 5 Free-Regular-400.ttf" />
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
+    <Font Include="rc\Font Awesome 6 Free-Regular-400.otf" />
+    <Font Include="rc\Font Awesome 6 Free-Regular-400.ttf" />
+    <Font Include="rc\Font Awesome 6 Free-Solid-900.otf" />
+    <Font Include="rc\Font Awesome 6 Free-Solid-900.ttf" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="pksedit.exe.manifest" />

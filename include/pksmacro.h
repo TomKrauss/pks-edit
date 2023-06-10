@@ -93,7 +93,6 @@ extern void macro_processAnnotations(MACRO_PARAM* pParam, ANNOTATION* pAnnotatio
 #define	MAC_COMMENT(mp)		((mp)->mc_comment)
 
 typedef struct tagCOMMAND COMMAND;
-extern COMMAND		_commandTable[];
 extern int			_commandTableSize;
 
 #define	IDM_CMDNAME		1024

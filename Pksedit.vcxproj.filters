@@ -560,6 +560,15 @@
     <ClInclude Include="include\streams.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="rc\helpitem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rc\pksedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rc\helpidx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -714,7 +723,10 @@
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
-    <Font Include="rc\Font Awesome 5 Free-Regular-400.ttf" />
+    <Font Include="rc\Font Awesome 6 Free-Regular-400.ttf" />
+    <Font Include="rc\Font Awesome 6 Free-Solid-900.ttf" />
+    <Font Include="rc\Font Awesome 6 Free-Regular-400.otf" />
+    <Font Include="rc\Font Awesome 6 Free-Solid-900.otf" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="pksedit.exe.manifest" />
