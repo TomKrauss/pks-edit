@@ -814,8 +814,7 @@ static void theme_renderButton(HWND hwnd, HDC hdc, HTHEME hTheme, int iPartID, i
 	HFONT hOldFont = NULL;
 	HFONT hCreatedFont = NULL;
 	LOGFONTW lf = { 0 };
-	if (SUCCEEDED(GetThemeFont(hTheme, hdc, iPartID, iStateID, TMT_FONT, &lf)))
-	{
+	if (SUCCEEDED(GetThemeFont(hTheme, hdc, iPartID, iStateID, TMT_FONT, &lf))) {
 		hCreatedFont = CreateFontIndirectW(&lf);
 		hFont = hCreatedFont;
 	}
@@ -1013,17 +1012,13 @@ static LRESULT CALLBACK tabSubclassProc(
 	LPARAM lParam,
 	UINT_PTR uIdSubclass,
 	DWORD_PTR dwRefData
-)
-{
+) {
 	UNREFERENCED_PARAMETER(uIdSubclass);
 	UNREFERENCED_PARAMETER(dwRefData);
 	THEME_DATA* pTheme = theme_getCurrent();
 
 	switch (uMsg) {
 	case WM_PAINT: {
-		if (!pTheme->th_isDarkMode) {
-			break;
-		}
 
 		LONG_PTR dwStyle = GetWindowLongPtr(hWnd, GWL_STYLE);
 		if ((dwStyle & TCS_BOTTOM) || (dwStyle & TCS_BUTTONS) || (dwStyle & TCS_VERTICAL)) {
@@ -1288,7 +1283,9 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 			break;
 		case BS_DEFPUSHBUTTON:
 		case BS_PUSHBUTTON:
-			SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+			if (theme_getCurrent()->th_isDarkMode) {
+				SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+			}
 			break;
 		}
 		return TRUE;
@@ -1308,7 +1305,9 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 		}
 		return TRUE;
 	} else if (strcmp(WC_LISTBOX, szClassname) == 0) {
-		SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+		if (theme_getCurrent()->th_isDarkMode) {
+			SetWindowTheme(hwndControl, DARKMODE_THEME, NULL);
+		}
 	} else if (strcmp(WC_LISTVIEW, szClassname) == 0) {
 		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isDarkMode) {
@@ -1330,9 +1329,7 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
  * Prepare all children of a given parent to be used in dark mode correctly. 
  */
 void theme_prepareChildrenForDarkmode(HWND hParent) {
-	if (theme_getCurrent()->th_isDarkMode) {
-		EnumChildWindows(hParent, (WNDENUMPROC)theme_prepareControlsForDarkMode, 0);
-	}
+	EnumChildWindows(hParent, (WNDENUMPROC)theme_prepareControlsForDarkMode, 0);
 }
 
 /*
