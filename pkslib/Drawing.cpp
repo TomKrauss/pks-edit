@@ -22,6 +22,11 @@
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
 
+typedef struct tagCHAR_WITH_STYLE {
+	wchar_t symbol;
+	int regular;
+} CHAR_WITH_STYLE;
+
 static void paint_initGdiPlus() {
 	static GdiplusStartupInput gdiplusStartupInput;
 	static ULONG_PTR           gdiplusToken;
@@ -41,16 +46,28 @@ extern "C" __declspec(dllexport) BOOL paint_loadFontAwesome(void* pFontData, DWO
 	awesomeFontCollection = &myColl;
 	return sRet == Ok;
 }
+
 /*
  * Draws a text in an antialiased way. 
  */
-static void paint_awesomeIcons(HDC hdc, WCHAR* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
+static void paint_awesomeIcons(HDC hdc, CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
 	paint_initGdiPlus();
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
 	PointF pointF((float)x, (float)y);
-	Gdiplus::Font myFont(L"Font Awesome 6 Free Solid", (float)(nIconSize-2), FontStyleRegular, UnitPixel, awesomeFontCollection);
-
+	FontFamily families[2];
+	int found = (*awesomeFontCollection).GetFamilyCount();
+	WCHAR familyName[LF_FACESIZE] = { 0 };
+	WCHAR familyName2[LF_FACESIZE] = { 0 };
+	// Currently the free awesome font is not correctly handled as a font family, but the two font files are loaded
+	// as two font families.
+	if (found > 0) {
+		(*awesomeFontCollection).GetFamilies(found, families, &found);
+		families[found-1].GetFamilyName(familyName);
+		families[0].GetFamilyName(familyName2);
+	}
+	Gdiplus::Font myFontSolid(familyName, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontRegular(familyName2, (float)(nIconSize - 2), FontStyleBold, UnitPixel, awesomeFontCollection);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
 	int delta = nIconSize / 8;
 	x -= delta;
@@ -61,7 +78,9 @@ static void paint_awesomeIcons(HDC hdc, WCHAR* pszText, int nLen, COLORREF cColo
 		Region region(Rect((int)pointF.X, (int)pointF.Y, (int)pointF.Y+nIconSize+delta, (int)pointF.Y + nIconSize));
 		HRGN hRegion = region.GetHRGN(&graphics);
 		graphics.SetClip(hRegion);
-		auto s = graphics.DrawString(&pszText[i], 1, &myFont, pointF, &brush);
+		CHAR_WITH_STYLE cs = pszText[i];
+		auto s = graphics.DrawString(&cs.symbol, 1, cs.regular ? &myFontRegular : &myFontSolid, pointF, &brush);
+		DeleteObject(hRegion);
 		if (s != Ok) {
 			return;
 		}
@@ -88,7 +107,7 @@ extern "C" __declspec(dllexport) void paint_roundedRect(HDC hdc, COLORREF cColor
 	graphics.DrawPath(&pen, &gp);
 }
 
-extern "C" __declspec(dllexport) HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, wchar_t icons[], int nIcons) {
+extern "C" __declspec(dllexport) HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons) {
     HDC hdcScreen = GetDC(0);
     HDC hdc = CreateCompatibleDC(hdcScreen);
 

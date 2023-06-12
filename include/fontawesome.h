@@ -805,10 +805,16 @@
 #define FA_ICON_WPEXPLORER     L'\uf2de'
 #define FA_ICON_MEETUP     L'\uf2e0'
 
+
+typedef struct tagCHAR_WITH_STYLE {
+    wchar_t symbol;
+    int regular;
+} CHAR_WITH_STYLE;
+
 /*
  * Returns the unicode equivalent of a font-awesome icon given its name as e.g. "fa-meetup".
  */
-extern wchar_t faicon_codeForName(const char* pszIconName);
+extern CHAR_WITH_STYLE faicon_codeForName(const char* pszIconName);
 
 /*
  * Cleanup the font awesome icon component.

@@ -68,6 +68,7 @@ typedef struct tagTOOLBAR_BUTTON_BINDING {
 	struct tagTOOLBAR_BUTTON_BINDING* tbb_next;
 	BOOL        tbb_isSeparator;
 	wchar_t		tbb_faIcon;							// Font awesome icon code for this button
+	int			tbb_faRegular;						// Use FontAwesome regular font?
 	BOUND_TEXT	tbb_label;							// Optional label to use. only for buttons displaying a label.
 	MACROREF	tbb_macref;
 } TOOLBAR_BUTTON_BINDING;

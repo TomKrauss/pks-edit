@@ -350,8 +350,9 @@ static JSON_MAPPING_RULE _menuRules[] = {
 };
 
 static int bindings_parseToolbarIconName(LOCAL_ACTION_BINDING* pTarget, const char* pszIconName) {
-	wchar_t wIcon = faicon_codeForName(pszIconName);
-	pTarget->ab_binding.toolbarButtonBinding.tbb_faIcon = wIcon ? wIcon : FA_ICON_QUESTION;
+	CHAR_WITH_STYLE wIcon = faicon_codeForName(pszIconName);
+	pTarget->ab_binding.toolbarButtonBinding.tbb_faIcon = wIcon.symbol ? wIcon.symbol : FA_ICON_QUESTION;
+	pTarget->ab_binding.toolbarButtonBinding.tbb_faRegular = wIcon.regular;
 	return 1;
 }
 

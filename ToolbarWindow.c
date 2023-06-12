@@ -52,7 +52,7 @@ HWND    hwndRebar;
  * Draws a text in an antialiased way.
  */
 extern BOOL paint_loadFontAwesome(void* pFontData, DWORD len);
-extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, wchar_t icons[], int nIcons);
+extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons);
 
 /*
  * Callback to enable / disable toolbar buttons. 
@@ -130,13 +130,13 @@ static void tb_loadFontAwesome() {
     }
     fontLoaded = TRUE;
     tb_loadFont(IDS_FONT_AWESOME);
-    //tb_loadFont(IDS_FONT_AWESOME_SOLID);
+    tb_loadFont(IDS_FONT_AWESOME_REGULAR);
 }
 
 /*
  * Create an image list with images created from font-awesome icons. 
  */
-static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t icons[], int nIcons) {
+static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, CHAR_WITH_STYLE icons[], int nIcons) {
     HBITMAP hBmp = tb_createAwesomeIcons(cColor, nIconSize, icons, nIcons);
     HIMAGELIST hList = ImageList_Create(nIconSize, nIconSize,
         ILC_COLOR32 | ILC_HIGHQUALITYSCALE, nIcons, 0
@@ -149,9 +149,9 @@ static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, wchar_t ico
 /*
  * Update the image list for the toolbar.
  */
-static wchar_t* _currentIconList;
+static CHAR_WITH_STYLE* _currentIconList;
 static int _currentIconCount;
-void tb_updateImageList(HWND hwnd, wchar_t *tbIcons, int nCount) {
+void tb_updateImageList(HWND hwnd, CHAR_WITH_STYLE *tbIcons, int nCount) {
     HIMAGELIST hOld1 = hImageList;
     HIMAGELIST hOldDisabled = hImageListDisabled;
     static int nOldIconSize;
@@ -234,12 +234,13 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     TOOLBAR_BUTTON_BINDING* pButtons = bindings_getToolbarBindingsFor(DEFAULT_ACTION_CONTEXT);
     int nButtons = ll_size((LINKED_LIST*)pButtons);
     tbb = calloc(nButtons, sizeof * tbb);
-    wchar_t* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
+    CHAR_WITH_STYLE* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
     int nImageIndex = 0;
     int iIndexExtra = 0;
     for (int nButton = 0; pButtons; nButton++) {
         if (pButtons->tbb_faIcon != 0) {
-            pwImageCodes[nImageIndex] = pButtons->tbb_faIcon;
+            pwImageCodes[nImageIndex].symbol = pButtons->tbb_faIcon;
+            pwImageCodes[nImageIndex].regular = pButtons->tbb_faRegular;
             tbb[nButton].iBitmap = (int)(iIndexExtra + nImageIndex++);
         }
         if (pButtons->tbb_isSeparator) {
@@ -411,10 +412,10 @@ static void tb_initSearchEntryCueBanner(char* pszText) {
 HWND tb_initRebar(HWND hwndOwner) {
     HWND hwndEntryField;
     HWND hwndToolbar;
-    wchar_t searchIcons[] = {
-        FA_ICON_SEARCH,
-        FA_ICON_ARROW_DOWN,
-        FA_ICON_ARROW_UP
+    CHAR_WITH_STYLE searchIcons[] = {
+        {FA_ICON_SEARCH, 0},
+        {FA_ICON_ARROW_DOWN, 0},
+        {FA_ICON_ARROW_UP, 0}
     };
 
     if (hwndRebar) {

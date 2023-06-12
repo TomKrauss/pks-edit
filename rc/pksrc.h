@@ -46,7 +46,8 @@
 #define IDS_TT_SORT_FIELD_SEPARATOR     205
 #define IDS_TT_SORT_FIELD_OPTIONS       206
 #define IDS_WARN_FILE_MOVED_OR_DELETED  207
-#define IDR_FONT1                       232
+#define IDR_FONT1                       233
+#define IDS_FONT_AWESOME_REGULAR        233
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
 #define DLG_OPT_WARNINGS                556
@@ -86,7 +87,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        233
+#define _APS_NEXT_RESOURCE_VALUE        234
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

@@ -1100,20 +1100,20 @@
     {
       "command": "@open-new-file",
       "label": "Open...",
-      "icon": "fa-file"
+      "icon": "fa-file regular"
     },
     {
       "command": "@open-file",
-      "icon": "fa-folder"
+      "icon": "fa-folder regular"
     },
     {
       "command": "@save-file",
-      "icon": "fa-save"
+      "icon": "fa-floppy-o regular"
     },
     { "separator": true },
     {
       "command": "@erase-block",
-      "icon": "fa-trash-can"
+      "icon": "fa-trash-can regular"
     },
     {
       "command": "@delete-block",
@@ -1121,7 +1121,7 @@
     },
     {
       "command": "@paste-clipboard",
-      "icon": "fa-clipboard"
+      "icon": "fa-clipboard-o regular"
     },
     { "separator": true },
     {
@@ -1182,7 +1182,7 @@
     },
     {
       "command": "@toggle-comment",
-      "icon": "fa-comment"
+      "icon": "fa-comment-o regular"
     },
     { "separator": true },
     {
@@ -1204,7 +1204,7 @@
     },
     {
       "command": "@compare-clear",
-      "icon": "fa-stop-circle"
+      "icon": "fa-stop-circle regular"
     },
     { "separator": true },
     {
@@ -1213,12 +1213,12 @@
     },
     {
       "command": "TrimTrailingBlanks",
-      "icon": "fa-adjust"
+      "icon": "fa-rectangle-xmark regular"
     },
     { "separator": true },
     {
       "command": "@help-manual-toc",
-      "icon": "fa-question"
+      "icon": "fa-circle-question regular"
     },
     {
       "command": "@help-release-notes",

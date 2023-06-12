@@ -1283,6 +1283,8 @@ END
 
 IDS_FONT_AWESOME        FONT                    "rc\\Font Awesome 6 Free-Solid-900.otf"
 
+IDS_FONT_AWESOME_REGULAR FONT                    "rc\\Font Awesome 6 Free-Regular-400.otf"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
