@@ -22,7 +22,6 @@
 typedef struct tagFA_ICON_NAME {
 	const char* fa_name;
 	wchar_t fa_code;
-	int fa_regular_available;
 } FA_ICON_NAME;
 
 static FA_ICON_NAME _faIcons[] = {
@@ -30,10 +29,10 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-music",  L'\uf001' },
 { "fa-search",  L'\uf002' },
 { "fa-envelope-o",  L'\uf003' },
-{ "fa-heart",  L'\uf004',1 },
-{ "fa-star",  L'\uf005', 1 },
+{ "fa-heart",  L'\uf004'},
+{ "fa-star",  L'\uf005'},
 { "fa-star-o",  L'\uf006' },
-{ "fa-user",  L'\uf007', 1 },
+{ "fa-user",  L'\uf007'},
 { "fa-film",  L'\uf008' },
 { "fa-th-large",  L'\uf009' },
 { "fa-th",  L'\uf00a' },
@@ -49,7 +48,8 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-gear",  L'\uf013' },
 { "fa-cog",  L'\uf013' },
 { "fa-trash-o",  L'\uf014' },
-{ "fa-trash-can",  L'\uf2ed', 1 },
+{ "fa-trash-can",  L'\uf2ed' },
+{ "fa-trash-can-o",  L'\uf2ed'},
 { "fa-home",  L'\uf015' },
 { "fa-file-o",  L'\uf016' },
 { "fa-clock-o",  L'\uf017' },
@@ -92,7 +92,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-indent",  L'\uf03c' },
 { "fa-video-camera",  L'\uf03d' },
 { "fa-photo",  L'\uf03e' },
-{ "fa-image",  L'\uf03e', 1 },
+{ "fa-image",  L'\uf03e' },
 { "fa-picture-o",  L'\uf03e' },
 { "fa-pencil",  L'\uf040' },
 { "fa-map-marker",  L'\uf041' },
@@ -147,14 +147,14 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-plane",  L'\uf072' },
 { "fa-calendar",  L'\uf073' },
 { "fa-random",  L'\uf074' },
-{ "fa-comment",  L'\uf075', 1 },
-{ "fa-comment-o",  L'\uf0e5', 1 },
+{ "fa-comment",  L'\uf075' },
+{ "fa-comment-o",  L'\uf0e5' },
 { "fa-magnet",  L'\uf076' },
 { "fa-chevron-up",  L'\uf077' },
 { "fa-chevron-down",  L'\uf078' },
 { "fa-retweet",  L'\uf079' },
 { "fa-shopping-cart",  L'\uf07a' },
-{ "fa-folder",  L'\uf07b', 1 },
+{ "fa-folder",  L'\uf07b' },
 { "fa-folder-open",  L'\uf07c' },
 { "fa-arrows-v",  L'\uf07d' },
 { "fa-arrows-h",  L'\uf07e' },
@@ -166,7 +166,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-key",  L'\uf084' },
 { "fa-gears",  L'\uf085' },
 { "fa-cogs",  L'\uf085' },
-{ "fa-comments",  L'\uf086', 1 },
+{ "fa-comments",  L'\uf086' },
 { "fa-thumbs-o-up",  L'\uf087' },
 { "fa-thumbs-o-down",  L'\uf088' },
 { "fa-star-half",  L'\uf089' },
@@ -212,6 +212,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-arrows-alt",  L'\uf0b2' },
 { "fa-group",  L'\uf0c0' },
 { "fa-users",  L'\uf0c0' },
+{ "fa-users-rectangle",  L'\ue594' },
 { "fa-chain",  L'\uf0c1' },
 { "fa-link",  L'\uf0c1' },
 { "fa-cloud",  L'\uf0c2' },
@@ -222,7 +223,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-files-o",  L'\uf0c5' },
 { "fa-paperclip",  L'\uf0c6' },
 { "fa-save",  L'\uf0c7' },
-{ "fa-floppy-o",  L'\uf0c7', 1 },
+{ "fa-floppy-o",  L'\uf0c7' },
 { "fa-square",  L'\uf0c8' },
 { "fa-navicon",  L'\uf0c9' },
 { "fa-reorder",  L'\uf0c9' },
@@ -250,7 +251,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-sort-desc",  L'\uf0dd' },
 { "fa-sort-up",  L'\uf0de' },
 { "fa-sort-asc",  L'\uf0de' },
-{ "fa-envelope",  L'\uf0e0', 1 },
+{ "fa-envelope",  L'\uf0e0' },
 { "fa-linkedin",  L'\uf0e1' },
 { "fa-rotate-left",  L'\uf0e2' },
 { "fa-undo",  L'\uf0e2' },
@@ -265,8 +266,8 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-sitemap",  L'\uf0e8' },
 { "fa-umbrella",  L'\uf0e9' },
 { "fa-paste",  L'\uf0ea' },
-{ "fa-clipboard",  L'\uf0ea', 1 },
-{ "fa-clipboard-o",  L'\uf328', 1 },
+{ "fa-clipboard",  L'\uf0ea' },
+{ "fa-clipboard-o",  L'\uf328' },
 { "fa-lightbulb-o",  L'\uf0eb' },
 { "fa-exchange",  L'\uf0ec' },
 { "fa-exchange-alt",  L'\uf362' },
@@ -390,7 +391,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-krw",  L'\uf159' },
 { "fa-bitcoin",  L'\uf15a' },
 { "fa-btc",  L'\uf15a' },
-{ "fa-file",  L'\uf15b', 1 },
+{ "fa-file",  L'\uf15b'},
 { "fa-file-text",  L'\uf15c' },
 { "fa-sort-alpha-asc",  L'\uf15d' },
 { "fa-sort-alpha-desc",  L'\uf15e' },
@@ -718,8 +719,8 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-scribd",  L'\uf28a' },
 { "fa-pause-circle",  L'\uf28b' },
 { "fa-pause-circle-o",  L'\uf28c' },
-{ "fa-stop-circle",  L'\uf28d', 1 },
-{ "fa-stop-circle-o",  L'\uf28e', 1 },
+{ "fa-stop-circle",  L'\uf28d' },
+{ "fa-stop-circle-o",  L'\uf28e' },
 { "fa-shopping-bag",  L'\uf290' },
 { "fa-shopping-basket",  L'\uf291' },
 { "fa-hashtag",  L'\uf292' },
@@ -732,7 +733,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-envira",  L'\uf299' },
 { "fa-universal-access",  L'\uf29a' },
 { "fa-wheelchair-alt",  L'\uf29b' },
-{ "fa-circle-question",  L'\uf059', 1 },
+{ "fa-circle-question-o",  L'\uf059' },
 { "fa-question-circle-o",  L'\uf29c' },
 { "fa-blind",  L'\uf29d' },
 { "fa-audio-description",  L'\uf29e' },
@@ -802,7 +803,11 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-window-maximize",  L'\uf2d0' },
 { "fa-window-minimize",  L'\uf2d1' },
 { "fa-window-restore",  L'\uf2d2' },
-{ "fa-rectangle-xmark",  L'\uf410', 1 },
+{ "fa-rectangle-list",  L'\uf022' },
+{ "fa-rectangle-list-o",  L'\uf022' },
+{ "fa-rectangle-ad",  L'\uf641' },
+{ "fa-rectangle-xmark",  L'\uf410' },
+{ "fa-rectangle-xmark-o",  L'\uf410' },
 { "fa-times-rectangle",  L'\uf2d3' },
 { "fa-window-close",  L'\uf2d3' },
 { "fa-times-rectangle-o",  L'\uf2d4' },
@@ -825,7 +830,19 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-folder-tree", L'\uf802' },
 { "fa-searchengin", L'\uf3eb' },
 { "fa-magnifying-glass-arrow-right", L'\ue521' },
+{ "fa-magnifying-glass-dollar", L'\uf688' },
+{ "fa-magnifying-glass-location", L'\uf689' },
+{ "fa-magnifying-glass-chart", L'\ue522' },
 { "fa-microchip", L'\uf2db' },
+{ "fa-rug", L'\ue569' },
+{ "fa-tarp", L'\ue57b' },
+{ "fa-vault", L'\ue2c5' },
+{ "fa-tarp-droplet", L'\ue57c' },
+{ "fa-code-compare", L'\ue13a' },
+{ "fa-section", L'\ue447' },
+{ "fa-sack-xmark", L'\ue56a' },
+{ "fa-plus-minus", L'\ue43c' },
+{ "fa-notdef", L'\ue1fe' },
 { "fa-delete-left", L'\uf55a' }
 };
 
@@ -841,19 +858,8 @@ CHAR_WITH_STYLE faicon_codeForName(const char* pszIconName) {
 			hashmap_put(_faIconNameMap, _faIcons[i].fa_name, (intptr_t)_faIcons[i].fa_code);
 		}
 	}
-	char* pszStyle = strchr(pszIconName, ' ');
-	int regular = 0;
-	char name[128];
-	if (pszStyle && strcmp(pszStyle + 1, "regular") == 0) {
-		int len = (int)(pszStyle - pszIconName);
-		if (len > 127) {
-			len = 127;
-		}
-		strncpy(name, pszIconName, len);
-		name[len] = 0;
-		regular = 1;
-		pszIconName = name;
-	}
+	size_t nLen = strlen(pszIconName);
+	int regular = nLen > 2 && strcmp(pszIconName+nLen-2, "-o") == 0;
 	return (CHAR_WITH_STYLE) {
 		.regular = regular,
 		.symbol = (wchar_t)hashmap_get(_faIconNameMap, pszIconName)

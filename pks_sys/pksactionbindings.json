@@ -1100,20 +1100,20 @@
     {
       "command": "@open-new-file",
       "label": "Open...",
-      "icon": "fa-file regular"
+      "icon": "fa-file-o"
     },
     {
       "command": "@open-file",
-      "icon": "fa-folder regular"
+      "icon": "fa-folder-o"
     },
     {
       "command": "@save-file",
-      "icon": "fa-floppy-o regular"
+      "icon": "fa-floppy-o"
     },
     { "separator": true },
     {
       "command": "@erase-block",
-      "icon": "fa-trash-can regular"
+      "icon": "fa-trash-can-o"
     },
     {
       "command": "@delete-block",
@@ -1121,7 +1121,7 @@
     },
     {
       "command": "@paste-clipboard",
-      "icon": "fa-clipboard-o regular"
+      "icon": "fa-clipboard-o"
     },
     { "separator": true },
     {
@@ -1182,7 +1182,7 @@
     },
     {
       "command": "@toggle-comment",
-      "icon": "fa-comment-o regular"
+      "icon": "fa-comment-o"
     },
     { "separator": true },
     {
@@ -1195,6 +1195,10 @@
     },
     { "separator": true },
     {
+      "command": "@next-difference",
+      "icon": "fa-code-compare"
+    },
+    {
       "command": "@compare-navigate-previous",
       "icon": "fa-arrow-up"
     },
@@ -1204,7 +1208,7 @@
     },
     {
       "command": "@compare-clear",
-      "icon": "fa-stop-circle regular"
+      "icon": "fa-stop-circle-o"
     },
     { "separator": true },
     {
@@ -1213,12 +1217,12 @@
     },
     {
       "command": "TrimTrailingBlanks",
-      "icon": "fa-rectangle-xmark regular"
+      "icon": "fa-rectangle-xmark-o"
     },
     { "separator": true },
     {
       "command": "@help-manual-toc",
-      "icon": "fa-circle-question regular"
+      "icon": "fa-circle-question-o"
     },
     {
       "command": "@help-release-notes",
