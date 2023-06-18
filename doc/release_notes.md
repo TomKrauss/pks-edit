@@ -18,6 +18,7 @@
   one needed to use the num block for zooming.
 - Icons were updated to FontAwesome Version 6 introducing new icons. The outline version of an icon can now be used as well (if available in the
   free FontAwesome font) by using a suffix of `-o` - e.g. `fa-file-o` for the outline version of the file icon.
+- XML code completion was improved.
 
 ### Fixes
 - When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this

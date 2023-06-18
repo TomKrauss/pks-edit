@@ -35,18 +35,33 @@ typedef struct tagANALYZER_CALLBACK_PARAM {
   */
 typedef void (*ANALYZER_CALLBACK)(ANALYZER_CALLBACK_PARAM* pParam);
 
+typedef struct tagANALYZER_CONTEXT {
+	int ac_type;
+	char ac_token[128];
+} ANALYZER_CONTEXT;
+
+/*
+ * Function used for matching valid code completion matches during analysis of a file.
+ */
+typedef int (*ANALYZER_MATCH)(ANALYZER_CONTEXT* pContext, const char* pszMatch);
+
 /*
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations
  * matching the match function 'fMatch' are considered and passed to the analyzer callback.
  */
-typedef void (*ANALYZER_FUNCTION)(WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback);
+typedef void (*ANALYZER_FUNCTION)(WINFO* wp, ANALYZER_MATCH fMatcher, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT *pContext);
+
+/*
+ * Callback used to get the analyzer context at the cursor position, where a code completion is requested.
+ */
+typedef void (*ANALYZER_GET_CONTEXT)(WINFO* wp, ANALYZER_CONTEXT* pContext);
 
 /*
  * Register a new analyzer given the name of the analyzer. If an analyzer with the given name
  * exists, it is overridden. Return 1 if a new analyzer was registered and 0 if an existing one
  * was overridden.
  */
-extern int analyzer_register(const char* pszName, ANALYZER_FUNCTION f);
+extern int analyzer_register(const char* pszName, ANALYZER_FUNCTION f, ANALYZER_GET_CONTEXT fGetContext);
 
 /*
  * Destroy all known analyzers.
@@ -56,7 +71,7 @@ extern void analyzer_destroyAnalyzers();
  * Extract all recommendations from the file edited in the view identified by 'wp'.
  * Use the analyzer with the given analyzer name. If successful, return 1, otherwise 0.
  */
-extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, int (*fMatch)(const char* pszMatch), ANALYZER_CALLBACK fCallback);
+extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CALLBACK fCallback);
 
 /*
  * Register some "default" analyzers, which can be referenced in grammar files given their respective names.

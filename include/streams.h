@@ -37,16 +37,16 @@ struct tagINPUT_STREAM {
 														// Position the stream to the start of the line. If 'nDelta' is 0, the current line
 														// is used if it is negative a previous line, if positive a next line is used.
 	STREAM_OFFSET (*is_tell)(INPUT_STREAM* pStream);	// Save an input position for later restore with is_seek
+	// Restore an input position previously marked with is_tell
 	void (*is_seek)(INPUT_STREAM* pStream, STREAM_OFFSET pos);
-														// Restore an input position previously marked with is_tell
-	int (*is_peekc)(INPUT_STREAM* pStream, int nOffset);
 														// Provides the next character at offset in the input stream and leaves the stream 
 														// pointer as is. When the end of the stream is reached or nOffset exceeds 
 														// the end of the stream 0 is returned.
 														// offset may be -1 or 0 or positive. Accessing characters at negative offsets may
 														// have limitations.
+	int (*is_peekc)(INPUT_STREAM* pStream, int nOffset);
+	// Compare pszText with the current text at input stream and return 0 if equals.
 	int (*is_strncmp)(INPUT_STREAM* pStream, const char* pszText, size_t nMax);
-														// Compare pszText with the current text at input stream and return 0 if equals.
 	void (*is_destroy)(INPUT_STREAM* pStream);			// Destroy the input stream
 	void* is_data[5];									// Arbitrary stream-dependent data
 };

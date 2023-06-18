@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "xml",
+      "analyzer": "xml",
       "navigation": [
         {
           "name": "html-link",
@@ -56,7 +57,7 @@
           "name": "xml.meta"
         },
         {
-          "match": "(<[a-zA-Z_0-9-]+>)\\s*=\\s*(\"[^\"]*\")",
+          "match": "(<[a-zA-Z_0-9:-]+>)\\s*=\\s*(\"[^\"]*\")",
           "name": "string.xml.propertyDefinition",
           "captures": [
             {

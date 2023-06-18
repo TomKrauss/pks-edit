@@ -202,11 +202,11 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
 	_actionList = arraylist_create(37);
-	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
-	_pszMatch = szIdent;
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
-	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_matchWord, codecomplete_analyzerCallback);
+	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
+	_pszMatch = szIdent;
+	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
 	hashmap_destroy(_suggestions, NULL);

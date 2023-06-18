@@ -113,7 +113,7 @@ static char* _scantab =
 /*
  * Can be used to add all keycode names and modifiers to a suggestion list.
  */
-void bindings_addModifiersAndKeycodes(int (*fMatch)(const char* pszString), void (*fCallback)(const char* pszString)) {
+void bindings_addModifiersAndKeycodes(void (*fCallback)(const char* pszString)) {
 	char szBuf[64];
 	for (int i = 0; i < sizeof(_modifierNames) / sizeof(_modifierNames[0]); i++) {
 		strcpy(szBuf, _modifierNames[i].mn_mame);

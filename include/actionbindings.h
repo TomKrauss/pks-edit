@@ -53,7 +53,7 @@ typedef struct tagKEY_BINDING {
 /*
  * Can be used to add all keycode names and modifiers to a suggestion list.
  */
-extern void bindings_addModifiersAndKeycodes(int (*fMatch)(const char* pszString), void (*fCallback)(const char* pszString));
+extern void bindings_addModifiersAndKeycodes(void (*fCallback)(const char* pszString));
 
 extern	char* bindings_keycodeToString(KEYCODE code);
 extern KEYCODE bindings_addModifierKeysToKeycode(KEYCODE code);
