@@ -960,7 +960,7 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
 /*
  * Delete one character at the given caret position, assuming a control type and an optional match character.
  */
-static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar) {
+static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar, BOOL bPostProcess) {
 	register	LINE* lp, * lp1 = 0;
 	FTABLE* fp = wp->fp;
 	long		ln, ln1, o2, o1;
@@ -1019,8 +1019,10 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 	} else {
 		render_repaintLine(fp, pCaret->linePointer);
 	}
-	edit_postProcessEdit(wp, pCaret, FALSE);
-	codecomplete_updateCompletionList(wp, FALSE);
+	if (bPostProcess) {
+		edit_postProcessEdit(wp, pCaret, FALSE);
+		codecomplete_updateCompletionList(wp, FALSE);
+	}
 
 	return 1;
 }
@@ -1058,15 +1060,15 @@ long long EdCharInsert(WINFO* wp, int c)
 	CARET* pCaret = &wp->caret;
 	workmode = wp->workmode;
 	BOOL bNormalChar = FALSE;
+	BOOL bPostProcess = TRUE;
 	while (pCaret) {
 		int nRet;
 		if (c == lnp->nl || c == lnp->cr || (c == 10 && lnp->nl < 0)) {
 			nRet = edit_splitLine(wp, pCaret, c == lnp->nl ? RET_SOFT : 0);
 		} else if (c == 8) {
-			nRet = edit_deleteChar(wp, pCaret, -1, 0);
-		}
-		else if (c == 127) {
-			nRet = edit_deleteChar(wp, pCaret, 1, 0);
+			nRet = edit_deleteChar(wp, pCaret, -1, 0, bPostProcess);
+		} else if (c == 127) {
+			nRet = edit_deleteChar(wp, pCaret, 1, 0, bPostProcess);
 		} else {
 			bNormalChar = TRUE;
 			if (c & 0x100) {
@@ -1107,10 +1109,11 @@ long long EdCharInsert(WINFO* wp, int c)
 		if (!nRet) {
 			return 0;
 		}
-		if (!edit_postProcessEdit(wp, pCaret, TRUE)) {
+		if (bPostProcess && !edit_postProcessEdit(wp, pCaret, TRUE)) {
 			return 0;
 		}
 		pCaret = pCaret->next;
+		bPostProcess = FALSE;
 	}
 	if (!bNormalChar) {
 		return 1;
@@ -1131,7 +1134,7 @@ long long EdCharDelete(WINFO* wp, int control) {
 	CARET* pCaret = &wp->caret;
 	caret_setMatchFunction(control, IDS_DELUNTILC, &matchc);
 	while (pCaret) {
-		if (!edit_deleteChar(wp, pCaret, control, matchc)) {
+		if (!edit_deleteChar(wp, pCaret, control, matchc, TRUE)) {
 			return 0;
 		}
 		pCaret = pCaret->next;
