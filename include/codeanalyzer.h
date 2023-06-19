@@ -19,6 +19,8 @@
 
 typedef struct tagANALYZER_CALLBACK_PARAM {
 	const char* acp_recommendation;									// The text to be displayed to the user as recommended by the code completion window
+	int			acp_score;											// A score for sorting the recommendation
+	int			acp_replacedTextLength;								// The length of the original text matched - to be potentially replaced.
 	const char* (*acp_help)(const char* pszText, void* pObject);	// Callback for determining a help text for the recommendation and the acp_object representing
 																	// the object for which a recommendation is provided (e.g. a native function or macro or the like).
 	void* acp_object;												// Describes the object for which a recommendation is provided 

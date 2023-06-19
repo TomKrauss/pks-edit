@@ -142,7 +142,7 @@ static void arraylist_ensureFits(ARRAY_LIST* pList, size_t nNewsize) {
  * Adds one element to the array list (at the end). 
  */
 void arraylist_add(ARRAY_LIST* pList, void* pElement) {
-	arraylist_ensureFits(pList, pList->li_size);
+	arraylist_ensureFits(pList, pList->li_size+1);
 	buf_t* pBuffer = pList->li_buffer;
 	(*pBuffer)[pList->li_size++] = pElement;
 }
@@ -151,7 +151,7 @@ void arraylist_add(ARRAY_LIST* pList, void* pElement) {
  * Insert one element into the array list (at a given index).
  */
 void arraylist_insertAt(ARRAY_LIST* pList, void* pElement, int nIndex) {
-	arraylist_ensureFits(pList, pList->li_size);
+	arraylist_ensureFits(pList, pList->li_size+1);
 	buf_t* pBuffer = pList->li_buffer;
 	if (nIndex >= 0 && nIndex < pList->li_size) {
 		memmove(&(*pBuffer)[nIndex + 1], &(*pBuffer)[nIndex], (pList->li_size - nIndex)*sizeof pElement);
@@ -256,8 +256,10 @@ ARRAY_ITERATOR arraylist_iterator(ARRAY_LIST* pList) {
 }
 
 /*
- * Sort the contents of an array list. 
+ * Sort the contents of an array list pList. The compare function must return a value
+ * > 0 if the p1 should be sorted before p2 and a value < 0 if p2 should be sorted before
+ * p1.
  */
 void arraylist_sort(ARRAY_LIST* pList, int (*compare)(const void* p1, const void* p2)) {
-	qsort(*pList->li_buffer, pList->li_size, sizeof(void*), compare);
+	qsort(*(pList->li_buffer), pList->li_size, sizeof(void*), compare);
 }

@@ -82,6 +82,7 @@ typedef struct tagNAVIGATION_SPEC {
 
 typedef struct tagTAG_TABLE {
 	HASHMAP* tt_map;
+	GRAMMAR* tt_grammar;
 	EDTIME tt_updated;
 	char* tt_directory;
 } TAG_TABLE;
@@ -125,6 +126,7 @@ static void xref_destroyTagTable() {
 	_allTags.tt_map = NULL;
 	free(_allTags.tt_directory);
 	_allTags.tt_directory = NULL;
+	_allTags.tt_grammar = NULL;
 }
 
 /*
@@ -445,15 +447,20 @@ static int xref_processTag(intptr_t pszText, intptr_t pszVal) {
  * process all tags defined matching the text 'pszMatching'. Return 1 if successful.
  */
 int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbCallback) {
+	FTABLE* fp = wp->fp;
+	GRAMMAR* pszGrammar = fp->documentDescriptor->grammar;
+	if (_allTags.tt_map != NULL && pszGrammar != _allTags.tt_grammar) {
+		xref_destroyTagTable();
+	}
 	if (_allTags.tt_map == NULL) {
 		TAGSOURCE* ttl;
-		FTABLE* fp = wp->fp;
-		if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
+		if ((ttl = grammar_getTagSources(pszGrammar)) == NULL) {
 			return 0;
 		}
 		while (ttl) {
 			if (strcmp(TST_TAGFILE, ttl->type) == 0) {
 				if (xref_buildTagTable(fp->fname, ttl->fn)) {
+					_allTags.tt_grammar = pszGrammar;
 					break;
 				}
 			}

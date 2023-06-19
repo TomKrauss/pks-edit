@@ -151,20 +151,19 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 /*
  * Delete the current identifier left to or under the cursor for the purpose of being replaced by a macro. 
  */
-static void template_replaceCurrentWord(WINFO* wp) {
+static void template_replaceCurrentWord(WINFO* wp, char* pszIdentifier) {
 	if (ww_hasSelection(wp)) {
 		EdBlockDelete(wp, 0);
 	} else {
-		char szIdentifier[100];
-		char* pszBegin;
-		char* pszEnd;
-		if (xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdentifier, szIdentifier + sizeof szIdentifier, &pszBegin, &pszEnd, FI_COMPLETE_WORD)) {
-			size_t o1 = pszBegin - wp->caret.linePointer->lbuf;
-			size_t o2 = o1 + pszEnd - pszBegin;
-			ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
-			wp->caret.offset = (long)o1;
-			render_repaintCurrentLine(wp);
+		size_t len = strlen(pszIdentifier);
+		if (len > wp->caret.offset) {
+			len = wp->caret.offset;
 		}
+		long o1 = wp->caret.offset - len;
+		long o2 = wp->caret.offset;
+		ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
+		wp->caret.offset = (long)o1;
+		render_repaintCurrentLine(wp);
 	}
 }
 
@@ -193,15 +192,25 @@ char* template_expandCodeTemplateFor(UCLIST* up) {
  * Insert a selected code template 'up'. 
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
+ * If 'nReplacedTextLength' > 0, it is assumed, that this is the number of characters left
+ * to the caret to be replaced.
  */
-int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord) {
+int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, BOOL bReplaceCurrentWord) {
 	char szIdentifier[100];
 	FTABLE* fp = wp->fp;
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	TEMPLATE_ACTION templateAction;
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
-	xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+	if (nReplacedTextLength > 0 && nReplacedTextLength <= wp->caret.offset) {
+		if (nReplacedTextLength > sizeof szIdentifier - 1) {
+			nReplacedTextLength = (int)sizeof szIdentifier - 1;
+		}
+		strncpy(szIdentifier, &wp->caret.linePointer->lbuf[wp->caret.offset-nReplacedTextLength], nReplacedTextLength);
+		szIdentifier[nReplacedTextLength] = 0;
+	} else {
+		xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+	}
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
 	PASTE pasteBuffer;
@@ -209,7 +218,7 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord)
 	unsigned char* pszText = stringbuf_getString(pSB);
 	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
 		if (bReplaceCurrentWord) {
-			template_replaceCurrentWord(wp);
+			template_replaceCurrentWord(wp, szIdentifier);
 		}
 		CARET oldCaret = wp->caret;
 		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
@@ -277,7 +286,7 @@ int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
-		return template_insertCodeTemplate(wp, up, FALSE);
+		return template_insertCodeTemplate(wp, up, -1, FALSE);
 	}
 	render_repaintCurrentLine(wp); 
 	return macro_executeByName(up->p.uc_macro);

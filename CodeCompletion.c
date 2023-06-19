@@ -33,6 +33,7 @@
 #include "streams.h"
 #include "htmlrendering.h"
 #include "dpisupport.h"
+#include "levensthein.h"
 
 #define GWL_HELPWINDOW_VIEWPARTS		0
 #define GWL_HELPWINDOW_PARAMS			GWL_HELPWINDOW_VIEWPARTS+sizeof(void*)
@@ -56,6 +57,8 @@ typedef struct tagCODE_ACTION {
 	const char* ca_name;
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
+	int  ca_score;
+	int  ca_replacedTextLength;		// The length of the place (left to the caret) to be replaced in a code completion.
 	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	
 									// Callback to return a help text for this action. Note that the returned string must be malloc'd and will be freed after use.
 	const char* (*ca_getHyperlinkHelp)(const char* pszLink);
@@ -108,31 +111,34 @@ static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
 static char* _pszMatch;
 
-static CODE_ACTION* codecomplete_addTagsWithAlloc(const char* pszTagName, const char* (*fHelpCB)(const char* pszCompletion, void* pParam), 
-		const char* (*fGetHelpForLinkCB)(const char* pszUrl), void* nParam, BOOL bAlloc) {
+static int codecomplete_compareScore(const CODE_ACTION** p1, const CODE_ACTION** p2) {
+	return (*p2)->ca_score - (*p1)->ca_score;
+}
+
+static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bParam, BOOL bAlloc) {
+	const char* pszTagName = bParam->acp_recommendation;
+	const char* (*fHelpCB)(const char* pszCompletion, void* pParam) = bParam->acp_help;
+	const char* (*fGetHelpForLinkCB)(const char* pszUrl) = bParam->acp_getHyperlinkText;
+	void* nParam = bParam->acp_object;
 	if (hashmap_containsKey(_suggestions, pszTagName)) {
 		return NULL;
 	}
 	unsigned char* pszCopy = bAlloc ? _strdup(pszTagName) : (unsigned char* )pszTagName;
-	CODE_ACTION* pCurrent = (CODE_ACTION*)calloc(1, sizeof * pCurrent);
-	pCurrent->ca_name = pszCopy;
-	pCurrent->ca_type = CA_TAG;
-	pCurrent->ca_param.text = pszCopy;
-	pCurrent->ca_replaceWord = TRUE;
-	pCurrent->ca_freeName = bAlloc;
-	pCurrent->ca_helpCB = fHelpCB;
-	pCurrent->ca_getHyperlinkHelp = fGetHelpForLinkCB;
-	pCurrent->ca_object = nParam;
-	hashmap_put(_suggestions, pszCopy, (intptr_t)pCurrent);
-	// TODO: we should calculate a score for sorting matches 
-	// for now we will always add completely matching suggestions at the beginning
-	// of the completion list and all other matches in some analyzer dependent order.
-	if (_pszMatch && strcmp(_pszMatch, pszCopy) == 0) {
-		arraylist_insertAt(_actionList, pCurrent, 0);
-	} else {
-		arraylist_add(_actionList, pCurrent);
-	}
-	return pCurrent;
+	CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
+	pAction->ca_name = pszCopy;
+	pAction->ca_type = CA_TAG;
+	pAction->ca_param.text = pszCopy;
+	pAction->ca_replaceWord = TRUE;
+	pAction->ca_freeName = bAlloc;
+	int nScore = bParam->acp_score;
+	pAction->ca_score = bParam->acp_score;
+	pAction->ca_replacedTextLength = bParam->acp_replacedTextLength;
+	pAction->ca_helpCB = fHelpCB;
+	pAction->ca_getHyperlinkHelp = fGetHelpForLinkCB;
+	pAction->ca_object = nParam;
+	hashmap_put(_suggestions, pszCopy, (intptr_t)pAction);
+	arraylist_add(_actionList, pAction);
+	return pAction;
 }
 
 static void codecomplete_hideWindow(HWND hwnd) {
@@ -143,22 +149,45 @@ static void codecomplete_hideWindow(HWND hwnd) {
 	}
 
 }
-static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {
-	codecomplete_addTagsWithAlloc(bParam->acp_recommendation, bParam->acp_help, bParam->acp_getHyperlinkText, bParam->acp_object, FALSE);
-}
-
-static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
-	codecomplete_addTagsWithAlloc(bParam->acp_recommendation, bParam->acp_help, bParam->acp_getHyperlinkText, bParam->acp_object, TRUE);
-}
 
 /*
- * The current identifier under the cursor. 
+ * The current identifier under the cursor.
  */
 static char szIdent[100];
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
 	return string_strcasestr(pszWord, _pszMatch) != NULL;
+}
+
+/*
+ * Calculate a score for a match during code completion. The 'pszSearch' variable contains
+ * the word to search, the 'pszFound' variable the recommendation.
+ */
+int codecomplete_calculateScore(const char* pszSearch, const char* pszFound) {
+	int lFound = (int)strlen(pszFound);
+	if (strstr(pszFound, pszSearch) == pszFound) {
+		return 100 + lFound;
+	}
+	if (string_strcasestr(pszFound, pszSearch) == pszFound) {
+		return 50 + lFound;
+	}
+	long l = (long)strlen(pszSearch);
+	return 20 - levenshtein_calculate(pszSearch, l, pszFound, l, 0);
+}
+
+static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {
+	if (bParam->acp_score == 0) {
+		bParam->acp_score = codecomplete_calculateScore(szIdent, bParam->acp_recommendation);
+	}
+	codecomplete_addTagsWithAlloc(bParam, FALSE);
+}
+
+static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
+	if (bParam->acp_score == 0) {
+		bParam->acp_score = codecomplete_calculateScore(szIdent, bParam->acp_recommendation);
+	}
+	codecomplete_addTagsWithAlloc(bParam, TRUE);
 }
 
 /*
@@ -186,29 +215,31 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(wp->codecomplete_handle, GWL_PARAMS);
 	FTABLE* fp = wp->fp;
 	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
-	CODE_ACTION* pCurrent;
 
 	codecomplete_destroyActions(pCC);
 	pCC->ccp_topRow = 0;
+	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
+	_pszMatch = szIdent;
+	_actionList = arraylist_create(37);
 	while (up) {
-		if (up->action == UA_TEMPLATE) {
-			pCurrent = ll_insert(&pCC->ccp_actions, sizeof * pCC->ccp_actions);
-			pCurrent->ca_name = up->uc_pattern.pattern;
-			pCurrent->ca_type = CA_TEMPLATE;
-			pCurrent->ca_param.template = up;
-			pCurrent->ca_replaceWord = strstr(up->p.uc_template, "${word_selection}") != NULL;
+		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern)) {
+			CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
+			pAction->ca_name = up->uc_pattern.pattern;
+			pAction->ca_type = CA_TEMPLATE;
+			pAction->ca_param.template = up;
+			pAction->ca_score = 200;
+			pAction->ca_replaceWord = strstr(up->p.uc_template, "${word_selection}") != NULL;
+			arraylist_add(_actionList, pAction);
 		}
 		up = up->next;
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
-	_actionList = arraylist_create(37);
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
-	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
-	_pszMatch = szIdent;
 	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
+	arraylist_sort(_actionList, codecomplete_compareScore);
 	hashmap_destroy(_suggestions, NULL);
 	_suggestions = NULL;
 	// Process in reverse order to efficiently create linked list.
@@ -530,12 +561,12 @@ static void codecomplete_action(HWND hwnd) {
 	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)cap, nSelectedIndex);
 	if (cap) {
 		if (cap->ca_type == CA_TEMPLATE) {
-			template_insertCodeTemplate(wp, cap->ca_param.template, TRUE);
+			template_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replacedTextLength, TRUE);
 		} else {
 			UCLIST uclTemp;
 			uclTemp.action = UA_ABBREV;
 			uclTemp.p.uc_template = cap->ca_param.text;
-			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replaceWord);
+			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replacedTextLength, cap->ca_replaceWord);
 		}
 	}
 	codecomplete_hideWindow(hwnd);

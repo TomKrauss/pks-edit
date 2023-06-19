@@ -67,7 +67,8 @@ enum XML_GRAMMAR_STATES {
 /*
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
  */
-static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext, ADVANCE_TOKEN fAdvance) {
+static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext, 
+		void (*calculateSuggestion)(ANALYZER_CONTEXT* pContext, STRING_BUF* pBuf), ADVANCE_TOKEN fAdvance) {
 	FTABLE* fp = wp->fp;
 	INPUT_STREAM* pStream = streams_createLineInputStream(fp->firstl, 0);
 	STRING_BUF* pBuf = stringbuf_create(50);
@@ -79,8 +80,14 @@ static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CA
 		char* pszWord = stringbuf_getString(pBuf);
 		if (*pszWord) {
 			if (fMatch(pContext, pszWord)) {
+				int nScore = codecomplete_calculateScore(pContext->ac_token, pszWord);
+				if (calculateSuggestion != 0) {
+					calculateSuggestion(pContext, pBuf);
+				}
 				fCallback(&(ANALYZER_CALLBACK_PARAM) {
-					.acp_recommendation = pszWord
+					.acp_replacedTextLength = (int)strlen(pContext->ac_token),
+					.acp_recommendation = stringbuf_getString(pBuf),
+					.acp_score = nScore
 				});
 			}
 			stringbuf_reset(pBuf);
@@ -110,7 +117,20 @@ static int analyzer_checkWord(ANALYZER_CONTEXT* pContext, int grammarState, INPU
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
  */
 static void analyzer_extractWords(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
-	analyzer_extractTokens(wp, fMatch, fCallback, pContext, analyzer_checkWord);
+	analyzer_extractTokens(wp, fMatch, fCallback, pContext, 0, analyzer_checkWord);
+}
+
+static void analyzer_calculateXmlSuggestion(ANALYZER_CONTEXT* pContext, STRING_BUF* pToken) {
+	char entity[128];
+	strncpy(entity, stringbuf_getString(pToken), 128);
+	if (pContext->ac_type == XML_END_ENTITY || pContext->ac_type == XML_ENTITY) {
+		stringbuf_appendChar(pToken, '>');
+		if (pContext->ac_type == XML_ENTITY) {
+			stringbuf_appendString(pToken, "${cursor}</");
+			stringbuf_appendString(pToken, entity);
+			stringbuf_appendChar(pToken, '>');
+		}
+	}
 }
 
 static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT_STREAM* pStream, STRING_BUF* pToken) {
@@ -165,14 +185,6 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 			}
 			if (grammarState != XML_ENTITY && stringbuf_size(pToken) > 0) {
 				pStream->is_skip(pStream, 1);
-				char entity[128];
-				strncpy(entity, stringbuf_getString(pToken), 128);
-				stringbuf_appendChar(pToken, '>');
-				if (pContext->ac_type == XML_ENTITY) {
-					stringbuf_appendString(pToken, "</");
-					stringbuf_appendString(pToken, entity);
-					stringbuf_appendChar(pToken, '>');
-				}
 				return grammarState;
 			}
 		} else if (grammarState == XML_ATTRIBUTE) {
@@ -218,7 +230,7 @@ static void analyzer_getXmlContext(WINFO* wp, ANALYZER_CONTEXT* pContext) {
 	pContext->ac_type = XML_ATTRIBUTE;
 	while (--nPos >= 0) {
 		unsigned char c = pBuf[nPos];
-		if (c != '-' && !isident(c)) {
+		if (c != '-' && c != ':' && !isident(c)) {
 			if (c == '<') {
 				pContext->ac_type = XML_ENTITY;
 			} else if (c == '/') {
@@ -235,14 +247,14 @@ static void analyzer_getXmlContext(WINFO* wp, ANALYZER_CONTEXT* pContext) {
 		nSize = sizeof pContext->ac_token - 2;
 	}
 	strncpy(pContext->ac_token, &pBuf[nPos], nSize);
-	pContext->ac_token[nPos] = 0;
+	pContext->ac_token[nSize] = 0;
 }
 
 /*
  * Extract all entity names and attributes from an XML document.
  */
 static void analyzer_extractTagsAndAttributes(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
-	analyzer_extractTokens(wp, fMatch, fCallback, pContext, analyzer_checkXml);
+	analyzer_extractTokens(wp, fMatch, fCallback, pContext, analyzer_calculateXmlSuggestion, analyzer_checkXml);
 }
 
 static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {

@@ -176,8 +176,10 @@ extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
  * Insert a selected code template 'up'.
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
+ * If 'nReplacedTextLength' > 0, it is assumed, that this is the number of characters left
+ * to the caret to be replaced.
  */
-extern int template_insertCodeTemplate(WINFO* wp, UCLIST* up, BOOL bReplaceCurrentWord);
+extern int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, BOOL bReplaceCurrentWord);
 
 /*
  * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
