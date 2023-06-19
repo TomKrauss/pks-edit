@@ -159,8 +159,8 @@ static void template_replaceCurrentWord(WINFO* wp, char* pszIdentifier) {
 		if (len > wp->caret.offset) {
 			len = wp->caret.offset;
 		}
-		long o1 = wp->caret.offset - len;
-		long o2 = wp->caret.offset;
+		size_t o1 = wp->caret.offset - len;
+		size_t o2 = wp->caret.offset;
 		ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
 		wp->caret.offset = (long)o1;
 		render_repaintCurrentLine(wp);
