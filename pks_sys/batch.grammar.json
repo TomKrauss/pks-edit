@@ -16,13 +16,18 @@
           "name": "comment.singleLine"
         },
         {
-          "match": "^:[a-z0-9]+",
+          "match": ":[a-z0-9_]+",
           "style": "annotation",
           "name": "batch.label"
         },
         {
-          "match": "%[0-9a-zA-Z%_*]+",
+          "match": "\"[^\"]*\"",
           "style": "string",
+          "name": "batch.variable"
+        },
+        {
+          "match": "%[0-9a-zA-Z%_*]+",
+          "style": "identifier",
           "name": "batch.variable"
         },
         {
@@ -32,8 +37,13 @@
         },
         {
           "match": "@[a-z]+",
-          "style": "control",
+          "style": "annotation",
           "name": "batch.noecho"
+        },
+        {
+          "match": " /[a-zA-Z]",
+          "style": "regexp",
+          "name": "batch.option"
         },
         {
           "keywords": [
@@ -57,12 +67,14 @@
             "endswitch",
             "endwhile",
             "exit",
+            "exist",
             "for",
             "gosub",
             "goto",
             "if",
             "include",
             "next",
+            "not",
             "return",
             "set",
             "select",
@@ -76,7 +88,7 @@
           "name": "keyword.batch"
         },
         {
-          "match": "[=+<>-]+",
+          "match": "<[=+<>-]{1,2}>",
           "style": "operator",
           "name": "batch.operator"
         }
