@@ -1,15 +1,14 @@
-# PKS-Edit Release Notes
+# Changelog
 
-## 2.4.0
+All notable changes to PKS-Edit will be documented in this file.
 
-### New
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.4.0] - 2023-07-09
+
+### Added
 - Markdown rendering supports now syntax highlighting in fenced code blocks.
-
-### Changed
-- The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name
-  of the matched pattern for better compatibility with TextMate grammars.
-
-### Improved
 - Grammar files for editing yaml format were added.
 - A Grammar may define now multiple alternative language names for languages to be matched by the grammar. This is in particular
   useful when referring to a language from a fenced code block. The alternate languages are specified on the corresponding document
@@ -20,15 +19,19 @@
   free FontAwesome font) by using a suffix of `-o` - e.g. `fa-file-o` for the outline version of the file icon.
 - XML code completion was improved.
 
-### Fixes
+### Changed
+- The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name
+  of the matched pattern for better compatibility with TextMate grammars.
+
+### Fixed
 - When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this
   tab was not initially visible on HiDPI devices. This is fixed.
 - Fixed selection not being properly extended sometimes, when `Shift+PageUp` / `Shift+PageDown` is pressed.
 - A bug was fixed causing the toolbar to show a strange layout after restoring PKS-Edit from icon size.
 
-## 2.3.0
+## [2.3.0] - 2023-03-23
 
-### New
+### Added
 - The new `editing mode` __correct capitals__ allows to auto-correct lowercase / uppercase spelling as you type.
   It will automatically correct words not written in upper case at the beginning of sentences and words containing
   multiple upper case characters at the beginning (such as CApital) to be spelled correctly with respect to upper
@@ -36,8 +39,6 @@
   Of course this can be changed in the configuration.
 - The new option `Reuse running PKS-Edit instance` allows to force a single running PKS-Edit instance editing multiple
   files opened from e.g. the Windows Explorer. 
-
-### Improved
 - PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
 - PKSEDIT-15: When opening a file from the history list, which has been deleted or moved since the last PKS-Edit session,
   only a small statusbar message is being displayed rather than annoying blocking dialogs.
@@ -48,7 +49,7 @@
   now internally speeding up the performance of simple searches considerably.
 - The tag search list ui was overhauled and uses a Windows list view now.
 
-### Fixes
+### Fixed
 - A repaint bug in main frame tabs fixed causing repaint artifacts being visible after dragging the splitter.
 - causing artifacts in tab bar
 - Scrolling and line number display in hex editor mode were corrected. The caret did move outside the visible area before
@@ -69,13 +70,13 @@
   fullscreen layout, the others not). Now fullscreen mode will only maximize one tab hiding the tabstrip, if 
   only one dock is being displayed.
 
-## 2.2.0
+## [2.2.0] - 2022-06-11
 
 This release features __multi-caret__ editing and a major update of the PKSMacroC language and related tools.
 Wysiwyg rendering of markdown documents and navigating in wysiwyg windows has been improved. Printing of
 formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now supported.
 
-#### New
+#### Added
 - PKS Edit supports now __multi-caret__ editing. Multi-caret editing is started by placing additional carets
   with the mouse (`Alt+Click`) or by inserting a template which uses multi-caret input. In multi-caret mode all character inserts
   and character deletes (DEL + Backspace) are concurrently applied to multiple places in the code concurrently.
@@ -89,8 +90,6 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
   also supports scrolling through many tabs using the mousewheel.
 - PKS-Edit supports now multi-selection in the open file dialog and supports passing command line arguments containing
   wildcards to open multiple files.
-
-### Improved
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKSMacroC
 functions and macros which show the description of the respective function or macro. The code completion help window supports
@@ -152,7 +151,7 @@ simple HTML formatting including hyperlink to more documentation.
 - The format of the internal printf facility format specifiers (as being unsed in PKSMacroC macros or to format statusline and printed
   headers and footers) is now more compatible with standard C-printf-format and uses %d, %o, %x to format integer numbers (as opposed to %j, ... as before).
 
-### Fixes
+### Fixed
 - A potential buffer overflow, when defining syntax error formats (navigation patterns) with long associated compiler names has been fixed.
 - A potential crash when closing a comparison window was fixed.
 - Save actions are now really executed just before a file is saved.
@@ -176,9 +175,9 @@ simple HTML formatting including hyperlink to more documentation.
 - A potential crash when redoing a sort operation was fixed.
 - Undoing a sort operation will correctly reset the line flags.
 
-## 2.1.0
+## [2.1.0] - 2022-02-02
 
-#### New
+#### Added
 - PKS Edit does not use an out-dated MDI style user interface any more, but manages its windows now in tabs which can be attached
   to resizable docks. Docking positions are persisted and restored, when PKS Edit will be opened again. Tabs can display the full
   filename path or can be displayed in `compact mode` (see layout options), where only the filename is being displayed.
@@ -218,9 +217,7 @@ simple HTML formatting including hyperlink to more documentation.
   configuration file.
 - PKS-Edit supports now searching the word under the cursor or the current selected text on the Internet. One can configure the favorite
   search engine in the miscellaneous configuration dialog.
-
-### Improved
-  The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
+- The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
   directory.
 - The function keys display now a tooltip further explaining the action associated with the function key.
@@ -267,15 +264,15 @@ the mouse will result always in complete lines being selected.
   were edited in the corresponding dialog.
 - PKS-Edit will now save and load all action bindings from a JSON file, which can be edited rather than from the binary compiled macro file.
  
-### Fixes
+### Fixed
 - Long lines painted in a single color could have caused a crash. This is fixed.
 - Find in files used to find a match only once per line. If a search would have matched multiple positions in one line in a file only the
   1st match had been reported before.
 - The "Save All" action had been complaining about read-only files even if the file had not been changed.
 
-### 2.0.2
+### [2.0.2] - 2021-12-14
 
-#### New
+#### Added
 - PKS Edit finally supports code completion. Press Ctrl+SPACE to open the suggestion window, which will display code templates
   configured for the current grammar and/or cross references defined as tags + other suggestions.
 - For text type grammars (text and markdown) code completion includes all words found in the current text.
@@ -292,32 +289,28 @@ the mouse will result always in complete lines being selected.
   - convert line ends to Windows (\r\n) style
   - convert upper case to lower case, lower case to upper case, toggle case. The current character under the cursor is converted or - if a text selection
    exists, the selected text is converted.
-
-#### Changed
-- Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language
-  sensitive identifier (word) processing - e.g. when navigating tags or selecting words with mouse double click etc...
-
-#### Improved
 - Support for Power Shell syntax was added.
 - I18N - support of the English language. Almost all resources have been translated in this release. Function and option keys among others show
   now correctly translated English text, when English locale is selected.
 - The function keys will now display the function keys for the currently pressed modified - no explicitly "function key switching" necessary any more.
 
-### Fixes
+#### Changed
+- Character classes (for identifiers and mappings from lower case to upper case) are now defined in the grammar, which allows for language
+  sensitive identifier (word) processing - e.g. when navigating tags or selecting words with mouse double click etc...
+
+## Fixed
 - A crash in Find & Replace was fixed, which could happen, if a wrong syntax for replacement (unknown capturing group) was used.
 - A crash was fixed with redo: if no redo was available, the attempt to do a redo could result in a crash.
 - A bug was fixed in the macro compiler causing it to fail to recognize pre-defined ENUM constants (e.g. in `CaretMove(MOT_SINGLE)` the string `MOT_SINGLE` was
   not properly recognized).
 - Case ignore searches with umlauts did not work in some cases (depending on character class definitions in grammar).
 
-### 2.0.1
+### [2.0.1] - 2021-11-17
 
-#### New
+#### Added
 - The new function "Toggle Comment" allows to comment in/out the range of selected lines. The function tries to use
   single line comments (e.g. // for c++), when available in the corresponding grammar or block comments otherwise 
 - Templates support now template variables for various purpose. For details see (grammar.md).
-
-#### Improved
 - Grammar patterns support nested patterns now, which enables us to e.g. highlight nested tokens like JavaDoc tags (@param... inside block comments) or
   task tags ( TODO, FIXME inside single line comments).
 
@@ -329,9 +322,9 @@ the mouse will result always in complete lines being selected.
 - Inserting lines at the bottom of the file causing the editor to scroll as a side effect was causing repaint problems. This is fixed.
 - Editing on multiple positions in the same line could not be undone correctly. This is fixed.
 
-### 2.0.0
+### [2.0.0] - 2021-11-01
 
-#### New
+#### Added
 - PKS Edit supports now syntax highlighting based on syntax rules defined in a mylanguage.grammar.json file. Rules
   are for now limited to applying lexical analysis only. For some of the most common programming languages grammar files
   are provided (C/C++, Java, Typescript, Dart, JSON, Shell, Batch-Files)
@@ -352,7 +345,7 @@ the mouse will result always in complete lines being selected.
 - Some memory leaks were fixed, which could in particular be observed when performing complex operations on large files (like global 
   search&replace with many replacements).
 
-### 1.9.1
+### [1.9.1] - 2021-09-20
 
 #### Fixed
 
@@ -360,9 +353,9 @@ the mouse will result always in complete lines being selected.
 - "Find next" will now always skip correctly over previously matched text (and not increment simply by 1).
 - Search & replace with preserve case could lead to an exception - this is fixed.
 
-### 1.9.0
+### [1.9.0] - 2021-08-18
 
-#### New
+#### Added
 - PKS Edit can now be installed using an InnoSetup based installer.
 - Regular Expressions in PKS Edit were improved and support now in addition to the old simple UNIX 3 style regular expressions:
   - `(?:...)` non - capturing groups
@@ -384,8 +377,6 @@ the mouse will result always in complete lines being selected.
 - A new `incremental search` field was added to the toolbar area allowing to type in text to find in the current file.
 - A new option `maximumNumberOfOpenWindows` was added to allow to recycle windows, when too many windows are opened.
 - One can open multiple windows to edit one file now.
-
-#### Improved
 - Find in Files displays a folder browser now to select a path
 - Find in Files will now highlight matches, when stepping through the results.
 - Actions are now consistently enabled/disabled in the PKS Edit UI (also the virtual function keyboard etc...)
@@ -397,9 +388,9 @@ the mouse will result always in complete lines being selected.
 - Printing files: when the last line on a page was wrapped, it wrapped into the footer area rather than to the next page.
 - Scrolling with the trackthumb in long files (> 32000 lines) was fixed and should work now as expected.
 
-### 1.8.0
+### [1.8.0] - 2021-05-04
 
-#### New
+#### Added
 - Support for mousewheel scrolling added
 - Column shape selection with the mouse will now work independently of line length
 - Toolbar and menu actions are now properly enabled / disabled depending on availability
