@@ -1,11 +1,11 @@
 # PKS Edit
 
-The famous arcade times text editor from Pahlen & Krauﬂ originally released on Atari ST
+The famous arcade times text editor from Pahlen & Krau√ü originally released on Atari ST
 and now available as a 64-Bit application for Windows 7 and newer
 
-## Release Notes
+## Changelog
 
--   Here is the link to the [Release Notes](doc/release_notes.md)
+-   Here is the link to the [Changelog](doc/CHANGELOG.md)
 
 ## Features
 
