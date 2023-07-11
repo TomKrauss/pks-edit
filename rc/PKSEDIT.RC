@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "rc\pksrc.h"
+#include "pksrc.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -831,9 +831,9 @@ END
 // Cursor
 //
 
-IDC_CURSOR1             CURSOR                  "rc\\link.cur"
+IDC_CURSOR1             CURSOR                  "link.cur"
 
-IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
+IDC_CURSOR2             CURSOR                  "mini move.cur"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -843,19 +843,19 @@ IDC_CURSOR2             CURSOR                  "rc\\mini move.cur"
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-APP_ICON                ICON                    "rc\\pks.ico"
+APP_ICON                ICON                    "pks.ico"
 
-EDIT                    ICON                    "rc\\edit.ico"
+EDIT                    ICON                    "edit.ico"
 
-NEXT                    ICON                    "rc\\next.ico"
+NEXT                    ICON                    "next.ico"
 
-PREVIOUS                ICON                    "rc\\previous.ico"
+PREVIOUS                ICON                    "previous.ico"
 
-BOOKMARK                ICON                    "rc\\bookmark.ico"
+BOOKMARK                ICON                    "bookmark.ico"
 
-CROSSREFERENCE          ICON                    "rc\\crossreference.ico"
+CROSSREFERENCE          ICON                    "crossreference.ico"
 
-TEMPLATE                ICON                    "rc\\template.ico"
+TEMPLATE                ICON                    "template.ico"
 
 
 #ifdef APSTUDIO_INVOKED
@@ -866,7 +866,7 @@ TEMPLATE                ICON                    "rc\\template.ico"
 
 1 TEXTINCLUDE 
 BEGIN
-    "rc\\pksrc.h\0"
+    "pksrc.h\0"
 END
 
 2 TEXTINCLUDE 
@@ -1281,9 +1281,9 @@ END
 // Font
 //
 
-IDS_FONT_AWESOME        FONT                    "rc\\Font Awesome 6 Free-Solid-900.otf"
+IDS_FONT_AWESOME        FONT                    "Font Awesome 6 Free-Solid-900.otf"
 
-IDS_FONT_AWESOME_REGULAR FONT                    "rc\\Font Awesome 6 Free-Regular-400.otf"
+IDS_FONT_AWESOME_REGULAR FONT                    "Font Awesome 6 Free-Regular-400.otf"
 
 
 /////////////////////////////////////////////////////////////////////////////

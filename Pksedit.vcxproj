@@ -1252,7 +1252,7 @@
     <None Include="SECURITY.md" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="PKSEDIT.RC">
+    <ResourceCompile Include="rc\PKSEDIT.RC">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -1283,14 +1283,6 @@
     <Image Include="rc\template.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Xsd Include="pksedit.xsd">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </Xsd>
-  </ItemGroup>
-  <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
     <Font Include="rc\Font Awesome 6 Free-Regular-400.otf" />
@@ -1300,6 +1292,9 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="pksedit.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="mui.rcconfig.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

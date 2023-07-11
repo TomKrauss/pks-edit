@@ -664,7 +664,7 @@
     <None Include="doc\markdown_test.md" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="pksedit.rc">
+    <ResourceCompile Include="rc\PKSEDIT.RC">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -718,9 +718,6 @@
     <Image Include="doc\manual\pksedit-ui.png" />
   </ItemGroup>
   <ItemGroup>
-    <Xsd Include="pksedit.xsd" />
-  </ItemGroup>
-  <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />
     <Font Include="rc\Font Awesome 5 Free-Regular-400.otf" />
     <Font Include="rc\Font Awesome 6 Free-Regular-400.ttf" />
@@ -730,5 +727,8 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="pksedit.exe.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="mui.rcconfig.xml" />
   </ItemGroup>
 </Project>
