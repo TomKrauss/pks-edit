@@ -102,9 +102,9 @@ static BOOL bl_hasBackingFile(PASTELIST* pl) {
  * Save all named clipboards to external files. Invoked on exit.
  */
 void bl_autosavePasteBuffers() {
-	PASTELIST* pl = _plist;
 	bl_withClipboardDirDo(bl_deleteClipboardFile);
 	if (GetConfiguration()->options & O_SAVE_CLIPBOARDS_ON_EXIT) {
+		PASTELIST* pl = _plist;
 		while (pl != 0) {
 			if (bl_hasBackingFile(pl)) {
 				char szFileName[EDMAXPATHLEN];
@@ -175,14 +175,13 @@ int bl_convertTextToPasteBuffer(PASTE* bp, unsigned char* pText, unsigned char* 
  */
 unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned char *pDestinationEnd, 
 	PASTE *pPasteBuffer) {
-	unsigned char *	s;
 	unsigned char *	d = pDestination;
 	LINE *			lp;
 
 	pDestinationEnd--;
 	lp = (pPasteBuffer) ? pPasteBuffer->pln : 0;
 	while(lp) {
-		s = lp->lbuf;
+		unsigned char* s = lp->lbuf;
 		while(d < pDestinationEnd && s < &lp->lbuf[lp->len]) {
 			*d++ = *s++;
 		}
@@ -202,7 +201,6 @@ unsigned char *bl_convertPasteBufferToText(unsigned char *pDestination, unsigned
  * the clipboard if not the whole selected text is of interest or pass 0 here to get all.
  */
 int bl_getSelectedText(WINFO* wp, char* pszBuf, int nMaxLines, size_t nCapacity) {
-	PASTE* pp;
 	PASTE  pbuf;
 
 	*pszBuf = 0;
@@ -225,7 +223,7 @@ int bl_getSelectedText(WINFO* wp, char* pszBuf, int nMaxLines, size_t nCapacity)
 	}
 	int ret = bl_cutOrCopyBlock(wp, &mstart, &mend, 0, &pbuf);
 	if (ret) {
-		pp = bl_addrbyid(0, 0, PLT_CLIPBOARD);
+		PASTE* pp = bl_addrbyid(0, 0, PLT_CLIPBOARD);
 		bl_convertPasteBufferToText(pszBuf, &pszBuf[nCapacity - 2], pp);
 		return 1;
 	}
@@ -280,7 +278,6 @@ int bl_deleteBufferNamed(char* pszName) {
 void bl_destroyPasteList(BOOL bUnlinkFiles) {
 	char szFilename[EDMAXPATHLEN];
 	PASTELIST *pp = _plist;
-	PASTELIST* next;
 
 	while (pp) {
 		bl_free(&pp->pl_pasteBuffer);
@@ -288,7 +285,7 @@ void bl_destroyPasteList(BOOL bUnlinkFiles) {
 		if (bUnlinkFiles) {
 			_unlink(szFilename);
 		}
-		next = pp->pl_next;
+		PASTELIST* next = pp->pl_next;
 		free(pp);
 		pp = next;
 	}

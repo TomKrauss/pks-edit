@@ -21,163 +21,163 @@
     <ClCompile Include="macro_compiler\SCANNER.C">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StringUtil.c">
+    <ClCompile Include="src\StringUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProgressMonitor.c">
+    <ClCompile Include="src\ProgressMonitor.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AlignText.c">
+    <ClCompile Include="src\AlignText.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProgramArguments.c">
+    <ClCompile Include="src\ProgramArguments.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AsciiHexToLong.c">
+    <ClCompile Include="src\AsciiHexToLong.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColumnBlocks.c">
+    <ClCompile Include="src\ColumnBlocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Selection.c">
+    <ClCompile Include="src\Selection.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BracketMatching.c">
+    <ClCompile Include="src\BracketMatching.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Clipboard.c">
+    <ClCompile Include="src\Clipboard.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroCodeGenerator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Encryption.c">
+    <ClCompile Include="src\Encryption.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CaretMovement.c">
+    <ClCompile Include="src\CaretMovement.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CustomControls.c">
+    <ClCompile Include="src\CustomControls.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CutAndPaste.c">
+    <ClCompile Include="src\CutAndPaste.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Logging.c">
+    <ClCompile Include="src\Logging.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CompareFiles.c">
+    <ClCompile Include="src\CompareFiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditOperations.c">
+    <ClCompile Include="src\EditOperations.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ErrorDialogs.c">
+    <ClCompile Include="src\ErrorDialogs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorWindow.c">
+    <ClCompile Include="src\EditorWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExecuteProgram.c">
+    <ClCompile Include="src\ExecuteProgram.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileBufferIO.c">
+    <ClCompile Include="src\FileBufferIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileUtil.c">
+    <ClCompile Include="src\FileUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FindAndReplace.c">
+    <ClCompile Include="src\FindAndReplace.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FunctionKeyWidget.c">
+    <ClCompile Include="src\FunctionKeyWidget.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowGeometryUtil.c">
+    <ClCompile Include="src\WindowGeometryUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileSelector.c">
+    <ClCompile Include="src\FileSelector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ThemesAndStyles.c">
+    <ClCompile Include="src\ThemesAndStyles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FormatLines.c">
+    <ClCompile Include="src\FormatLines.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WalkFileTree.c">
+    <ClCompile Include="src\WalkFileTree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FunctionTable.c">
+    <ClCompile Include="src\FunctionTable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MarkFilePositions.c">
+    <ClCompile Include="src\MarkFilePositions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DisplayHelp.c">
+    <ClCompile Include="src\DisplayHelp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Session.c">
+    <ClCompile Include="src\Session.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Initialize.c">
+    <ClCompile Include="src\Initialize.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Templates.c">
+    <ClCompile Include="src\Templates.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ActionBindings.c">
+    <ClCompile Include="src\ActionBindings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\JumpLabels.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocumentModel.c">
+    <ClCompile Include="src\DocumentModel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LinkedList.c">
+    <ClCompile Include="src\LinkedList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HandleMacros.c">
+    <ClCompile Include="src\HandleMacros.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroManagement.c">
+    <ClCompile Include="src\MacroManagement.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
+    <ClCompile Include="src\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroCompiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FilePattern.c">
+    <ClCompile Include="src\FilePattern.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MarkPositions.c">
+    <ClCompile Include="src\MarkPositions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Menus.c">
+    <ClCompile Include="src\Menus.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MouseUtil.c">
+    <ClCompile Include="src\MouseUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SprintfUtil.c">
+    <ClCompile Include="src\SprintfUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenFiles.c">
+    <ClCompile Include="src\OpenFiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Settings.c">
+    <ClCompile Include="src\Settings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Win32Util.c">
+    <ClCompile Include="src\Win32Util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PrintFiles.c">
+    <ClCompile Include="src\PrintFiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\PrintBindings.c">
@@ -186,145 +186,145 @@
     <ClCompile Include="macro_compiler\MacroDecompiler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SettingsIO.c">
+    <ClCompile Include="src\SettingsIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorConfiguration.c">
+    <ClCompile Include="src\EditorConfiguration.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PaintEditorWindow.c">
+    <ClCompile Include="src\PaintEditorWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceFileIO.c">
+    <ClCompile Include="src\ResourceFileIO.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScanFiles.c">
+    <ClCompile Include="src\ScanFiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DocumentTypes.c">
+    <ClCompile Include="src\DocumentTypes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroInterpreter.c">
+    <ClCompile Include="src\MacroInterpreter.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScrollbarUtil.c">
+    <ClCompile Include="src\ScrollbarUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SortText.c">
+    <ClCompile Include="src\SortText.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SoundUtil.c">
+    <ClCompile Include="src\SoundUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StatusLine.c">
+    <ClCompile Include="src\StatusLine.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StringTokenizer.c">
+    <ClCompile Include="src\StringTokenizer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\Symbols.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrossReferenceLinks.c">
+    <ClCompile Include="src\CrossReferenceLinks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroExpressions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ToolbarWindow.c">
+    <ClCompile Include="src\ToolbarWindow.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TranslateCharacterClasses.c">
+    <ClCompile Include="src\TranslateCharacterClasses.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UndoManager.c">
+    <ClCompile Include="src\UndoManager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PublicMacroFunctions.c">
+    <ClCompile Include="src\PublicMacroFunctions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorWindowMain.c">
+    <ClCompile Include="src\EditorWindowMain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorDialogUtil.c">
+    <ClCompile Include="src\EditorDialogUtil.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EditorDocumentModel.c">
+    <ClCompile Include="src\EditorDocumentModel.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayList.c">
+    <ClCompile Include="src\ArrayList.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Actions.c">
+    <ClCompile Include="src\Actions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="JsonParser.c">
+    <ClCompile Include="src\JsonParser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Grammar.c">
+    <ClCompile Include="src\Grammar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RegularExpression.c">
+    <ClCompile Include="src\RegularExpression.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SyntaxHighlighting.c">
+    <ClCompile Include="src\SyntaxHighlighting.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HashMap.c">
+    <ClCompile Include="src\HashMap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CodeCompletion.c">
+    <ClCompile Include="src\CodeCompletion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WindowSelector.c">
+    <ClCompile Include="src\WindowSelector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CodeAnalyzer.c">
+    <ClCompile Include="src\CodeAnalyzer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MainFrame.c">
+    <ClCompile Include="src\MainFrame.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Levensthein.c">
+    <ClCompile Include="src\Levensthein.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UAHMenubar.c">
+    <ClCompile Include="src\UAHMenubar.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Darkmode.c">
+    <ClCompile Include="src\Darkmode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HexRenderer.c">
+    <ClCompile Include="src\HexRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Evaluator.c">
+    <ClCompile Include="src\Evaluator.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MarkdownRenderer.c">
+    <ClCompile Include="src\MarkdownRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DpiSupport.c">
+    <ClCompile Include="src\DpiSupport.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FontAwesome.c">
+    <ClCompile Include="src\FontAwesome.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroRecorder.c">
+    <ClCompile Include="src\MacroRecorder.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroFunctions.c">
+    <ClCompile Include="src\MacroFunctions.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroMemory.c">
+    <ClCompile Include="src\MacroMemory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MacroDebugger.c">
+    <ClCompile Include="src\MacroDebugger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroTypes.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Streams.c">
+    <ClCompile Include="src\Streams.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="macro_compiler\MacroDocumentation.c">
