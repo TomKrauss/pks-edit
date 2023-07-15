@@ -36,6 +36,7 @@
 #include "editorconfiguration.h"
 
 extern char *ft_visibleName(FTABLE *fp);
+extern char* PKS_SYS;
 
 int  _psenabled = 1;
 
@@ -501,7 +502,7 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		strcpy(pResult, GetConfiguration()->pksEditTempPath);
 		return;
 	}
-	if (strcmp("pks_sys", pVar) == 0) {
+	if (_strcmpi(PKS_SYS, pVar) == 0) {
 		strcpy(pResult, _pksSysFolder);
 		return;
 	}

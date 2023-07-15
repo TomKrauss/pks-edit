@@ -38,6 +38,8 @@ static char _found[1024];
 #define	dostat(s)	(file_exists(s) == 0)
 static struct _finddata_t _dta;
 
+extern char* PKS_SYS;
+
 /*--------------------------------------------------------------------------
  * file_exists()
  * Test the existance of a file. If it exists, return 0 otherwise -1.
@@ -205,7 +207,7 @@ EXPORT char *file_searchFileInPKSEditLocation(const char *s)
 	if (pathstat(_pksSysFolder, (char*)s)) {
 		return _found;
 	}
-	if (pathstat("PKS_SYS", (char*)s)) {
+	if (pathstat(PKS_SYS, (char*)s)) {
 		return _found;
 	}
 	return 0;

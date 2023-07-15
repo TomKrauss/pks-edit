@@ -16,7 +16,9 @@
  
 #include <windows.h> 
 #include <direct.h>
+#include "pksrc.h"
 #include "documentmodel.h"
+#include "errordialogs.h"
 #include "pathname.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
@@ -30,6 +32,8 @@
 
 extern int file_exists(char *s);
 
+// The name if the PKS_SYS variable / configuration folder etc...
+char*	PKS_SYS = "PKS_SYS";
 char	*_pksSysFolder;	// PKS_SYS directory, where the config files are located.
 static char _sysdir[EDMAXPATHLEN];
 
@@ -63,7 +67,7 @@ EXPORT BOOL init_initializeVariables(void )
 {
 	char	homeDirectory[EDMAXPATHLEN];
 	char	datadir[EDMAXPATHLEN];
-	char *	pks_sys = "PKS_SYS";
+	char *	pks_sys = PKS_SYS;
 	char *  tempFound;
 	int     tempLen;
 	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
@@ -106,6 +110,10 @@ EXPORT BOOL init_initializeVariables(void )
 	}
 	Getenv("PKS_TMP", pConfig->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
 	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
+	if (*_pksSysFolder == 0) {
+		error_showErrorById(IDS_PKS_SYS_NOT_FOUND);
+		// maybe open file selector to allow for looking up folder.
+	}
 	return TRUE;
 }
 

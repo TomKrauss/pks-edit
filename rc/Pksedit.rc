@@ -1852,6 +1852,11 @@ BEGIN
     IDS_COMMAND254          "Selektion oder Zeile nach unten schieben;Selektion- verschieben"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_PKS_SYS_NOT_FOUND   "!PKS-Edit kann das Konfigurationsverzeichnis (PKS_SYS) nicht finden und wird nicht ordnungsgem‰ﬂ funktionieren."
+END
+
 #endif    // Deutsch (Deutschland) resources
 /////////////////////////////////////////////////////////////////////////////
 

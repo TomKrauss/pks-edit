@@ -1791,6 +1791,11 @@ BEGIN
     IDS_COMMAND254          "Move selection or line down;Move Selection Down"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_PKS_SYS_NOT_FOUND   "!PKS-Edit cannot find the configuration folder (PKS_SYS) and may not function properly."
+END
+
 #endif    // Englisch (USA) resources
 /////////////////////////////////////////////////////////////////////////////
 

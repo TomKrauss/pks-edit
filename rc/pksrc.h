@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Von Microsoft Visual C++ generierte Includedatei.
-// Verwendet durch C:\source\pks-edit\PKSEDIT.RC
+// Verwendet durch Pksedit.rc
 //
 #define ID_COMPARE_BACKUP               3
 #define IDD_APP_ICON                    3
@@ -46,6 +46,7 @@
 #define IDS_TT_SORT_FIELD_SEPARATOR     205
 #define IDS_TT_SORT_FIELD_OPTIONS       206
 #define IDS_WARN_FILE_MOVED_OR_DELETED  207
+#define IDS_PKS_SYS_NOT_FOUND           208
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
 #define DLGCURSOROPTIONS                529
