@@ -1232,10 +1232,12 @@
     <None Include="rc\CLIPEMPT.ICO" />
     <None Include="rc\COPY.CUR" />
     <None Include="RC\CURSOR1.CUR" />
+    <None Include="rc\Dial2.dlg" />
     <None Include="rc\edit.ico" />
     <None Include="rc\EXEC.ICO" />
     <None Include="rc\file.ico" />
     <None Include="rc\FOLDER.ICO" />
+    <None Include="rc\Fsel.dlg" />
     <None Include="rc\HELP.ICO" />
     <None Include="RC\IDS_FONT.BIN" />
     <None Include="rc\link.cur" />
@@ -1252,7 +1254,7 @@
     <None Include="SECURITY.md" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="rc\PKSEDIT.RC">
+    <ResourceCompile Include="rc\Pksedit.rc">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

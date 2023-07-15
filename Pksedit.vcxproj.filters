@@ -662,9 +662,15 @@
     <None Include="LICENSE" />
     <None Include="SECURITY.md" />
     <None Include="doc\markdown_test.md" />
+    <None Include="rc\Dial2.dlg">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="rc\Fsel.dlg">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="rc\PKSEDIT.RC">
+    <ResourceCompile Include="rc\Pksedit.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
