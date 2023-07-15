@@ -1,6 +1,6 @@
 %{
 /*
- * PARSER.Y
+ * Parser.y
  *
  * Grammar
  *

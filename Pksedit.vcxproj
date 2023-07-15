@@ -827,7 +827,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\PARSER.C">
+    <ClCompile Include="macro_compiler\Parser.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -957,7 +957,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="macro_compiler\SCANNER.C">
+    <ClCompile Include="macro_compiler\Scanner.c">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -1223,8 +1223,8 @@
     <None Include="doc\markdown_test.md" />
     <None Include="doc\release_notes.md" />
     <None Include="LICENSE" />
-    <None Include="macro_compiler\PARSER.Y" />
-    <None Include="macro_compiler\SCANNER.L" />
+    <None Include="macro_compiler\Parser.y" />
+    <None Include="macro_compiler\Scanner.l" />
     <None Include="packages.config" />
     <None Include="PKSEDIT.DEF" />
     <None Include="pksedit.iss" />
@@ -1232,9 +1232,9 @@
     <None Include="rc\CLIPEMPT.ICO" />
     <None Include="rc\COPY.CUR" />
     <None Include="RC\CURSOR1.CUR" />
-    <None Include="rc\EDIT.ICO" />
+    <None Include="rc\edit.ico" />
     <None Include="rc\EXEC.ICO" />
-    <None Include="rc\FILE.ICO" />
+    <None Include="rc\file.ico" />
     <None Include="rc\FOLDER.ICO" />
     <None Include="rc\HELP.ICO" />
     <None Include="RC\IDS_FONT.BIN" />
@@ -1243,8 +1243,8 @@
     <None Include="RC\MANIFEST.BIN" />
     <None Include="rc\mini move.cur" />
     <None Include="rc\MOVE.CUR" />
-    <None Include="rc\PKS.ICO" />
-    <None Include="rc\PKS2.ICO" />
+    <None Include="rc\pks.ico" />
+    <None Include="rc\pks2.ico" />
     <None Include="rc\PRINT.ICO" />
     <None Include="rc\TRASH.ICO" />
     <None Include="rc\UNDO.ICO" />
@@ -1275,7 +1275,6 @@
     <Image Include="rc\bookmark.ico" />
     <Image Include="rc\clip2.ico" />
     <Image Include="rc\crossreference.ico" />
-    <Image Include="RC\ICON2.ICO" />
     <Image Include="RC\ICON3.ICO" />
     <Image Include="rc\new_icons.bmp" />
     <Image Include="rc\next.ico" />

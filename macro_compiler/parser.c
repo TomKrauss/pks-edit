@@ -70,7 +70,7 @@
 #line 1 "Parser.y"
 
 /*
- * PARSER.Y
+ * Parser.y
  *
  * Grammar
  *

@@ -18,10 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="PARSER.Y">
+    <CustomBuild Include="Parser.y">
       <Filter>Parser</Filter>
     </CustomBuild>
-    <CustomBuild Include="SCANNER.L">
+    <CustomBuild Include="Scanner.l">
       <Filter>Parser</Filter>
     </CustomBuild>
   </ItemGroup>

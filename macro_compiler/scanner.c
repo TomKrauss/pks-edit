@@ -577,7 +577,7 @@ char *yytext;
 #line 1 "scanner.l"
 #line 2 "scanner.l"
 /*
- * SCANNER.L
+ * Scanner.l
  *
  * Scanner
  *

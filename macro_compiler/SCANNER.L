@@ -1,6 +1,6 @@
 %{
 /*
- * SCANNER.L
+ * Scanner.l
  *
  * Scanner
  *

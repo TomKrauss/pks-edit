@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="macro_compiler\PARSER.C">
+    <ClCompile Include="macro_compiler\Parser.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="macro_compiler\SCANNER.C">
+    <ClCompile Include="macro_compiler\Scanner.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\StringUtil.c">
@@ -583,13 +583,13 @@
     <None Include="rc\COPY.CUR">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="rc\EDIT.ICO">
+    <None Include="rc\edit.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="rc\EXEC.ICO">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="rc\FILE.ICO">
+    <None Include="rc\file.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="rc\FOLDER.ICO">
@@ -604,10 +604,10 @@
     <None Include="rc\MOVE.CUR">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="rc\PKS.ICO">
+    <None Include="rc\pks.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="rc\PKS2.ICO">
+    <None Include="rc\pks2.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="rc\PRINT.ICO">
@@ -652,8 +652,8 @@
     <None Include="doc\manual\printing.md" />
     <None Include="doc\manual\pksprintf.md" />
     <None Include="README.md" />
-    <None Include="macro_compiler\PARSER.Y" />
-    <None Include="macro_compiler\SCANNER.L" />
+    <None Include="macro_compiler\Parser.y" />
+    <None Include="macro_compiler\Scanner.l" />
     <None Include="doc\manual\sort.md" />
     <None Include="doc\manual\navigate.md" />
     <None Include="doc\manual\using_mouse.md" />
@@ -676,9 +676,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="rc\previous.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="RC\ICON2.ICO">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="rc\bookmark.ico">
