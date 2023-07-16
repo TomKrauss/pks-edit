@@ -288,12 +288,14 @@ void error_showMessage(char* s, ...) {
  * error_showErrorById()
  * Display an error error_displayAlertDialog given a resource ID + optional arguments.
  */
-void error_showErrorById(int nId,...)
+void error_showErrorById(int nId, ...)
 {
 	va_list 	ap;
-	char 		s[256];
+	char* s;
+	char        buf[256];
 
-	if (!LoadString(ui_getResourceModule(), nId, s, sizeof s)) {
+	if ((s = dlg_getResourceString(nId)) == 0) {
+		s = buf;
 		sprintf(s, "Cannot find resource with id %d", nId);
 	}
 

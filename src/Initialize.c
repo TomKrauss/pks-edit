@@ -18,7 +18,7 @@
 #include <direct.h>
 #include "pksrc.h"
 #include "documentmodel.h"
-#include "errordialogs.h"
+#include "xdialog.h"
 #include "pathname.h"
 #include "editorconfiguration.h"
 #include "stringutil.h"
@@ -109,8 +109,8 @@ EXPORT BOOL init_initializeVariables(void )
 	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
 	if (*_pksSysFolder == 0) {
 		while(1) {
-			error_showErrorById(IDS_PKS_SYS_NOT_FOUND);
-			if (!fsel_selectFolder(hwndMain, "Select PKS_SYS", _pksSysFolder)) {
+			char *s = dlg_getResourceString(IDS_PKS_SYS_NOT_FOUND);
+			if (!fsel_selectFolder(hwndMain, s, _pksSysFolder)) {
 				return FALSE;
 			}
 			if (_checkPksSys(_pksSysFolder)) {

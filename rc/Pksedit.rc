@@ -1854,7 +1854,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_PKS_SYS_NOT_FOUND   "!PKS-Edit kann die benötigten Konfigurationsdateien (Verzeichnis PKS_SYS) nicht finden und wird nicht ordnungsgemäß funktionieren. Bitte wählen Sie den korrekten PKS_SYS Ordner aus."
+    IDS_PKS_SYS_NOT_FOUND   "PKS-Edit kann die benötigten Konfigurationsdateien (Verzeichnis PKS_SYS) nicht finden und wird nicht ordnungsgemäß funktionieren. Bitte wählen Sie den korrekten PKS_SYS Ordner aus."
 END
 
 #endif    // Deutsch (Deutschland) resources
