@@ -11,9 +11,7 @@
 *.bj
 *.sbr
 *.sdf
-PKSEDIT.APS
-pksedit.his
-/pks_sys/pksedit.his
+*.aps
 /pks_sys/pksedit.grep
 /macro_compiler/x64/
 /en-US/x64/

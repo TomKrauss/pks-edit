@@ -1793,7 +1793,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_PKS_SYS_NOT_FOUND   "!PKS-Edit cannot find the configuration folder (PKS_SYS) and may not function properly."
+    IDS_PKS_SYS_NOT_FOUND   "!PKS-Edit cannot find the configuration files (PKS_SYS folder) and will not function properly. Please locate the PKS_SYS folder."
 END
 
 #endif    // Englisch (USA) resources

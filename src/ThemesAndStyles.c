@@ -320,9 +320,9 @@ int theme_initThemes(void) {
 	if (*pszFont) {
 		strcpy(defaultTextStyle.faceName, pszFont);
 	}
-	initialized = 1;
 	memset(&themeConfiguration, 0, sizeof themeConfiguration);
 	if (json_parse("themeconfig.json", &themeConfiguration, _themeConfigurationRules)) {
+		initialized = 1;
 		THEME_DATA* pTheme = themeConfiguration.th_themes;
 		while (pTheme) {
 			theme_initSingle(pTheme);

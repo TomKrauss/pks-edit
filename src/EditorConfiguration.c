@@ -535,11 +535,11 @@ void EdOptionSet(void) {
 	tempRet = PropertySheet(&psh);
     if (tempRet == 1) {
 		theme_setCurrent(pConfig->themeName);
+		tb_updateImageList(hwndMain, NULL, 0);
 		ui_switchToLanguage(pConfig->language);
 		config_saveConfiguration(FALSE);
 		fkey_visibilitychanged();
 		mainframe_windowTitleChanged(); 
-		tb_updateImageList(hwndMain, NULL, 0);
 	}
 }
 

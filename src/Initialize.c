@@ -27,6 +27,8 @@
 #include "documenttypes.h"
 #include "pksmacro.h"
 #include "printing.h"
+#include "fileselector.h"
+#include "winterf.h"
 
 #undef DELIVER
 
@@ -104,16 +106,23 @@ EXPORT BOOL init_initializeVariables(void )
 	if (homeDirectory[0] == 0) {
 		_getcwd(homeDirectory,sizeof homeDirectory);
 	}
+	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
+	if (*_pksSysFolder == 0) {
+		while(1) {
+			error_showErrorById(IDS_PKS_SYS_NOT_FOUND);
+			if (!fsel_selectFolder(hwndMain, "Select PKS_SYS", _pksSysFolder)) {
+				return FALSE;
+			}
+			if (_checkPksSys(_pksSysFolder)) {
+				break;
+			}
+		}
+	}
 	Getenv("PKS_INCLUDE_PATH", pConfig->includePath, member_size(EDITOR_CONFIGURATION, includePath));
 	if (pConfig->includePath[0] == 0) {
 		strcpy(pConfig->includePath, "include;inc");
 	}
 	Getenv("PKS_TMP", pConfig->pksEditTempPath, member_size(EDITOR_CONFIGURATION, pksEditTempPath));
-	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
-	if (*_pksSysFolder == 0) {
-		error_showErrorById(IDS_PKS_SYS_NOT_FOUND);
-		// maybe open file selector to allow for looking up folder.
-	}
 	return TRUE;
 }
 

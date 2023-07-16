@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tab was not initially visible on HiDPI devices. This is fixed.
 - Fixed selection not being properly extended sometimes, when `Shift+PageUp` / `Shift+PageDown` is pressed.
 - A bug was fixed causing the toolbar to show a strange layout after restoring PKS-Edit from icon size.
+- A repaint bug was fixed causing a strange window layout after the toolbar icon size was changed through the 
+  settings dialog.
+- PKS-Edit detects an illegal configuration now (directory PKS_SYS and contained files not found) and aids the
+  user in fixing up the configuration.
 
 ## [2.3.0] - 2023-03-23
 
