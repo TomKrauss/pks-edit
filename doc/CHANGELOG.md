@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   settings dialog.
 - PKS-Edit detects an illegal configuration now (directory PKS_SYS and contained files not found) and aids the
   user in fixing up the configuration.
+- Backup Files are created by copying the source file rather than moving the original file to the backup location to avoid potential data loss when creating
+  new files will finally fail.
 
 ## [2.3.0] - 2023-03-23
 

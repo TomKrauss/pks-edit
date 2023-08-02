@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 #include "alloc.h"
-#include <tos.h>
+#include "tos.h"
 #include "trace.h"
 #include "trace.h"
 #include "documentmodel.h"
@@ -529,10 +529,7 @@ void ft_getBackupFilename(FTABLE* fp, char* pszResult) {
 static void createBackupFile(FTABLE* fp, char* pszBackupName) {	
 	char* name = fp->fname;
 
-	Fdelete(pszBackupName);
-	// In contrast to the POSIX rename, rename on windows also allows to move files to
-	// different file systems.
-	if (Frename(0, name, pszBackupName)) {
+	if (!CopyFile(name, pszBackupName, FALSE)) {
 		// TODO: I18N
 		error_displayAlertDialog("Cannot rename %s to create backup file %s, errno: %d", name, pszBackupName, errno);
 	}

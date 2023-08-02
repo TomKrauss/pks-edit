@@ -1202,6 +1202,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CODE_OF_CONDUCT.md" />
+    <None Include="doc\CHANGELOG.md" />
     <None Include="doc\document_types.md" />
     <None Include="doc\manual\commandline.md" />
     <None Include="doc\manual\configuration.md" />

@@ -668,6 +668,7 @@
     <None Include="rc\Fsel.dlg">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="doc\CHANGELOG.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">
