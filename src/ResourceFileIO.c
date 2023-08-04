@@ -121,7 +121,7 @@ long rsc_wrmacros(int fd,long offset, void* pMacroName)
 				total += offs;
 				int nFlush = offs;
 				offs = 0;
-				if (file_flushBuffer((int)fd, buf, (int)nFlush, offs) < 1) {
+				if (ft_flushBuffer((int)fd, buf, (int)nFlush, offs) < 1) {
 					total = -1;
 					goto done;
 				}
@@ -147,7 +147,7 @@ long rsc_wrmacros(int fd,long offset, void* pMacroName)
 		}
 	}
 	total += offs;
-	if (file_flushBuffer(fd, buf, offs, 0) < 1) {
+	if (ft_flushBuffer(fd, buf, offs, 0) < 1) {
 		return -1;
 	}
 done: 

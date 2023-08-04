@@ -523,10 +523,10 @@ void ft_getBackupFilename(FTABLE* fp, char* pszResult) {
 }
 
 /*--------------------------------------*/
-/* createBackupFile()					*/
+/* ft_createBackupFile()					*/
 /* create a Backup-File				*/
 /*--------------------------------------*/
-static void createBackupFile(FTABLE* fp, char* pszBackupName) {	
+static void ft_createBackupFile(FTABLE* fp, char* pszBackupName) {	
 	char* name = fp->fname;
 
 	if (!CopyFile(name, pszBackupName, FALSE)) {
@@ -536,12 +536,12 @@ static void createBackupFile(FTABLE* fp, char* pszBackupName) {
 }
 
 /*--------------------------------------------------------------------------
- * file_flushBuffer()
+ * ft_flushBuffer()
  * Flush a resource file buffer writing out the number of specified bytes and
  * moving the ramainder of the unflushed data to the beginning of the buffer.
  * Return -2, if the disk is full, 1 upon success and 0 for other failures.
  */
-int file_flushBuffer(int fd, char* buffer, int size, int rest)
+int ft_flushBuffer(int fd, char* buffer, int size, int rest)
 {	
 	UINT lWritten;
 	if (!size) {
@@ -587,7 +587,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long cod
 		int nNeeded = WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, NULL, 0, &cDefault, NULL);
 		char* pszDest = malloc(nNeeded);
 		WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, pszDest, nNeeded, &cDefault, NULL);
-		int nRet = file_flushBuffer(fd, pszDest, nNeeded, 0);
+		int nRet = ft_flushBuffer(fd, pszDest, nNeeded, 0);
 		free(pwszMultiByteDest);
 		free(pszDest);
 		if (rest) {
@@ -596,7 +596,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long cod
 		return nRet;
 
 	}
-	return file_flushBuffer(fd, _linebuf, size, rest);
+	return ft_flushBuffer(fd, _linebuf, size, rest);
 }
 
 /*--------------------------------------------------------------------------
@@ -651,7 +651,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		linp->backupExtension[0] &&
 	    !(fp-> flags & (F_NEWFILE | F_SAVEAS | F_APPEND | F_ISBACKUPPED))) {
 		ft_getBackupFilename(fp, backupFile);
-		createBackupFile(fp, backupFile);
+		ft_createBackupFile(fp, backupFile);
 		fp->flags |= F_ISBACKUPPED;
 	}
 
@@ -683,7 +683,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	fp->flags &= ~(F_APPEND|F_NEWFILE);
 	offset = 0;
 	if (pw[0]) {
-		file_flushBuffer(fd, _cryptMarker->m_bytes, _cryptMarker->m_size, 0);
+		ft_flushBuffer(fd, _cryptMarker->m_bytes, _cryptMarker->m_size, 0);
 	}
 	// don't save last line
 	while (lp != fp->lastl) {

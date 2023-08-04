@@ -740,6 +740,7 @@ int xref_openFile(const char *name, long line, const char* pszHint) {
 		ret = ft_openFileWithoutFileselector(name, line, &(FT_OPEN_OPTIONS) { 
 			.fo_dockName = pszHint, 
 			.fo_isNewFile = -1,
+				.fo_codePage = -1,
 			.fo_openHistory= 1}) != NULL;
 	}
 

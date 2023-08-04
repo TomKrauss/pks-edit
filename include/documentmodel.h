@@ -337,7 +337,7 @@ typedef struct tagWINDOWPLACEMENT WINDOWPLACEMENT;
  */
 typedef struct tagFT_OPEN_OPTIONS {
 	const char* fo_dockName;			// The place on the screen where the initial window is being displayed.
-	const long  fo_codePage;			// The code page to use when opening the document
+	const long  fo_codePage;			// The code page to use when opening the document. Specify -1 to have the editor "guess" the correct codepage.
 	int         fo_isNewFile;			// can be set to true, to open a window for a new file with a given name.
 	int			fo_openHistory;			// set to true, if a window is opened as part of restoring the history.
 } FT_OPEN_OPTIONS;

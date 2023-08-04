@@ -743,7 +743,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	}
 	fp->flags |= nFileCreationFlags;
 	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
-         ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, 0) == 0 || 
+         ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, -1) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
 		ft_destroy(fp);
 		return 0;

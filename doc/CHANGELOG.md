@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   user in fixing up the configuration.
 - Backup Files are created by copying the source file rather than moving the original file to the backup location to avoid potential data loss when creating
   new files will finally fail.
+- When opening a file with PKS-Edit using "Open with..." from the Windows menu, PKS-Edit did not "guess" the code page to use.
+  So opening an UTF-8-File did not work "out of the box" (while opening it using drag&drop into the editor had worked). This
+- inconsistency is fixed.
 
 ## [2.3.0] - 2023-03-23
 

@@ -71,12 +71,12 @@ extern int rsc_put(int fd, char* itemtyp, char* itemname, int replace,
 	long (*wrfunc)(int, long, void* pParam), void* pParam);
 
 /*--------------------------------------------------------------------------
- * file_flushBuffer()
+ * ft_flushBuffer()
  * Flush a resource file buffer writing out the number of specified bytes and
  * moving the ramainder of the unflushed data to the beginning of the buffer.
  * Return -2, if the disk is full, 1 upon success and 0 for other failures.
  */
-extern int file_flushBuffer(int fd, char* buffer, int size, int rest);
+extern int ft_flushBuffer(int fd, char* buffer, int size, int rest);
 
 #define	RESOURCE_H
 # endif
