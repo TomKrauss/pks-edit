@@ -7,6 +7,13 @@ and now available as a 64-Bit application for Windows 7 and newer
 
 -   Here is the link to the [Changelog](doc/CHANGELOG.md)
 
+## Releases
+
+- Installable versions of PKS-Edit can be downloaded here:
+  - [Release 2.3.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.3.0)
+  - [Release 2.2.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.2.0)
+  - [Release 2.1.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.1.0)
+
 ## Features
 
 The editor contains only some basic features compared to modern text editors such as `Ultra Edit`.
