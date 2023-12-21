@@ -551,7 +551,10 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 	printLineParam.yOffset = 0;
 	printLineParam.wp = _currentPrintScope.wp;
 
-	WINFO* wp = WIPOI(fp);
+	WINFO* wp = _currentPrintScope.wp;
+	if (wp == NULL) {
+		wp = WIPOI(fp);
+	}
 	if ((pp->options & PRTO_SYNTAX_HIGHLIGHT) == 0) {
 		_currentPrintScope.wp->dispmode &= ~SHOW_SYNTAX_HIGHLIGHT;
 	} else {
