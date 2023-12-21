@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of the matched pattern for better compatibility with TextMate grammars.
 
 ### Fixed
+- Markdown rendering of images will now load absolute image pathes as well. Also URL encoded URLs will work in Markdown code.
 - When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this
   tab was not initially visible on HiDPI devices. This is fixed.
 - Fixed selection not being properly extended sometimes, when `Shift+PageUp` / `Shift+PageDown` is pressed.

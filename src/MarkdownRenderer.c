@@ -18,10 +18,12 @@
 #include <Windows.h>
 #include <windowsx.h>
 #include <CommCtrl.h>
+#include <Shlwapi.h>
 #include <stdio.h>
 
 #include "winfo.h"
 #include "trace.h"
+#include "fileutil.h"
 #include "caretmovement.h"
 #include "customcontrols.h"
 #include "linkedlist.h"
@@ -1345,8 +1347,15 @@ static char* mdr_processUrlWithBase(const char* pszBaseURL, char* pszLink, BOOL 
 		return _strdup(szFullURL);
 	}
 	if (pszBaseURL && pszLink[0] != '#' && strstr(pszLink, "//") == 0) {
+		// Interpret as local file
+		char szLink[EDMAXPATHLEN];
+		DWORD len = sizeof szLink;
+		UrlUnescape(pszLink, szLink, &len, 0);
+		if (file_exists(szLink) == 0) {
+			return _strdup(szLink);
+		}
 		string_splitFilename(pszBaseURL, szFullURL, NULL);
-		string_concatPathAndFilename(szFullURL, szFullURL, pszLink);
+		string_concatPathAndFilename(szFullURL, szFullURL, szLink);
 		return _strdup(szFullURL);
 	}
 	return _strdup(pszLink);
