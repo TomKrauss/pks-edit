@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of the matched pattern for better compatibility with TextMate grammars.
 
 ### Fixed
+- If PKS-Edit was called from the command line passing a file name as an argument, the corresponding file could not be found,
+  if the file name specified container a "/" or a "\" character (e.g. `..\test.c`). This if fixed.
 - Printing did not use the correct print mode (markdown format / color coding / ...) of the active window, if multiple windows were opened for
   a single file.
 - Markdown rendering of images will now load absolute image pathes as well. Also URL encoded URLs will work in Markdown code.

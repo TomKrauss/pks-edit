@@ -21,6 +21,7 @@
 #include "stringutil.h"
 #include "crossreferencelinks.h"
 #include "winfo.h"
+#include "fileutil.h"
 #include "findandreplace.h"
 #include "ftw.h"
 #include "pksrc.h"
@@ -64,7 +65,7 @@ static void argument_openFiles(const char* pszDirectory, const char* pszFilespec
 	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
 		_ftw(pszDirectory, argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
 	} else {
-		if (strchr(pszFilespec, '/') == 0 && strchr(pszFilespec, '\\') == 0 && pszDirectory[0] != 0) {
+		if (file_exists(pszFilespec) != 0 && pszDirectory[0] != 0) {
 			char szDest[EDMAXPATHLEN];
 			string_concatPathAndFilename(szDest, pszDirectory, pszFilespec);
 			xref_openFile(szDest, 0L, (void*)0);
