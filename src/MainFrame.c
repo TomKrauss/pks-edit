@@ -1875,7 +1875,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		rect.bottom -= (nFkeyHeight + nStatusHeight + nToolbarHeight);
 		if (hwndRebar) {
 			ShowWindow(hwndRebar, nToolbarHeight ? SW_SHOW : SW_HIDE);
-			if (nToolbarHeight && wParam == SIZE_RESTORED) {
+			if (nToolbarHeight && (wParam == SIZE_RESTORED || wParam == SIZE_MAXIMIZED)) {
 				SendMessage(hwndRebar, message, wParam, lParam);
 			}
 		}
