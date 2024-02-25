@@ -1,0 +1,66 @@
+{
+  "grammars": [
+    {
+      "scopeName": "groovy",
+      "description": "Grammar for Groovy files",
+      "import": [ "commonc" ],
+      "patterns": [
+        {
+          "begin": "/**",
+          "end": "*/",
+          "style": "comment",
+          "patterns": [
+            {
+              "match": "@[a-zA-Z]+",
+              "style": "bold-comment",
+              "name": "javadoc.tags"
+            }
+          ],
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "'(?:'|[^'])+?'",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[A-Z_][A-Z_0-9]*>",
+          "style": "identifier",
+          "name": "constant.identifier"
+        },
+        {
+          "match": "<[A-Z_][a-zA-Z_0-9]+>",
+          "style": "classname",
+          "name": "constant.className"
+        },
+        {
+          "keywords": [
+            "true",
+            "false",
+            "id",
+            "apply",
+            "plugin",
+            "import",
+            "def",
+            "task",
+            "dependsOn",
+            "super",
+            "null"
+          ],
+          "style": "keyword",
+          "name": "keyword.gradle"
+        },
+        {
+          "match": "\\<[A-Za-z][A-Za-z0-9]*\\>",
+          "style": "italic",
+          "name": "generics.identifier"
+        },
+        {
+          "match": "<@[A-Za-z][A-Za-z0-9]*>",
+          "style": "annotation",
+          "name": "annotation.identifier"
+        }
+      ]
+    }
+  ]
+}

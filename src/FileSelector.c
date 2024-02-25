@@ -245,7 +245,7 @@ char *fsel_selectFileWithOptions(FSELINFO *fp, int nCommand, FILE_SELECT_PARAMS*
 	if (interpreter_openDialog(&_p)) {
 
 		if (fp->path[0] == 0) {	
-			lstrcpy(fp->path,_pksSysFolder);
+			lstrcpy(fp->path, ".");
 		}
 
 		if (fp->search[0] == 0) {

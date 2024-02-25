@@ -36,6 +36,20 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "gradle",
+      "description": "Gradle files (*.gradle)",
+      "grammar": "groovy",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.gradle"
+    },
+    {
+      "name": "groovy",
+      "description": "Groovy (*.groovy)",
+      "grammar": "groovy",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.groovy"
+    },
+    {
       "name": "scala",
       "description": "Scala files (*.scala)",
       "grammar": "scala",

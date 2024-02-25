@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Icons were updated to FontAwesome Version 6 introducing new icons. The outline version of an icon can now be used as well (if available in the
   free FontAwesome font) by using a suffix of `-o` - e.g. `fa-file-o` for the outline version of the file icon.
 - XML code completion was improved.
+- _Groovy_ and _Gradle_ syntax have been added.
 
 ### Changed
 - The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name
@@ -43,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When opening a file with PKS-Edit using "Open with..." from the Windows menu, PKS-Edit did not "guess" the code page to use.
   So opening an UTF-8-File did not work "out of the box" (while opening it using drag&drop into the editor had worked). This
 - inconsistency is fixed.
+- Creating new files will now default to current directory (rather than to directory `PKS_SYS`).
 
 ## [2.3.0] - 2023-03-23
 
