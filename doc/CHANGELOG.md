@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   free FontAwesome font) by using a suffix of `-o` - e.g. `fa-file-o` for the outline version of the file icon.
 - XML code completion was improved.
 - _Groovy_ and _Gradle_ syntax have been added.
+- _Sysconfig_ syntax has been added to better support hosts, protocol, network ... configuration files.
 
 ### Changed
 - The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name

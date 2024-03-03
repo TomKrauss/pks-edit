@@ -1,0 +1,29 @@
+{
+  "grammars": [
+    {
+      "scopeName": "sysconfig",
+      "patterns": [
+        {
+          "match": "#.*",
+          "style": "comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "[0-9]+/[a-z]+",
+          "style": "literal",
+          "name": "protocol.specification"
+        },
+        {
+          "match": "([0-9]{1,3}\\.?)+",
+          "style": "string",
+          "name": "ip.address"
+        },
+        {
+          "match": "[a-zA-Z0-9.-]+",
+          "style": "keyword",
+          "name": "identifier"
+        }
+      ]
+    }
+  ]
+}

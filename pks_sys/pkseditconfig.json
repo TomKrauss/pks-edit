@@ -204,6 +204,13 @@
       "filenamePatterns": "*.sh;*.ora"
     },
     {
+      "name": "system-config-files",
+      "description": "System config files (hosts, services, networks)",
+      "grammar": "sysconfig",
+      "editorConfiguration": "default",
+      "filenamePatterns": "hosts;services;networks;protocol"
+    },
+    {
       "name": "pksbinding",
       "description": "PKS Edit binding files (*binding.json)",
       "grammar": "pksbindings",
