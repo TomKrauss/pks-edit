@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "latex",
+      "description": "LaTeX Document Format",
       "highlightBrackets": [
         {
           "left": "\\\\begin\\{([a-zA-Z0-9-]+)\\}",

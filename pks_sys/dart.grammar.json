@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "dart",
-      "description": "Grammar for Dart files",
+      "description": "Dart Programming Language",
       "import": [ "commonc" ],
       "patterns": [
         {

@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "css",
+      "description": "Cascading Style Sheets",
       "patterns": [
         {
           "match": "\\.[a-zA-Z0-9-]+>",

@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "csv",
+      "description": "Comma separated Values",
       "patterns": [
         {
           "match": "([0-9-.]+)",

@@ -25,8 +25,10 @@
 #include "editorconfiguration.h"
 #include "winterf.h"
 #include "winfo.h"
+#include "grammar.h"
 #include "pksedit.h"
 #include "dial2.h"
+#include "resource.h"
 #include "pksrc.h"
 #include "pksmacro.h"
 #include "pksmacrocvm.h"
@@ -735,8 +737,9 @@ static void infoFillParams(DIALPARS *dp, WINFO *wp) {
 	wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
 	wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
 	wsprintf(dp->dp_data, "%ld", ft_countWords(fp)); dp++;
-	dp->dp_data = szCodePage;
+	dp->dp_data = szCodePage; dp++;
 	ft_getCodepageName(fp, szCodePage, sizeof szCodePage);
+	dp->dp_data = (char*) grammar_name(fp->documentDescriptor->grammar);
 }
 
 /*--------------------------------------------------------------------------
@@ -751,6 +754,7 @@ static DIALPARS infoDialListPars[] = {
 	IDD_RO5,			128,			0,
 	IDD_RO6,			128,			0,
 	IDD_RO8,			128,			0,
+	IDD_RO10,			128,			0,
 	IDD_WINDOWLIST,		0,			0,
 	IDD_WINTITLE,		0,			0,
 	0
@@ -763,7 +767,7 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 		dlg_getListboxText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			infoFillParams(infoDialListPars, *(WINFO **)pUser);
-			DoDlgInitPars(hDlg, infoDialListPars, 8);
+			DoDlgInitPars(hDlg, infoDialListPars, 9);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
 		}
@@ -798,8 +802,8 @@ static int showWindowList(int nTitleId)
      infoDialListPars[4].dp_data = nbytes;
      infoDialListPars[5].dp_data = nlines;
 	 infoDialListPars[6].dp_data = nwords;
-	 infoDialListPars[8].dp_data = &dlist;
-	infoDialListPars[9].dp_size = nTitleId;
+	 infoDialListPars[9].dp_data = &dlist;
+	infoDialListPars[10].dp_size = nTitleId;
 
 	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);

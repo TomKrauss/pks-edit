@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "scala",
-      "description": "Grammar for Scala code files",
+      "description": "Scala Programming Language",
       "import": [ "commonc" ],
       "patterns": [
         {

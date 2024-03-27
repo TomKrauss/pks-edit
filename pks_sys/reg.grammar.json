@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "reg",
-      "description": "Grammar for Registry files",
+      "description": "Windows Registry File",
       "patterns": [
         {
           "match": ";.*",

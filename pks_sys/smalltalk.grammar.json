@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "smalltalk",
-      "description": "Grammar for Smalltalk files",
+      "description": "Smalltalk Programming Language",
       "templates": [
         {
           "match": "'",

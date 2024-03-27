@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "fitnesse",
+      "description": "FitNesse Test Framework",
       "patterns": [
         {
           "begin": "'''",

@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "cpp",
-      "description":  "Grammar for C++- and C-code files",
+      "description":  "C++ and C Programming Languages",
       "import": [ "commonc" ],
       "tagSources": [
         {

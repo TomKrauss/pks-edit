@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "logfile",
+      "description": "Log Output File",
       "patterns": [
         {
           "match": "\\[[^]]+\\]",
@@ -30,7 +31,7 @@
         },
         {
           "match": "warning[: ].*",
-          "ignore-case":  true,
+          "ignore-case": true,
           "name": "logfile.warning",
           "style": "warning"
         },

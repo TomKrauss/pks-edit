@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "integrity",
+      "description": "Integrity Testing Framework",
       "highlightBrackets": [
         {
           "left": "{",

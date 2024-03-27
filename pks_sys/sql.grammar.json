@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "sql",
+      "description": "Structured Query Language",
       "highlightBrackets": [
         {
           "left": "(",

@@ -68,6 +68,7 @@
 #define IDS_MSGLINETOOLONG              88
 #define IDS_MSGNOSPCE                   89
 #define IDS_MSGABRT                     90
+#define IDD_RO10                        90
 #define IDS_MSGEXECERR                  92
 #define IDS_MSGTOOMANYMACROS            93
 #define IDS_MSGMACFORMATERR             94

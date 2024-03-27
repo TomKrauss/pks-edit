@@ -168,7 +168,15 @@ EXPORT void cust_paintButton(HDC hdc, RECT *rcp, HWND hwnd, int odItemState)
 		rcp->left++;
 		rcp->top++;
 	}
-	DrawText(hdc, szBuff, -1, rcp, DT_NOPREFIX | DT_WORDBREAK | DT_LEFT | DT_VCENTER);
+	SIZE size;
+	int nWidth = rcp->right - rcp->left;
+	int nLength = (int) strlen(szBuff);
+	GetTextExtentPoint(hdc, szBuff, nLength, &size);
+	int nFlags = DT_NOPREFIX | DT_WORDBREAK | DT_CENTER;
+	if (size.cx < nWidth) {
+		nFlags |= DT_VCENTER | DT_SINGLELINE;
+	}
+	DrawText(hdc, szBuff, nLength, rcp, nFlags);
 
 	SelectObject(hdc,hFont);
 }

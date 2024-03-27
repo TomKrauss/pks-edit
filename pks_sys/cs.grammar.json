@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "cs",
-      "description": "Grammar for C# files",
+      "description": "C# Syntax",
       "import": [ "commonc" ],
       "templates": [
         {

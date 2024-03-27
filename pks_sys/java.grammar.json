@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "java",
-      "description": "Grammar for Java code files",
+      "description": "Java Programming Language",
       "import": [ "commonc" ],
       "tagSources": [
         {

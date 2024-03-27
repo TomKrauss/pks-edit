@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "html",
+      "description": "Hypertext Markup Language",
       "wysiwygRenderer": "html",
       "navigation": [
         {

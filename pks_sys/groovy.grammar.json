@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "groovy",
-      "description": "Grammar for Groovy files",
+      "description": "Apache Groovy Programming Language",
       "import": [ "commonc" ],
       "patterns": [
         {

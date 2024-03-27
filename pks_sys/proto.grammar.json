@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "proto",
+      "description": "Protocol Buffers Interface",
       "formatter": "code",
       "increaseIndentPatterns": [
         { "pattern": "{" },

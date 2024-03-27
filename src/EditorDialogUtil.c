@@ -30,6 +30,7 @@
 
 #include "pksedit.h"
 #include "edierror.h"
+#include "resource.h"
 #include "dial2.h"
 #include "pksrc.h"
 #include "pksmacro.h"
@@ -434,6 +435,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				break;
 			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
 			case IDD_RO4: case IDD_RO5: case IDD_RO6: case IDD_RO7: case IDD_RO8:
+			case IDD_RO10:
 				SetDlgItemText(hDlg,item,(LPSTR)ip);
 				break;
 			case IDD_PATH1:

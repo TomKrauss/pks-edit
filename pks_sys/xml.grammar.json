@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "xml",
+      "description": "Extensible Markup Language",
       "analyzer": "xml",
       "navigation": [
         {

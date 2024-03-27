@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "pascal",
+      "description": "Pascal Programming Language",
       "formatter": "code",
       "increaseIndentPatterns": [
         {

@@ -141,6 +141,11 @@ extern void grammar_destroyAll();
 extern GRAMMAR* grammar_findNamed(const char* pszGrammarName);
 
 /*
+ * Returns the name of a grammar.
+ */
+extern const char* grammar_name(GRAMMAR* pGrammar);
+
+/*
  * Initialize the style translation table for a given grammar.
  */
 extern void grammar_initTokenTypeToStyleTable(GRAMMAR* pGrammar, unsigned char tokenTypeToStyleTable[MAX_TOKEN_TYPE]);

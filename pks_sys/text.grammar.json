@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "text",
+      "description": "Text File",
       "formatter": "text",
       "analyzer": "words",
       "patterns": [

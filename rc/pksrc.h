@@ -10,7 +10,9 @@
 #define IDS_FONT_AWESOME                4
 #define IDS_STRING15                    15
 #define IDS_NO_TEMPLATES_DEFINED        15
+#define IDD_RO9                         75
 #define IDD_RO6                         80
+#define IDD_RO10                        90
 #define IDD_FONTSELECT3                 94
 #define IDD_LOWOPT2                     101
 #define DLG_OPT_AUTOSAVE                110
@@ -88,7 +90,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        234
+#define _APS_NEXT_RESOURCE_VALUE        235
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101

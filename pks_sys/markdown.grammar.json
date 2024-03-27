@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "markdown",
+      "description": "Markdown Syntax",
       "wysiwygRenderer": "markdown",
       "analyzer": "words",
       "formatter": "text",

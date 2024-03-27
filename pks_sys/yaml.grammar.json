@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "yaml",
+      "description": "YAML Ain't Markup Language",
       "patterns": [
         {
           "match": "<(true|false|null)>",

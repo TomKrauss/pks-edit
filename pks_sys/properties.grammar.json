@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "properties",
+      "description": "Properties File",
       "navigation": [
         {
           "name": "html-link",

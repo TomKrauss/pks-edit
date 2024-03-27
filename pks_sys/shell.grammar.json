@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "shell",
+      "description": "Unix Shell Syntax",
       "patterns": [
         {
           "match": "#!.*",
@@ -30,8 +31,8 @@
               "name": "shell.variable"
             }
           ],
-           "style": "identifier",
-            "name": "shell.variable"
+          "style": "identifier",
+          "name": "shell.variable"
         },
         {
           "match": "`[^`]+`",

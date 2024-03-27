@@ -83,6 +83,7 @@ typedef struct tagGRAMMAR {
 	struct tagGRAMMAR* next;			// Grammars are maintained - like many things in PKS Edit - in a linked list.
 	char scopeName[32];					// Unique name of the grammar. One can associate document types with the scope name of a grammar
 										// in the document type definition.
+	char description[128];				// The description of the grammar
 	char  u2lset[32];					// wordset and u2l ("abc=xyz") 
 	char* folderStartMarker;			// regular expression to define the start of foldable regions.
 	char* folderEndMarker;				// regular expression to define the end of foldable regions.
@@ -239,6 +240,7 @@ static int grammar_doImport(GRAMMAR* pTargetGrammar, const char* pszScope) {
 
 static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_CHAR_ARRAY, "scopeName", offsetof(GRAMMAR, scopeName), sizeof(((GRAMMAR*)NULL)->scopeName)},
+	{	RT_CHAR_ARRAY, "description", offsetof(GRAMMAR, description), sizeof(((GRAMMAR*)NULL)->description)},
 	{	RT_STRING_CALLBACK, "import", 0, .r_descriptor = { .r_t_callback = grammar_doImport}},
 	{	RT_ALLOC_STRING, "folderStartMarker", offsetof(GRAMMAR, folderStartMarker)},
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
@@ -1373,4 +1375,14 @@ const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
 		return pPattern->name;
 	}
 	return 0;
+}
+
+/*
+ * Returns the name of a grammar.
+ */
+const char* grammar_name(GRAMMAR* pGrammar) {
+	if (pGrammar->description[0]) {
+		return pGrammar->description;
+	}
+	return pGrammar->scopeName;
 }

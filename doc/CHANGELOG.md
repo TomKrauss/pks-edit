@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - XML code completion was improved.
 - _Groovy_ and _Gradle_ syntax have been added.
 - _Sysconfig_ syntax has been added to better support hosts, protocol, network ... configuration files.
+- Grammar files have a more meaningful description now. The grammar description of a file is displayed now in the window list.
 
 ### Changed
 - The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name

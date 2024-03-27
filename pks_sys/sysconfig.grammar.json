@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "sysconfig",
+      "description": "System Configuration File",
       "patterns": [
         {
           "match": "#.*",

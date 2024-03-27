@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "batch",
+      "description": "DOS Batch Syntax",
       "patterns": [
         {
           "match": "^@?rem.*",

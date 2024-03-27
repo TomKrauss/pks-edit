@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "pksgrep",
+      "description": "PKS Search Result File",
       "patterns": [
         {
           "match": "~[^~]+~",

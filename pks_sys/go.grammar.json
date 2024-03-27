@@ -2,6 +2,7 @@
   "grammars": [
     {
       "scopeName": "go",
+      "description": "Go Programming Language",
       "formatter": "code",
       "increaseIndentPatterns": [
         { "pattern": "{" },
