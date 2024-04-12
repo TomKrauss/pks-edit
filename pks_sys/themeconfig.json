@@ -131,6 +131,138 @@
       ]
     },
     {
+      "name": "sky",
+      "iconColor": "#0367ed",
+      "backgroundColor": "#a0beff",
+      "changedLineColor": "#ffdd00",
+      "savedChangedLineColor": "#88ff88",
+      "undoAfterSaveChangedLineColor": "#ff8800",
+      "editorConfiguration": "default",
+      "caretLineColor": "#eeffee",
+      "compareModifiedColor": "#cfcfff",
+      "compareAddedColor": "#ffcfcf",
+      "compareDeletedColor": "#cfffcf",
+      "dialogErrorText": "#c33434",
+      "rulerBorderColor": "#e0e0e0",
+      "rulerForegroundColor": "#aaaaaa",
+      "rulerBackgroundColor": "#fafafa",
+      "mainWindowBackgroundColor": "#dedeff",
+      "dialogBackground": "#adcdef",
+      "dialogLightBackground": "#deeeff",
+      "dialogActiveTab": "#cc6600",
+      "mainframeMargin": 10,
+      "textStyles": [
+        {
+          "styleName": "wysiwyg",
+          "faceName": "Arial",
+          "size": -11
+        },
+        {
+          "styleName": "default",
+          "size": -12,
+          "foregroundColor": "#000030",
+          "weight": 400
+        },
+        {
+          "styleName": "control",
+          "foregroundColor": "#aaaaaa"
+        },
+        {
+          "styleName": "identifier",
+          "foregroundColor": "#777722"
+        },
+        {
+          "styleName": "classname",
+          "foregroundColor": "#aaaa22"
+        },
+        {
+          "styleName": "keyword",
+          "weight": 700,
+          "foregroundColor": "#AA0000"
+        },
+        {
+          "styleName": "error",
+          "weight": 700,
+          "foregroundColor": "#FF2222"
+        },
+        {
+          "styleName": "warning",
+          "weight": 700,
+          "foregroundColor": "#2222FF"
+        },
+        {
+          "styleName": "operator",
+          "weight": 700,
+          "foregroundColor": "#883333"
+        },
+        {
+          "styleName": "annotation",
+          "weight": 700,
+          "foregroundColor": "#007777"
+        },
+        {
+          "styleName": "bold",
+          "weight": 700
+        },
+        {
+          "styleName": "regexp",
+          "foregroundColor": "#AA4444",
+          "weight": 700
+        },
+        {
+          "styleName": "bold-italic",
+          "weight": 700,
+          "italic": true
+        },
+        {
+          "styleName": "italic",
+          "italic": true
+        },
+        {
+          "styleName": "code",
+          "faceName": "Consolas",
+          "weight": 700,
+          "backgroundColor": "#efefef"
+        },
+        {
+          "styleName": "highlight",
+          "backgroundColor": "#efef83"
+        },
+        {
+          "styleName": "literal",
+          "weight": 700,
+          "foregroundColor": "#770077"
+        },
+        {
+          "styleName": "hyperlink",
+          "underline": true,
+          "foregroundColor": "#0000AA"
+        },
+        {
+          "styleName": "string",
+          "foregroundColor": "#44aaaa"
+        },
+        {
+          "styleName": "sl-comment",
+          "foregroundColor": "#229922"
+        },
+        {
+          "styleName": "comment",
+          "foregroundColor": "#006600"
+        },
+        {
+          "styleName": "bold-comment",
+          "weight": 900,
+          "foregroundColor": "#006600"
+        },
+        {
+          "styleName": "task",
+          "weight": 800,
+          "foregroundColor": "#FF7777"
+        }
+      ]
+    },
+    {
       "name": "spring",
       "darkMode": 0,
       "iconColor": "#117733",
