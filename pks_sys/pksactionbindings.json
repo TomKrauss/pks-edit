@@ -413,15 +413,11 @@
       "command": "@record-macro"
     },
     {
-      "key": "Ctrl+OEM_5",
+      "key": "Ctrl+Shift+Tab",
       "command": "@select-previous-window"
     },
     {
-      "key": "Ctrl+OEM_6",
-      "command": "@goto-mark"
-    },
-    {
-      "key": "Ctrl+OEM_7",
+      "key": "Ctrl+Sift+M",
       "command": "@goto-mark"
     },
     {
