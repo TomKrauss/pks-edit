@@ -417,7 +417,7 @@
       "command": "@select-previous-window"
     },
     {
-      "key": "Ctrl+Sift+M",
+      "key": "Ctrl+Shift+M",
       "command": "@goto-mark"
     },
     {
