@@ -333,6 +333,13 @@ static JSON_MAPPING_RULE _mousebindRules[] = {
 	{	RT_END }
 };
 
+static int bindings_parseMenuIconName(LOCAL_ACTION_BINDING* pTarget, const char* pszIconName) {
+	CHAR_WITH_STYLE wIcon = faicon_codeForName(pszIconName);
+	pTarget->ab_binding.subMenu.mid_faIcon = wIcon.symbol ? wIcon.symbol : FA_ICON_QUESTION;
+	pTarget->ab_binding.subMenu.mid_faRegular = wIcon.regular;
+	return 1;
+}
+
 static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(LOCAL_ACTION_BINDING, ab_context), sizeof(((LOCAL_ACTION_BINDING*)NULL)->ab_context)},
 	{	RT_CHAR_ARRAY, "anchor", offsetof(LOCAL_ACTION_BINDING, ab_anchor), sizeof(((LOCAL_ACTION_BINDING*)NULL)->ab_anchor)},
@@ -340,6 +347,7 @@ static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_ALLOC_STRING, "label", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_label.bt_text), 0},
 	{	RT_INTEGER, "label-id", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_label.bt_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = bindings_parseContextmenuCommand}},
+	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = bindings_parseMenuIconName}},
 	{	RT_FLAG, "separator", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isSeparator), 1},
 	{	RT_FLAG, "history-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isHistoryMenu), 1},
 	{	RT_FLAG, "macro-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isMacroMenu), 1},

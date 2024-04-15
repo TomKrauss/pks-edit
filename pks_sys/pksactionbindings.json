@@ -885,15 +885,15 @@
         { "command": "@open-new-file" },
         { "command": "@open-file" },
         { "command": "@clone-window" },
-        { "command": "@quit-file" },
+        { "command": "@quit-file", "icon": "close" },
         { "command": "@save-file-and-close" },
         { "command": "@save-file" },
-        { "command": "@save-file-as" },
-        { "command": "@save-all-files" },
+        { "command": "@save-file-as", "icon": "save-as" },
+        { "command": "@save-all-files"},
         { "separator": true },
         { "command": "@read-block" },
         { "command": "@save-block" },
-        { "command": "@abandon-file" },
+        { "command": "@abandon-file", "icon": "recycling" },
         { "separator": true },
         {
           "label-id": 1909,
@@ -903,10 +903,10 @@
           ]
         },
         { "separator": true },
-        { "command": "@close-all-windows" },
-        { "command": "@close-all-but-current-window" },
+        { "command": "@close-all-windows", "icon": "done-all" },
+        { "command": "@close-all-but-current-window", "icon": "clear-all" },
         { "command": "@close-unpinned-windows" },
-        { "command": "@exit-edit" },
+        { "command": "@exit-edit", "icon": "exit-to-app" },
         { "command": "@quit-edit" },
         {
           "separator": true,
@@ -923,8 +923,8 @@
         { "command": "@redo" },
         { "command": "@re-insert" },
         { "separator": true },
+        { "command": "@copy-to-clipboard" },
         { "command": "@delete-block" },
-        { "command": "@cut-block" },
         { "command": "@paste-clipboard" },
         { "command": "@erase-block" },
         { "command": "@copy-block" },
@@ -937,6 +937,10 @@
         { "separator": true },
         { "command": "@mark-block-start" },
         { "command": "@mark-block-end" },
+        {
+          "command": "@mark-all",
+          "icon": "select-all"
+        },
         { "command": "@hide-block-marks" }
       ]
     },
@@ -956,7 +960,7 @@
         { "separator": true },
         { "command": "@set-mark" },
         { "command": "@goto-mark" },
-        { "command": "@goto-line" },
+        { "command": "@goto-line", "icon": "numbers-sharp" },
         { "command": "@find-block-start" },
         { "command": "@find-block-end" },
         { "command": "@goto-last-insertion-pos" },
@@ -1104,6 +1108,10 @@
     },
     { "separator": true },
     {
+      "command": "@copy-to-clipboard",
+      "icon": "fa-clipboard-o"
+    },
+    {
       "command": "@erase-block",
       "icon": "fa-trash-can-o"
     },
@@ -1113,7 +1121,7 @@
     },
     {
       "command": "@paste-clipboard",
-      "icon": "fa-clipboard-o"
+      "icon": "fa-clipboard"
     },
     { "separator": true },
     {

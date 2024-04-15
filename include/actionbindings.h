@@ -78,6 +78,8 @@ typedef struct tagMENU_ITEM_DEFINITION {
 	struct tagMENU_ITEM_DEFINITION* mid_children;	// for sub-menus, this is the list of child menu items.
 	HMENU		mid_menuHandle;						// For sub-menus, this is the menu handle of menu item, after it had been created.
 	BOUND_TEXT	mid_label;							// The label to display for the menu. If no label is specified, a default for the defined command is used.
+	wchar_t		mid_faIcon;							// Font awesome icon code for this menu item
+	int			mid_faRegular;						// Use FontAwesome regular font?
 	BOOL		mid_isSeparator;					// true for separator menus. Separator menus do not need a label
 	BOOL		mid_isHistoryMenu;					// true for "history" menus. Will be replaced during runtime by a list of recently opened files.
 	BOOL		mid_isMacroMenu;					// true for "macro" menus. Will be replaced during runtime by a list of global macro function bindings.
