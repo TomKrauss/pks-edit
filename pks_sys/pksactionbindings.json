@@ -173,7 +173,7 @@
       "command": "@delete-named-buffers"
     },
     {
-      "key": "Shift+F9",
+      "key": "Ctrl+F5",
       "command": "@abandon-file"
     },
     {
@@ -302,6 +302,10 @@
     },
     {
       "key": "Ctrl+N",
+      "command": "@open-new-file"
+    },
+    {
+      "key": "Shift+Ctrl+N",
       "command": "@errorlist-next"
     },
     {
@@ -309,7 +313,7 @@
       "command": "@open-file"
     },
     {
-      "key": "Ctrl+P",
+      "key": "Shift+Ctrl+P",
       "command": "@errorlist-previous"
     },
     {
@@ -385,7 +389,7 @@
       "command": "@find-block-end"
     },
     {
-      "key": "Ctrl+F5",
+      "key": "Shift+F9",
       "command": "@search-on-internet"
     },
     {
@@ -479,10 +483,6 @@
     {
       "key": "Ctrl+Shift+X",
       "command": "@cut-to-named-buffer"
-    },
-    {
-      "key": "Alt+BACK",
-      "command": "@undo"
     },
     {
       "key": "Alt+RETURN",
@@ -583,10 +583,6 @@
     {
       "key": "Alt+T",
       "command": "@save-block"
-    },
-    {
-      "key": "Alt+U",
-      "command": "@undo"
     },
     {
       "key": "Alt+W",
