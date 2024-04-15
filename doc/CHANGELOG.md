@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name
   of the matched pattern for better compatibility with TextMate grammars.
+- Various commands have been renamed to enforce a better and more common vocabular. Instead of using `block` to refer to
+  the current selection we use `selection` now for instance.
 
 ### Fixed
 - Wrong toolbar size after maximizing / restoring top level window of PKS-Edit was fixed.

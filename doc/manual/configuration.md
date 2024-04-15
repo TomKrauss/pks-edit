@@ -166,7 +166,7 @@ with a label of "Find" and two sub-menu items to find a string and to replace a 
   "context-menu": [
     {
 	  "label": "Select all",
-      "command": "@mark-all"
+      "command": "@select-all"
     },
 	{ "label": "Find",
 	  "sub-menu": [
@@ -200,7 +200,7 @@ internally wherever appropriate). Toolbar labels can be defined similar to menu 
   "toolbar": [
     {
 	  "icon": "fa-heart",
-      "command": "@mark-all"
+      "command": "@select-all"
     },
 	{ "icon": "fa-search",
 	  "command": "@find-string" 
