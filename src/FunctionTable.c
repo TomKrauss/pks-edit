@@ -433,7 +433,7 @@ CMD_KEYCODE_INSERT, C_0FUNC, 16 /* EdKeycodeInsert */, 		1, 0 , "keycode-insert"
 117, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, 6 , "select-window-6",
 118, C_1FUNC, 65 /* ft_selectWindowWithId */, 						1, -1 , "select-previous-window",
 119, C_1FUNC, 125 /* windowselector_showWindowList */, 		1, 0, "cycle-window",
-120, C_1FUNC, 73 /* edit_convertCharacterCase */, 			1, CC_TOGGLE, "char-up-low",
+120, C_1FUNC, 73 /* edit_convertCharacterCase */, 			1, CC_TOGGLE, "char-toggle-upper-lower",
 121, C_1FUNC, 70 /* EdLinesShift */,   						1, -1 , "shift-line-left",
 122, C_1FUNC, 70 /* EdLinesShift */,   						1, 1 , "shift-line-right",
 123, C_0FUNC, 50 /* EdReplaceAgain */, 						1, 0 , "replace-again",

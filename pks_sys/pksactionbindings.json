@@ -462,7 +462,7 @@
     },
     {
       "key": "Ctrl+Shift+U",
-      "command": "@char-up-low"
+      "command": "@char-toggle-upper-lower"
     },
     {
       "key": "Ctrl+Shift+V",
@@ -618,7 +618,7 @@
     },
     {
       "key": "Alt+F12",
-      "command": "@char-up-low"
+      "command": "@char-to-upper"
     },
     {
       "key": "Alt+OEM_PERIOD",
@@ -997,7 +997,7 @@
             { "command": "@expand-tabs" },
             { "command": "@char-to-lower" },
             { "command": "@char-to-upper" },
-            { "command": "@char-up-low" },
+            { "command": "@char-toggle-upper-lower" },
             { "command": "@use-linux-lineends" },
             { "command": "@use-windows-lineends" }
           ]
