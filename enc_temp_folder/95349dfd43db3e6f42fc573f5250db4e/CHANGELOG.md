@@ -21,8 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - _Groovy_ and _Gradle_ syntax have been added.
 - _Sysconfig_ syntax has been added to better support hosts, protocol, network ... configuration files.
 - Grammar files have a more meaningful description now. The grammar description of a file is displayed now in the window list.
-- New option `Silently reload files changed externally`, which will avoid the confirmation dialog being displayed before
-  reloading a file changed externally (but of course not in state modified).
 
 ### Changed
 - The "captures" syntax in the syntax highlighting grammar was changed to use "name" instead of "pattern" as a name

@@ -721,7 +721,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,169,231,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 249, 220
+DLG_OPT_MISC DIALOGEX 0, 0, 249, 251
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Verschiedenes"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -734,18 +734,20 @@ BEGIN
     CONTROL         "Formulare nahe Mauszeiger öffnen",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,204,12
     LTEXT           "&Maximale Anzahl Fenster:",-1,12,46,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,139,46,77,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Theme:",-1,12,129,84,12,NOT WS_GROUP
-    LTEXT           "&Anwendungssprache:",-1,12,146,84,12,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST1,139,143,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDD_STRINGLIST2,139,126,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",IDD_EXPLANATION,12,158,205,18,NOT WS_GROUP
+    LTEXT           "&Theme:",-1,12,149,84,12,NOT WS_GROUP
+    LTEXT           "&Anwendungssprache:",-1,12,168,84,12,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST1,139,165,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDD_STRINGLIST2,139,148,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Zur Aktivierung der ausgewählten Sprache muss PKS Edit neu gestartet werden.",IDD_EXPLANATION,12,180,205,18,NOT WS_GROUP
     CONTROL         "Dateien beim Editieren locken",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,96,204,12
-    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,178,77,14,NOT WS_TABSTOP
-    LTEXT           "Standardte&xtfont:",-1,12,179,84,11,NOT WS_GROUP
-    LTEXT           "Verwendete Suchmaschine:",-1,12,197,103,11,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST3,139,196,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Font auswählen...",IDD_FONTSELECT,139,200,77,14,NOT WS_TABSTOP
+    LTEXT           "Standardte&xtfont:",-1,12,201,84,11,NOT WS_GROUP
+    LTEXT           "Verwendete Suchmaschine:",-1,12,219,103,11,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST3,139,218,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Laufende Instanz von PKS-Edit wieder verwenden",IDD_OPT5,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,110,204,12
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,132,204,12
+    CONTROL         "Geänderte Dateien automatisch neu laden",IDD_OPT18,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,114,204,12
 END
 
 DLG_OPT_LAYOUT DIALOGEX 69, 15, 279, 110
@@ -1042,7 +1044,7 @@ BEGIN
     DLG_OPT_MISC, DIALOG
     BEGIN
         RIGHTMARGIN, 241
-        BOTTOMMARGIN, 217
+        BOTTOMMARGIN, 248
     END
 
     DLG_OPT_LAYOUT, DIALOG

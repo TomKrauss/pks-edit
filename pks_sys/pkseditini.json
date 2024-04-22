@@ -12,6 +12,7 @@
         "reuse-application-running-instance": true,
         "save-settings-on-exit": true,
         "show-error-toast": true,
+        "silently-reload-changed-files": true,
         "undo-enabled": true,
         "compact-editor-tabs": true,
         "show-function-keys": true,

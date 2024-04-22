@@ -100,7 +100,6 @@
 #define IDS_MSGNOMOREDIFFS              116
 #define IDM_ABOUT                       116
 #define IDS_MSGDIFFTWOWINDOWS           117
-#define IDD_OPT18                       117
 #define IDS_MSGCLIPNOTCOMPLETE          118
 #define IDS_MSGESCAPEUNDEF              119
 #define IDS_MSGMACROIDTOOLONG           120

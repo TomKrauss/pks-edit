@@ -1,5 +1,6 @@
 #define IDD_OPT16	115
 #define IDD_OPT17	116
+#define IDD_OPT18	117
 #define IDD_FONTSELECT2	93
 #define IDD_3S1 			80
 #define IDD_3S2 			81

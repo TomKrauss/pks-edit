@@ -181,7 +181,9 @@ void ft_checkForChangedFiles(BOOL bActive) {
 						continue;
 					}
 					ww_selectWindow(wp);
-					if (error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
+					BOOL bSilentReload = GetConfiguration()->options & O_SILENTLY_RELOAD_CHANGED_FILES;
+					if ((bSilentReload && !ft_isFileModified(fp)) ||
+						error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
 						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
 						// may make the list of files invalid.
 						bAbandoned = TRUE;

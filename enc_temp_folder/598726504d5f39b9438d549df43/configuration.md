@@ -32,7 +32,7 @@ PKS-Edit supports two _autosave_ modes: it may either save the files directly au
   restore these files, when it is restarted.
 - `Save macros on exit` - when checked all recorded or compiled [macros](macro_language.md) are saved automatically to the compiled macro file (`pksedit.mac`).
 - `Place backup files in temporary directory` - if this option is set, a copy of a modified file is written to the temporary PKS-EDIT directory.
-- `Save/restore named clipboards` - if this option is set, all text copied to a named clipboard will be made persistent in the temporary directory and restored when PKS-Edit starts so named clipboards are preserved through editing sessions.
+- `ave/restore named clipboards` - if this option is set, all text copied to a named clipboard will be made persistent in the temporary directory and restored when PKS-Edit starts so named clipboards are preserved through editing sessions.
 - `Provide clipboard history` - will maintain a list of recently used clipboard contents automatically.
 - `Autosave files to temporary directory or file` - when set, copies of files are saved during autosave (to a temporary directory), when unset, changed files are automatically saved directly.
 
@@ -60,7 +60,7 @@ Layout Options configure the general UI of PKS-Edit
 
 - `Undo available` - should be set by default to allow for undo and redo of actions.
 - `Number of undo steps` - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
-- `Silently reload files changed externally` - if set, externally changed files are silently reloaded (unless modified) by PKS EDIT without popping up 
+- `Reload changed files silently` - if set, externally changed files are silently reloaded (unless modified) by PKS EDIT without popping up 
    a confirmation dialog.
 - `Hide selection on caret movement` - when the caret is moved and text is selected, the selection "goes away", if this option is set.
 - `Open dialogs close to mouse pointer` - when opening a dialog (e.g. Find or Replace), the dialog opens close to the current mouse position, when this option is set.

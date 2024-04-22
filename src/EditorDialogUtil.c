@@ -653,6 +653,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_OPT15:
 		case IDD_OPT16:
 		case IDD_OPT17:
+		case IDD_OPT18:
 			ip = (int*)dp->dp_data;
 			buttonChecked = IsDlgButtonChecked(hDlg, dp->dp_item);
 			*ip = buttonChecked ?
