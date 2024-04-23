@@ -1,7 +1,7 @@
 /*
  * FileUtil.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: find, open, create Files
  *

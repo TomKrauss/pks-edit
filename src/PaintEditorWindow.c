@@ -1,7 +1,7 @@
 /*
  * PaintEditorWindow.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: paint edit (work-)windows
  *

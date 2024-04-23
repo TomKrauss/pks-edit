@@ -1,7 +1,7 @@
 /*
  * MacroDebugger.c
  *
- * PKS-EDIT PKS-MacroC debugger
+ * PKS-Edit PKS-MacroC debugger
  *
  * PROJECT: PKSEDIT
  *

@@ -1,7 +1,7 @@
 /*
  * pksmacro.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: macro language related definitions.
  *

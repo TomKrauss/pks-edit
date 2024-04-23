@@ -1,5 +1,5 @@
 /*
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * Menus.c
  *
@@ -291,7 +291,7 @@ HMENU menu_createMenubar() {
 }
 
 /*
- * Selects the action context for the main menu of PKS-Edit (e.g. when the currently focussed editor window changes).
+ * Selects the action context for the main menu of PKS Edit (e.g. when the currently focussed editor window changes).
  */
 void menu_selectActionContext(const char* pszContext) {
 	// TODO....

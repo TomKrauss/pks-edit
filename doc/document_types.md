@@ -1,4 +1,4 @@
-The document types of PKS-Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
+The document types of PKS Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
 
 A document type is selected by one or more file name patterns (e.g. \*.cpp or \*.cpp;\*.c). Note, that _more specific_ file name patterns are matched first (\*.c matches in preference over \*.\*).
 Each document type may be associated with an editor configuration (also by name) defining things like the standard display mode or tabstops, [insertion options](editing_files.md#editing-text) and

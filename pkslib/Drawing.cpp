@@ -1,7 +1,7 @@
 /*
  * Drawing.cpp
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: perform some GDI operations for nicer rendering.
  *

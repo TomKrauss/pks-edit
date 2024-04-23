@@ -1,7 +1,7 @@
 
 # Printing
 
-PKS-Edit can be used to print files. Currently printing is always performed in Ascii mode. For files supporting other 
+PKS Edit can be used to print files. Currently printing is always performed in Ascii mode. For files supporting other 
 rendering modes (hex editor mode or wysiwyg mode rendering in markdown files), the special rendering modes will currently
 **not be used** during printing.
 
@@ -26,5 +26,5 @@ is defined in the template.
 - `font`: one may select a special font to be used for the header / footer.
 - `decoration`: one may define, whether the header/footer is separated from the body of the printout using a selectable decoration.
 
-**Note**: in order to make the print settings persistent (so they are used the next time, you startup PKS-Edit automatically), you must press
+**Note**: in order to make the print settings persistent (so they are used the next time, you startup PKS Edit automatically), you must press
 the `Save Settings` button.

@@ -1,6 +1,6 @@
 # Document Types
 
-The document types of PKS-Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
+The document types of PKS Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
 
 A document type is selected by one or more file name patterns (e.g. \*.cpp or \*.cpp;\*.c). Note, that _more specific_ file name patterns are matched first (\*.c matches in preference over \*.\*).
 Each document type may be associated with an editor configuration (also by name) defining things like the standard display mode or tabstops, [insertion options](editing_files.md#editing-text) and
@@ -56,8 +56,8 @@ The following example defines an editor configuration `default`, which defines s
 Here is a description of some of the defined properties of an `editor configuration`.
 
 - `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == ISO8859-1 or 
-   65001 == UTF-8) or -1 to have PKS-Edit "guess" the character encoding.
-- `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS-Edit action binding (keyboard binding, mouse binding
+   65001 == UTF-8) or -1 to have PKS Edit "guess" the character encoding.
+- `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS Edit action binding (keyboard binding, mouse binding
   menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
   is assumed.
 - `shiftWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
@@ -97,8 +97,8 @@ Here is an example of a document type descriptor for C and C++ files, which asso
 ```
 
 The following properties describe a document type:
-- `name` a descriptive name used as a reference e.g. in the UI of PKS-Edit
-- `description` documents the purpose of the document type and is also displayed in the file-selector of PKS-Edit to help selecting documents
+- `name` a descriptive name used as a reference e.g. in the UI of PKS Edit
+- `description` documents the purpose of the document type and is also displayed in the file-selector of PKS Edit to help selecting documents
   of the given type.
 - `grammar` will be matched with a **grammar file** named `$grammar.grammar.json`, which describes the [grammar](grammar.md) of the documents
   of the given type. Is also used as the primary `language` name of the programming language of the given documents.

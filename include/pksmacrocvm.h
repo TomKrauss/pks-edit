@@ -336,7 +336,7 @@ typedef enum {
 extern int interpreter_getParameterSize(unsigned char typ, const char* s);
 
 /*
- * Generic coercion function to coerce PKS-Edit values.
+ * Generic coercion function to coerce PKS Edit values.
  */
 extern PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType);
 

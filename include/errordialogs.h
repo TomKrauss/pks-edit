@@ -1,7 +1,7 @@
 /*
  * ErrorDialogs.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: error error_displayAlertDialog message boxes and other
  * type of user notification in case of errors.

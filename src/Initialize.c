@@ -1,7 +1,7 @@
 /*
  * Initialize.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: Initializations
  *
@@ -54,7 +54,7 @@ static void Getenv(char *name,char *d,int maxlen)
 }
 
 /*
- * Check whether the passed path is a valid PKS_SYS directory containing in particular the PKS-EDIT configuration file. 
+ * Check whether the passed path is a valid PKS_SYS directory containing in particular the PKS Edit configuration file. 
  */
 static BOOL _checkPksSys(char* pathName) {
 	char initFileName[1024];

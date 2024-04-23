@@ -1,7 +1,7 @@
 /*
  * MacroInterpreter.c
  *
- * PKS-EDIT interpreter engine
+ * PKS Edit interpreter engine
  *
  * PROJECT: PKSEDIT
  *

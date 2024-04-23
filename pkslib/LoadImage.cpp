@@ -1,7 +1,7 @@
 /*
  * LoadImageFormat.cpp
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: loading images in various formats.
  *

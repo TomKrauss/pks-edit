@@ -1,7 +1,7 @@
 /*
  * HexRenderer.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: edit files in hex modus
  *

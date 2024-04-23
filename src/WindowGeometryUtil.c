@@ -1,7 +1,7 @@
 /*
  * WindowGeometryUtil.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: utilities for window coordinate caluclation.
  *

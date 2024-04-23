@@ -1,7 +1,7 @@
 /*
  * MacroMemory.c
  *
- * PKS-EDIT interpreter engine simple memory management module
+ * PKS Edit interpreter engine simple memory management module
  *
  * PROJECT: PKSEDIT
  *

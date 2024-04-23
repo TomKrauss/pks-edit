@@ -1,7 +1,7 @@
 /*
  * codecompletion.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: showing code completion and suggestion windows.
  *

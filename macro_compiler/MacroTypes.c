@@ -111,7 +111,7 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		free((char*)pDescriptor->ptd_documentation);
 		pDescriptor->ptd_documentation = 0;
 		if (t <= VT_EDITOR_HANDLE) {
-			// For default PKS-Edit types - ensure proper properties.
+			// For default PKS Edit types - ensure proper properties.
 			pTemplate->ptd_isValueType = pDescriptor->ptd_isValueType;
 			pTemplate->ptd_hasDefaultValue = pDescriptor->ptd_hasDefaultValue;
 			pTemplate->ptd_hasDynamicSize = pDescriptor->ptd_hasDynamicSize;

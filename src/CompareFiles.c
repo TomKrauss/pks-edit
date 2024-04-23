@@ -1,7 +1,7 @@
 /*
  * CompareFiles.c
  *
- * PROJEKT: PKS-EDIT for MS-WINDOWS
+ * Project: PKS Edit for MS-WINDOWS
  *
  * purpose: sort_compareRecords the lines of two windows
  * 		  diffs are marked in both windows, last equal line is positioned

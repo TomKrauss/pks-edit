@@ -1,7 +1,7 @@
 /*
  * XDIALOG.H
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: extended dialog functions
  *

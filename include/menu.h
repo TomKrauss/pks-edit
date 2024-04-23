@@ -1,9 +1,9 @@
 /*
  * menu.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * purpose: menu and context menu handling in PKS-Edit
+ * purpose: menu and context menu handling in PKS Edit
  *
  * 										created: 15.03.91
  * 										last modified:
@@ -34,7 +34,7 @@ extern long long menu_openContextMenu();
 extern POINT menu_getContextMenuPopupPosition();
 
 /*
- * Selects the action context for the main menu of PKS-Edit (e.g. when the currently focussed editor window changes).
+ * Selects the action context for the main menu of PKS Edit (e.g. when the currently focussed editor window changes).
  */
 extern void menu_selectActionContext(const char* pszContext);
 

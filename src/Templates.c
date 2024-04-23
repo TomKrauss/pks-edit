@@ -1,7 +1,7 @@
 /*
  * Templates.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: define, evaluate and insert templates into a document.
  *

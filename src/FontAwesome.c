@@ -1,9 +1,9 @@
 /*x
  * FontAwesome.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * purpose: simplify usage of FontAwesome icons in PKS-Edit.
+ * purpose: simplify usage of FontAwesome icons in PKS Edit.
  *
  * 										created:
  * 										last modified:

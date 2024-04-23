@@ -1,7 +1,7 @@
 /*
  * edexec.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: Options for executing external commands.
  *
@@ -18,7 +18,7 @@
 
 /*
  * Options/flags for executing an external process
- * from within PKS-Edit
+ * from within PKS Edit
  */
 typedef enum {
 EX_RDIN = 0x1,

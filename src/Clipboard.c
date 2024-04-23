@@ -1,7 +1,7 @@
 /*
  * Clipboard.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: handle the standard clipboard
  *
@@ -123,7 +123,7 @@ EXPORT int clp_setdata(char* whichBuffer)
 
 /*------------------------------------------------------------
  * clp_getdata()
- * get contents of the clipboard for PKS-EDIT
+ * get contents of the clipboard for PKS EDIT
  */
 EXPORT int clp_getdata(void)
 {	HANDLE 	hClip;

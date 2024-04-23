@@ -80,7 +80,7 @@ extern void function_destroyRegisteredNative(NATIVE_FUNCTION* pFunc);
 
 /*
  * Register a macro C function given the name with which it should be visible in PKSMacroC, the windows proc name, the optional
- * module (if null it is loaded from PKS-Edit), the signature description and an optional help text.
+ * module (if null it is loaded from PKS Edit), the signature description and an optional help text.
  */
 extern int function_registerNativeFunction(const char* pszMacroCName, const char* pszFunctionName,
 		const char* pszModule, const char* pszSignature, const char* pszDescription, const char* pszParameters);

@@ -1,7 +1,7 @@
 /*
  * MarkPositions.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: setting marks 'a-....
  *

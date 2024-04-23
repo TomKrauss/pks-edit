@@ -1,7 +1,7 @@
 /*
  * AsciiHexToLong.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * Ascii hex to long conversion.
  *

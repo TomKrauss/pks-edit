@@ -1,9 +1,9 @@
 /*
  * Streams.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
- * purpose: Streams abstraction of an input source for the various parsers inside PKS-Edit.
+ * purpose: Streams abstraction of an input source for the various parsers inside PKS Edit.
  *
  * 										created:
  * 										last modified:

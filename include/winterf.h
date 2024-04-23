@@ -15,7 +15,7 @@
 #define ENUMFUNC   	BOOL FPE_FUNC
 #define DLGFUNC   	BOOL FPE_FUNC
 
-/* PKS-EDIT private messages */
+/* PKS Edit private messages */
 #define	WM_EDWINREORG		WM_USER + 101	/* reorganize edit window */
 #define	WM_PKSKEY			WM_USER + 102	/* private key binding */
 #define	WM_PKSKEYDOWN		WM_USER + 103	/* private key down */

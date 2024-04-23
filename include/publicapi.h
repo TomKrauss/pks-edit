@@ -1,7 +1,7 @@
 /*
  * publicapi.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose:
  * defines all macro callable editor API functions.
@@ -96,7 +96,7 @@ typedef enum {
 } RECORD_MACRO_OPTION;
 
 /*
- * Option to be used to query various internal states of PKS-Edit
+ * Option to be used to query various internal states of PKS Edit
  * from within PKSMacroC.
  */
 typedef enum {

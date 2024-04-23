@@ -1,7 +1,7 @@
 /*
  * editorfont.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS 10
+ * Project: PKS Edit for Windows
  *
  * purpose: text style definitions.
  *

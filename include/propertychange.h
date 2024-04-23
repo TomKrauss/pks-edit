@@ -1,7 +1,7 @@
 /*
  * propertychange.h
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: property change handling.
  *

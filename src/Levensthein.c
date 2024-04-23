@@ -1,7 +1,7 @@
 /*
  * Levensthein.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: implementation of the levensthein algorithm for finding similar strings.
  *

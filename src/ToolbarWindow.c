@@ -1,7 +1,7 @@
 /*
  * ToolbarWindow.c
  *
- * PROJEKT: PKS-EDIT for Windows 95
+ * Project: PKS Edit for Windows 95
  *
  * purpose: toolbars
  *

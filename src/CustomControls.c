@@ -1,9 +1,9 @@
 /*
  * CustomControls.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * purpose: customized controls for PKS-EDIT
+ * purpose: customized controls for PKS Edit
  *
  * 										created: 01.01.90
  * 										last modified:

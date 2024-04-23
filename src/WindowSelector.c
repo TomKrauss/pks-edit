@@ -1,7 +1,7 @@
 /*
  * WindowSelector.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: allows Ctrl+TAB selection of active editor window.
  *

@@ -29,12 +29,12 @@ extern unsigned char _l2uset[256],_u2lset[256];
 #define	istosfname(c)		(_asciitab[((unsigned char)c)]&_T)
 
 /*
- * Convert a character to upper case considering PKS-Edit character classes. 
+ * Convert a character to upper case considering PKS Edit character classes. 
  */
 #define	pks_toupper(c)		_l2uset[((unsigned char)c)]
 
 /*
- * Convert a character to lower case considering PKS-Edit character classes.
+ * Convert a character to lower case considering PKS Edit character classes.
  */
 #define	pks_tolower(c)		_u2lset[((unsigned char)c)]
 

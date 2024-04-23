@@ -1,5 +1,5 @@
 /*
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * mainframe.h
  *
@@ -77,7 +77,7 @@ typedef enum {
 long long mainframe_closeChildWindows(CLOSE_WINDOW_FLAGS someFlags);
 
 /*
- * Operations to manage the PKS-Edit editor docks available
+ * Operations to manage the PKS Edit editor docks available
  */
 typedef enum {
 	// Add / ensure, that a horizontal split exists

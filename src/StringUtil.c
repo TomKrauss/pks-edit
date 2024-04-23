@@ -1,7 +1,7 @@
 /*
  * StringUtil.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: substitute some standard C-Library functions with the
  *		  correspondant window functions

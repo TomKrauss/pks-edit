@@ -1,7 +1,7 @@
 /*
  * darkmode.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: undocumented Windows darkmode features.
  *

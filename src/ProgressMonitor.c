@@ -1,7 +1,7 @@
 /*
  * ProgressMonitor.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * display a progress monitor, which can be cancelled by the user.
  *

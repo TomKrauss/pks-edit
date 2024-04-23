@@ -1,7 +1,7 @@
 /*
  * ArrayList.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: implementation of a variable size array list.
  *

@@ -1,7 +1,7 @@
 /*
  * MacroRecorder.c
  *
- * record macros in PKS-Edit
+ * record macros in PKS Edit
  *
  * PROJECT: PKSEDIT
  *

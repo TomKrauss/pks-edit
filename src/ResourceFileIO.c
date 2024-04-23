@@ -1,7 +1,7 @@
 /*
  * ResourceFileIO.c
  *
- * PROJEKT: PKS-EDIT/Resource Compiler for MS - WINDOWS
+ * Project: PKS Edit/Resource Compiler for Windows
  *
  * purpose: get and put resources to resource file
  *

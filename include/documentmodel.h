@@ -1,7 +1,7 @@
 /*
  * documentmodel.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * Describes the model / internal structure of documents edited by PKS Edit
  * and operations on these.
@@ -168,7 +168,7 @@ typedef struct tagEDIT_CONFIGURATION {
 	int				scroll_dy;				// scroll on dist dy to screen
 	char			actionContext[32];		// A possibly custom action context for documents described by this type.
 	void*			documentType;			// the document type descriptor from which this configuration was created or 
-											// NULL for "default" document types not known to PKS-EDIT
+											// NULL for "default" document types not known to PKS Edit
 											// i.e. - no file name pattern matches etc...
 } EDIT_CONFIGURATION;
 

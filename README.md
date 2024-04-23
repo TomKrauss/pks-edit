@@ -9,10 +9,10 @@ and now available as a 64-Bit application for Windows 7 and newer
 
 ## Releases
 
-- Installable versions of PKS-Edit can be downloaded here:
-  - [Release 2.3.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.3.0)
-  - [Release 2.2.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.2.0)
-  - [Release 2.1.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.1.0)
+- Installable versions of PKS Edit can be downloaded here:
+  - [Release 2.3.0](https://github.com/TomKrauss/PKS Edit/releases/tag/v2.3.0)
+  - [Release 2.2.0](https://github.com/TomKrauss/PKS Edit/releases/tag/v2.2.0)
+  - [Release 2.1.0](https://github.com/TomKrauss/PKS Edit/releases/tag/v2.1.0)
 
 ## Features
 
@@ -52,17 +52,17 @@ e.g. created using ctags)
 
 ## Manual
 
-- the [PKS-Edit Manual](doc/manual/toc.md) describes, how to work with PKS-Edit.
+- the [PKS Edit Manual](doc/manual/toc.md) describes, how to work with PKS Edit.
 
 ## Examples
 
 The examples directory contains several [coding samples](examples/sample.md) demonstrating the features
-of PKS-Edit when it comes to using it to edit files of a given supported type.
+of PKS Edit when it comes to using it to edit files of a given supported type.
 
 ## Installing and Using PKS Edit
 
-To install **PKS-Edit**, you may use the provided [Inno Setup](https://jrsoftware.org/ishelp/index.php) based installer. The
-installer will associate typical file extensions and make PKS-Edit the default editor for those extensions if you request it
+To install **PKS Edit**, you may use the provided [Inno Setup](https://jrsoftware.org/ishelp/index.php) based installer. The
+installer will associate typical file extensions and make PKS Edit the default editor for those extensions if you request it
 to do so.
 
 ## Cross References in source files and PKS Edit

@@ -1,9 +1,9 @@
 /*
  * ActionBindings.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * purpose: define all action triffers in PKS-Edit (menubar, context-menu, toolbar,
+ * purpose: define all action triggers in PKS Edit (menubar, context-menu, toolbar,
  * keycode, mouse events) and to the actions to be executed.
  *
  * 										created: 
@@ -61,7 +61,7 @@ typedef struct tagACTION_CONTEXT_DESCRIPTOR {
 } ACTION_CONTEXT_DESCRIPTOR;
 
 /*
- * Name of the default action context to use in PKS-Edit.
+ * Name of the default action context to use in PKS Edit.
  */
 const char* DEFAULT_ACTION_CONTEXT = "default";
 
@@ -527,7 +527,7 @@ MOUSE_EVENT_BINDING* bindings_getMouseBinding(int nButton, int nShift, int nClic
 }
 
 /*
- * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory. 
+ * Loads the default action bindings (keys and mouse) for PKS Edit from the PKS_SYS directory. 
  */
 void bindings_loadActionBindings() {
 	bindings_loadFromFile("pksactionbindings.json");

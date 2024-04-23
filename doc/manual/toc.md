@@ -1,6 +1,6 @@
-# Help For PKS-Edit
+# Help For PKS Edit
 
-The manual describes how to use PKS-Edit efficiently.
+The manual describes how to use PKS Edit efficiently.
 
 ## Navigating Help
 
@@ -9,11 +9,11 @@ simply navigate over the link and click it.
 
 ## Table of Contents
 
-- [Starting PKS-Edit with command line arguments](commandline.md)
+- [Starting PKS Edit with command line arguments](commandline.md)
   - [DDE](commandline.md#DDE)
-  - [Starting PKS-Edit and passing command line arguments](commandline.md#Starting-PKS-Edit-and-passing-command-line-arguments)
+  - [Starting PKS Edit and passing command line arguments](commandline.md#Starting-PKS Edit-and-passing-command-line-arguments)
 - [Configuration](configuration.md)
-  - [Configuration Files of PKS-Edit](configuration.md#Configuration-Files-of-PKS-Edit)
+  - [Configuration Files of PKS Edit](configuration.md#Configuration-Files-of-PKS Edit)
   - [Autosave Options](configuration.md#Autosave-Options)
   - [Warnings Options](configuration.md#Warnings-Options)
   - [Layout Options](configuration.md#Layout-Options)
@@ -36,11 +36,11 @@ simply navigate over the link and click it.
   - [Replacing text](find_replace.md#Replacing-text)
   - [Find in Files](find_replace.md#Find-in-Files)
 - [Getting Started](getting_started.md)
-  - [Starting PKS-Edit](getting_started.md#Starting-PKS-Edit)
-  - [Closing PKS-Edit](getting_started.md#Closing-PKS-Edit)
+  - [Starting PKS Edit](getting_started.md#Starting-PKS Edit)
+  - [Closing PKS Edit](getting_started.md#Closing-PKS Edit)
   - [Grammars](grammar.md#Grammars)
-- [Recording Macros and the PKS-Edit Macro Language](macro_language.md)
-  - [Macros in PKS-Edit](macro_language.md#Macros-in-PKS-Edit)
+- [Recording Macros and the PKS Edit Macro Language](macro_language.md)
+  - [Macros in PKS Edit](macro_language.md#Macros-in-PKS Edit)
   - [Recording Macros](macro_language.md#Recording-Macros)
   - [The Macro Menu](macro_language.md#The-Macro-Menu)
   - [Compiling Macros](macro_language.md#Compiling-Macros)
@@ -61,7 +61,7 @@ simply navigate over the link and click it.
   - [Cross References](navigate.md#Cross-References)
   - [Auto-Bookmarks](navigate.md#Auto-Bookmarks)
   - [Explicit Bookmarks](navigate.md#Explicit-Bookmarks)
-- [Using the UI of PKS-Edit](pksedit_ui.md)
+- [Using the UI of PKS Edit](pksedit_ui.md)
 - [PKS Printf Format](pksprintf.md)
 - [Printing](printing.md)
   - [Print Settings](printing.md#Print-Settings)

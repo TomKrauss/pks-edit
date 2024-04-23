@@ -1,7 +1,7 @@
 /*
  * ThemesAndStyles.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: PKS Edit color schemes and font style definitions.
  *

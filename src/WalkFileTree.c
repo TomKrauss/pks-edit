@@ -1,7 +1,7 @@
 /*
  * WalkFileTree.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: file tree walk
  *

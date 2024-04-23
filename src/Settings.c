@@ -1,7 +1,7 @@
 /*
  * Settings.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: toggle and set file editing settings
  *

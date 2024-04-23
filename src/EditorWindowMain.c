@@ -1,7 +1,7 @@
 /*
  * EditorWindowMain.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: editor windows - painting etc...
  *
@@ -1204,7 +1204,7 @@ static void onButtonDown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 /*------------------------------------------------------------
  * render_defaultWindowProc()
- * Default Window procedure used by editor windows in PKS-Edit.
+ * Default Window procedure used by editor windows in PKS Edit.
  */
 WINFUNC render_defaultWindowProc(
 	HWND hwnd,

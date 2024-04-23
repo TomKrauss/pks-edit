@@ -1,7 +1,7 @@
 /*
  * comparefiles.hs
  *
- * PROJEKT: PKS-EDIT for MS-WINDOWS
+ * Project: PKS Edit for MS-WINDOWS
  *
  * purpose: compare the lines of two windows and navigate
  * comparison results.

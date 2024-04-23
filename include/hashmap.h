@@ -1,7 +1,7 @@
 /*
  * hashmap.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: implementation of a hashtable.
  *

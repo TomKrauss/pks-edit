@@ -1,7 +1,7 @@
 /*
  * stringutil.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: string utility functions.
  *

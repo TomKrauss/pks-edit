@@ -1,7 +1,7 @@
 /*
  * themes.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS 10
+ * Project: PKS Edit for Windows
  *
  * purpose: theming (colors and fonts) for in particular text displayed by PKS Edit.
  *

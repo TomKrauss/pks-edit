@@ -277,7 +277,7 @@ END
 
 DLGABOUT DIALOGEX 54, 48, 267, 158
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About PKS-EDIT"
+CAPTION "About PKS Edit"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Programm - Editor for MS Windows",IDD_OPT6,48,20,126,12,NOT WS_GROUP
@@ -868,7 +868,7 @@ BEGIN
     LTEXT           "Default te&xt font:",-1,12,199,84,11,NOT WS_GROUP
     LTEXT           "Default search engine:",-1,11,217,84,11,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST3,177,216,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Reuse running PKS-Edit instance",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,132,242,12
+    CONTROL         "Reuse running PKS Edit instance",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,132,242,12
     CONTROL         "Silently reload files changed externally",IDD_OPT18,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,111,242,12
 END
@@ -1478,12 +1478,12 @@ BEGIN
     IDS_COMMAND12           "Saves the changes;Save"
     IDS_COMMAND13           "Insert a file at the cursor position;Insert File..."
     IDS_COMMAND14           "Save selected text;Save Selection to File..."
-    IDS_COMMAND15           "Closes PKS-EDIT and save all changes;Save and Exit"
+    IDS_COMMAND15           "Closes PKS Edit and save all changes;Save and Exit"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND16           "Closes PKS-EDIT;Exit"
+    IDS_COMMAND16           "Closes PKS Edit;Exit"
     IDS_COMMAND17           "Search a pattern;Find..."
     IDS_COMMAND18           "Replace a pattern;Replace..."
     IDS_COMMAND19           "Repeat last search;Find again  "
@@ -1533,7 +1533,7 @@ BEGIN
     IDS_COMMAND55           "Display hexadecimal representation of file;Hex Editor Mode"
     IDS_COMMAND56           "Smart process indents with spaces;Use Smart Indentation"
     IDS_COMMAND57           "Switches insert overwite mode;Toggle Insert and Overwrite Mode"
-    IDS_COMMAND58           "Configure the general settings of PKS-EDIT;Settings..."
+    IDS_COMMAND58           "Configure the general settings of PKS Edit;Settings..."
     IDS_COMMAND59           "Formats a text area;Format Text..."
     IDS_COMMAND60           "Compresses spaces to tabs;Convert Spaces to Tabs"
     IDS_COMMAND61           "Expand tabs to spaces;Expand Tabs"
@@ -1563,7 +1563,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND80           "Configure icons of the  PKS-EDIT desktop;Edit Icons"
+    IDS_COMMAND80           "Configure icons of the  PKS Edit desktop;Edit Icons"
     IDS_COMMAND81           "Change display settings;Change Editor Settings..."
     IDS_COMMAND82           "Chnage the edit settings;Change Editor Settings..."
     IDS_COMMAND83           "Change scroll and caret settings;Change Scroll Behavior..."
@@ -1576,15 +1576,15 @@ BEGIN
     IDS_COMMAND90           "Pin Window"
     IDS_COMMAND91           "Layout editor windows side by side;Tile Wwindows"
     IDS_COMMAND92           "Show help;Help"
-    IDS_COMMAND93           "Introduces the user interface of PKS-Edit;Help Overview"
-    IDS_COMMAND94           "Show help for using the keyboard in PKS-Edit;Help Keys"
+    IDS_COMMAND93           "Introduces the user interface of PKS Edit;Help Overview"
+    IDS_COMMAND94           "Show help for using the keyboard in PKS Edit;Help Keys"
     IDS_COMMAND95           "Displays the Release Notes;Help Release Notes"
 END
 
 STRINGTABLE
 BEGIN
     IDS_COMMAND96           "Show help;Help Table of Contents"
-    IDS_COMMAND97           "Show copyright dialog with version info;About PKS-Edit"
+    IDS_COMMAND97           "Show copyright dialog with version info;About PKS Edit"
     IDS_COMMAND98           "Insert a special character from the keyboard;Insert Keycode..."
     IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
     IDS_COMMAND100          "Toggle between fullscreen and normal mode;Toggle Fullscreen"
@@ -1689,7 +1689,7 @@ BEGIN
     IDS_COMMAND179          "Starts the macro recorder;Record Macro"
     IDS_COMMAND180          "Undo the last change;Undo"
     IDS_COMMAND181          "Inverts the line markers;Invert Line Markers"
-    IDS_COMMAND182          "Iconize PKS-EDIT;PKS-EDIT as icon"
+    IDS_COMMAND182          "Iconize PKS Edit;PKS Edit as icon"
     IDS_COMMAND183          "Iconize the current editing window;Minimize current Window"
     IDS_COMMAND184          "Goto last difference in a comparison;Goto last Difference"
     IDS_COMMAND185          "Scroll one line up, caret stays;Scroll Up by One"
@@ -1782,7 +1782,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_PKS_SYS_NOT_FOUND   "PKS-Edit cannot find the configuration files (PKS_SYS folder) and will not function properly. Please locate the PKS_SYS folder."
+    IDS_PKS_SYS_NOT_FOUND   "PKS Edit cannot find the configuration files (PKS_SYS folder) and will not function properly. Please locate the PKS_SYS folder."
 END
 
 #endif    // Englisch (USA) resources

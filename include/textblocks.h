@@ -1,7 +1,7 @@
 /*
  * textblocks.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: operations on selected text ranges.
  *

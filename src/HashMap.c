@@ -1,7 +1,7 @@
 /*
  * HashMap.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: implementation of a hashmap for fast lookup of keys.
  *

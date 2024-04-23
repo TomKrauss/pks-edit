@@ -1,7 +1,7 @@
 /*
  * MacroManagement.c
  *
- * Execute, edit, display and manage the macros defined in PKS-Edit
+ * Execute, edit, display and manage the macros defined in PKS Edit
  *
  * PROJECT: PKSEDIT
  *
@@ -49,7 +49,7 @@ extern void			yywarning(char* s, ...);
 extern char *		rsc_rdmacros(char *param, unsigned char *p, unsigned char *pend);
 extern char * 		mac_name(char *szBuf, MACROREFIDX nIndex, MACROREFTYPE type, int nBufSize);
 /*
- * Loads the default action bindings (keys and mouse) for PKS-Edit from the PKS_SYS directory.
+ * Loads the default action bindings (keys and mouse) for PKS Edit from the PKS_SYS directory.
  */
 extern void bindings_loadActionBindings();
 extern void st_switchtomenumode(BOOL bMenuMode);

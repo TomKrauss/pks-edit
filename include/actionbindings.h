@@ -1,7 +1,7 @@
 /*
  * actionbindings.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: methods for registering, printing, defining and deleting action
  * bindings (mouse-triggered, keyboard-triggered, menu-triggered actions)
@@ -21,7 +21,7 @@
 typedef struct tagMACROREF MACROREF;
 
  // To be used, whenever text is defined in an action binding. Allows to define the text either plain
- // as text or alternatively as a resource given a resource index into PKS-Edits internal resource table.
+ // as text or alternatively as a resource given a resource index into PKS Edits internal resource table.
 typedef struct tagBOUND_TEXT {
 	const char* bt_text;
 	int			bt_resourceId;
@@ -169,7 +169,7 @@ extern KEYCODE bindings_findBoundKey(const char* pszActionContext, MACROREF macr
 extern MACROREF bindings_getKeyBinding(KEYCODE keycode, const char* pszActionContext);
 
 /*
- * Name of the default action context to use in PKS-Edit.
+ * Name of the default action context to use in PKS Edit.
  */
 extern const char* DEFAULT_ACTION_CONTEXT;
 

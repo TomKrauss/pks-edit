@@ -1,7 +1,7 @@
 /*
  * DisplayHelp.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: Handle help requests
  *

@@ -1,7 +1,7 @@
 /*
  * FindAndReplace.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: find and replace, substitution of tabs->spaces
  *

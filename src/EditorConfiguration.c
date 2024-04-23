@@ -1,7 +1,7 @@
 /*
  * EditorConfiguration.c
  *
- * PROJEKT: PKS-EDIT for Windows 95
+ * Project: PKS Edit for Windows 95
  *
  * Configuration of global options of PKS edit. These are for now 
  * saved in a file pkseditini.json by default located in the PKS_SYS folder.

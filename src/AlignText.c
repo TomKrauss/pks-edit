@@ -1,7 +1,7 @@
 /*
  * align_text.C
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: align text fragments to screen columns
  *

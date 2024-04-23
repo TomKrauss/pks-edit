@@ -1,7 +1,7 @@
 /*
  * editorconfiguration.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * Configuration of global options of PKS edit. These are for now
  * saved in a file pkseditini.json by default located in the PKS_SYS folder.
@@ -42,7 +42,7 @@ typedef enum {
 	O_SAVE_MACROS_ON_EXIT = 0x40,
 	// Unlink temporary autosave files if not needed any more
 	O_DELETE_AUTOSAVE_FILES = 0x80,
-	// Automatically save changed files when closing editor / exiting PKS-Edit.
+	// Automatically save changed files when closing editor / exiting PKS Edit.
 	O_AUTOSAVE_FILES_ON_EXIT = 0x100,
 	// whether dialogs are opened close to the mouse.
 	O_FORMFOLLOW = 0x200,
@@ -57,7 +57,7 @@ typedef enum {
 	O_SAVE_CLIPBOARDS_ON_EXIT = 0x4000,
 	// whether a history of the clipboard contents is automatically maintained
 	O_SAVE_CLIPBOARD_HISTORY = 0x8000,
-	// whether we should enforce to re-use the single running instance of PKS-Edit
+	// whether we should enforce to re-use the single running instance of PKS Edit
 	O_REUSE_APPLICATION_INSTANCE = 0x10000,
 	// whether we should silently reload files changed externally
 	O_SILENTLY_RELOAD_CHANGED_FILES = 0x20000

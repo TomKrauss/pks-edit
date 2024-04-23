@@ -1,7 +1,7 @@
 /*
  * dpisupport.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: methods required to handle dpi capabilities of the
  * screen we are running on.

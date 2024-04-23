@@ -63,7 +63,7 @@ static FTABLE* macroc_openConsole() {
 }
 
 /*
- * Print a text to the PKS-Edit console.
+ * Print a text to the PKS Edit console.
  */
 static long long macroc_printToConsole(int bNewLine, const char* pszText) {
 	FTABLE* fp = macroc_openConsole();
@@ -89,14 +89,14 @@ static long long macroc_printToConsole(int bNewLine, const char* pszText) {
 }
 
 /*
- * Print a text including a trailing newline to the PKS-Edit console.
+ * Print a text including a trailing newline to the PKS Edit console.
  */
 long long macroc_println(const char* pszText) {
 	return macroc_printToConsole(1, pszText);
 }
 
 /*
- * Print a text to the PKS-Edit console.
+ * Print a text to the PKS Edit console.
  */
 long long macroc_print(const char* pszText) {
 	return macroc_printToConsole(0, pszText);

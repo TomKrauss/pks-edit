@@ -1,11 +1,10 @@
-# Using the UI of PKS-Edit
+# Using the UI of PKS Edit
 
 
-The UI of PKS-Edit typically displays the following areas:
+The UI of PKS Edit typically displays the following areas:
 
 
-
-![The User Interface of PKS-Edit](pksedit-ui.png)
+![The User Interface of PKS Edit](pksedit-ui.png)
 
 
 - the `toolbar` gives you access to the most common used editing functions such as copying or pasting text or undo. You
@@ -28,14 +27,14 @@ The `cloned window` on the screenshot is displayed in a different `docking posit
 view the same document edited as in a primary window) by using the menu `File->Clone Window`. Document types which support special
 renderer types such as markdown documents will by default switch to special rendering mode in the cloned window (this will allow you
 to edit text in the primary window and watch the changes in Wysiwyg display in the cloned window). You may at any time change
-the display mode or editing mode of cloned windows - when PKS-Edit is closed and restarted it will preserve the configuration
+the display mode or editing mode of cloned windows - when PKS Edit is closed and restarted it will preserve the configuration
 of document views in the session configuration.
 
-PKS-Edit will manage the editing tabs in up to three `docks`. A default dock, a right dock and a bottom dock.
+PKS Edit will manage the editing tabs in up to three `docks`. A default dock, a right dock and a bottom dock.
 You may explicitly show a dock using the `Windows->New Horizontal/Vertical Dock` menus. Some actions
 such as cloning a window for an editor (displaying an additional window for one file) or such as performing a search in
 files will automatically open a dock to place the new window in this dock. You may resize
-docks, by dragging the space between docks with the mouse. PKS-Edit saves the sizes and positions of open docks with
+docks, by dragging the space between docks with the mouse. PKS Edit saves the sizes and positions of open docks with
 its session snapshot saved when exiting to restore the same layout when it is opened the next time.
 You may drag tabs from one dock to the other using the mouse to reposition them. Tab titles can be displayed in
 a compact mode or in a full-path mode. To change the display of tabs use the [layout settings](configuration.md#layout_options).

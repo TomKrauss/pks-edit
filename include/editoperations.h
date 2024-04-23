@@ -1,7 +1,7 @@
 /*
  * EditOperations.c
  *
- * PROJEKT: PKS-EDIT for MS-WINDOWS
+ * Project: PKS Edit for MS-WINDOWS
  *
  * purpose: inserting and deleting characters, words, lines ...
  * 		  autoformat, wrap and indent

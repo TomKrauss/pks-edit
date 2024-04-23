@@ -1,7 +1,7 @@
 /*
  * codeanalyzer.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: analyze code for the purpose of calculating suggestions.
  *

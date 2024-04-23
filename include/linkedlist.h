@@ -1,7 +1,7 @@
 /*
  * linkedlist.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * maintain linked lists: delete, insert, modify,....
  *

@@ -1,7 +1,7 @@
 /*
  * winfo.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS 10
+ * Project: PKS Edit for Windows
  *
  * purpose: view model for PKS Edit
  *
@@ -22,7 +22,7 @@
 /*----- display modes --------------*/
 
 /*
- * Define the way, text is being displayed in PKS-Edit.
+ * Define the way, text is being displayed in PKS Edit.
  */
 typedef enum {
 	SHOW_CONTROL_CHARS = 0x1,
@@ -42,7 +42,7 @@ typedef enum {
 /*----- working modes --------------*/
 
 /*
- * Working modes / editor modes affecting the way editing in an open editor in PKS-Edit works.
+ * Working modes / editor modes affecting the way editing in an open editor in PKS Edit works.
  */
 typedef enum {
 	WM_INSERT = 0x1,
@@ -306,7 +306,7 @@ extern void render_paintWindow(WINFO* wp);
 
 /*------------------------------------------------------------
  * render_defaultWindowProc()
- * Default Window procedure used by editor windows in PKS-Edit.
+ * Default Window procedure used by editor windows in PKS Edit.
  */
 extern LRESULT render_defaultWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -677,7 +677,7 @@ extern void ww_destroyAll();
 extern int sl_size(WINFO* wp);
 
 /**
- * Toggle one of the configuratión options of PKS-Edit.
+ * Toggle one of the configuratión options of PKS Edit.
  * The parameter option is an int-wise combination with a high word of the option as given above and the corresponding
  * option in the respective category.
  */

@@ -2,7 +2,7 @@
  * EditorDialogUtil.c
  * 
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: some WINDOWS dialogs for general and special purpose
  *

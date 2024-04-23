@@ -1,7 +1,7 @@
 /*
  * TOS.H
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: simulate TOS system calls with WINDOW calls
  *

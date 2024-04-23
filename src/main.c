@@ -1,5 +1,5 @@
 /*
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * MAIN.C
  *
@@ -323,7 +323,7 @@ static void dde_uninitialize() {
 HANDLE pksEditMutex;
 
 /*
- * Initialize the PKS-Edit DDE server allowing to process command line arguments.
+ * Initialize the PKS Edit DDE server allowing to process command line arguments.
  */
 static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 	UINT	result;
@@ -369,7 +369,7 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 }
 
 /*
- * This implements the "reuse single instance of PKS-Edit" feature. When another PKS-Edit DDE Server is active (other instance 
+ * This implements the "reuse single instance of PKS Edit" feature. When another PKS Edit DDE Server is active (other instance 
  * is running), pass on the command line to this instance using DDE and return 1 indicating, that the job is done and this
  * instance may terminate.
  */

@@ -1,9 +1,9 @@
 /*
  * customcontrols.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * purpose: utilities for implementing custom controls in PKS-EDIT
+ * purpose: utilities for implementing custom controls in PKS Edit
  *
  * 										created: 01.01.90
  * 										last modified:

@@ -1,7 +1,7 @@
 /*
  * RegularExpression.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: regular expression string scanning automata
  * 		  character class definitions

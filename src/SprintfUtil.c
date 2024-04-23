@@ -1,7 +1,7 @@
 /*
  * SprintfUtil.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: special sprintf, printing status infos,...
  *

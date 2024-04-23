@@ -1,7 +1,7 @@
 /*
  * syntaxhighlighting.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: as the name suggests....
  *

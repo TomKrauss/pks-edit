@@ -1,7 +1,7 @@
 /*
  * PublicMacroFunctions.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: functions accessible in user defined macros.
  *

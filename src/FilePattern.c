@@ -1,7 +1,7 @@
 /*
  * FilePattern.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: TOS - like wildcard string_matchFilename for filenames
  * 		  special is: A,B,C => *.A|*.B|*.C

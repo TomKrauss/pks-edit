@@ -1,7 +1,7 @@
 /*
  * BracketMatching.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose:
  * check brackets, uc_showMatchingBracket, bracket indent, shift between brackets...

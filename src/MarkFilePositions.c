@@ -1,7 +1,7 @@
 /*
  * MarkFilePositions.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: maintain a list of the positions + corresponding active files.
  *

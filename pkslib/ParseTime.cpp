@@ -1,7 +1,7 @@
 /*
  * ParseTime.cpp
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: parse date and time from a string given a format. C++ replacement
  * for missing strptime on win32.

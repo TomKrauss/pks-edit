@@ -5,7 +5,7 @@ can be selected in the dialog that opens.
 
 - Selection Criteria - this can be used to "select the lines" that should actually be sorted inside the selected range. Optionally specify here a 
   [regular expression](#regular-expressions) to select the lines, that should be sorted. The selection criteria can also be used to sort multi-line blocks
-  in the file. To use this feature check the option `Bind to sort criteria`. PKS-Edit will now treat the lines matching the selection criteria as the head
+  in the file. To use this feature check the option `Bind to sort criteria`. PKS Edit will now treat the lines matching the selection criteria as the head
   of a block of text up to the next line matching the selection criteria to be moved in the process of sorting in one piece.
 - Field Delimiter - specify one or more characters (you may use special syntax as in `\t` to name special characters) to be used to define key fields
   in the text. To sort a CSV format file for instance one would use ",;" as possible delimiters. To skip multiple separators (e.g. when a line contains fields
@@ -22,7 +22,7 @@ can be selected in the dialog that opens.
     - `i` - ignore case during alphanumeric comparison
     - `d` - the field is interpreted as a number to sort. Numbers may be integers or floating point numbers with either , or . as the
     -       decimal separator. Other formats such as grouping chars or exponential formats are not yet supported.
-    - `D` - the field is interpreted as a Date specification (various formats are supported - this will be made customizable in future versions of PKS-Edit).
+    - `D` - the field is interpreted as a Date specification (various formats are supported - this will be made customizable in future versions of PKS Edit).
             Currently the following formats are tried (note, that date, time and date+time formats are tried): `%m/%d/%y`, `%d.%m.%Y`,
 	        `%Y-%m-%d`, `%d. %B %y`, `%Y-%m-%d %H:%M:%S`, `%m/%d/%y %H:%M:%S`, `%H:%M:%S`. 
     - `b` - skip leading blanks during comparison

@@ -1,7 +1,7 @@
 /*
  * Evaluator.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: define evaluators able to evaluate certain
  *

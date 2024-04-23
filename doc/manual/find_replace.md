@@ -2,7 +2,7 @@
 
 ## Finding text
 
-PKS-Edit supports the following options when searching for text:
+PKS Edit supports the following options when searching for text:
 
 - _Regular Expressions_ - the searched pattern is interpreted as a [regular expression](#regular-expressions)
 - _Ignore Case_ - upper lower case spelling of matched text and pattern are ignored
@@ -12,7 +12,7 @@ pattern
 
 ## Regular Expressions
 
-Regular Expression in PKS-Edit permit the following special characters:
+Regular Expression in PKS Edit permit the following special characters:
 
 - `.`  matches any character
 - `[a-z]` matches any character a-z
@@ -59,7 +59,7 @@ In replaced text one can also use special patterns:
 
 ## Find in Files
 
-This option allows to find a text in a directory of files (and optionally replace all occurrences). When the search is started, PKS-Edit will open a new window, displaying 
+This option allows to find a text in a directory of files (and optionally replace all occurrences). When the search is started, PKS Edit will open a new window, displaying 
 all matching results in the _search result list_. You may navigate through the list of matches by either clicking into the search result list or by pressing `Ctrl+n` to move to the next match and by pressing
 `Ctrl+P` to navigate to the previous match. The _search result list_ ist by default named `pksedit.grp` and is by default placed in the `pks_sys` directory. One may open a previously created
 search result list to navigate the results any time later using menu "Find->Use previous Search Results".

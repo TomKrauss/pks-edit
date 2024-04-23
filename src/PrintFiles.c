@@ -1,7 +1,7 @@
 /*
  * PrintFiles.c
  *
- * PROJEKT: PKS-EDIT for WINDOWS 10
+ * Project: PKS Edit for Windows
  *
  * purpose: print files
  *

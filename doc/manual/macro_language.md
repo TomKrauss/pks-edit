@@ -1,20 +1,20 @@
-# Recording Macros and the PKS-Edit Macro Language
+# Recording Macros and the PKS Edit Macro Language
 
-## Macros in PKS-Edit
+## Macros in PKS Edit
 
-Macros in PKS-Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS-Edit.
+Macros in PKS Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS Edit.
 PKSMacroC compiles files (by default with an extension .pkc) into a binary format, which can be saved and loaded
-by PKS-Edit. By default a file called **pksedit.mac** is loaded from the `pks_sys` directory containing the standard
-macros available in PKS-Edit.
+by PKS Edit. By default a file called **pksedit.mac** is loaded from the `pks_sys` directory containing the standard
+macros available in PKS Edit.
 
-The standard macro file shipped with PKS-Edit currently contains:
+The standard macro file shipped with PKS Edit currently contains:
 - custom macros performing text operations - for instance used as post-save actions or the like.
 
 ## Recording Macros
 
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
-When PKS-Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
+When PKS Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## The Macro Menu
 
@@ -33,7 +33,7 @@ PKSMacroC as the name suggests has a C like syntax (not object oriented in parti
 and Java such as a JSON like syntax for declaring maps, spread operators, annotations and Java like numeric literals.
 
 ### Syntax Overview
-The PKS-Edit Macro Language supports the most common operators  and functions and variable declarations as a C program. 
+The PKS Edit Macro Language supports the most common operators  and functions and variable declarations as a C program. 
 There is no explicit memory management necessary - the macro interpreter performs all object allocations and deallocations automatically for you.
 
 Here is a sample showing a piece of macro code, which will calculate the factorial of a number to enter and display the
@@ -78,7 +78,7 @@ comment is placed in front of a MacroC function declaration, it is used internal
 as the main description of the described function. Here is an example:
 ```C
 /*
- * Macro, which can be used as a save action in PKS-Edit to trim
+ * Macro, which can be used as a save action in PKS Edit to trim
  * all trailing blanks in the document saved.
  */
 void TrimTrailingBlanks() {
@@ -123,7 +123,7 @@ One can currently link to other help content (either description of a macro, nat
 All primitive values (int, string, float, bool, range) in **PKSMacroC** code are `immutable`, array and structured types may be changed. 
 Values may have one of the following types:
 
-- `string` as the name implies a string (internally implemented using zero terminated strings). Strings in PKS-Edit are dynamically allocated and de-allocated.
+- `string` as the name implies a string (internally implemented using zero terminated strings). Strings in PKS Edit are dynamically allocated and de-allocated.
   no memory management is necessary in PKSMacroC code. One can concatenate strings by using the '+' operator. `string` literals follow C syntax and are enclosed
   in `"´` characters.
 - `int` represents integer numbers in a 64 bit value range. `int` literals may be written as either decimal numbers (`123`), hexadecimal numbers (`0xAF34`) or
@@ -342,7 +342,7 @@ The shown examples makes it possible to invoke "GetLastError" from PKSMacroC cod
 from kernel32.dll. Adding native method binding has currently quite some limitations - only simple parameter types
 are supported.
 
-The next example is used to document a defined PKS-Edit standard native method:
+The next example is used to document a defined PKS Edit standard native method:
 
 ```java
 /*
@@ -353,7 +353,7 @@ native int edit_insertString(EDITOR anEditor, string aString);
 ```
 
 Note that this time the `@Method` annotation does not need to specify the lib from which the method is loaded,
-as it is loaded from the PKS-Edit exe itself. Here we specify an alternate API name to be used inside PKSMacroC (EditorInsertString
+as it is loaded from the PKS Edit exe itself. Here we specify an alternate API name to be used inside PKSMacroC (EditorInsertString
 instead of edit_insertString, which is the corresponding native method name).
 
 Finally one may pass information about the signature of the method not expressible in PKSMacroC syntax. 
@@ -384,7 +384,7 @@ Signature tokens may be:
 - W - parameter / return type is an EDITOR handle
 - b... - parameter / return type is a bit set of enum values starting with ... (e.g. `bRE_` a bit combination of regular expression options)
 - e... - parameter / return type is a single enum value starting with ... 
-- P... special token to mark the method a natively defined method (used internally in PKS-Edit for more advanced handling of parameters)
+- P... special token to mark the method a natively defined method (used internally in PKS Edit for more advanced handling of parameters)
 
 ## Optional Parameters
 Some native methods - in particular those operating on an editor support passing the editor (type `EDITOR`) as the first argument of

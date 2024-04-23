@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to PKS-Edit will be documented in this file.
+All notable changes to PKS Edit will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -31,8 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current selection we use `selection` now for instance.
 
 ### Fixed
-- Wrong toolbar size after maximizing / restoring top level window of PKS-Edit was fixed.
-- If PKS-Edit was called from the command line passing a file name as an argument, the corresponding file could not be found,
+- Wrong toolbar size after maximizing / restoring top level window of PKS Edit was fixed.
+- If PKS Edit was called from the command line passing a file name as an argument, the corresponding file could not be found,
   if the file name specified container a "/" or a "\" character (e.g. `..\test.c`). This if fixed.
 - Printing did not use the correct print mode (markdown format / color coding / ...) of the active window, if multiple windows were opened for
   a single file.
@@ -40,14 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When opening multiple files so that not all file tabs are shown having a tab being selected, which needs to be scrolled into view, this
   tab was not initially visible on HiDPI devices. This is fixed.
 - Fixed selection not being properly extended sometimes, when `Shift+PageUp` / `Shift+PageDown` is pressed.
-- A bug was fixed causing the toolbar to show a strange layout after restoring PKS-Edit from icon size.
+- A bug was fixed causing the toolbar to show a strange layout after restoring PKS Edit from icon size.
 - A repaint bug was fixed causing a strange window layout after the toolbar icon size was changed through the 
   settings dialog.
-- PKS-Edit detects an illegal configuration now (directory PKS_SYS and contained files not found) and aids the
+- PKS Edit detects an illegal configuration now (directory PKS_SYS and contained files not found) and aids the
   user in fixing up the configuration.
 - Backup Files are created by copying the source file rather than moving the original file to the backup location to avoid potential data loss when creating
   new files will finally fail.
-- When opening a file with PKS-Edit using "Open with..." from the Windows menu, PKS-Edit did not "guess" the code page to use.
+- When opening a file with PKS Edit using "Open with..." from the Windows menu, PKS Edit did not "guess" the code page to use.
   So opening an UTF-8-File did not work "out of the box" (while opening it using drag&drop into the editor had worked). This
 - inconsistency is fixed.
 - Creating new files will now default to current directory (rather than to directory `PKS_SYS`).
@@ -60,15 +60,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multiple upper case characters at the beginning (such as CApital) to be spelled correctly with respect to upper
   case lower case spelling. The editing mode is enabled by default for all text document types (readme, .txt, .md, ... files).
   Of course this can be changed in the configuration.
-- The new option `Reuse running PKS-Edit instance` allows to force a single running PKS-Edit instance editing multiple
+- The new option `Reuse running PKS Edit instance` allows to force a single running PKS Edit instance editing multiple
   files opened from e.g. the Windows Explorer. 
-- PKS-Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
-- PKSEDIT-15: When opening a file from the history list, which has been deleted or moved since the last PKS-Edit session,
+- PKS Edit supports high dpi devices now and will scale appropriately. It will also dynamically adapt to dpi changes.
+- PKSEDIT-15: When opening a file from the history list, which has been deleted or moved since the last PKS Edit session,
   only a small statusbar message is being displayed rather than annoying blocking dialogs.
 - PKSEDIT-13: When opening a file, the file selector will by default open in the directory of the currently active
   editor. No pathes are stored any more in the history file, but pathes are derived also from the list of open files 
   (e.g. to be selected in Find in Files).
-- When searching simple regular expressions PKS-Edit uses the [Boyer Moore algorithm](https://de.wikipedia.org/wiki/Boyer-Moore-Algorithmus) 
+- When searching simple regular expressions PKS Edit uses the [Boyer Moore algorithm](https://de.wikipedia.org/wiki/Boyer-Moore-Algorithmus) 
   now internally speeding up the performance of simple searches considerably.
 - The tag search list ui was overhauled and uses a Windows list view now.
 
@@ -82,11 +82,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   images (empty image description).
 - Various markdown parsing and rendering issues affecting the display of `fenced code blocks` were fixed.
 - A crash which could happen upong the attempt to follow a link in large markdown documents with links in tables was fixed.
-- An issue was fixed which had lead to corrupted macros. PKS-Edit had crashed when playing the corrupted macros.
+- An issue was fixed which had lead to corrupted macros. PKS Edit had crashed when playing the corrupted macros.
 - Strings containing some special characters not supported by Windows (characters 129, 141, 143, 144, and 157), were
-  painted _wrong_ leading to misplaced carets making editing impossible. As a work around PKS-Edit will now display a '?'
+  painted _wrong_ leading to misplaced carets making editing impossible. As a work around PKS Edit will now display a '?'
   to represent these characters.
-- Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS-Edit with
+- Several issues with long file names were fixed: opening files from the command line or by drag&drop onto PKS Edit with
   path names longer than 256 characters was not possible in elder releases.
 - Some dark theme related issues were fixed. List Views for instance are now correctly displayed also in dark mode.
 - Fullscreenmode did produce a strange screen layout, if more than 1 `mainframe dock` was open (one dock was using 
@@ -109,9 +109,9 @@ formatted content (Wysiwyg markdown and HTML documents) and in Hex mode is now s
   (e.g. sorting of floating numbers). When sorting by *key fields*, one may now define key fields using field seperators
   with CSV quoting or with backslash quoting support. There is no limit any more regarding the number of lines / blocks,
   which can be sorted.
-- The PKS-Edit tabstrip supports now context menus (to close multiple editor windows and to *pin* / *unpin* windows). It 
+- The PKS Edit tabstrip supports now context menus (to close multiple editor windows and to *pin* / *unpin* windows). It 
   also supports scrolling through many tabs using the mousewheel.
-- PKS-Edit supports now multi-selection in the open file dialog and supports passing command line arguments containing
+- PKS Edit supports now multi-selection in the open file dialog and supports passing command line arguments containing
   wildcards to open multiple files.
 - The code completion window displays now additional information about completions in a secondary window in situations
 where additional information is available. An example are templates, which show a preview of the text to insert or PKSMacroC
@@ -150,7 +150,7 @@ simple HTML formatting including hyperlink to more documentation.
   PKSMacroC code.
 - One can open, print to and clear a console from macroC code for logging or debugging purpose.
 - Error diagnostics of the PKSMacroC compiler and error handling in PKSMacroC has been improved (there is still room for improvement). 
-- One can create a PKSMacroC native method API documentation now from within PKS-Edit using the new menu point "Macro->View Bindings->MacroC API Documentation".
+- One can create a PKSMacroC native method API documentation now from within PKS Edit using the new menu point "Macro->View Bindings->MacroC API Documentation".
 
 #### Markdown wysiwyg mode
 - One can search now and find matches in markdown documents rendered in Wysiwyg format.
@@ -166,8 +166,8 @@ simple HTML formatting including hyperlink to more documentation.
 
 ### Changed
 - all files previously stored in the old Windows INI-file format (`pksedit.his`, `pksedit.ini`) were replaced by JSON formatted files:
-  `pkseditini.json` captures the standard PKS-Edit configuration, file `pkssession.json` contains _session_ information like the list
-  of previously opened files. The later file is generated by PKS-Edit and should not be edited manually, the `pkseditini.json` file is
+  `pkseditini.json` captures the standard PKS Edit configuration, file `pkssession.json` contains _session_ information like the list
+  of previously opened files. The later file is generated by PKS Edit and should not be edited manually, the `pkseditini.json` file is
   written, when print or configuration settings are changed, but is also intended for manual editing.
 - PKSMacroC syntax has changed on some places to make it more compatible with simple "C" code. Macros are not any more marked with a special
   keyword "macro", but are proceeded by either "void" or by specifying the return type (e.g. `string concatStrings(string s1, string 2)`).
@@ -226,19 +226,19 @@ simple HTML formatting including hyperlink to more documentation.
 - PKS Edit supports now switching between fullscreen and normal mode (press F11 to toggle)
 - PKS Edit supports now autosaving the file directly rather than autosaving a temporary file
 - PKS Edit Help is now provided by displaying the manual written in markdown format. The old Windows Help file was removed.
-- PKS-Edit will now **auto-detect codepages** when opening documents. Although it still has not double byte character support, 
-  document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS-Edit). 
-  Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS-Edit auto-detect
+- PKS Edit will now **auto-detect codepages** when opening documents. Although it still has not double byte character support, 
+  document e.g. written in UTF-8 format are now correctly converted upon reading to ISO-8859-1 encoding (standard encoding handled by PKS Edit). 
+  Files are also saved in the encoding in which the were read. One can select the desired encoding when opening files (or let PKS Edit auto-detect
   the encoding) and may select a different encoding when saving files using "Save As". One may inspect the current encoding of a file in the 
   file buffer list.
 - Search in files can now handle **pathes longer than 260 characters** and will not abort the search, when a file along the way cannot be opened.
 - Toolbar icon sizes can now be configured in the configuration layout options section.
 - The default text font used in editors can now be configured in the configuration misc.... section.
-- One can select now the special theme "system default" to have PKS-Edit honor the system settings for darkmode application display.
-  If selected, PKS-Edit shows up in darkmode, when darkmode applications mode is configured in Windows and in default mode otherwise.
-- PKS-Edit supports now context menus in editors. The contents of the context menu can be configured using the newly introduced `pksactionbindings.json`
+- One can select now the special theme "system default" to have PKS Edit honor the system settings for darkmode application display.
+  If selected, PKS Edit shows up in darkmode, when darkmode applications mode is configured in Windows and in default mode otherwise.
+- PKS Edit supports now context menus in editors. The contents of the context menu can be configured using the newly introduced `pksactionbindings.json`
   configuration file.
-- PKS-Edit supports now searching the word under the cursor or the current selected text on the Internet. One can configure the favorite
+- PKS Edit supports now searching the word under the cursor or the current selected text on the Internet. One can configure the favorite
   search engine in the miscellaneous configuration dialog.
 - The temp path of PKS Edit may be configured explicitly to point to an arbitrary directory, but will also default now to a directory named 
   "pksedit" located in the current users Windows temp directory. PKS Edit will now place all temporary files (autosave etc...) to the backup
@@ -269,14 +269,14 @@ the mouse will result always in complete lines being selected.
 - templates defined in the grammar may now explicitly marked with `auto-insert=true` to have the template define an abbreviation, inserted
   during editing without opening the code-completion window. The two new template variables `${tab}` and `${indent}` were added to allow
   for proper indenting in the code generated. See the [grammar](manual/grammar.md) documentation for details.
-- PKS-Edit will now perform document / grammar sensitive formatting and indenting of documents. The old "Bracket Indenting" option is gone.
+- PKS Edit will now perform document / grammar sensitive formatting and indenting of documents. The old "Bracket Indenting" option is gone.
   In code files the indent will be properly selected automatically based on the current opening and closing braces etc... A simple parser
   was added which is able to handle comments and string / character constants in the code possibly containing opening and closing brackets
   more gracefully. Formatting is currently rather limited except for text type files (and markdown).
 - document types can now be selected not only based on the file name extension, but also based on the contents of the first line.
 - text formatting works now also for code files (e.g. c++ or java). A very simple formatting algorithm was implemented so far only caring about
   indentation.
-- PKS-Edit now differentiates between "navigate to last" and "navigate to last insertion position" and provides a menu entry for each version. 
+- PKS Edit now differentiates between "navigate to last" and "navigate to last insertion position" and provides a menu entry for each version. 
   Goto last position will navigate between all automatically defined marks and navigate to last insertion position will explicitly navigate to
   marks defined before the last modification of text.
 
@@ -285,7 +285,7 @@ the mouse will result always in complete lines being selected.
   than replacing the extension x.c -> x.bak). This has the advantage, that files named x.c and x.h will create different backup files now.
 - Changing the display mode will not automatically save the editor configuration any more. Editor configurations are saved, when they
   were edited in the corresponding dialog.
-- PKS-Edit will now save and load all action bindings from a JSON file, which can be edited rather than from the binary compiled macro file.
+- PKS Edit will now save and load all action bindings from a JSON file, which can be edited rather than from the binary compiled macro file.
  
 ### Fixed
 - Long lines painted in a single color could have caused a crash. This is fixed.
@@ -301,7 +301,7 @@ the mouse will result always in complete lines being selected.
 - For text type grammars (text and markdown) code completion includes all words found in the current text.
 - The line numbers area displays now change annotations: changed lines are marked with a yellow annotation, changed lines,
   which have been saved are marked in green.
-- PKS-Edit supports now navigation to previous positions "cross open files" - aka global textmarks. One can used Alt+Left/Right
+- PKS Edit supports now navigation to previous positions "cross open files" - aka global textmarks. One can used Alt+Left/Right
   to navigate between "editing positions" and Alt+Shift+Left/Right to navigate between "navigation positions". Editing positions
   can also be navigated through the new back and next toolbar buttons.
 - Ctrl+TAB opens a window selector now allowing to visually tab through the list of open files to select a file.
@@ -359,7 +359,7 @@ the mouse will result always in complete lines being selected.
 - Matching brackets is grammar dependent now.
 - Ctags support was updated to correctly support the newest default format as used by the Universal Ctags program.
 - We started to finally implement an English version of PKS Edit. Language dependent files have not yet been all translated.
-  In order to force PKS-Edit to using English language resources, one can add to `Language=en-US` to the [desk] section
+  In order to force PKS Edit to using English language resources, one can add to `Language=en-US` to the [desk] section
   of pksedit.ini.
 
 #### Fixed

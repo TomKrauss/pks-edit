@@ -1,7 +1,7 @@
 /*
  * CaretMovement.h
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
  * purpose: caret positioning
  *

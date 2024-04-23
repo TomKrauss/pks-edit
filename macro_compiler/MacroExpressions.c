@@ -88,7 +88,7 @@ static void interpreter_asString(char* pBuf, char* pBufEnd, PKS_VALUE v) {
 }
 
 /*
- * Generic coercion function to coerce PKS-Edit values.
+ * Generic coercion function to coerce PKS Edit values.
  */
 PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_VALUE_TYPE tTargetType) {
 	if (nValue.pkv_type == tTargetType) {

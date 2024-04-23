@@ -72,8 +72,8 @@ The following variables are supported:
 - `${date}` - the current date (by default in format dd.mm.yyyy)
 - `${year}` - the current year (e.g. 2021)
 - `${pks_sys}` - the PKS_SYS directory**
-- `${pks_tmp}` - the temporary directory for PKS-Edit.
-- `${pks_executable}` - the PKS-Edit executable full path.
+- `${pks_tmp}` - the temporary directory for PKS Edit.
+- `${pks_executable}` - the PKS Edit executable full path.
 - `${indent}` - insert the number of spaces matching the indent of the line from which the template is inserted
 - `${tab}` - insert the number of spaces to fill up one tab position.
 - `${cursor}` - after inserting the template, place the cursor here
@@ -84,7 +84,7 @@ The following variables are supported:
 - `${word_selection}` - the "word/identifier" close to the input caret or text currently selected.
 
 ### Bracket matching
-PKS-Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single
+PKS Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single
 string pairs as in the following sample for a C code file, which defines opening and closing curly braces to pair:
 
 ```json

@@ -2,7 +2,7 @@
 
 ## Cross References
 
-PKS-Edit supports the navigation to cross references using a tags file as it can be created using [Universal Ctags](https://docs.ctags.io/en/latest/index.html).
+PKS Edit supports the navigation to cross references using a tags file as it can be created using [Universal Ctags](https://docs.ctags.io/en/latest/index.html).
 In order to navigate cross references, the _grammar_ of the edited file must define the mechanism to navigate a cross reference. Mechanisms could also include
 to perform a google search for the word under the cursor.
 
@@ -10,12 +10,12 @@ With "Find->Browse Cross Reference List..." one can open the list of known cross
 navigate to the cross reference (word under the caret). If no matching cross reference is found in the later case, this will fall back to open the list of known
 cross references.
 
-PKS-Edit by default looks for a file named `tags` located in the _current directory_ of the file currently edited. One can explicitly open a cross reference list
+PKS Edit by default looks for a file named `tags` located in the _current directory_ of the file currently edited. One can explicitly open a cross reference list
 using menu "Extras->Open Tag File...".
 
 ## Auto-Bookmarks
 
-PKS-Edit sets automatic bookmarks
+PKS Edit sets automatic bookmarks
 
 1. when navigating to other positions (search, traversal of links)
 2. when starting a new editing operation

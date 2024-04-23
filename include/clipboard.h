@@ -1,7 +1,7 @@
 /*
  * clipboard.h
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: handle the standard clipboard
  *
@@ -37,7 +37,7 @@ extern int clp_setdata(char* pszBufferName);
 
 /*------------------------------------------------------------
  * clp_getdata()
- * get contents of the clipboard for PKS-EDIT
+ * get contents of the clipboard for PKS EDIT
  */
 extern int clp_getdata(void);
 

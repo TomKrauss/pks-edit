@@ -1,8 +1,8 @@
-# Markdown Support in PKS-Edit
+# Markdown Support in PKS Edit
 
 ## Purpose
 
-PKS-Edit supports Wysiwyg mode display of markdown text primarily for the purpose of providing documentation of PKS Edit itself.
+PKS Edit supports Wysiwyg mode display of markdown text primarily for the purpose of providing documentation of PKS Edit itself.
 Support is currently limited - not all markdown features are supported. In particular markdown text may only be displayed and not
 be edited. One may browse markdown links, but that is all, which is possible. To edit markdown text, one need to change back to
 ascii rendering mode.
@@ -49,12 +49,12 @@ Some HTML formatting is supported in markdown documents. Here are some samples a
 - <code>code tag to style code</code >.
 - <span style="color: teal;">using CSS style to color text in color **teal**</span>
 - <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
-- Text enclosed in a &lt;span&gt; tag <span class="operator">with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
+- Text enclosed in a &lt;span&gt; tag <span class="operator">with a style class (taken from the PKS Edit theme) is used to select the foreground color.</span>
 ```
 - <code>code tag to style code</code >.
 - <span style="color: teal;">using CSS style to color text in color **teal**</span>
 - <em>Emphasis</em>, < i >italic</i>, <b>bold</b> and then <br > text wrapped around.
-- Text enclosed in a &lt;span&gt; tag <span class="operator">with a style class (taken from the PKS-Edit theme) is used to select the foreground color.</span>
+- Text enclosed in a &lt;span&gt; tag <span class="operator">with a style class (taken from the PKS Edit theme) is used to select the foreground color.</span>
 
 <p style="width: 50%; text-align:right">Here is a block of text which has a defined width and is *right aligned* using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification. Here is a block of text which has a width defined using a CSS style specification.</p>
 
@@ -123,7 +123,7 @@ Here is an indented code block:
 
 ## Images
 
-Images are supported by PKS-Edit as well. The following samples show the supported image formats (`.bpm`, `.png`, `.jpg`, `.gif`).
+Images are supported by PKS Edit as well. The following samples show the supported image formats (`.bpm`, `.png`, `.jpg`, `.gif`).
 
 Note, that the special syntax for defining width and height of the image as rendered as in the following code is supported `[The famous cat]\(cat.bmp =250x150)]`.
 
@@ -149,7 +149,7 @@ Only local images are supported (no http support).
 
 ## Tables
 
-PKS-Edit supports the markdown extension tables. 
+PKS Edit supports the markdown extension tables. 
 
 |    Tables|      Are      |  Cool |
 |----------|:-------------:|------:|
@@ -159,7 +159,7 @@ PKS-Edit supports the markdown extension tables.
 
 ### Limitations
 
-**Note**, that tables in PKS-Edit currently have quite some _limitations_:
+**Note**, that tables in PKS Edit currently have quite some _limitations_:
 
 - table layout is performed rather heuristically and has lots of limitations
 - column and row spans in HTML mode are not yet supported

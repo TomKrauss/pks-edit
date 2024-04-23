@@ -1,7 +1,7 @@
 /*
  * HandleMacros.c
  *
- * PROJEKT: PKS-EDIT for MS - WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: common functions for macro handling
  *

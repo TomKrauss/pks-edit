@@ -1,7 +1,7 @@
 /*
  * fontawesome.h
  *
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * purpose: defines FONT AweSome icon constants.
  *

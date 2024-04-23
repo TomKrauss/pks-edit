@@ -1,16 +1,16 @@
-﻿; Installs PKS-Edit
+﻿; Installs PKS Edit
 ; you must have a "x64" edition of Windows.
 
 #define MyAppName "PKSEdit.1"
 #define MyAppBaseName "pksedit"
-#define MyAppProductName "PKS-Edit"
+#define MyAppProductName "PKS Edit"
 #define MyAppExeName  "pksedit.exe"
 
 [Tasks]
 Name: fileAssociation; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:ExtensionsGroup}"
 
 [Setup]
-AppName=PKS-Edit
+AppName=PKS Edit
 AppVersion=2.4.0
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit

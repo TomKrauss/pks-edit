@@ -1,9 +1,9 @@
 /*
  * DocumentModel.c
  *
- * PROJEKT: PKS-EDIT for Windows
+ * Project: PKS Edit for Windows
  *
- * Operations on the "document model" of PKS-Edit. Maintain list of lines and the 
+ * Operations on the "document model" of PKS Edit. Maintain list of lines and the 
  * operations on these lines delete, insert, modify,....
  *
  * 										created: 10.02.87

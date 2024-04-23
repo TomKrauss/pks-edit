@@ -1,5 +1,5 @@
 /*
- * PROJEKT: PKS-EDIT for WINDOWS
+ * Project: PKS Edit for Windows
  *
  * mouseutil.h
  *
