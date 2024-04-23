@@ -1,7 +1,7 @@
 /*
  * FunctionTable.c
  *
- * Project: PKS Edit for ATARI / MS Windows
+ * Project: PKS Edit for Windows
  *
  * purpose:
  * definition of all functions and commands callable in PKS Edit,
