@@ -81,7 +81,10 @@ Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
 Source: "examples\*"; DestDir: "{app}\examples"; Flags: ignoreversion recursesubdirs
 
 [INI]
-Filename: "win.ini"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"
+Filename: "{code:GetIniFileName}"; Section: "PksEdit"; Key: "PKS_SYS"; String: "{app}\PKS_SYS"
+
+[UninstallDelete]
+Type: files; Name: "{app}\pksedit.ini"
 
 [Icons]
 Name: "{group}\PKS Edit"; Filename: "{app}\{#MyAppExeName}"
@@ -113,3 +116,12 @@ Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\shell\open\command";  ValueDa
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\shell\open\ddeexec";  ValueData: """%1""";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\shell\open\ddeexec\Application";  ValueData: "{#MyAppName}";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\{#MyAppName}\shell\open\ddeexec\topic";  ValueData: "commandline";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
+
+[Code]
+function GetIniFileName(Param: string): string; 
+begin
+  if IsAdmin then
+    Result := 'win.ini'
+  else
+    Result := ExpandConstant('{app}\pksedit.ini');
+end;
