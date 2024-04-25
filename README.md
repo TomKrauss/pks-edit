@@ -10,10 +10,10 @@ and now available as a 64-Bit application for Windows 7 and newer
 ## Releases
 
 - Installable versions of PKS Edit can be downloaded here:
-  - [Release 2.4.0](https://github.com/TomKrauss/PKS%20Edit/releases/tag/v2.4.0)
-  - [Release 2.3.0](https://github.com/TomKrauss/PKS%20Edit/releases/tag/v2.3.0)
-  - [Release 2.2.0](https://github.com/TomKrauss/PKS%20Edit/releases/tag/v2.2.0)
-  - [Release 2.1.0](https://github.com/TomKrauss/PKS%20Edit/releases/tag/v2.1.0)
+  - [Release 2.4.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.4.0)
+  - [Release 2.3.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.3.0)
+  - [Release 2.2.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.2.0)
+  - [Release 2.1.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.1.0)
 
 ## Features
 
