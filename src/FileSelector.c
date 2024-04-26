@@ -322,8 +322,10 @@ static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 	case WM_INITDIALOG:
 		pOFN = (OPENFILENAME*)lParam;
 		pFSP = (FILE_SELECT_PARAMS*)pOFN->lCustData;
-		crypted = pFSP->fsp_encrypted;
-		SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
+		if (pFSP->fsp_saveAs) {
+			crypted = pFSP->fsp_encrypted;
+			SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
+		}
 		fsel_fillEncodingList(GetDlgItem(hwnd, IDC_FILE_ENCONDING), !pFSP->fsp_saveAs, pFSP->fsp_codepage);
 		hwndDlg = hwnd;
 		break;
@@ -380,6 +382,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 		;
 	}
 	*pszRun = 0;
+	size_t n = pszRun - pszCustomFilter;
 
 	doctypes_getSelectableDocumentFileTypes(pszFilter, nMax);
 	int nFilterIndex = 0;
@@ -405,7 +408,7 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 	ofn.nFilterIndex = nFilterIndex;
 	ofn.lpstrInitialDir = initialDirectory;
 	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
-	ofn.nMaxCustFilter = EDMAXPATHLEN;
+	ofn.nMaxCustFilter = nMax;
 	ofn.lpstrFile = szFileName;	// Stores the result in this variable
 	ofn.nMaxFile = EDMAXPATHLEN - 1;
 	ofn.lpstrTitle = pFSParams->fsp_title;
