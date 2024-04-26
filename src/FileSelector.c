@@ -350,7 +350,7 @@ static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
  */
 static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, char szFileName[], char szExt[], char* initialDirectory) {
 	OPENFILENAME 	ofn;
-	DWORD 		Errval;
+	DWORD 		wError;
 	LPSTR		pszFilter;
 	LPSTR		pszCustomFilter;
 	LPSTR		pszCustomOffset;
@@ -424,10 +424,10 @@ static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, ch
 		lstrcpy(szExt, pszCustomOffset[0] ? pszCustomOffset : "*.*");
      } else {
 		bRet = FALSE;
-		Errval=CommDlgExtendedError();
-		if(Errval!=0) {
+		wError = CommDlgExtendedError();
+		if(wError != 0) {
 			// TODO: I18N
-			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", Errval);
+			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", wError);
 			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
 		}
 	}

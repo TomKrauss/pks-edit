@@ -62,7 +62,7 @@ int EdHelpContext(DWORD nCtx) {
 	case IDM_HLPOVERVIEW: pszFile = "manual\\pksedit_ui.md"; break;
 	case IDM_HLPONKEYS: pszFile = "manual\\editing_files.md"; break;
 	case IDM_HLP_MANUAL_TOC: pszFile = "manual\\toc.md"; break;
-	case IDM_HLPRELEASENOTES: pszFile = "release_notes.md"; break;
+	case IDM_HLPRELEASENOTES: pszFile = "CHANGELOG.md"; break;
 	}
 	return help_open(pszFile);
 }
