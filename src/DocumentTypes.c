@@ -181,7 +181,7 @@ EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor() {
  * doctypes_getSelectableDocumentFileTypes()
  * Returns the list of document file types defined in PKS Edit in the format
  * that it can be passed on to the open file dialog for filtering of file types
- * (e.g. *.*|All Files|*.java|Java Files)
+ * (e.g. *.*\0All Files\0*.java\0Java Files\0)
  */
 void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 	LPSTR		pszEnd;
@@ -190,10 +190,10 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 
 	pszEnd = pszDest + nMax - 2;
 	for (nCopied = 0, llp = config.dc_types; llp != 0; llp = llp->ll_next) {
-		if (nCopied > 0) {
-			*pszDest++ = '|';
-		}
 		if (llp->ll_match[0]) {
+			if (nCopied > 0) {
+				*pszDest++ = 0;
+			}
 			pszDest = strmaxcpy(pszDest,
 				llp->ll_description[0] ?
 				llp->ll_description : llp->ll_match,
@@ -201,7 +201,7 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 			if (pszDest >= pszEnd) {
 				break;
 			}
-			*pszDest++ = '|';
+			*pszDest++ = 0;
 			pszDest = strmaxcpy(pszDest, llp->ll_match,
 				(int)(pszEnd - pszDest));
 			if (pszDest >= pszEnd) {
@@ -210,6 +210,7 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 			nCopied++;
 		}
 	}
+	*pszDest = 0;
 }
 
 /*--------------------------------------------------------------------------

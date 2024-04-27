@@ -23,6 +23,7 @@ typedef struct tagFILE_SELECT_PARAMS {
 	char* fsp_title;			// The title to display in the file selector
 	char* fsp_inputFile;		// The initial file name (including path) to use
 	char* fsp_namePatterns;		// The possible file name patterns for selection (*.*, *.c, ...)
+	char* fsp_filters;			// The selectable file filters encoded in CommonDialog format (e.g. All Files\0*.*\0C Files\0*.c\0\0)
 	char* fsp_resultFile;		// The result file name will be copied here
 	BOOL  fsp_saveAs;			// true to show a save as dialog
 	BOOL  fsp_multiSelect;		// Allow to select multiple files

@@ -46,6 +46,12 @@ extern int 		doDocumentTypes(int nDlg);
 
 extern int	nCurrentDialog;
 
+/*
+ * Show an open file selector with a title and a pointer to hold the selected result.
+ * If a file was selected successfully 1 is returned.
+ */
+extern int file_open_vista_version(FILE_SELECT_PARAMS* pParams);
+
 char _fseltarget[EDMAXPATHLEN];
 
 static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData) {
@@ -225,6 +231,7 @@ static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *p
 	pFSP->fsp_title = szTemp;
 
 	ret = fsel_selectFile(pFSP);
+
 	nCurrentDialog = nSave;
 	if (_fseltarget[0] == 0) {
 		return 0;
@@ -310,138 +317,6 @@ static void fsel_fillEncodingList(HWND hwnd, BOOL bAllowAuto, long nSelectedEnco
 	SendMessage(hwnd, CB_SETCURSEL, nSelectedIndex, (LPARAM)0);
 }
 
-/* 
- * Callback for the openfile common dialog. 
- */
-static UINT_PTR fsel_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	static FILE_SELECT_PARAMS* pFSP;
-	OPENFILENAME* pOFN;
-	BOOL crypted;
-
-	switch (message) {
-	case WM_INITDIALOG:
-		pOFN = (OPENFILENAME*)lParam;
-		pFSP = (FILE_SELECT_PARAMS*)pOFN->lCustData;
-		if (pFSP->fsp_saveAs) {
-			crypted = pFSP->fsp_encrypted;
-			SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_SETCHECK, crypted ? BST_CHECKED : BST_UNCHECKED, 0);
-		}
-		fsel_fillEncodingList(GetDlgItem(hwnd, IDC_FILE_ENCONDING), !pFSP->fsp_saveAs, pFSP->fsp_codepage);
-		hwndDlg = hwnd;
-		break;
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDC_FILE_ENCONDING && HIWORD(wParam) == CBN_SELCHANGE) {
-			LRESULT nIndex = SendDlgItemMessage(hwnd, IDC_FILE_ENCONDING, CB_GETCURSEL, 0l, 0L);
-			if (nIndex >= 0) {
-				pFSP->fsp_codepage = (long)SendDlgItemMessage(hwnd, IDC_FILE_ENCONDING, CB_GETITEMDATA, nIndex, 0L);
-			}
-		}
-		if (LOWORD(wParam) == IDC_CHECK_ENCRYPT && HIWORD(wParam) == BN_CLICKED) {
-			pFSP->fsp_encrypted  = (BOOL)SendDlgItemMessage(hwnd, IDC_CHECK_ENCRYPT, BM_GETCHECK, 0, 0);
-		}
-		break;
-	case WM_DESTROY:
-		hwndDlg = NULL;
-		break;
-	}
-	return FALSE;
-}
-
-/*--------------------------------------------------------------------------
- * DoSelectPerCommonDialog()
- */
-static BOOL DoSelectPerCommonDialog(HWND hWnd, FILE_SELECT_PARAMS* pFSParams, char szFileName[], char szExt[], char* initialDirectory) {
-	OPENFILENAME 	ofn;
-	DWORD 		wError;
-	LPSTR		pszFilter;
-	LPSTR		pszCustomFilter;
-	LPSTR		pszCustomOffset;
-	LPSTR		pszRun;
-	BOOL		bRet;
-	char 		szTemp[128];
-	int			nMax = 4096;
-
-	pszFilter = calloc(1, nMax);
-	if (!pszFilter) {
-		return FALSE;
-	}
-	pszCustomFilter = calloc(1, nMax);
-	if (!pszCustomFilter) {
-		free(pszFilter);
-		return FALSE;
-	}
-
-	pszRun = pszCustomFilter;
-	lstrcpy(pszRun, szExt);
-	while(*pszRun++) {
-		;
-	}
-	pszCustomOffset = pszRun;
-	lstrcpy(pszRun, szExt);
-	while(*pszRun++) {
-		;
-	}
-	*pszRun = 0;
-	size_t n = pszRun - pszCustomFilter;
-
-	doctypes_getSelectableDocumentFileTypes(pszFilter, nMax);
-	int nFilterIndex = 0;
-	int nIndex = 0;
-	char* pszPrev = pszFilter;
-	for (pszRun = pszFilter; *pszRun; pszRun++) {
-		if (*pszRun == '|') {
-			*pszRun = (char) 0;
-			if (strstr(pszPrev, szExt) != 0) {
-				nFilterIndex = 1 + (nIndex / 2);
-			}
-			nIndex++;
-			pszPrev = pszRun + 1;
-		}
-	}
-	*++pszRun = (char) 0;
-
-	memset(&ofn, 0, sizeof ofn);
-	ofn.lStructSize = sizeof ofn;
-	ofn.hInstance = ui_getResourceModule();
-	ofn.hwndOwner = hWnd;			// An invalid hWnd causes non-modality
-	ofn.lpstrFilter = (LPSTR)pszFilter;
-	ofn.nFilterIndex = nFilterIndex;
-	ofn.lpstrInitialDir = initialDirectory;
-	ofn.lpstrCustomFilter = (LPSTR)pszCustomFilter;
-	ofn.nMaxCustFilter = nMax;
-	ofn.lpstrFile = szFileName;	// Stores the result in this variable
-	ofn.nMaxFile = EDMAXPATHLEN - 1;
-	ofn.lpstrTitle = pFSParams->fsp_title;
-	ofn.Flags = OFN_PATHMUSTEXIST;
-	if (pFSParams->fsp_multiSelect) {
-		ofn.Flags |= OFN_ALLOWMULTISELECT;
-	}
-	if (pFSParams->fsp_optionsAvailable) {
-		ofn.Flags |= OFN_ENABLETEMPLATE|OFN_EXPLORER|OFN_ENABLESIZING|OFN_ENABLEHOOK;
-		ofn.lpTemplateName = MAKEINTRESOURCE(pFSParams->fsp_saveAs ? DLG_SAVEAS_OPTIONS : DLG_OPEN_OPTIONS);
-		ofn.lpfnHook = MakeProcInstance(fsel_wndProc, hInst);
-		ofn.lCustData = (LPARAM) pFSParams;
-	}
-	if ((pFSParams->fsp_saveAs && GetSaveFileName( &ofn ) ) || (!pFSParams->fsp_saveAs && GetOpenFileName( &ofn ))) {
-		bRet = TRUE;
-		lstrcpy(szExt, pszCustomOffset[0] ? pszCustomOffset : "*.*");
-     } else {
-		bRet = FALSE;
-		wError = CommDlgExtendedError();
-		if(wError != 0) {
-			// TODO: I18N
-			wsprintf(szTemp, "GetOpenFileName returned Error # 0x%lx", wError);
-			error_displayAlertBoxWithOptions(MB_OK | MB_ICONSTOP, szTemp);
-		}
-	}
-	if (ofn.lpfnHook) {
-		FreeProcInstance((FARPROC)ofn.lpfnHook);
-	}
-	free(pszFilter);
-	free(pszCustomFilter);
-	return bRet;
-}
-
 /*------------------------------------------------------------
  * fsel_selectFile
  * select a file with a file open dialog. If bSaveAs is true, the
@@ -454,6 +329,13 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	LPSTR 	pszExt;
 	LPSTR	pszFileName;
 	LPSTR	pszPath;
+	int		nMax = 4096;
+
+	pFSParams->fsp_filters = calloc(1, nMax);
+	if (!pFSParams->fsp_filters) {
+		return FALSE;
+	}
+	doctypes_getSelectableDocumentFileTypes(pFSParams->fsp_filters, nMax);
 
 	pszExt = malloc(EDMAXPATHLEN);
 	pszFileName = malloc(EDMAXPATHLEN);
@@ -464,17 +346,9 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	strcpy(pszExt, pFSParams->fsp_namePatterns);
 	//fsel_changeDirectory(pszPath);
 
-	if ((ret = DoSelectPerCommonDialog(GetActiveWindow(),
-		pFSParams, pszFileName, pszExt, pszPath)) == TRUE) {
-		memcpy(szFullPathOut, pszFileName, EDMAXPATHLEN);
-		if (pszFileName[strlen(pszFileName) + 1]) {
-			// special case: multi-result returned by GetFilename Filedialog API.
-			strcpy(pszPath, pszFileName);
-		} else {
-			string_splitFilename(pszFileName, pszPath, szFileNameIn);
-		}
-	}
+	ret = file_open_vista_version(pFSParams);
 
+	free(pFSParams->fsp_filters);
 	free(pszFileName);
 	free(pszExt);
 	free(pszPath);
