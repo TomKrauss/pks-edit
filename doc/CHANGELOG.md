@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.5.0] - 2024-04-26
 
+### Added
+- A grammar definition for `.arb`-files (Flutter Application Resource Bundles) was added.
+
 ### Improved
-- A more modern version of open and save dialogs were integrated into PKS Edit.
+- A more modern version of the Windows open and save dialog was integrated into PKS Edit.
 
 ### Fixed
 - corrected link to release notes.

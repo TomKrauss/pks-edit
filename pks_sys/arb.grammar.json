@@ -1,0 +1,52 @@
+{
+  "grammars": [
+    {
+      "scopeName": "arb",
+      "description": "Application Resource Bundle",
+      "patterns": [
+        {
+          "keywords": [
+            "true",
+            "false",
+            "\"@@locale\"",
+            "null"
+          ],
+          "name": "keyword.control.json",
+          "style": "keyword"
+        },
+        {
+          "match": "<\"@[A-Za-z0-9_-]+\" *:",
+          "name": "resource.parameter",
+          "style": "annotation"
+        },
+        {
+          "match": "<\"[A-Za-z0-9_-]+\" *:",
+          "name": "string.json.key",
+          "style": "string"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "name": "string.json.value",
+          "style": "literal",
+          "patterns": [
+            {
+              "name": "message.arg",
+              "style": "bold-comment",
+              "match": "\\{[^}]+\\}"
+            }
+          ]
+        },
+        {
+          "match": "[\\[\\]{}]",
+          "name": "keyword.operator.json",
+          "style": "operator"
+        },
+        {
+          "match": "<[0-9.]+>",
+          "name": "constant.numeric",
+          "style": "literal"
+        }
+      ]
+    }
+  ]
+}

@@ -225,6 +225,13 @@
       "filenamePatterns": "*.json"
     },
     {
+      "name": "arb-files",
+      "description": "Arb Files (*.arb)",
+      "grammar": "arb",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.arb"
+    },
+    {
       "name": "yaml-files",
       "description": "YAML Files (*.yaml)",
       "grammar": "yaml",

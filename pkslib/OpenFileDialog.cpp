@@ -282,46 +282,41 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
 
 extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS* pParams) {
     int ret = 0;
-    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED |
-        COINIT_DISABLE_OLE1DDE);
-    if (SUCCEEDED(hr)) {
-        IFileDialog* pFileDialog;
+    IFileDialog* pFileDialog;
 
-        // Create the FileOpenDialog object.
-        hr = CoCreateInstance(pParams->fsp_saveAs ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
-            pParams->fsp_saveAs ? IID_IFileSaveDialog : IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileDialog));
+    // Create the FileOpenDialog object.
+    HRESULT hr = CoCreateInstance(pParams->fsp_saveAs ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+        pParams->fsp_saveAs ? IID_IFileSaveDialog : IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileDialog));
+    if (SUCCEEDED(hr)) {
+        IFileDialogCustomize* pfdc = file_customizeDialog(pFileDialog, pParams);
+        UINT count;
+        COMDLG_FILTERSPEC* pFileTypes = file_openInitialize(pFileDialog, pParams, &count);
+        hr = pFileDialog->Show(NULL);
+        // Get the file name from the dialog box.
         if (SUCCEEDED(hr)) {
-            IFileDialogCustomize* pfdc = file_customizeDialog(pFileDialog, pParams);
-            UINT count;
-            COMDLG_FILTERSPEC* pFileTypes = file_openInitialize(pFileDialog, pParams, &count);
-            hr = pFileDialog->Show(NULL);
-            // Get the file name from the dialog box.
-            if (SUCCEEDED(hr)) {
-                if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {
-                    // Obtain the result of the user interaction.
-                    IFileOpenDialog* pFileOpenDialog = (IFileOpenDialog*)pFileDialog;
-                    file_getResults(pFileOpenDialog, pParams->fsp_resultFile);
-                } else {
-                    file_getResult(pFileDialog, pParams->fsp_resultFile);
-                }
-                UINT nSelected;
-                pFileDialog->GetFileTypeIndex(&nSelected);
-                WideCharToMultiByte(CP_UTF8, 0, pFileTypes[nSelected].pszSpec, -1, pParams->fsp_namePatterns, 1024, 0, 0);
-                DWORD encodingIndex = 0;
-                pfdc->GetSelectedControlItem(CONTROL_ENCODING, &encodingIndex);
-                pParams->fsp_codepage = _codepages[encodingIndex];
-                if (pParams->fsp_saveAs) {
-                    BOOL encryptSelected = false;
-                    pfdc->GetCheckButtonState(CONTROL_ENCRYPT, &encryptSelected);
-                    pParams->fsp_encrypted = encryptSelected;
-                }
-                ret = 1;
+            if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {
+                // Obtain the result of the user interaction.
+                IFileOpenDialog* pFileOpenDialog = (IFileOpenDialog*)pFileDialog;
+                file_getResults(pFileOpenDialog, pParams->fsp_resultFile);
+            } else {
+                file_getResult(pFileDialog, pParams->fsp_resultFile);
             }
-            file_open_free_filters(pFileTypes, count);
-            pFileDialog->Release();
-            pfdc->Release();
+            UINT nSelected;
+            pFileDialog->GetFileTypeIndex(&nSelected);
+            WideCharToMultiByte(CP_UTF8, 0, pFileTypes[nSelected].pszSpec, -1, pParams->fsp_namePatterns, 1024, 0, 0);
+            DWORD encodingIndex = 0;
+            pfdc->GetSelectedControlItem(CONTROL_ENCODING, &encodingIndex);
+            pParams->fsp_codepage = _codepages[encodingIndex];
+            if (pParams->fsp_saveAs) {
+                BOOL encryptSelected = false;
+                pfdc->GetCheckButtonState(CONTROL_ENCRYPT, &encryptSelected);
+                pParams->fsp_encrypted = encryptSelected;
+            }
+            ret = 1;
         }
-        CoUninitialize();
+        file_open_free_filters(pFileTypes, count);
+        pFileDialog->Release();
+        pfdc->Release();
     }
     return ret;
 }
