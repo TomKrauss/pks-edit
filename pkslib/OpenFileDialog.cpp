@@ -20,6 +20,83 @@
 #include <Shlwapi.h>
 #include "..\include\fileselector.h"
 
+#define CONTROL_GROUP 2000
+#define CONTROL_GROUP_ENCODING 2001
+#define CONTROL_ENCRYPT 1
+#define CONTROL_ENCODING 2
+
+static int _codepages[] = {
+    -1,
+    CP_ACP,
+    CP_OEMCP,
+    CP_UTF8,
+    37,
+    437,
+    500,
+    708,
+    709,
+    710,
+    720,
+    737,
+    775,
+    850,
+    852,
+    855,
+    857,
+    858,
+    860,
+    861,
+    862,
+    863,
+    864,
+    865,
+    866,
+    869,
+    870,
+    874,
+    875,
+    932,
+    936,
+    949,
+    950,
+    1026,
+    1047,
+    1140,
+    1141,
+    1142,
+    1143,
+    1144,
+    1145,
+    1146,
+    1147,
+    1148,
+    1149,
+    1200,
+    1201,
+    1252,
+    1253,
+    1254,
+    1255,
+    1256,
+    1257,
+    1258,
+    1361,
+    10000,
+    10001,
+    10002,
+    10003,
+    10004,
+    10005,
+    10006,
+    10007,
+    10008,
+    12000,
+    12001,
+    65000,
+    65001
+};
+
+
 static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
     for (int i = 0; i < nCount; i++) {
         free((void*) pFilters[i].pszName);
@@ -28,7 +105,7 @@ static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
     free((void*) pFilters);
 }
 
-static COMDLG_FILTERSPEC* file_open_build_filters(char* pszFileTypes, char* pszCurrent, UINT*pNumberOfTypes, UINT* pSelected) {
+static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCurrent, UINT*pNumberOfTypes, UINT* pSelected) {
     UINT nCount = 0;
     UINT nSize = 10;
     COMDLG_FILTERSPEC* pSpec = (COMDLG_FILTERSPEC*)calloc(sizeof(COMDLG_FILTERSPEC), nSize);
@@ -124,6 +201,78 @@ static int file_getResult(IFileDialog* pFileDialog, char* pszResult) {
     return ret;
 }
 
+void file_addEncodingItems(IFileDialogCustomize* pfdc, int bAllowAuto, int nSelectedEncoding) {
+    int nSelectedIndex = 0;
+    for (int i = 0; i < sizeof(_codepages)/sizeof(_codepages[0]); i++) {
+        CPINFOEX cpInfo;
+        DWORD nCp = _codepages[i];
+        PWSTR pszText;
+        if (nCp == -1) {
+            if (!bAllowAuto) {
+                continue;
+            }
+            pszText = (PWSTR)L"Auto-detect";
+        } else {
+            if (!GetCPInfoEx(nCp, 0, &cpInfo)) {
+                continue;
+            }
+            pszText = cpInfo.CodePageName;
+        }
+        pfdc->AddControlItem(CONTROL_ENCODING, i, pszText);
+        if (nSelectedEncoding == nCp) {
+            nSelectedIndex = (WPARAM)i;
+        }
+    }
+    pfdc->SetSelectedControlItem(CONTROL_ENCODING, nSelectedIndex);
+}
+
+IFileDialogCustomize* file_customizeDialog(IFileDialog *pfd, FILE_SELECT_PARAMS* pParams) {
+    IFileDialogCustomize* pfdc = NULL;
+    HRESULT hr = pfd->QueryInterface(IID_PPV_ARGS(&pfdc));
+    if (SUCCEEDED(hr)) {
+        pfdc->StartVisualGroup(CONTROL_GROUP_ENCODING, L"Encoding:");
+        pfdc->AddComboBox(CONTROL_ENCODING);
+        file_addEncodingItems(pfdc, !pParams->fsp_saveAs, pParams->fsp_codepage);
+        pfdc->EndVisualGroup();
+        if (pParams->fsp_saveAs) {
+            pfdc->StartVisualGroup(CONTROL_GROUP_ENCODING, L"Options:");
+            pfdc->AddCheckButton(CONTROL_ENCRYPT, L"Encrypted", pParams->fsp_encrypted);
+            pfdc->EndVisualGroup();
+        }
+    }
+    return pfdc;
+}
+
+static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SELECT_PARAMS* pParams, UINT* pCount) {
+    UINT nSelected;
+    COMDLG_FILTERSPEC* pFileTypes = file_openBuildFilters(pParams->fsp_filters, pParams->fsp_namePatterns, pCount, &nSelected);
+    pFileDialog->SetFileTypes(*pCount, pFileTypes);
+    pFileDialog->SetFileTypeIndex(nSelected);
+    WCHAR wText[256];
+    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_title, -1, wText, sizeof wText / sizeof(wText[0]));
+    pFileDialog->SetTitle(wText);
+    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+    PathStripPath(wText);
+    pFileDialog->SetFileName(wText);
+    size_t nLen = wcslen(wText);
+    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+    wText[wcslen(wText) - 1 - nLen] = 0;
+    IShellItem* pCurFolder = NULL;
+    HRESULT hr = SHCreateItemFromParsingName(wText, NULL, IID_PPV_ARGS(&pCurFolder));
+    if (SUCCEEDED(hr)) {
+        pFileDialog->SetFolder(pCurFolder);
+        pCurFolder->Release();
+    }
+    DWORD dwOptions;
+    // In case of multi-select - set options.
+    pFileDialog->GetOptions(&dwOptions);
+    if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {
+        dwOptions |= FOS_ALLOWMULTISELECT;
+        pFileDialog->SetOptions(dwOptions);
+    }
+    return pFileTypes;
+}
+
 extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS* pParams) {
     int ret = 0;
     HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED |
@@ -134,23 +283,10 @@ extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS*
         // Create the FileOpenDialog object.
         hr = CoCreateInstance(pParams->fsp_saveAs ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
             pParams->fsp_saveAs ? IID_IFileSaveDialog : IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileDialog));
-
         if (SUCCEEDED(hr)) {
+            IFileDialogCustomize* pfdc = file_customizeDialog(pFileDialog, pParams);
             UINT count;
-            UINT nSelected;
-            COMDLG_FILTERSPEC* pFileTypes = file_open_build_filters(pParams->fsp_filters, pParams->fsp_namePatterns, &count, &nSelected);
-            pFileDialog->SetFileTypes(count, pFileTypes);
-            pFileDialog->SetFileTypeIndex(nSelected);
-            WCHAR wTitle[256];
-            MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_title, -1, wTitle, sizeof wTitle / 4);
-            pFileDialog->SetTitle(wTitle);
-            DWORD dwOptions;
-            // In case of multi-select - set options.
-            pFileDialog->GetOptions(&dwOptions);
-            if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {
-                dwOptions |= FOS_ALLOWMULTISELECT;
-                pFileDialog->SetOptions(dwOptions);
-            }
+            COMDLG_FILTERSPEC* pFileTypes = file_openInitialize(pFileDialog, pParams, &count);
             hr = pFileDialog->Show(NULL);
             // Get the file name from the dialog box.
             if (SUCCEEDED(hr)) {
@@ -161,12 +297,22 @@ extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS*
                 } else {
                     file_getResult(pFileDialog, pParams->fsp_resultFile);
                 }
+                UINT nSelected;
                 pFileDialog->GetFileTypeIndex(&nSelected);
                 WideCharToMultiByte(CP_UTF8, 0, pFileTypes[nSelected].pszSpec, -1, pParams->fsp_namePatterns, 1024, 0, 0);
+                DWORD encodingIndex = 0;
+                pfdc->GetSelectedControlItem(CONTROL_ENCODING, &encodingIndex);
+                pParams->fsp_codepage = _codepages[encodingIndex];
+                if (pParams->fsp_saveAs) {
+                    BOOL encryptSelected = false;
+                    pfdc->GetCheckButtonState(CONTROL_ENCRYPT, &encryptSelected);
+                    pParams->fsp_encrypted = encryptSelected;
+                }
                 ret = 1;
             }
             file_open_free_filters(pFileTypes, count);
             pFileDialog->Release();
+            pfdc->Release();
         }
         CoUninitialize();
     }

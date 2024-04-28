@@ -22,7 +22,6 @@
 #define IDC_CURSOR1                     153
 #define IDC_CURSOR2                     154
 #define IDI_ICON1                       156
-#define DLG_SAVEAS_OPTIONS              156
 #define IDS_TT_REGULAR_EXPRESSION       181
 #define IDS_TT_PRESERVE_CASE            182
 #define IDS_FILE_MODIFIED               183
@@ -57,13 +56,10 @@
 #define DLG_OPT_MISC                    557
 #define DLG_OPT_LAYOUT                  558
 #define DLGCOMPAREFILES                 559
-#define DLG_OPEN_OPTIONS                560
 #define DLG_DEBUG                       561
 #define IDD_STRINGLIST3                 804
 #define IDC_GENERIC2                    1001
-#define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
-#define IDC_FILE_ENCONDING              1005
 #define IDC_LOCAL_VARS                  1005
 #define IDC_CUSTOM1                     1006
 #define IDD_PREVIEW_FRAME               1006
@@ -84,7 +80,6 @@
 #define IDS_COMMAND253                  2301
 #define IDS_COMMAND254                  2302
 #define IDS_ERROR_MESSAGE               3000
-#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

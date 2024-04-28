@@ -989,7 +989,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 	}
 
 	if ((flags & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
-		char newname[512];
+		char newname[EDMAXPATHLEN];
 		EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 		string_splitFilename(fp->fname,newname,_txtfninfo.fname);
 		if (newname[0]) {

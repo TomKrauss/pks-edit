@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.5.0] - 2024-04-26
 
+### Improved
+- A more modern version of open and save dialogs were integrated into PKS Edit.
+
 ### Fixed
 - corrected link to release notes.
+- The stack size of PKS Edit configured by default was too low causing in particular the open dialog
+  to die on some machines. **kudos** and a big thank you to [RBri](https://github.com/rbri) for helping to debug and finding the solution!
 
 ## [2.4.0] - 2023-07-09
 

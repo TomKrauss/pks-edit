@@ -315,7 +315,7 @@ EXPORT int bl_cutOrCopy(WINFO* wp, int flg,PASTE *pp)
  *---------------------------------*/
 EXPORT int bl_writeToFile(WINFO* wp, char *fn)
 {	PASTE  pbuf;
-	char   fname[256];
+	char   fname[MAX_PATH];
 	int	  ret;
 	int   mode;
 

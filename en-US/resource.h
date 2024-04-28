@@ -147,7 +147,6 @@
 #define IDM_HLPOVERVIEW                 152
 #define IDM_HLPONKEYS                   153
 #define IDM_HLPONHLP                    154
-#define DLG_SAVEAS_OPTIONS              156
 #define IDS_MSGRENOTNULL                160
 #define IDM_DOCTYPES                    160
 #define IDS_MSGRECOMPLEXEXPR            161
@@ -190,14 +189,11 @@
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
 #define DLGFINDINFILES                  535
-#define DLG_OPEN_OPTIONS                560
 #define DLG_DEBUG                       561
 #define IDD_ICONLIST2                   801
 #define IDD_STRINGLIST3                 804
 #define IDC_CUSTOM2                     1002
-#define IDC_CHECK_ENCRYPT               1003
 #define IDC_DOCTYPES                    1004
-#define IDC_FILE_ENCONDING              1005
 #define IDC_LOCAL_VARS                  1005
 #define IDD_ICO                         1006
 #define IDC_METHOD_STACK                1008
@@ -211,7 +207,6 @@
 #define IDS_COMMAND254                  2302
 #define IDS_ERROR_MESSAGE               3000
 #define ID_FILE_HISTORY                 40008
-#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 

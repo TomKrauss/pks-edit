@@ -55,89 +55,17 @@ extern int file_open_vista_version(FILE_SELECT_PARAMS* pParams);
 char _fseltarget[EDMAXPATHLEN];
 
 static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData) {
-	char szDir[MAX_PATH];
+	char szDir[EDMAXPATHLEN];
 
-	switch (uMsg)
-	{
+	switch (uMsg) {
 	case BFFM_INITIALIZED:
-		_getcwd(szDir, MAX_PATH);
+		_getcwd(szDir, sizeof(szDir));
 		SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)szDir);
 		break;
 	}
 
 	return 0;
 }
-
-static DWORD _codepages[] = {
-	-1,
-	CP_ACP,
-	CP_OEMCP,
-	CP_UTF8,
-	37,
-	437,
-	500,
-	708,
-	709,
-	710,
-	720,
-	737,
-	775,
-	850,
-	852,
-	855,
-	857,
-	858,
-	860,
-	861,
-	862,
-	863,
-	864,
-	865,
-	866,
-	869,
-	870,
-	874,
-	875,
-	932,
-	936,
-	949,
-	950,
-	1026,
-	1047,
-	1140,
-	1141,
-	1142,
-	1143,
-	1144,
-	1145,
-	1146,
-	1147,
-	1148,
-	1149,
-	1200,
-	1201,
-	1252,
-	1253,
-	1254,
-	1255,
-	1256,
-	1257,
-	1258,
-	1361,
-	10000,
-	10001,
-	10002,
-	10003,
-	10004,
-	10005,
-	10006,
-	10007,
-	10008,
-	12000,
-	12001,
-	65000,
-	65001
-};
 
 /*
  * Select a folder using a browse for folder dialog. Return TRUE,
@@ -280,41 +208,6 @@ char *fsel_initPathes(FSELINFO *fp)
 		fn = _fseltarget;
 	}
 	return fn;
-}
-
-/*
- * Fill the encoding list (list of possible character encodings). 
- */
-static void fsel_fillEncodingList(HWND hwnd, BOOL bAllowAuto, long nSelectedEncoding) {
-	SendMessage(hwnd, CB_RESETCONTENT, 0, 0L);
-	SendMessage(hwnd, WM_SETREDRAW, FALSE, 0L);
-	WPARAM nSelectedIndex = 0;
-	for (int i = 0; i < DIM(_codepages); i++) {
-		CPINFOEX cpInfo;
-		DWORD nCp = _codepages[i];
-		char* pszText;
-		if (nCp == -1) {
-			if (!bAllowAuto) {
-				continue;
-			}
-			pszText = "Auto-detect";
-		} else {
-			if (!GetCPInfoEx(nCp, 0, &cpInfo)) {
-				continue;
-			}
-			pszText = cpInfo.CodePageName;
-		}
-		LRESULT nOffset = SendMessage(hwnd, CB_ADDSTRING, 0, (LPARAM)pszText);
-		if (nOffset == LB_ERR) {
-			continue;
-		}
-		if (nSelectedEncoding == nCp) {
-			nSelectedIndex = (WPARAM)nOffset;
-		}
-		SendMessage(hwnd, CB_SETITEMDATA, nOffset, nCp);
-	}
-	SendMessage(hwnd, WM_SETREDRAW, (WPARAM)TRUE, 0L);
-	SendMessage(hwnd, CB_SETCURSEL, nSelectedIndex, (LPARAM)0);
 }
 
 /*------------------------------------------------------------

@@ -1,7 +1,7 @@
 NAME	     PksEdit
 
-HEAPSIZE     64000
-STACKSIZE    64000
+HEAPSIZE     1000000
+STACKSIZE    1000000
 
 EXPORTS
 	macroc_pathCreateFromSegments
