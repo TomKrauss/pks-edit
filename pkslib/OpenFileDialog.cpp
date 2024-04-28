@@ -251,13 +251,20 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
     WCHAR wText[256];
     MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_title, -1, wText, sizeof wText / sizeof(wText[0]));
     pFileDialog->SetTitle(wText);
-    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
-    PathStripPath(wText);
-    pFileDialog->SetFileName(wText);
-    size_t nLen = wcslen(wText);
-    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
-    wText[wcslen(wText) - 1 - nLen] = 0;
+    size_t nLen = strlen(pParams->fsp_inputFile);
     IShellItem* pCurFolder = NULL;
+    if (nLen > 0 && pParams->fsp_inputFile[nLen - 1] == '\\') {
+        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        wText[nLen - 1] = 0;
+    }
+    else {
+        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        PathStripPath(wText);
+        pFileDialog->SetFileName(wText);
+        nLen = wcslen(wText);
+        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        wText[wcslen(wText) - 1 - nLen] = 0;
+    }
     HRESULT hr = SHCreateItemFromParsingName(wText, NULL, IID_PPV_ARGS(&pCurFolder));
     if (SUCCEEDED(hr)) {
         pFileDialog->SetFolder(pCurFolder);
