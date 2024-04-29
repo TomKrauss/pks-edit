@@ -2882,6 +2882,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					pStream->is_skip(pStream, -1);
 					pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 					continue;
+				} else {
+					pStream->is_skip(pStream, bImage ? -2 : -1);
 				}
 			} else if (c == '&') {
 				STREAM_OFFSET sp = pStream->is_tell(pStream);
