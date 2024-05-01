@@ -19,6 +19,7 @@
 #include <tchar.h>
 #include <wincodec.h>
 #include <Shlwapi.h>
+#include <Winhttp.h>
 
 static IStream* CreateStreamOnResource(LPCCH lpName) {
     // initialize return value
@@ -28,11 +29,104 @@ static IStream* CreateStreamOnResource(LPCCH lpName) {
 
     // find the resource
 
-    MultiByteToWideChar(CP_UTF8, 0, lpName, -1, wstr, sizeof wstr / 4);
-    if (SHCreateStreamOnFileEx(wstr, STGM_FAILIFTHERE, 0, FALSE, NULL, &ipStream) != S_OK)
+    MultiByteToWideChar(CP_UTF8, 0, lpName, -1, wstr, sizeof wstr / sizeof (wstr[0]));
+    if (SHCreateStreamOnFileEx(wstr, STGM_FAILIFTHERE, 0, FALSE, NULL, &ipStream) != S_OK) {
         return NULL;
+    }
 
     return ipStream;
+}
+
+static char* LoadDataFromUrl(BOOL https, char* pszHost, char* pszPath, UINT* pLoaded) {
+    DWORD dwSize = 0;
+    DWORD dwDownloaded = 0;
+    LPSTR pszOutBuffer = 0;
+    BOOL  bResults = FALSE;
+    HINTERNET  hSession = NULL,
+        hConnect = NULL,
+        hRequest = NULL;
+    WCHAR whost[1024];
+    WCHAR wpath[1024];
+
+    *pLoaded = 0;
+    MultiByteToWideChar(CP_UTF8, 0, pszHost, -1, whost, sizeof whost / sizeof(whost[0]));
+    MultiByteToWideChar(CP_UTF8, 0, pszPath, -1, wpath, sizeof wpath / sizeof(wpath[0]));
+
+    // Use WinHttpOpen to obtain a session handle.
+    hSession = WinHttpOpen(L"PKS-Edit Image/1.0",
+        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+        WINHTTP_NO_PROXY_NAME,
+        WINHTTP_NO_PROXY_BYPASS, 0);
+
+    if (!hSession) {
+        return 0;
+    }
+    // Specify an HTTP server.
+    hConnect = WinHttpConnect(hSession, whost, https ? INTERNET_DEFAULT_HTTPS_PORT : INTERNET_DEFAULT_HTTP_PORT, 0);
+
+    // Create an HTTP request handle.
+    if (hConnect) {
+        hRequest = WinHttpOpenRequest(hConnect, L"GET", wpath,
+            NULL, WINHTTP_NO_REFERER,
+            WINHTTP_DEFAULT_ACCEPT_TYPES,
+            WINHTTP_FLAG_SECURE);
+    }
+
+    // Send a request.
+    if (hRequest) {
+        bResults = WinHttpSendRequest(hRequest,
+            WINHTTP_NO_ADDITIONAL_HEADERS,
+            0, WINHTTP_NO_REQUEST_DATA, 0,
+            0, 0);
+    }
+
+
+    // End the request.
+    if (bResults) {
+        bResults = WinHttpReceiveResponse(hRequest, NULL);
+    }
+
+    // Keep checking for data until there is nothing left.
+
+    DWORD nTotal = 10000;
+    pszOutBuffer = (LPSTR) calloc(nTotal, 1);
+    DWORD nOffset = 0;
+
+    if (bResults && pszOutBuffer != NULL) {
+        do {
+            // Check for available data.
+            dwSize = 0;
+            if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) {
+                free(pszOutBuffer);
+                pszOutBuffer = 0;
+                break;
+            }
+            if (nOffset + dwSize > nTotal) {
+                nTotal = nOffset + dwSize + 10000;
+                LPSTR pszNew = (LPSTR)realloc(pszOutBuffer, nTotal);
+                if (pszNew == 0) {
+                    free(pszOutBuffer);
+                    pszOutBuffer = 0;
+                    break;
+                }
+                else {
+                    pszOutBuffer = pszNew;
+                }
+            }
+            if (!WinHttpReadData(hRequest, (LPVOID)(pszOutBuffer + nOffset), dwSize, &dwDownloaded)) {
+                free(pszOutBuffer);
+                pszOutBuffer = 0;
+                break;
+            }
+            nOffset += dwDownloaded;
+        } while (dwSize > 0);
+    }
+    *pLoaded = nOffset;
+    // Close any open handles.
+    if (hRequest) WinHttpCloseHandle(hRequest);
+    if (hConnect) WinHttpCloseHandle(hConnect);
+    if (hSession) WinHttpCloseHandle(hSession);
+    return pszOutBuffer;
 }
 
 static IWICBitmapSource* LoadBitmapFromStream(IStream* ipImageStream, GUID guid) {
@@ -124,22 +218,53 @@ static HBITMAP CreateHBITMAP(IWICBitmapSource* ipBitmap) {
 
 // Loads the an image with a name and a format into a HBITMAP.
 extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
-    HBITMAP hbmpSplash = NULL;
+    HBITMAP hbmpImage = NULL;
     GUID guid = CLSID_WICPngDecoder;
 
     // load the PNG image data into a stream
 
     char* pszExt = strrchr(pszName, '.');
+    // Not supported.
+    if (pszExt == NULL) {
+        return NULL;
+    }
     if (pszExt != NULL) {
         pszExt++;
         if (_stricmp(pszExt, "gif") == 0) {
-            guid = CLSID_WICGifDecoder;
-        }
-        else if (_stricmp(pszExt, "jpg") == 0 || _stricmp(pszExt, "jpeg") == 0) {
-            guid = CLSID_WICJpegDecoder;
+           guid = CLSID_WICGifDecoder;
+        } else if (_stricmp(pszExt, "jpg") == 0 || _stricmp(pszExt, "jpeg") == 0) {
+           guid = CLSID_WICJpegDecoder;
+        } else if (_stricmp(pszExt, "tif") == 0) {
+           guid = CLSID_WICTiffDecoder;
+        } else if (_stricmp(pszExt, "png") == 0) {
+           guid = CLSID_WICPngDecoder;
+        } else if (_stricmp(pszExt, "webp") == 0) {
+           guid = CLSID_WICWebpDecoder;
+        } else {
+           // Not supported.
+           return NULL;
         }
     }
-    IStream* ipImageStream = CreateStreamOnResource(pszName);
+    PARSEDURLA ppu = { 0 };
+    ppu.cbSize = sizeof(ppu);
+    HRESULT hr = ParseURLA(pszName, &ppu);
+    IStream* ipImageStream = 0;
+    if (SUCCEEDED(hr) && (ppu.nScheme == URL_SCHEME_HTTP || ppu.nScheme == URL_SCHEME_HTTPS)) {
+        char host[1024];
+        strncpy_s(host, ppu.pszSuffix + 2, ppu.cchSuffix - 2);
+        char* pszPath = strstr(host, "/");
+        if (pszPath != 0 && pszPath > host) {
+            *pszPath++ = 0;
+            UINT cbSize;
+            char* pLoaded = LoadDataFromUrl(ppu.nScheme == URL_SCHEME_HTTPS, host, pszPath, &cbSize);
+            if (pLoaded != 0) {
+                ipImageStream = SHCreateMemStream((const BYTE*) pLoaded, cbSize);
+            }
+        }
+    }
+    if (ipImageStream == 0) {
+        ipImageStream = CreateStreamOnResource(pszName);
+    }
     if (ipImageStream == NULL)
         return NULL;
 
@@ -151,10 +276,10 @@ extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
 
     // create a HBITMAP containing the image
 
-    hbmpSplash = CreateHBITMAP(ipBitmap);
+    hbmpImage = CreateHBITMAP(ipBitmap);
     ipBitmap->Release();
 
 ReleaseStream:
     ipImageStream->Release();
-    return hbmpSplash;
+    return hbmpImage;
 }
