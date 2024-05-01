@@ -180,7 +180,10 @@ typedef struct tagTEXT_RUN {
 	size_t				tr_size;
 	RUN_BOUNDS			tr_bounds;
 	FONT_ATTRIBUTES		tr_attributes;
+	// The hyperlink for navigation or the link to an image.
 	char*				tr_link;
+	// The reference style indirect link to a reference style link defined somewhere else in the document
+	char*				tr_refLink;
 	char*				tr_title;
 	char*				tr_anchor;
 	MD_IMAGE*			tr_image;
@@ -386,6 +389,16 @@ static MARGINS _tableMargins = {
 	10,5,8,8
 };
 
+typedef struct tagMD_REF_STYLE_LINK {
+	struct tagMD_REF_STYLE_LINK* mdrsl_next;
+	// The name of the reference style link
+	char* mdrs_name;
+	// The associated URL
+	char* mdrs_url;
+	// An optional title
+	char* mdrs_title;
+} MD_REF_STYLE_LINK;
+
 typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_pElements;	// The render view parts to be rendered
 	HWND md_hwndTooltip;
@@ -394,6 +407,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_caretView;
 	RENDER_VIEW_PART* md_previousCaretView;
 	TEXT_RUN* md_caretRun;
+	MD_REF_STYLE_LINK* md_refLinks;
 	int md_caretRunIndex;
 	int md_caretPartIndex;
 	BOOL md_printing;
@@ -1441,6 +1455,7 @@ typedef struct tagHTML_PARSER_STATE {
 	MDR_ELEMENT_FORMAT  hps_blockFormat;
 	FONT_STYLE_DELTA	hps_styleTable[20];
 	FONT_STYLE_DELTA* hps_currentStyle;
+	MD_REF_STYLE_LINK** hps_refLinks;
 	RENDER_VIEW_PART** hps_head;
 	RENDER_VIEW_PART* hps_part;
 	RENDER_TABLE* hps_table;
@@ -1450,39 +1465,81 @@ typedef struct tagHTML_PARSER_STATE {
 
 static void mdr_ensureParagraph(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState);
 
-static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText,
-	char** pszLink, char** pszTitle, int* nWidth, int* nHeight) {
+typedef struct tagLINK_PARSE_RESULT {
+	// The actual URL - image or hyperlink
+	char* lpr_LinkUrl;
+	// The reference to a reference link type link
+	char* lpr_LinkRefUrl;
+	// The title to display in particular for an image
+	char* lpr_title;
+	// for image links - the width
+	int   lpr_width;
+	// for image links - the height
+	int   lpr_height;
+	// If the parsed link represents the definition of a reference link this value is TRUE.
+	BOOL  lpr_isRefLinkDefinition;
+} LINK_PARSE_RESULT;
+
+static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult) {
 	char szBuf[256];
 	int nLinkStart = -1;
 	char c;
 	char* szLinkEnd = szLinkText + 255;
+	memset(pResult, 0, sizeof(*pResult));
+	int bRefStyleLink = 0;
 	STREAM_OFFSET savedOffset = pStream->is_tell(pStream);
 	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
 		if (nLinkStart < 0) {
-			if (c == ']' && pStream->is_peekc(pStream, 0) == '(') {
+			if (c == ']') {
 				*szLinkText = 0;
 				nLinkStart = 0;
-				// support special syntax: [text](<link>)
-				if (pStream->is_peekc(pStream, 1) == '<') {
-					pStream->is_skip(pStream, 2);
-				}
-				else {
+				while (pStream->is_peekc(pStream, 0) == ' ') {
 					pStream->is_skip(pStream, 1);
 				}
-			}
-			else if (szLinkText < szLinkEnd) {
+				char c2 = pStream->is_peekc(pStream, 0);
+				if (c2 == '(') {
+					// support special syntax: [text](<link>)
+					if (pStream->is_peekc(pStream, 1) == '<') {
+						pStream->is_skip(pStream, 2);
+					}
+					else {
+						pStream->is_skip(pStream, 1);
+					}
+				} else if (c2 == '[') {
+					bRefStyleLink = 1;
+					pStream->is_skip(pStream, 1);
+					// Ref style link.
+				} else if (c2 == ':') {
+					pStream->is_skip(pStream, 1);
+					while (pStream->is_peekc(pStream, 0) == ' ') {
+						pStream->is_skip(pStream, 1);
+					}
+					pResult->lpr_isRefLinkDefinition = TRUE;
+				}
+			} else if (szLinkText < szLinkEnd) {
 				*szLinkText++ = c;
 			}
-		}
-		else {
-			if (c == ')') {
+		} else {
+			if (bRefStyleLink && c == ']') {
 				szBuf[nLinkStart] = 0;
-				return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, pszLink, pszTitle, nWidth, nHeight);
+				pResult->lpr_LinkRefUrl = _strdup(szBuf);
+				return TRUE;
+			} else if (!bRefStyleLink && !pResult->lpr_isRefLinkDefinition && c == ')') {
+				szBuf[nLinkStart] = 0;
+				return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, &pResult->lpr_LinkUrl, &pResult->lpr_title, &pResult->lpr_width, &pResult->lpr_height);
 			}
 			if (nLinkStart < sizeof szBuf - 1) {
 				szBuf[nLinkStart++] = c;
 			}
 		}
+	}
+	if (c == '\n' && pResult->lpr_isRefLinkDefinition) {
+		szBuf[nLinkStart] = 0;
+		char* pszTitle = strpbrk(szBuf, " (\"'");
+		if (pszTitle != 0) {
+			*pszTitle = 0;
+		}
+		return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, &pResult->lpr_LinkUrl, &pResult->lpr_title, &pResult->lpr_width, &pResult->lpr_height);
 	}
 	pStream->is_seek(pStream, savedOffset);
 	return FALSE;
@@ -2264,11 +2321,13 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 /*
  * Initialize the parser state
  */
-static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, const char* pszBaseUrl) {
+static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, MD_REF_STYLE_LINK** pRefLinks, const char* pszBaseUrl) {
 	memset(pState, 0, sizeof *pState);
 	pState->hps_listType = MET_UNORDERED_LIST;
 	pState->hps_text = stringbuf_create(256);
 	pState->hps_head = pHead;
+	*pRefLinks = 0;
+	pState->hps_refLinks = pRefLinks;
 	pState->hps_currentStyle = pState->hps_styleTable;
 	pState->hps_baseUrl = pszBaseUrl;
 	mdr_resetFontStyleDelta(pState->hps_currentStyle);
@@ -2647,8 +2706,9 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 	char c;
 	size_t nSize;
 	HTML_PARSER_STATE state;
+	MD_REF_STYLE_LINK* pUnused;
 
-	mdr_initParserState(&state, &pFirst, pszBaseURL);
+	mdr_initParserState(&state, &pFirst, &pUnused, pszBaseURL);
 	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (c == '&') {
 			if (mdr_parseEntity(state.hps_text, pStream)) {
@@ -2725,6 +2785,13 @@ static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pS
 	pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 	pState->hps_lastTextOffset += (int)nSize;
 	return pResult;
+}
+
+static void mdr_appendRefLinkDefinition(MD_REF_STYLE_LINK** pHead, char* pszLinkText, char* pszUrl, char* pszTitle) {
+	MD_REF_STYLE_LINK* pLink = ll_append(pHead, sizeof **pHead);
+	pLink->mdrs_name = _strdup(pszLinkText);
+	pLink->mdrs_title = pszTitle;
+	pLink->mdrs_url = pszUrl;
 }
 
 /*
@@ -2831,56 +2898,59 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			} else if (!bEscaped && (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['))) {
 				BOOL bImage = c == '!';
 				pStream->is_skip(pStream, bImage ? 2 : 1);
-				char* pLink;
-				char* pTitle = NULL;
-				int nWidth = 0;
-				int nHeight = 0;
+				LINK_PARSE_RESULT result;
 				char szLinkText[256];
-				if (mdr_parseLink(pStream, pState, szLinkText, &pLink, &pTitle, &nWidth, &nHeight)) {
-					int nAttr = 0;
-					mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
-					int nTextStart = 0;
-					char c2 = szLinkText[0];
-					int nTextEnd = (int)strlen(szLinkText);
-					if (c2 == szLinkText[nTextEnd - 1]) {
-						if (c2 == '`') {
-							nAttr = ATTR_CODE;
-						}
-						else if (c2 == '*' || c2 == '_') {
-							if (szLinkText[nTextStart + 1] == c2) {
-								nAttr = ATTR_STRONG;
+				if (mdr_parseLink(pStream, pState, szLinkText, &result)) {
+					if (result.lpr_isRefLinkDefinition) {
+						mdr_appendRefLinkDefinition(pState->hps_refLinks, szLinkText, result.lpr_LinkUrl, result.lpr_title);
+					} else {
+						int nAttr = 0;
+						mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+						int nTextStart = 0;
+						char c2 = szLinkText[0];
+						int nTextEnd = (int)strlen(szLinkText);
+						if (c2 == szLinkText[nTextEnd - 1]) {
+							if (c2 == '`') {
+								nAttr = ATTR_CODE;
+							}
+							else if (c2 == '*' || c2 == '_') {
+								if (szLinkText[nTextStart + 1] == c2) {
+									nAttr = ATTR_STRONG;
+									nTextStart++;
+									nTextEnd--;
+								}
+								else {
+									nAttr = ATTR_EMPHASIS;
+								}
+							}
+							if (nAttr) {
 								nTextStart++;
 								nTextEnd--;
-							} else {
-								nAttr = ATTR_EMPHASIS;
 							}
 						}
-						if (nAttr) {
-							nTextStart++;
-							nTextEnd--;
+						int nLen = nTextEnd - nTextStart;
+						if (nLen == 0) {
+							szLinkText[nTextEnd++] = ' ';
+							nLen = 1;
 						}
+						stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nLen);
+						pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINK;
+						int nLastOffset = pState->hps_lastTextOffset;
+						TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+						if (bImage) {
+							pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
+							pRun->tr_image->mdi_height = result.lpr_height;
+							pRun->tr_image->mdi_width = result.lpr_width;
+						}
+						if (bImage && !result.lpr_title) {
+							result.lpr_title = _strdup(&stringbuf_getString(pState->hps_text)[nLastOffset]);
+						}
+						pRun->tr_link = result.lpr_LinkUrl;
+						pRun->tr_refLink = result.lpr_LinkRefUrl;
+						pRun->tr_title = result.lpr_title;
+						pStream->is_skip(pStream, -1);
+						pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 					}
-					int nLen = nTextEnd - nTextStart;
-					if (nLen == 0) {
-						szLinkText[nTextEnd++] = ' ';
-						nLen = 1;
-					}
-					stringbuf_appendStringLength(pState->hps_text, &szLinkText[nTextStart], nLen);
-					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINK;
-					int nLastOffset = pState->hps_lastTextOffset;
-					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
-					if (bImage) {
-						pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
-						pRun->tr_image->mdi_height = nHeight;
-						pRun->tr_image->mdi_width = nWidth;
-					}
-					if (bImage && !pTitle) {
-						pTitle = _strdup(&stringbuf_getString(pState->hps_text)[nLastOffset]);
-					}
-					pRun->tr_link = pLink;
-					pRun->tr_title = pTitle;
-					pStream->is_skip(pStream, -1);
-					pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 					continue;
 				} else {
 					pStream->is_skip(pStream, bImage ? -2 : -1);
@@ -3125,7 +3195,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 	int nDelta = 0;
 	RENDER_VIEW_PART* pLastPart = 0;
 
-	mdr_initParserState(&state, &pData->md_pElements, fp->fname);
+	mdr_initParserState(&state, &pData->md_pElements, &pData->md_refLinks, fp->fname);
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
 			if (!mdr_parseTable(pStream, &state)) {
@@ -3582,6 +3652,7 @@ void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_REND
  */
 static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
+	free(pRun->tr_refLink);
 	free(pRun->tr_title);
 	free(pRun->tr_anchor);
 	if (pRun->tr_image) {
@@ -3610,6 +3681,13 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 	return 1;
 }
 
+static int mdr_destroyRefLink(MD_REF_STYLE_LINK* pLink) {
+	free(pLink->mdrs_name);
+	free(pLink->mdrs_url);
+	free(pLink->mdrs_title);
+	return 1;
+}
+
 /*
  * Destroy a list of view parts releasing unneeded memory.
  */
@@ -3618,6 +3696,7 @@ void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData) {
 		DestroyWindow(pData->md_hwndTooltip);
 	}
 	ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
+	ll_destroy(&pData->md_refLinks, mdr_destroyRefLink);
 	free(pData);
 }
 
@@ -3638,6 +3717,7 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
+		ll_destroy(&pData->md_refLinks, mdr_destroyRefLink);
 		pData->md_pElements = NULL;
 		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 		// do not: UpdateWindow(wp->ww_handle); at this point the model may not be completely edited - further editing operations
@@ -3822,6 +3902,23 @@ static BOOL mdr_hitTestInternal(MARKDOWN_RENDERER_DATA* pData, int cx, int cy, l
 	return FALSE;
 }
 
+char* mdr_resolveLink(MARKDOWN_RENDERER_DATA* pData, TEXT_RUN* pRun) {
+	if (pRun->tr_link != 0) {
+		return pRun->tr_link;
+	}
+	if (!pRun->tr_refLink) {
+		return 0;
+	}
+	MD_REF_STYLE_LINK* pLink = pData->md_refLinks;
+	while (pLink != 0) {
+		if (strcmp(pRun->tr_refLink, pLink->mdrs_name) == 0) {
+			return pLink->mdrs_url;
+		}
+		pLink = pLink->mdrsl_next;
+	}
+	return pRun->tr_refLink;
+}
+
 /*
  * Can be used to find out, whether a link was clicked in a rich text renderer component given
  * the renderer data hook and the mouse x and y position.
@@ -3832,9 +3929,13 @@ char* mdr_linkClicked(MARKDOWN_RENDERER_DATA* pData, int cxMouse, int cyMouse) {
 	long ln;
 	long col;
 	if (mdr_hitTestInternal(pData, cxMouse, cyMouse, &ln, &col, &pPart, &pRun)) {
-		return pRun->tr_link;
+		return mdr_resolveLink(pData, pRun);
 	}
 	return 0;
+}
+
+static BOOL mdr_hasLink(TEXT_RUN* pRun) {
+	return pRun->tr_link != 0 || pRun->tr_refLink != 0;
 }
 
 static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
@@ -3844,7 +3945,7 @@ static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
 }
 
 static void mdr_setRollover(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, BOOL aFlag) {
-	if (!pRun || !pPart || pRun->tr_attributes.rollover == aFlag || !pRun->tr_link) {
+	if (!pRun || !pPart || pRun->tr_attributes.rollover == aFlag || !mdr_hasLink(pRun)) {
 		return;
 	}
 	pRun->tr_attributes.rollover = aFlag;
@@ -3853,7 +3954,7 @@ static void mdr_setRollover(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, 
 }
 
 static void mdr_setFocussed(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, BOOL aFlag) {
-	if (!pRun || !pPart || pRun->tr_attributes.focussed == aFlag || !pRun->tr_link) {
+	if (!pRun || !pPart || pRun->tr_attributes.focussed == aFlag || !mdr_hasLink(pRun)) {
 		return;
 	}
 	pRun->tr_attributes.focussed = aFlag;
@@ -3985,7 +4086,7 @@ static TEXT_RUN* mdr_getRunAtOffset(RENDER_VIEW_PART* pPart, int nOffset) {
 
 static int mdr_findNextLinkRun(TEXT_RUN* pRuns, RUN_OFFSET* pOffsets) {
 	while (pRuns) {
-		if (pRuns->tr_link) {
+		if (mdr_hasLink(pRuns)) {
 			pOffsets->ro_match = pRuns;
 		}
 		if (pOffsets->ro_currentOffset >= pOffsets->ro_inputOffset && pOffsets->ro_match) {
@@ -4045,8 +4146,12 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (pPart) {
 		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
-		if (pRun && !pRun->tr_image && pRun->tr_link && strlen(pRun->tr_link) < nMaxChars) {
-			strcpy(pszBuf, pRun->tr_link);
+		if (!pRun || pRun->tr_image || !mdr_hasLink(pRun)) {
+			return FALSE;
+		}
+		char* pszLink = mdr_resolveLink(pData, pRun);
+		if (pszLink && strlen(pszLink) < nMaxChars) {
+			strcpy(pszBuf, pszLink);
 			char* pszAnchor = strrchr(pszBuf, '#');
 			if (pszAnchor) {
 				*pszAnchor++ = 0;
@@ -4054,7 +4159,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 			}
 			pResult->ni_reference = pszBuf;
 			pResult->ni_lineNumber = 0;
-			pResult->ni_displayMode = wp->dispmode;
+			pResult->ni_displayMode = wp->dispmode;	
 			pResult->ni_wp = mainframe_getDockName(wp->edwin_handle);
 			return 1;
 		}

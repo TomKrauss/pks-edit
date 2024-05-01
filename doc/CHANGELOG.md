@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 - A more modern version of the Windows open and save dialog was integrated into PKS Edit.
+- The Markdown renderer supports now [reference-style links](https://daringfireball.net/projects/markdown/syntax#link).
 
 ### Fixed
 - corrected link to release notes.
