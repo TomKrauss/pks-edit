@@ -716,12 +716,19 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 		pSize->cy = nHeight+nBorder;
 	} else {
 		char szFilename[512];
-		sprintf(szFilename, "Cannot load image %s", pTR->tr_link);
+		char* pszFilepart = string_getBaseFilename(pTR->tr_link);
+		if (strncmp(pTR->tr_link, "http", 4) == 0) {
+			sprintf(szFilename, "HTTP Image %s not supported", pszFilepart);
+		} else {
+			sprintf(szFilename, "Cannot load image %s", pszFilepart);
+		}
+		SIZE size;
+		GetTextExtentPoint(hdc, szFilename, (int)strlen(szFilename), &size);
 		if (!bMeasureOnly) {
 			TextOut(hdc, x, y, szFilename, (int)strlen(szFilename));
 		}
-		pSize->cy = 20;
-		pSize->cx = 200;
+		pSize->cy = size.cy;
+		pSize->cx = size.cx;
 	}
 }
 
@@ -2897,12 +2904,20 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				}
 			} else if (!bEscaped && (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['))) {
 				BOOL bImage = c == '!';
+				BOOL bImageLink = FALSE;
 				pStream->is_skip(pStream, bImage ? 2 : 1);
 				LINK_PARSE_RESULT result;
 				char szLinkText[256];
+				// Image with link
+				if (c == '[' && pStream->is_peekc(pStream, 0) == '!' && pStream->is_peekc(pStream, 1) == '[') {
+					bImage = TRUE;
+					bImageLink = TRUE;
+					pStream->is_skip(pStream, 1);
+				}
 				if (mdr_parseLink(pStream, pState, szLinkText, &result)) {
 					if (result.lpr_isRefLinkDefinition) {
 						mdr_appendRefLinkDefinition(pState->hps_refLinks, szLinkText, result.lpr_LinkUrl, result.lpr_title);
+						pStream->is_skip(pStream, -1);
 					} else {
 						int nAttr = 0;
 						mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
@@ -2948,7 +2963,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 						pRun->tr_link = result.lpr_LinkUrl;
 						pRun->tr_refLink = result.lpr_LinkRefUrl;
 						pRun->tr_title = result.lpr_title;
-						pStream->is_skip(pStream, -1);
+						if (!bImageLink) {
+							pStream->is_skip(pStream, -1);
+						}
 						pState->hps_runOffset = pStream->is_inputMark(pStream, &pState->hps_lp);
 					}
 					continue;

@@ -2,7 +2,7 @@
 ## HTML Support
 
 
-[Reference Style Link to CHANGELOG][ref]
+[Reference Style Link to CHANGELOG][1]
 
 [CHANGELOG Link](doc/CHANGELOG.md)
 ```
@@ -17,6 +17,7 @@
 - <span class="operator">Text enclosed in a &lt;span&gt; tag with a style class (taken from the PKS Edit theme) is used to select the foreground color.</span>
 
 
-[ref]: doc/CHANGELOG.md (xxxx)
+[1]: doc/CHANGELOG.md (xxxx)
+[2]: doc/another.md
 
 
