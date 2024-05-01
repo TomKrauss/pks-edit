@@ -37,7 +37,7 @@ static IStream* CreateStreamOnResource(LPCCH lpName) {
     return ipStream;
 }
 
-static char* LoadDataFromUrl(BOOL https, char* pszHost, char* pszPath, UINT* pLoaded) {
+static char* http_loadData(BOOL https, char* pszHost, char* pszPath, UINT* pLoaded) {
     DWORD dwSize = 0;
     DWORD dwDownloaded = 0;
     LPSTR pszOutBuffer = 0;
@@ -89,7 +89,7 @@ static char* LoadDataFromUrl(BOOL https, char* pszHost, char* pszPath, UINT* pLo
     // Keep checking for data until there is nothing left.
 
     DWORD nTotal = 10000;
-    pszOutBuffer = (LPSTR) calloc(nTotal, 1);
+    pszOutBuffer = (LPSTR)calloc(nTotal, 1);
     DWORD nOffset = 0;
 
     if (bResults && pszOutBuffer != NULL) {
@@ -127,6 +127,26 @@ static char* LoadDataFromUrl(BOOL https, char* pszHost, char* pszPath, UINT* pLo
     if (hConnect) WinHttpCloseHandle(hConnect);
     if (hSession) WinHttpCloseHandle(hSession);
     return pszOutBuffer;
+}
+
+/*
+ * Utility method for loading a file from a URL specification (e.g. https://www.microsoft.com/myFile.txt) and returning
+ * a pointer to the loaded data and the loaded size in pSize. It is the callers responsibility to free the data allocated.
+ */
+extern "C" __declspec(dllexport) char* http_loadDataFromUrl(char* pszUrl, UINT* pSize) {
+    PARSEDURLA ppu = { 0 };
+    ppu.cbSize = sizeof(ppu);
+    HRESULT hr = ParseURLA(pszUrl, &ppu);
+    if (SUCCEEDED(hr) && (ppu.nScheme == URL_SCHEME_HTTP || ppu.nScheme == URL_SCHEME_HTTPS)) {
+        char host[1024];
+        strncpy_s(host, ppu.pszSuffix + 2, ppu.cchSuffix - 2);
+        char* pszPath = strstr(host, "/");
+        if (pszPath != 0 && pszPath > host) {
+            *pszPath++ = 0;
+            return http_loadData(ppu.nScheme == URL_SCHEME_HTTPS, host, pszPath, pSize);
+        }
+    }
+    return 0;
 }
 
 static IWICBitmapSource* LoadBitmapFromStream(IStream* ipImageStream, GUID guid) {
@@ -245,26 +265,9 @@ extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
            return NULL;
         }
     }
-    PARSEDURLA ppu = { 0 };
-    ppu.cbSize = sizeof(ppu);
-    HRESULT hr = ParseURLA(pszName, &ppu);
-    IStream* ipImageStream = 0;
-    if (SUCCEEDED(hr) && (ppu.nScheme == URL_SCHEME_HTTP || ppu.nScheme == URL_SCHEME_HTTPS)) {
-        char host[1024];
-        strncpy_s(host, ppu.pszSuffix + 2, ppu.cchSuffix - 2);
-        char* pszPath = strstr(host, "/");
-        if (pszPath != 0 && pszPath > host) {
-            *pszPath++ = 0;
-            UINT cbSize;
-            char* pLoaded = LoadDataFromUrl(ppu.nScheme == URL_SCHEME_HTTPS, host, pszPath, &cbSize);
-            if (pLoaded != 0) {
-                ipImageStream = SHCreateMemStream((const BYTE*) pLoaded, cbSize);
-            }
-        }
-    }
-    if (ipImageStream == 0) {
-        ipImageStream = CreateStreamOnResource(pszName);
-    }
+    UINT cbSize;
+    char* pszLoaded = http_loadDataFromUrl(pszName, &cbSize);
+    IStream* ipImageStream = pszLoaded == NULL ? CreateStreamOnResource(pszName) : SHCreateMemStream((const BYTE*)pszLoaded, cbSize);
     if (ipImageStream == NULL)
         return NULL;
 
