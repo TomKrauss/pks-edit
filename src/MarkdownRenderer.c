@@ -180,13 +180,15 @@ typedef struct tagTEXT_RUN {
 	size_t				tr_size;
 	RUN_BOUNDS			tr_bounds;
 	FONT_ATTRIBUTES		tr_attributes;
-	// The hyperlink for navigation or the link to an image.
+	// The hyperlink for navigation.
 	char*				tr_link;
-	// The reference style indirect link to a reference style link defined somewhere else in the document
-	char*				tr_refLink;
+	// If the link should be interpreted as a reference style indirect link to a reference style link defined somewhere else in the document
+	BOOL				tr_isRefLink;
 	char*				tr_title;
 	char*				tr_anchor;
 	MD_IMAGE*			tr_image;
+	// For images - the URL of the image
+	char*				tr_imageUrl;
 	int					tr_selectionStart;
 	int					tr_selectionLength;
 } TEXT_RUN;
@@ -414,7 +416,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 } MARKDOWN_RENDERER_DATA;
 
 /*
- * Checks, whether a point is withing the bounds of a text run.
+ * Checks, whether a point is within the bounds of a text run.
  */
 static BOOL runbounds_contains(RUN_BOUNDS* pBounds, POINT pt) {
 	if (pt.y >= pBounds->top1 && pt.y < pBounds->top) {
@@ -685,7 +687,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 	int nHeight;
 	int nOrigWidth;
 	int nOrigHeight;
-	if (mdr_loadAndMeasureImage(pImage, pTR->tr_link, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
+	if (mdr_loadAndMeasureImage(pImage, pTR->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
 		HGDIOBJ         oldBitmap;
 		HDC             hdcMem;
 		if (nWidth > nMaxWidth) {
@@ -716,8 +718,8 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 		pSize->cy = nHeight+nBorder;
 	} else {
 		char szFilename[512];
-		char* pszFilepart = string_getBaseFilename(pTR->tr_link);
-		if (strncmp(pTR->tr_link, "http", 4) == 0) {
+		char* pszFilepart = string_getBaseFilename(pTR->tr_imageUrl);
+		if (strncmp(pTR->tr_imageUrl, "http", 4) == 0) {
 			sprintf(szFilename, "HTTP Image %s not supported", pszFilepart);
 		} else {
 			sprintf(szFilename, "Cannot load image %s", pszFilepart);
@@ -1672,11 +1674,13 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 		if (!mdr_parseLinkUrl(0, szTemp, &pszLink, &pszTitle, &nWidth, &nHeight)) {
 			return FALSE;
 		}
-		pRun->tr_link = pszLink;
 		pRun->tr_title = pszTitle;
 		if (pRun->tr_image) {
+			pRun->tr_imageUrl = pszLink;
 			pRun->tr_image->mdi_height = nHeight;
 			pRun->tr_image->mdi_width = nWidth;
+		} else {
+			pRun->tr_link = pszLink;
 		}
 		return TRUE;
 	}
@@ -2231,7 +2235,7 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 					int nHeight;
 					int nOrigWidth;
 					int nOrigHeight;
-					mdr_loadAndMeasureImage(pRun->tr_image, pRun->tr_link, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
+					mdr_loadAndMeasureImage(pRun->tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
 				} else {
 					size_t nLen = strlen(pCell->rtc_flow.tf_text);
 					if (nLen > 100) {
@@ -2321,7 +2325,7 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 		pImage->mdi_borderColor = pfsd->fsd_strokeColor;
 		pImage->mdi_borderWidth = pfsd->fsd_strokeWidth;
 	}
-	pRun->tr_link = mdr_processUrlWithBase(pState->hps_baseUrl, pszLink, FALSE);
+	pRun->tr_imageUrl = mdr_processUrlWithBase(pState->hps_baseUrl, pszLink, FALSE);
 	return nLen;
 }
 
@@ -2956,12 +2960,18 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 							pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
 							pRun->tr_image->mdi_height = result.lpr_height;
 							pRun->tr_image->mdi_width = result.lpr_width;
+							pRun->tr_imageUrl = result.lpr_LinkUrl;
 						}
 						if (bImage && !result.lpr_title) {
 							result.lpr_title = _strdup(&stringbuf_getString(pState->hps_text)[nLastOffset]);
 						}
-						pRun->tr_link = result.lpr_LinkUrl;
-						pRun->tr_refLink = result.lpr_LinkRefUrl;
+						if (!bImage) {
+							pRun->tr_isRefLink = result.lpr_LinkRefUrl != 0;
+							pRun->tr_link = result.lpr_LinkUrl;
+							if (pRun->tr_isRefLink) {
+								pRun->tr_link = result.lpr_LinkRefUrl;
+							}
+						}
 						pRun->tr_title = result.lpr_title;
 						if (!bImageLink) {
 							pStream->is_skip(pStream, -1);
@@ -3669,7 +3679,7 @@ void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDOWN_REND
  */
 static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_link);
-	free(pRun->tr_refLink);
+	free(pRun->tr_imageUrl);
 	free(pRun->tr_title);
 	free(pRun->tr_anchor);
 	if (pRun->tr_image) {
@@ -3920,20 +3930,20 @@ static BOOL mdr_hitTestInternal(MARKDOWN_RENDERER_DATA* pData, int cx, int cy, l
 }
 
 char* mdr_resolveLink(MARKDOWN_RENDERER_DATA* pData, TEXT_RUN* pRun) {
-	if (pRun->tr_link != 0) {
-		return pRun->tr_link;
+	if (pRun->tr_link == NULL) {
+		return NULL;
 	}
-	if (!pRun->tr_refLink) {
-		return 0;
+	if (!pRun->tr_isRefLink) {
+		return pRun->tr_link;
 	}
 	MD_REF_STYLE_LINK* pLink = pData->md_refLinks;
 	while (pLink != 0) {
-		if (strcmp(pRun->tr_refLink, pLink->mdrs_name) == 0) {
+		if (strcmp(pRun->tr_link, pLink->mdrs_name) == 0) {
 			return pLink->mdrs_url;
 		}
 		pLink = pLink->mdrsl_next;
 	}
-	return pRun->tr_refLink;
+	return pRun->tr_link;
 }
 
 /*
@@ -3952,7 +3962,7 @@ char* mdr_linkClicked(MARKDOWN_RENDERER_DATA* pData, int cxMouse, int cyMouse) {
 }
 
 static BOOL mdr_hasLink(TEXT_RUN* pRun) {
-	return pRun->tr_link != 0 || pRun->tr_refLink != 0;
+	return pRun->tr_link != 0;
 }
 
 static void mdr_hitTest(WINFO* wp, int cx, int cy, long* pLine, long* pCol) {
@@ -4157,13 +4167,14 @@ static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 
 static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_INFO_PARSE_RESULT* pResult) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	*pszBuf = 0;
 	if (!pData) {
-		return 0;
+		return FALSE;
 	}
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (pPart) {
 		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
-		if (!pRun || pRun->tr_image || !mdr_hasLink(pRun)) {
+		if (!pRun || !mdr_hasLink(pRun) || pRun != pData->md_focussedRun) {
 			return FALSE;
 		}
 		char* pszLink = mdr_resolveLink(pData, pRun);
@@ -4178,7 +4189,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 			pResult->ni_lineNumber = 0;
 			pResult->ni_displayMode = wp->dispmode;	
 			pResult->ni_wp = mainframe_getDockName(wp->edwin_handle);
-			return 1;
+			return TRUE;
 		}
 	}
 	return FALSE;

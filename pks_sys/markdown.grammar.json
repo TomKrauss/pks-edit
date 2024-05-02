@@ -6,13 +6,6 @@
       "wysiwygRenderer": "markdown",
       "analyzer": "words",
       "formatter": "text",
-      "navigation": [
-        {
-          "name": "markdown-link",
-          "pattern": "\\(([^) ]+[^)]*)\\)",
-          "filenameCapture": 1
-        }
-      ],
       "patterns": [
         {
           "match": "^#+.*",
