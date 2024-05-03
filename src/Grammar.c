@@ -199,6 +199,7 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 static JSON_MAPPING_RULE _templateRules[] = {
 	{	RT_ALLOC_STRING, "match", offsetof(TEMPLATE, t_pattern.pattern)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
+	{	RT_ALLOC_STRING, "help", offsetof(TEMPLATE, t_pattern.helpText)},
 	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
 	{	RT_FLAG, "ignore-case-match", offsetof(TEMPLATE, t_pattern.ignoreCase), 1},
 	{	RT_FLAG, "lexical-context-initial", offsetof(TEMPLATE, t_pattern.lexicalContexts), LC_START},
@@ -289,6 +290,7 @@ void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern) {
 		pMatchPattern->rePattern = NULL;
 	}
 	free(pMatchPattern->pattern);
+	free(pMatchPattern->helpText);
 }
 
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {

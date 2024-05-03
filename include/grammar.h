@@ -55,6 +55,7 @@ typedef struct tagUC_MATCH_PATTERN {
 	BOOL	regex;				// whether the input is to be evaluated as a regular expression
 	int		lexicalContexts;	// if type is UA_ABBREV, a bitwise combination of the lexical context(s) in which the action is performed.
 	RE_PATTERN* rePattern;		// The compile lefthand pattern for patterns
+	char*	helpText;			// an optional help text to be displayed during code completion.
 } UC_MATCH_PATTERN;
 
 typedef struct tagBRACKET_RULE {

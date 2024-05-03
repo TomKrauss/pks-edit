@@ -102,7 +102,7 @@ static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CA
 static int analyzer_checkWord(ANALYZER_CONTEXT* pContext, int grammarState, INPUT_STREAM* pStream, STRING_BUF* pToken) {
 	char c;
 	BOOL bInWord = FALSE;
-	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
+	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (char_isIdentifier(c)) {
 			bInWord = TRUE;
 			stringbuf_appendChar(pToken, c);

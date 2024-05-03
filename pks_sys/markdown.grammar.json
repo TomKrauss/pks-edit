@@ -6,60 +6,133 @@
       "wysiwygRenderer": "markdown",
       "analyzer": "words",
       "formatter": "text",
-      "patterns": [
+      "templates": [
         {
-          "match": "^#+.*",
-          "name": "markdown.header",
-          "style": "keyword"
+          "match": "**",
+          "contents": "${cursor}**",
+          "auto-insert": true
         },
         {
-          "match": "`[^`]+`",
-          "name": "markdown.code",
-          "style": "code"
+          "match": "__",
+          "contents": "${cursor}__",
+          "auto-insert": true
         },
         {
-          "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
-          "name": "markdown.bold_italic",
-          "style": "bold-italic"
+          "match": "header1",
+          "contents": "# ${cursor}HEADER 1${selection_end}",
+          "help": "Inserts a markdown header level 1"
         },
         {
-          "match": "([\\*_]{2})[^*_]+\\1",
-          "name": "markdown.bold",
-          "style": "bold"
+          "match": "header2",
+          "contents": "## ${cursor}HEADER 2${selection_end}",
+          "help": "Inserts a markdown header level 2"
         },
         {
-          "match": "[\\*_][^*_]+[\\*_]",
-          "name": "markdown.italic",
-          "style": "italic"
+          "match": "header3",
+          "contents": "### ${cursor}HEADER 3${selection_end}",
+          "help": "Inserts a markdown header level 3"
         },
         {
-          "match": "\\[[^]]+\\]",
-          "name": "markdown.url.title",
-          "style": "literal"
+          "match": "header4",
+          "contents": "## ${cursor}HEADER 4${selection_end}",
+          "help": "Inserts a markdown header level 4"
         },
         {
-          "match": "^\\>\\s.*",
-          "name": "markdown.blockquote",
-          "style": "bold-italic"
+          "match": "horizontal rule",
+          "contents": "---",
+          "help": "Inserts a horizontal rule"
         },
         {
-          "match": "^[*-].*",
-          "name": "markdown.bullet",
-          "style": "bold",
-          "patterns": [
-            {
-              "match": "`[^`]+`",
-              "name": "markdown.code.bullet",
-              "style": "code"
-            }
-          ]
+          "match": "blockquote",
+          "contents": "> ${cursor}text${selection_end}",
+          "help": "Inserts block quote quoting the text following the &gt; character."
         },
         {
-          "match": "\\([/a-zA-Z0-9_.:]+\\)",
-          "name": "markdown.url",
-          "style": "hyperlink"
+          "match": "unordered list",
+          "contents": "- ${cursor}1st item${selection_end}\n- 2nd item...",
+          "help": "Each list item is introduced by alternatively one of the following characters: '-', '*', '+'. To create multi-level lists, indent the items to display in the next level."
+        },
+        {
+          "match": "ordered list",
+          "contents": "1. ${cursor}1st item${selection_end}\n2. 2nd item...",
+          "help": "Each list item is introduced by a number followed by '.'. To create multi-level lists, indent the items to display in the next level. Note, that the items are numbered sub-sequently regardless of the number defined in the markup."
+        },
+        {
+          "match": "task list",
+          "contents": "- [x] ${cursor}task 1${selection_end}\n- [ ] task 2",
+          "help": "Each list item is introduced by - [ ]. To mark a task as completed, use [x] instead if [ ]."
+        },
+        {
+          "match": "fenced code block",
+          "contents": "```cpp\n${cursor}my source code${selection_end}\n```",
+          "help": "Used to insert a piece of source code. One may define the syntax used in the source code by adding the name of the language as in: ```json..."
+        },
+        {
+          "match": "image",
+          "contents": "![${cursor}image_name${selection_end}](image_url)",
+          "help": "Inserts a markdown <em>image reference</em>.<br>General syntax is: <code>![image_name](image_url \"tooltip to display\" =width_x_height)"
+        },
+        {
+          "match": "link",
+          "contents": "[${cursor}link_name${selection_end}](image_url)",
+          "help": "Inserts a markdown hyperlink.<br>General syntax is: <code>[text_displayed](hyperlink_url \"tooltip to display\")"
         }
-      ]
+      ],
+      "patterns":
+        [
+          {
+            "match": "^#+.*",
+            "name": "markdown.header",
+            "style": "keyword"
+          },
+          {
+            "match": "`[^`]+`",
+            "name": "markdown.code",
+            "style": "code"
+          },
+          {
+            "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
+            "name": "markdown.bold_italic",
+            "style": "bold-italic"
+          },
+          {
+            "match": "([\\*_]{2})[^*_]+\\1",
+            "name": "markdown.bold",
+            "style": "bold"
+          },
+          {
+            "match": "[\\*_][^*_]+[\\*_]",
+            "name": "markdown.italic",
+            "style": "italic"
+          },
+          {
+            "match": "\\[[^]]+\\]",
+            "name": "markdown.url.title",
+            "style": "literal"
+          },
+          {
+            "match": "^\\>\\s.*",
+            "name": "markdown.blockquote",
+            "style": "bold-italic"
+          },
+          {
+            "match": "^[*-].*",
+            "name": "markdown.bullet",
+            "style": "bold",
+            "patterns": [
+              {
+                "match": "`[^`]+`",
+                "name": "markdown.code.bullet",
+                "style": "code"
+              }
+            ]
+          },
+          {
+            "match": "\\([/a-zA-Z0-9_.:]+\\)",
+            "name": "markdown.url",
+            "style": "hyperlink"
+          }
+        ]
     }
   ]
 }

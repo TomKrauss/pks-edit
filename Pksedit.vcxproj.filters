@@ -720,6 +720,12 @@
     </Image>
     <Image Include="doc\dice.png" />
     <Image Include="doc\manual\pksedit-ui.png" />
+    <Image Include="broken_image.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\broken_image.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />

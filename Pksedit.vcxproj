@@ -1267,6 +1267,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="broken_image.bmp" />
     <Image Include="doc\balloons.jpg" />
     <Image Include="doc\bird.gif" />
     <Image Include="doc\cat.bmp" />
@@ -1276,6 +1277,7 @@
     <Image Include="rc\arrow_up.ico" />
     <Image Include="RC\BITMAP1.BMP" />
     <Image Include="rc\bookmark.ico" />
+    <Image Include="rc\broken_image.bmp" />
     <Image Include="rc\clip2.ico" />
     <Image Include="rc\crossreference.ico" />
     <Image Include="RC\ICON3.ICO" />

@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include "winfo.h"
+#include "pksrc.h"
 #include "trace.h"
 #include "fileutil.h"
 #include "caretmovement.h"
@@ -658,6 +659,9 @@ static BOOL mdr_loadAndMeasureImage(MD_IMAGE* pImage, const char* pszImageName, 
 		} else {
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
+		if (pImage->mdi_image == NULL) {
+			pImage->mdi_image = LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAP1), 0, 0, 0, 0);
+		}
 	}
 	if (pImage->mdi_image) {
 		BITMAP bitmap;
@@ -735,9 +739,9 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 }
 
 /*
- * Paint a checkmark for a task list. 
+ * Paint a checkbox for a task list. 
  */
-static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, BOOL bChecked) {
+static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, float zoomFactor, BOOL bChecked) {
 	HDC hdc = pParams->rfp_hdc;
 	THEME_DATA* pTheme = pParams->rfp_theme;
 	LOGBRUSH brush;
@@ -746,16 +750,19 @@ static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, BOOL b
 	brush.lbStyle = PS_SOLID;
 	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
-	int nSize = 13;
+	int nSize = (int)(13 * zoomFactor);
 	MoveTo(hdc, x, y);
 	LineTo(hdc, x+nSize, y);
 	LineTo(hdc, x + nSize, y+nSize);
 	LineTo(hdc, x, y + nSize);
 	LineTo(hdc, x, y);
 	if (bChecked) {
+		HPEN hPen2 = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 4, &brush, 0, NULL);
+		HPEN hPenOld2 = SelectObject(hdc, hPen2);
 		MoveTo(hdc, x+2, y+(nSize/2));
-		LineTo(hdc, x + nSize / 3 + 1, y + nSize - 4);
-		LineTo(hdc, x + nSize - 3, y + 3);
+		LineTo(hdc, x + nSize / 3 + 1, y + nSize - 5);
+		LineTo(hdc, x + nSize - 4, y + 4);
+		DeleteObject(SelectObject(hdc, hPenOld2));
 	}
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
@@ -1062,7 +1069,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_param.rvp_level == 1 ? L"\u25CF" : (pPart->rvp_param.rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
 		}
 		else if (pPart->rvp_type == MET_TASK_LIST) {
-			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pPart->rvp_param.rvp_number == 1);
+			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pParams->rfp_zoomFactor, pPart->rvp_param.rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
 			char szBuf[20];
@@ -1489,61 +1496,69 @@ typedef struct tagLINK_PARSE_RESULT {
 	BOOL  lpr_isRefLinkDefinition;
 } LINK_PARSE_RESULT;
 
-static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult) {
+enum LinkParseState {
+	LPS_TITLE,
+	LPS_WAIT_URL,
+	LPS_PARSE_URL
+};
+
+static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, int startState) {
 	char szBuf[256];
-	int nLinkStart = -1;
+	int nUrlPartStart = 0;
 	char c;
+	int state = startState;
 	char* szLinkEnd = szLinkText + 255;
 	memset(pResult, 0, sizeof(*pResult));
 	int bRefStyleLink = 0;
 	STREAM_OFFSET savedOffset = pStream->is_tell(pStream);
 	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
-		if (nLinkStart < 0) {
+		if (state == LPS_TITLE) {
 			if (c == ']') {
 				*szLinkText = 0;
-				nLinkStart = 0;
 				while (pStream->is_peekc(pStream, 0) == ' ') {
 					pStream->is_skip(pStream, 1);
 				}
-				char c2 = pStream->is_peekc(pStream, 0);
-				if (c2 == '(') {
-					// support special syntax: [text](<link>)
-					if (pStream->is_peekc(pStream, 1) == '<') {
-						pStream->is_skip(pStream, 2);
-					}
-					else {
-						pStream->is_skip(pStream, 1);
-					}
-				} else if (c2 == '[') {
-					bRefStyleLink = 1;
-					pStream->is_skip(pStream, 1);
-					// Ref style link.
-				} else if (c2 == ':') {
-					pStream->is_skip(pStream, 1);
-					while (pStream->is_peekc(pStream, 0) == ' ') {
-						pStream->is_skip(pStream, 1);
-					}
-					pResult->lpr_isRefLinkDefinition = TRUE;
-				}
+				state = LPS_WAIT_URL;
 			} else if (szLinkText < szLinkEnd) {
 				*szLinkText++ = c;
 			}
+		} else if (state == LPS_WAIT_URL) {
+			if (c == '(') {
+				// support special syntax: [text](<link>)
+				if (pStream->is_peekc(pStream, 0) == '<') {
+					pStream->is_skip(pStream, 1);
+				}
+			} else if (c == '[') {
+				bRefStyleLink = 1;
+				pStream->is_skip(pStream, 1);
+				// Ref style link.
+			} else if (c == ':') {
+				pStream->is_skip(pStream, 1);
+				while (pStream->is_peekc(pStream, 0) == ' ') {
+					pStream->is_skip(pStream, 1);
+				}
+				pResult->lpr_isRefLinkDefinition = TRUE;
+			} else {
+				pStream->is_seek(pStream, savedOffset);
+				return FALSE;
+			}
+			state = LPS_PARSE_URL;
 		} else {
 			if (bRefStyleLink && c == ']') {
-				szBuf[nLinkStart] = 0;
+				szBuf[nUrlPartStart] = 0;
 				pResult->lpr_LinkRefUrl = _strdup(szBuf);
 				return TRUE;
 			} else if (!bRefStyleLink && !pResult->lpr_isRefLinkDefinition && c == ')') {
-				szBuf[nLinkStart] = 0;
+				szBuf[nUrlPartStart] = 0;
 				return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, &pResult->lpr_LinkUrl, &pResult->lpr_title, &pResult->lpr_width, &pResult->lpr_height);
 			}
-			if (nLinkStart < sizeof szBuf - 1) {
-				szBuf[nLinkStart++] = c;
+			if (nUrlPartStart < sizeof szBuf - 1) {
+				szBuf[nUrlPartStart++] = c;
 			}
 		}
 	}
 	if (c == '\n' && pResult->lpr_isRefLinkDefinition) {
-		szBuf[nLinkStart] = 0;
+		szBuf[nUrlPartStart] = 0;
 		char* pszTitle = strpbrk(szBuf, " (\"'");
 		if (pszTitle != 0) {
 			*pszTitle = 0;
@@ -2918,7 +2933,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					bImageLink = TRUE;
 					pStream->is_skip(pStream, 1);
 				}
-				if (mdr_parseLink(pStream, pState, szLinkText, &result)) {
+				if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_TITLE)) {
 					if (result.lpr_isRefLinkDefinition) {
 						mdr_appendRefLinkDefinition(pState->hps_refLinks, szLinkText, result.lpr_LinkUrl, result.lpr_title);
 						pStream->is_skip(pStream, -1);
@@ -2961,6 +2976,13 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 							pRun->tr_image->mdi_height = result.lpr_height;
 							pRun->tr_image->mdi_width = result.lpr_width;
 							pRun->tr_imageUrl = result.lpr_LinkUrl;
+							if (bImageLink) {
+								pStream->is_skip(pStream, 1);
+								if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_WAIT_URL)) {
+									bImage = FALSE;
+								}
+								pStream->is_skip(pStream, -1);
+							}
 						}
 						if (bImage && !result.lpr_title) {
 							result.lpr_title = _strdup(&stringbuf_getString(pState->hps_text)[nLastOffset]);

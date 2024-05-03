@@ -12,7 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 - A more modern version of the Windows open and save dialog was integrated into PKS Edit.
-- The Markdown renderer supports now [reference-style links](https://daringfireball.net/projects/markdown/syntax#link).
+- The Markdown renderer supports now:
+	- [reference-style links](https://daringfireball.net/projects/markdown/syntax#link).
+	- images with hyperlinks
+	- image references using http or https URLs.
+- We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default),
+  when editing markdown documents.
+- Templates in grammars support now an optional "help" section allowing to add a help text for the template to insert.
 
 ### Fixed
 - corrected link to release notes.

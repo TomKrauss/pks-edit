@@ -204,6 +204,10 @@ static void codecomplete_destroyActions(CODE_COMPLETION_PARAMS* pCC) {
 	ll_destroy((LINKED_LIST**)&pCC->ccp_actions, codecomplete_destroyAction);
 }
 
+static char* codecomplete_helpForTemplate(const char* pszCompletion, void* pText) {
+	return pText == NULL ? NULL : _strdup(pText);
+}
+
 /*
  * codecomplete_updateCompletionList
  * update the list of completions awailable.
@@ -228,6 +232,8 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 			pAction->ca_type = CA_TEMPLATE;
 			pAction->ca_param.template = up;
 			pAction->ca_score = 200;
+			pAction->ca_helpCB = codecomplete_helpForTemplate;
+			pAction->ca_object = up->uc_pattern.helpText;
 			pAction->ca_replaceWord = strstr(up->p.uc_template, "${word_selection}") != NULL;
 			arraylist_add(_actionList, pAction);
 		}

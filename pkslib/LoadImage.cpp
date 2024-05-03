@@ -1,5 +1,5 @@
 /*
- * LoadImageFormat.cpp
+ * LoadImage.cpp
  *
  * Project: PKS Edit for Windows
  *
@@ -236,40 +236,50 @@ static HBITMAP CreateHBITMAP(IWICBitmapSource* ipBitmap) {
     return hbmp;
 }
 
-// Loads the an image with a name and a format into a HBITMAP.
-extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
-    HBITMAP hbmpImage = NULL;
-    GUID guid = CLSID_WICPngDecoder;
-
-    // load the PNG image data into a stream
+GUID loadimage_getType(char* pszName) {
+    GUID guid = { 0 };
 
     char* pszExt = strrchr(pszName, '.');
     // Not supported.
-    if (pszExt == NULL) {
-        return NULL;
-    }
     if (pszExt != NULL) {
         pszExt++;
         if (_stricmp(pszExt, "gif") == 0) {
-           guid = CLSID_WICGifDecoder;
-        } else if (_stricmp(pszExt, "jpg") == 0 || _stricmp(pszExt, "jpeg") == 0) {
-           guid = CLSID_WICJpegDecoder;
-        } else if (_stricmp(pszExt, "tif") == 0) {
-           guid = CLSID_WICTiffDecoder;
-        } else if (_stricmp(pszExt, "png") == 0) {
-           guid = CLSID_WICPngDecoder;
-        } else if (_stricmp(pszExt, "webp") == 0) {
-           guid = CLSID_WICWebpDecoder;
-        } else {
-           // Not supported.
-           return NULL;
+            return CLSID_WICGifDecoder;
+        }
+        else if (_stricmp(pszExt, "jpg") == 0 || _stricmp(pszExt, "jpeg") == 0) {
+            return CLSID_WICJpegDecoder;
+        }
+        else if (_stricmp(pszExt, "tif") == 0) {
+            return CLSID_WICTiffDecoder;
+        }
+        else if (_stricmp(pszExt, "png") == 0) {
+            return CLSID_WICPngDecoder;
+        }
+        else if (_stricmp(pszExt, "webp") == 0) {
+            return CLSID_WICWebpDecoder;
         }
     }
+    return guid;
+}
+
+/*
+ * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
+ * If the image format is not supported return 0.
+ */
+extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
+    HBITMAP hbmpImage = NULL;
+    GUID guid = loadimage_getType(pszName);
+
+    if (guid.Data1 == 0) {
+        return NULL;
+    }
+    // load the PNG image data into a stream
     UINT cbSize;
     char* pszLoaded = http_loadDataFromUrl(pszName, &cbSize);
     IStream* ipImageStream = pszLoaded == NULL ? CreateStreamOnResource(pszName) : SHCreateMemStream((const BYTE*)pszLoaded, cbSize);
-    if (ipImageStream == NULL)
+    if (ipImageStream == NULL) {
         return NULL;
+    }
 
     // load the bitmap with WIC
 
