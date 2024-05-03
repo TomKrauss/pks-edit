@@ -96,6 +96,31 @@ static ENTITY_MAPPING _entities[] = {
 	{'¥', "yen;"}
 }; 
 
+typedef struct tagEMOJI_MAPPING {
+	WCHAR*	emoji;
+	char    name[18];
+} EMOJI_MAPPING;
+
+static EMOJI_MAPPING _emojis[] = {
+	{L"\U0001F47D", ":alien:"},
+	{L"\U0001F620", ":angry:"},
+	{L"\U0001F514", ":bell:"},
+	{L"\U0001F4A5", ":collision:"},
+	{L"\U0001F615", ":confused:"},
+	{L"\U0001F4AB", ":dizzy:"},
+	{L"\U0001F525", ":fire:"},
+	{L"\U0001F626", ":frowning:"},
+	{L"\U0001F600", ":grinning_face:"},
+	{L"\U0001F90D", ":heart:"},
+	{L"\U0001F60D", ":heart_eyes:"},
+	{L"\U0000231B", ":hourglass:"},
+	{L"\U0001F48B", ":kiss:"},
+	{L"\U0001F680", ":rocket:"},
+	{L"\U0001F508", ":speaker:"},
+	{L"\U00002B50", ":star:"},
+	{L"\U0001F609", ":winking_face:"}
+};
+
 //
 // Describes the bounds of a text run with the following shape.
 // 
@@ -187,7 +212,11 @@ typedef struct tagTEXT_RUN {
 	BOOL				tr_isRefLink;
 	char*				tr_title;
 	char*				tr_anchor;
-	MD_IMAGE*			tr_image;
+	BOOL				tr_isEmoji;
+	union {
+		MD_IMAGE*		tr_image;
+		WCHAR*			tr_emoji;
+	} tr_data;
 	// For images - the URL of the image
 	char*				tr_imageUrl;
 	int					tr_selectionStart;
@@ -212,12 +241,17 @@ typedef enum {
 	MET_UNORDERED_LIST, 
 	MET_IMAGE, 
 	MET_TASK_LIST,
+	MET_EMOJI,
 	MET_NORMAL,
 	MET_FENCED_CODE_BLOCK,
 	MET_HEADER, 
 	MET_TABLE,
 	MET_PARAGRAPH,
-	MET_HORIZONTAL_RULE
+	MET_HORIZONTAL_RULE,
+	// TODO: not yet supported
+	MET_DEFINITION_LIST,
+	// TODO: not yet supported
+	MET_FOOTNOTES
 } MDR_ELEMENT_TYPE;
 
 #define MAX_TABLE_COLUMNS   256
@@ -259,7 +293,7 @@ typedef struct tagRENDER_BOX_DECORATION {
 } RENDER_BOX_DECORATION;
 
 typedef struct tag_RENDER_VIEW_PART_PARAM {
-	long rvp_number;					// for numbered lists
+	long rvp_number;					// for numbered lists and emojis
 	int	rvp_level;						// for headers and lists - the level.
 	char* rvp_grammar;					// for fenced code blocks - the name of the used grammar (if defined)
 } RENDER_VIEW_PART_PARAM;
@@ -301,6 +335,12 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 #define ATTR_TAG_CODE	0x100
 #define ATTR_SUPER		0x200
 #define ATTR_SUB		0x400
+#define ATTR_EMOJI		0x800
+
+/*
+ * Draws an emoji with the specified attributes.
+ */
+extern void paint_emoji(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int *pHeight);
 
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
@@ -664,8 +704,11 @@ static BOOL mdr_loadAndMeasureImage(MD_IMAGE* pImage, const char* pszImageName, 
 		}
 	}
 	if (pImage->mdi_image) {
-		BITMAP bitmap;
+		BITMAP bitmap = { 0 };
 		GetObject(pImage->mdi_image, sizeof(bitmap), &bitmap);
+		if (bitmap.bmWidth == 0 || bitmap.bmHeight == 0) {
+			return FALSE;
+		}
 		*pOrigWidth = bitmap.bmWidth;
 		*pOrigHeight = bitmap.bmHeight;
 		* pWidth = pImage->mdi_width ? pImage->mdi_width :
@@ -681,7 +724,7 @@ static BOOL mdr_loadAndMeasureImage(MD_IMAGE* pImage, const char* pszImageName, 
  * Paint an image displayed in a markdown text.
  */
 static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, SIZE* pSize, float zoomFactor, BOOL bMeasureOnly) {
-	MD_IMAGE* pImage = pTR->tr_image;
+	MD_IMAGE* pImage = pTR->tr_data.tr_image;
 	if (!pImage) {
 		pSize->cx = 20;
 		pSize->cy = 20;
@@ -736,6 +779,13 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 		pSize->cy = size.cy;
 		pSize->cx = size.cx;
 	}
+}
+
+/*
+ * Paint an emoji.
+ */
+static void mdr_renderEmoji(HDC hdc, WCHAR* pEmoji, COLORREF cColor, int x, int y, float zoomFactor, SIZE* pSize) {
+	paint_emoji(hdc, pEmoji, cColor, (int)(12 * zoomFactor), x, y, &pSize->cx, &pSize->cy);
 }
 
 /*
@@ -863,15 +913,23 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 		}
 		if (pTR->tr_attributes.bgColor == NO_COLOR) {
 			SetBkMode(hdc, TRANSPARENT);
-		}
-		else {
+		} else {
 			SetBkMode(hdc, OPAQUE);
 			SetBkColor(hdc, pTR->tr_attributes.bgColor);
 		}
 		if (bRunBegin) {
 			x += pTR->tr_attributes.indent;
 		}
-		if (pTR->tr_image) {
+		if (pTR->tr_isEmoji) {
+			mdr_renderEmoji(hdc, pTR->tr_data.tr_emoji, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
+			pPartBounds->bottom = y + size.cy;
+			pPartBounds->left = x;
+			pPartBounds->right = x + size.cx;
+			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
+			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPartBounds->bottom - pPartBounds->top;
+			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
+			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPartBounds->right - pPartBounds->left;
+		} else if (pTR->tr_data.tr_image) {
 			mdr_paintImage(hdc, pTR, x, y, nRight-x, &size, pRFP->rfp_zoomFactor, pRFP->rfp_measureOnly);
 			if (size.cy > nHeight) {
 				nHeight = size.cy;
@@ -971,7 +1029,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 				}
 			}
 		}
-		if (!pTR->tr_image && nFit < nLen && nFit > 0) {
+		if (!pTR->tr_data.tr_image && nFit < nLen && nFit > 0) {
 			nOffs += nFit;
 			nDeltaPainted += nFit;
 			x = pUsed->left;
@@ -1067,8 +1125,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 		HFONT hOldFont = SelectObject(hdc, hFont);
 		if (pPart->rvp_type == MET_UNORDERED_LIST) {
 			TextOutW(hdc, x - (int)(15* pParams->rfp_zoomFactor), y, pPart->rvp_param.rvp_level == 1 ? L"\u25CF" : (pPart->rvp_param.rvp_level == 2 ? L"\u25CB" : L"\u25A0"), 1);
-		}
-		else if (pPart->rvp_type == MET_TASK_LIST) {
+		} else if (pPart->rvp_type == MET_TASK_LIST) {
 			mdr_paintCheckmark(pParams, x - (int)(20 * pParams->rfp_zoomFactor), y, pParams->rfp_zoomFactor, pPart->rvp_param.rvp_number == 1);
 		}
 		else if (pPart->rvp_type == MET_ORDERED_LIST) {
@@ -1299,13 +1356,13 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 
 static TEXT_RUN* mdr_appendRun(TEXT_RUN** pRuns, MDR_ELEMENT_FORMAT* pFormat, size_t nSize, FONT_STYLE_DELTA *pFSD, LINE* lp, int nLineOffset, char** ppszLink) {
 	int mAttrs = pFSD->fsd_logicalStyles;
-	if (nSize == 0 && *pRuns && (mAttrs & ATTR_LINE_BREAK) == 0) {
+	if (nSize == 0 && *pRuns && (mAttrs & (ATTR_LINE_BREAK|ATTR_EMOJI)) == 0) {
 		return NULL;
 	}
 	if (!pFormat) {
 		pFormat = &_formatText;
 	}
-	TEXT_RUN* pRun = *pRuns == 0 || (*pRuns)->tr_size ? ll_append(pRuns, sizeof(TEXT_RUN)) : *pRuns;
+	TEXT_RUN* pRun = *pRuns == 0 || (*pRuns)->tr_size || (*pRuns)->tr_isEmoji ? ll_append(pRuns, sizeof(TEXT_RUN)) : *pRuns;
 	pRun->tr_size = nSize;
 	pRun->tr_lp = lp;
 	pRun->tr_lineOffset = nLineOffset;
@@ -1690,10 +1747,10 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 			return FALSE;
 		}
 		pRun->tr_title = pszTitle;
-		if (pRun->tr_image) {
+		if (pRun->tr_data.tr_image) {
 			pRun->tr_imageUrl = pszLink;
-			pRun->tr_image->mdi_height = nHeight;
-			pRun->tr_image->mdi_width = nWidth;
+			pRun->tr_data.tr_image->mdi_height = nHeight;
+			pRun->tr_data.tr_image->mdi_width = nWidth;
 		} else {
 			pRun->tr_link = pszLink;
 		}
@@ -2169,7 +2226,7 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	switch (mType) {
 	case MET_HORIZONTAL_RULE: pPart->rvp_paint = mdr_renderHorizontalRule; break;
 	case MET_TABLE: pPart->rvp_paint = mdr_renderTable; break;
-	default: 
+	default:
 		pPart->rvp_paint = mdr_renderMarkdownBlockPart;
 		pPart->rvp_data.rvp_flow.tf_align = pState->hps_currentStyle->fsd_textAlign;
 		break;
@@ -2246,11 +2303,11 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 			if (pCell->rtc_flow.tf_text) {
 				int nWidth;
 				TEXT_RUN* pRun = pCell->rtc_flow.tf_runs;
-				if (pRun && pRun->tr_image) {
+				if (pRun && pRun->tr_data.tr_image && !pRun->tr_isEmoji) {
 					int nHeight;
 					int nOrigWidth;
 					int nOrigHeight;
-					mdr_loadAndMeasureImage(pRun->tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
+					mdr_loadAndMeasureImage(pRun->tr_data.tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
 				} else {
 					size_t nLen = strlen(pCell->rtc_flow.tf_text);
 					if (nLen > 100) {
@@ -2329,7 +2386,7 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 		pRun->tr_title = _strdup(pszTitle);
 	}
 	MD_IMAGE* pImage = calloc(1, sizeof(MD_IMAGE));
-	pRun->tr_image = pImage;
+	pRun->tr_data.tr_image = pImage;
 	if (pszW) {
 		pImage->mdi_width = (int)string_convertToLong(pszW);
 	}
@@ -2820,6 +2877,18 @@ static void mdr_appendRefLinkDefinition(MD_REF_STYLE_LINK** pHead, char* pszLink
 	pLink->mdrs_url = pszUrl;
 }
 
+static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
+	for (int i = 0; i < DIM(_emojis); i++) {
+		char* pszShortcut = _emojis[i].name;
+		size_t nLen = strlen(pszShortcut);
+		if (pStream->is_strncmp(pStream, pszShortcut, nLen) == 0) {
+			pStream->is_skip(pStream, (int) nLen-1);
+			return _emojis[i].emoji;
+		}
+	}
+	return NULL;
+}
+
 /*
  * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
  */
@@ -2886,10 +2955,23 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			bEnforceBreak = FALSE;
 			int nToggle = 0;
 			BOOL bEscaped = pState->hps_currentStyle->fsd_logicalStyles & ATTR_CODE;
+			if (c == ':') {
+				WCHAR* pEmoji = mdr_findEmoji(pStream);
+				if (pEmoji != NULL) {
+					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_EMOJI;
+					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+					pRun->tr_isEmoji = TRUE;
+					pRun->tr_data.tr_emoji = pEmoji;
+					mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+					pState->hps_currentStyle->fsd_logicalStyles &= ~ATTR_EMOJI;
+					continue;
+				}
+			}
 			if (c == '\\' && strchr(_escapedChars, pStream->is_peekc(pStream, 1)) != NULL) {
 				pStream->is_skip(pStream, 1);
 				c = pStream->is_peekc(pStream, 0);
-			} else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c) {
+			}
+			else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c) {
 				pStream->is_skip(pStream, 1);
 				mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 				pState->hps_currentStyle->fsd_logicalStyles ^= ATTR_HIGHLIGHT;
@@ -2972,9 +3054,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 						int nLastOffset = pState->hps_lastTextOffset;
 						TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 						if (bImage) {
-							pRun->tr_image = calloc(1, sizeof(MD_IMAGE));
-							pRun->tr_image->mdi_height = result.lpr_height;
-							pRun->tr_image->mdi_width = result.lpr_width;
+							pRun->tr_data.tr_image = calloc(1, sizeof(MD_IMAGE));
+							pRun->tr_data.tr_image->mdi_height = result.lpr_height;
+							pRun->tr_data.tr_image->mdi_width = result.lpr_width;
 							pRun->tr_imageUrl = result.lpr_LinkUrl;
 							if (bImageLink) {
 								pStream->is_skip(pStream, 1);
@@ -3704,11 +3786,11 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_imageUrl);
 	free(pRun->tr_title);
 	free(pRun->tr_anchor);
-	if (pRun->tr_image) {
-		if (pRun->tr_image->mdi_image) {
-			DeleteObject(pRun->tr_image->mdi_image);
+	if (pRun->tr_data.tr_image && !pRun->tr_isEmoji) {
+		if (pRun->tr_data.tr_image->mdi_image) {
+			DeleteObject(pRun->tr_data.tr_image->mdi_image);
 		}
-		free(pRun->tr_image);
+		free(pRun->tr_data.tr_image);
 	}
 	return 1;
 }
@@ -3756,6 +3838,7 @@ static void mdr_destroyData(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
 		mdr_destroyRendererData(pData);
+		wp->r_data = NULL;
 	}
 }
 

@@ -1,6 +1,45 @@
 
 ## HTML Support
 
+<em>Emphasis</em>
+
+<ol>
+<li>one list element</li>
+<li>another list element</li>
+</ol>
+
+## Emojis
+
+:heart: :frowning: :fire: :confused: :angry: :star: :winking_face: :dizzy: :alien: :rocket: :heart_eyes: :collision: :grinning_face:
+:hourglass: :bell: :speaker:
+
+| Unicode      | Emoji      |
+|--------------|------------|
+| `+U0001F514` | :bell:     |
+| `+U0001F4A5` | :collision:|
+| `+U0001F4AB` | :dizzy:    |
+| `+U0001F525` | :fire:     |
+| `+U0001F626` | :frowning: |
+| `+U00002B50` | :star:     |
+| `+U0001F47D` | :alien:    |
+
+## Definition Lists
+(NOT YET SUPPORTED)
+
+term
+ : definition
+
+## Footnotes
+
+Here is a reference to a footnote [^1].
+
+[^1]: This is the foot note
+
+## Task Lists
+- [ ] Task 1
+- [X] Task completed
+
+## Links
 
 [Reference Style Link to CHANGELOG][1]
 

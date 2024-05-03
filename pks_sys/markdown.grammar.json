@@ -18,6 +18,41 @@
           "auto-insert": true
         },
         {
+          "match": "code",
+          "contents": "`${cursor}my code${selection_end}`",
+          "help": "Inserts a piece of text rendered as code"
+        },
+        {
+          "match": "table",
+          "contents": "| Header 1 | Header 2 |\n|----------|----------|\n| cell 1   | cell 2   |\n",
+          "help": "Inserts a table with headers and cells"
+        },
+        {
+          "match": "definition list",
+          "contents": "term\n : definition",
+          "help": "Inserts a term with its corresponding definition"
+        },
+        {
+          "match": "strike through",
+          "contents": "~~${cursor}my code${selection_end}~~",
+          "help": "Inserts a piece of text displayed with a line-through text decoration"
+        },
+        {
+          "match": "highlight",
+          "contents": "==${cursor}my code${selection_end}==",
+          "help": "Inserts a piece of text displayed highlighted with a special font and color"
+        },
+        {
+          "match": "subscript",
+          "contents": "H~${cursor}2${selection_end}~O",
+          "help": "Inserts a piece of text using subscript letters"
+        },
+        {
+          "match": "superscript",
+          "contents": "X^${cursor}2${selection_end}^",
+          "help": "Inserts a piece of text using super script letters"
+        },
+        {
           "match": "header1",
           "contents": "# ${cursor}HEADER 1${selection_end}",
           "help": "Inserts a markdown header level 1"
