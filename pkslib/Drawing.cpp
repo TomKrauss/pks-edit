@@ -95,7 +95,7 @@ extern "C" __declspec(dllexport) void paint_emoji(HDC hdc, WCHAR* emoji, COLORRE
 	Gdiplus::Graphics  graphics(hdc);
 	Gdiplus::Font myFont(L"Segoe UI Emoji", (float)fontSize, FontStyleRegular, UnitPixel, NULL);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
+	SolidBrush brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
 	size_t len = lstrlenW(emoji);
 	auto s = graphics.DrawString(emoji, (int)len, &myFont, pointF, &brush);
 	*pWidth = 0;

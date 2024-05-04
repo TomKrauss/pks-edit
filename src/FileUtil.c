@@ -221,6 +221,9 @@ EXPORT char *file_searchFileInPKSEditLocation(const char *s)
 EXPORT char *file_searchFileInPath(char *fn,char *path) {	
 	char p[EDMAXPATHLEN],p2[EDMAXPATHLEN];
 
+	if (!*fn) {
+		return 0;
+	}
 	if (dostat(fn)) {
 		return fn;
 	}

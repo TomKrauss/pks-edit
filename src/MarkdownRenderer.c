@@ -432,15 +432,29 @@ static MARGINS _tableMargins = {
 	10,5,8,8
 };
 
-typedef struct tagMD_REF_STYLE_LINK {
-	struct tagMD_REF_STYLE_LINK* mdrsl_next;
+/*
+ * The type of a defined reference.
+ */
+typedef enum MD_DEFINED_REFERENCE_TYPE {
+	MDDRT_REFERENCE_STYLE_LINK,
+	MDDRT_REFERENCE_FOOT_NOTE
+} MD_DEFINED_REFERENCE_TYPE;
+
+/*
+ * Defines a piece of text one can refer to. Two forms exist:
+ * - a reference style link URL definition. mdrs_text is the defined URL.
+ * - The definition of footnote. mdrs_text is the text of the footnote.
+ */
+typedef struct tagMD_REFERENCE_DEFINITION {
+	struct tagMD_REFERENCE_DEFINITION* mdrsl_next;
+	MD_DEFINED_REFERENCE_TYPE mdrs_type;
 	// The name of the reference style link
 	char* mdrs_name;
-	// The associated URL
-	char* mdrs_url;
+	// The URL defined by the reference (reference style links) or the footnote text.
+	char* mdrs_text;
 	// An optional title
 	char* mdrs_title;
-} MD_REF_STYLE_LINK;
+} MD_REFERENCE_DEFINITION;
 
 typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_pElements;	// The render view parts to be rendered
@@ -450,7 +464,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_caretView;
 	RENDER_VIEW_PART* md_previousCaretView;
 	TEXT_RUN* md_caretRun;
-	MD_REF_STYLE_LINK* md_refLinks;
+	MD_REFERENCE_DEFINITION* md_referenceDefinitions;
 	int md_caretRunIndex;
 	int md_caretPartIndex;
 	BOOL md_printing;
@@ -871,6 +885,15 @@ static void mdr_getLineExtent(HDC hdc, TEXT_FLOW* pTF, TEXT_RUN* pRun, float fZo
 	}
 }
 
+static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
+	if (x < pPartBounds->left) {
+		pPartBounds->left = x;
+	}
+	if (x2 > pPartBounds->right) {
+		pPartBounds->right = x2;
+	}
+}
+
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
@@ -884,6 +907,8 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	pUsed->top = pBounds->top;
 	pUsed->left = x;
 	pUsed->right = nRight;
+	pPartBounds->left = x;
+	pPartBounds->right = x;
 	TEXT_FLOW* pTF = pFlow;
 	TEXT_RUN* pTR = pTF->tf_runs;
 	int nOffs = 0;
@@ -923,8 +948,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 		if (pTR->tr_isEmoji) {
 			mdr_renderEmoji(hdc, pTR->tr_data.tr_emoji, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
 			pPartBounds->bottom = y + size.cy;
-			pPartBounds->left = x;
-			pPartBounds->right = x + size.cx;
+			mdr_updateHorizontalPartBounds(pPartBounds, x, x + size.cx);
 			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
 			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPartBounds->bottom - pPartBounds->top;
 			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
@@ -935,8 +959,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 				nHeight = size.cy;
 			}
 			pPartBounds->bottom = y + nHeight;
-			pPartBounds->left = x;
-			pPartBounds->right = x + size.cx;
+			mdr_updateHorizontalPartBounds(pPartBounds, x, x + size.cx);
 			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
 			pTR->tr_bounds.bottom = pTR->tr_bounds.bottom2 = pPartBounds->bottom - pPartBounds->top;
 			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
@@ -951,6 +974,8 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			if (nOffs == 0) {
 				pPartBounds->left = x;
 				pPartBounds->right = nRight;
+			} else {
+				mdr_updateHorizontalPartBounds(pPartBounds, x, nRight);
 			}
 			if (bRunBegin) {
 				nDeltaPainted = 0;
@@ -1201,6 +1226,8 @@ static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_ELEMENT_TYPE mCurre
 				pStream->is_skip(pStream, 1);
 			}
 			bRet = nLevel != nLevelNew;
+			break;
+		} else if (mCurrentType == MET_BLOCK_QUOTE) {
 			break;
 		}
 		if (!string_isSpace(c)) {
@@ -1528,7 +1555,7 @@ typedef struct tagHTML_PARSER_STATE {
 	MDR_ELEMENT_FORMAT  hps_blockFormat;
 	FONT_STYLE_DELTA	hps_styleTable[20];
 	FONT_STYLE_DELTA* hps_currentStyle;
-	MD_REF_STYLE_LINK** hps_refLinks;
+	MD_REFERENCE_DEFINITION** hps_referenceDefinitions;
 	RENDER_VIEW_PART** hps_head;
 	RENDER_VIEW_PART* hps_part;
 	RENDER_TABLE* hps_table;
@@ -1550,16 +1577,18 @@ typedef struct tagLINK_PARSE_RESULT {
 	// for image links - the height
 	int   lpr_height;
 	// If the parsed link represents the definition of a reference link this value is TRUE.
-	BOOL  lpr_isRefLinkDefinition;
+	BOOL  lpr_isReferenceLinkDefinition;
+	// If the parsed link represents the definition of a footnote....
+	BOOL  lpr_isFootnoteDefinition;
 } LINK_PARSE_RESULT;
 
-enum LinkParseState {
+typedef enum LINK_PARSE_STATE {
 	LPS_TITLE,
 	LPS_WAIT_URL,
 	LPS_PARSE_URL
-};
+} LINK_PARSE_STATE;
 
-static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, int startState) {
+static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState) {
 	char szBuf[256];
 	int nUrlPartStart = 0;
 	char c;
@@ -1587,14 +1616,13 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 				}
 			} else if (c == '[') {
 				bRefStyleLink = 1;
-				pStream->is_skip(pStream, 1);
-				// Ref style link.
+				// Reference style link or footnote.
 			} else if (c == ':') {
 				pStream->is_skip(pStream, 1);
 				while (pStream->is_peekc(pStream, 0) == ' ') {
 					pStream->is_skip(pStream, 1);
 				}
-				pResult->lpr_isRefLinkDefinition = TRUE;
+				pResult->lpr_isReferenceLinkDefinition = TRUE;
 			} else {
 				pStream->is_seek(pStream, savedOffset);
 				return FALSE;
@@ -1605,7 +1633,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 				szBuf[nUrlPartStart] = 0;
 				pResult->lpr_LinkRefUrl = _strdup(szBuf);
 				return TRUE;
-			} else if (!bRefStyleLink && !pResult->lpr_isRefLinkDefinition && c == ')') {
+			} else if (!bRefStyleLink && !pResult->lpr_isReferenceLinkDefinition && c == ')') {
 				szBuf[nUrlPartStart] = 0;
 				return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, &pResult->lpr_LinkUrl, &pResult->lpr_title, &pResult->lpr_width, &pResult->lpr_height);
 			}
@@ -1614,7 +1642,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 			}
 		}
 	}
-	if (c == '\n' && pResult->lpr_isRefLinkDefinition) {
+	if (c == '\n' && pResult->lpr_isReferenceLinkDefinition) {
 		szBuf[nUrlPartStart] = 0;
 		char* pszTitle = strpbrk(szBuf, " (\"'");
 		if (pszTitle != 0) {
@@ -2404,13 +2432,13 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 /*
  * Initialize the parser state
  */
-static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, MD_REF_STYLE_LINK** pRefLinks, const char* pszBaseUrl) {
+static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, MD_REFERENCE_DEFINITION** pReferenceDefinitions, const char* pszBaseUrl) {
 	memset(pState, 0, sizeof *pState);
 	pState->hps_listType = MET_UNORDERED_LIST;
 	pState->hps_text = stringbuf_create(256);
 	pState->hps_head = pHead;
-	*pRefLinks = 0;
-	pState->hps_refLinks = pRefLinks;
+	*pReferenceDefinitions = 0;
+	pState->hps_referenceDefinitions = pReferenceDefinitions;
 	pState->hps_currentStyle = pState->hps_styleTable;
 	pState->hps_baseUrl = pszBaseUrl;
 	mdr_resetFontStyleDelta(pState->hps_currentStyle);
@@ -2789,7 +2817,7 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 	char c;
 	size_t nSize;
 	HTML_PARSER_STATE state;
-	MD_REF_STYLE_LINK* pUnused;
+	MD_REFERENCE_DEFINITION* pUnused;
 
 	mdr_initParserState(&state, &pFirst, &pUnused, pszBaseURL);
 	while ((c = pStream->is_getc(pStream)) != 0) {
@@ -2870,11 +2898,15 @@ static TEXT_RUN* mdr_appendRunState(INPUT_STREAM* pStream, HTML_PARSER_STATE* pS
 	return pResult;
 }
 
-static void mdr_appendRefLinkDefinition(MD_REF_STYLE_LINK** pHead, char* pszLinkText, char* pszUrl, char* pszTitle) {
-	MD_REF_STYLE_LINK* pLink = ll_append(pHead, sizeof **pHead);
+static void mdr_appendRefLinkDefinition(MD_REFERENCE_DEFINITION** pHead, char* pszLinkText, char* pszUrl, char* pszTitle) {
+	MD_REFERENCE_DEFINITION* pLink = ll_append(pHead, sizeof **pHead);
+	pLink->mdrs_type = pszLinkText[0] == '^' ? MDDRT_REFERENCE_FOOT_NOTE : MDDRT_REFERENCE_STYLE_LINK;
+	if (pszLinkText[0] == '^') {
+		pszLinkText++;
+	}
 	pLink->mdrs_name = _strdup(pszLinkText);
 	pLink->mdrs_title = pszTitle;
-	pLink->mdrs_url = pszUrl;
+	pLink->mdrs_text = pszUrl;
 }
 
 static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
@@ -2922,6 +2954,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			}
 			nLineOffset = 1;
 			if (nState == 1 && mType == MET_BLOCK_QUOTE && c == '>' && !bSkipped) {
+				if (pStream->is_peekc(pStream, 1) == '\n') {
+					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
+				}
 				bSkipped = TRUE;
 				continue;
 			}
@@ -3016,8 +3051,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					pStream->is_skip(pStream, 1);
 				}
 				if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_TITLE)) {
-					if (result.lpr_isRefLinkDefinition) {
-						mdr_appendRefLinkDefinition(pState->hps_refLinks, szLinkText, result.lpr_LinkUrl, result.lpr_title);
+					if (result.lpr_isReferenceLinkDefinition) {
+						mdr_appendRefLinkDefinition(pState->hps_referenceDefinitions, szLinkText, result.lpr_LinkUrl, result.lpr_title);
 						pStream->is_skip(pStream, -1);
 					} else {
 						int nAttr = 0;
@@ -3326,7 +3361,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 	int nDelta = 0;
 	RENDER_VIEW_PART* pLastPart = 0;
 
-	mdr_initParserState(&state, &pData->md_pElements, &pData->md_refLinks, fp->fname);
+	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, fp->fname);
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
 			if (!mdr_parseTable(pStream, &state)) {
@@ -3812,9 +3847,9 @@ static int mdr_destroyViewPart(RENDER_VIEW_PART *pRVP) {
 	return 1;
 }
 
-static int mdr_destroyRefLink(MD_REF_STYLE_LINK* pLink) {
+static int mdr_destroyReferenceDefinition(MD_REFERENCE_DEFINITION* pLink) {
 	free(pLink->mdrs_name);
-	free(pLink->mdrs_url);
+	free(pLink->mdrs_text);
 	free(pLink->mdrs_title);
 	return 1;
 }
@@ -3827,7 +3862,7 @@ void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData) {
 		DestroyWindow(pData->md_hwndTooltip);
 	}
 	ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
-	ll_destroy(&pData->md_refLinks, mdr_destroyRefLink);
+	ll_destroy(&pData->md_referenceDefinitions, mdr_destroyReferenceDefinition);
 	free(pData);
 }
 
@@ -3849,7 +3884,7 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
-		ll_destroy(&pData->md_refLinks, mdr_destroyRefLink);
+		ll_destroy(&pData->md_referenceDefinitions, mdr_destroyReferenceDefinition);
 		pData->md_pElements = NULL;
 		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 		// do not: UpdateWindow(wp->ww_handle); at this point the model may not be completely edited - further editing operations
@@ -3937,11 +3972,8 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 			pData->md_caretPartIndex = nMDCaretLine;
 			pData->md_caretRunIndex = 0;
 			nStart = -1;
-			xDelta = 1;
 		}
-		if (xDelta) {
-			pData->md_caretRunIndex = mdr_getNextLinkRunOffset(pPart, nStart, xDelta);
-		}
+		pData->md_caretRunIndex = mdr_getNextLinkRunOffset(pPart, nStart, *col);
 		if (pData->md_caretRunIndex < 0) {
 			pData->md_caretRunIndex = 0;
 		}
@@ -4041,14 +4073,14 @@ char* mdr_resolveLink(MARKDOWN_RENDERER_DATA* pData, TEXT_RUN* pRun) {
 	if (!pRun->tr_isRefLink) {
 		return pRun->tr_link;
 	}
-	MD_REF_STYLE_LINK* pLink = pData->md_refLinks;
+	MD_REFERENCE_DEFINITION* pLink = pData->md_referenceDefinitions;
 	while (pLink != 0) {
-		if (strcmp(pRun->tr_link, pLink->mdrs_name) == 0) {
-			return pLink->mdrs_url;
+		if (pLink->mdrs_type == MDDRT_REFERENCE_STYLE_LINK && strcmp(pRun->tr_link, pLink->mdrs_name) == 0) {
+			return pLink->mdrs_text;
 		}
 		pLink = pLink->mdrsl_next;
 	}
-	return pRun->tr_link;
+	return NULL;
 }
 
 /*
