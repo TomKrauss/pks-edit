@@ -1119,10 +1119,8 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	RE_MATCH match;
 	unsigned char patternBuf[256];
 
-	if (wp->renderer->r_findLink) {
-		if (wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult)) {
-			return 1;
-		}
+	if (wp->renderer->r_findLink && wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult)) {
+		return 1;
 	}
 	NAVIGATION_PATTERN* pPattern = grammar_getNavigationPatterns(fp->documentDescriptor->grammar);
 	while (pPattern) {

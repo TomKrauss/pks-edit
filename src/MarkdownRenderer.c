@@ -4124,6 +4124,7 @@ static void mdr_setFocussed(HWND hwnd, RENDER_VIEW_PART* pPart, TEXT_RUN* pRun, 
 	pRun->tr_attributes.focussed = aFlag;
 	RUN_BOUNDS rb = mdr_getRunBounds(pPart, pRun);
 	InvalidateRect(hwnd, (RECT*)&rb, FALSE);
+	UpdateWindow(hwnd);
 }
 
 /*
@@ -4311,7 +4312,7 @@ static BOOL mdr_findLink(WINFO* wp, char* pszBuf, size_t nMaxChars, NAVIGATION_I
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (pPart) {
 		TEXT_RUN* pRun = mdr_getRunAtOffset(pPart, pData->md_caretRunIndex);
-		if (!pRun || !mdr_hasLink(pRun) || pRun != pData->md_focussedRun) {
+		if (!pRun || !mdr_hasLink(pRun)) {
 			return FALSE;
 		}
 		char* pszLink = mdr_resolveLink(pData, pRun);
