@@ -87,28 +87,6 @@ static void paint_awesomeIcons(HDC hdc, CHAR_WITH_STYLE* pszText, int nLen, COLO
 }
 
 /*
- * Paint an emoji character with a given font-size on the x/y position.
- */
-extern "C" __declspec(dllexport) void paint_emoji(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int *pHeight) {
-	paint_initGdiPlus();
-	PointF pointF((float)x, (float)y);
-	Gdiplus::Graphics  graphics(hdc);
-	Gdiplus::Font myFont(L"Segoe UI Emoji", (float)fontSize, FontStyleRegular, UnitPixel, NULL);
-	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	SolidBrush brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
-	size_t len = lstrlenW(emoji);
-	auto s = graphics.DrawString(emoji, (int)len, &myFont, pointF, &brush);
-	*pWidth = 0;
-	*pHeight = 0;
-	if (s == 0) {
-		RectF box(0,0,0,0);
-		graphics.MeasureString(emoji, (int)len, &myFont, pointF, &box);
-		*pWidth = (int) box.Width;
-		*pHeight = (int)box.Height;
-	}
-}
-
-/*
  * Draws a rounded rectangle in an antialiased way.
  */
 extern "C" __declspec(dllexport) void paint_roundedRect(HDC hdc, COLORREF cColor, float penWidth, int x, int y, int width, int height, int radius) {

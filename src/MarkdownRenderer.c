@@ -102,23 +102,46 @@ typedef struct tagEMOJI_MAPPING {
 } EMOJI_MAPPING;
 
 static EMOJI_MAPPING _emojis[] = {
+	// sorted alphabetically so we can bin search in the list of Emojis.
+	{L"\U0001F44D", ":+1:"},
+	{L"\U0001F44E", ":-1:"},
 	{L"\U0001F47D", ":alien:"},
 	{L"\U0001F620", ":angry:"},
+	{L"\U0001F41C", ":ant:"},
 	{L"\U0001F514", ":bell:"},
+	{L"\U0001F499", ":blue_heart:"},
+	{L"\U0001F60A", ":blush:"},
+	{L"\U0001F41B", ":bug:"},
+	{L"\U0001F638", ":cat:"},
+	{L"\U0001F44F", ":clap:"},
 	{L"\U0001F4A5", ":collision:"},
 	{L"\U0001F615", ":confused:"},
+	{L"\U0001F498", ":cupid:"},
 	{L"\U0001F4AB", ":dizzy:"},
+	{L"\U0001F440", ":eyes:"},
 	{L"\U0001F525", ":fire:"},
 	{L"\U0001F626", ":frowning:"},
+	{L"\U0001F49A", ":green_heart:"},
 	{L"\U0001F600", ":grinning_face:"},
-	{L"\U0001F90D", ":heart:"},
+	{L"\U00002764", ":heart:"},
 	{L"\U0001F60D", ":heart_eyes:"},
 	{L"\U0000231B", ":hourglass:"},
 	{L"\U0001F48B", ":kiss:"},
+	{L"\U0001F632", ":open_mouth:"},
+	{L"\U0001F49C", ":purple_heart:"},
+	{L"\U0001F64F", ":pray:"},
 	{L"\U0001F680", ":rocket:"},
+	{L"\U0001F4A9", ":shit:"},
+	{L"\U0001F480", ":skull:"},
+	{L"\U0001F604", ":smile:"},
+	{L"\U00002744", ":snowflake:"},
+	{L"\U0001F62D", ":sob:"},
 	{L"\U0001F508", ":speaker:"},
 	{L"\U00002B50", ":star:"},
-	{L"\U0001F609", ":winking_face:"}
+	{L"\U0001F31E", ":sunny:"},
+	{L"\U0001F495", ":two_hearts:"},
+	{L"\U0001F609", ":winking_face:"},
+	{L"\U0001F49B", ":yellow_heart:"}
 };
 
 //
@@ -340,7 +363,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
 /*
  * Draws an emoji with the specified attributes.
  */
-extern void paint_emoji(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int *pHeight);
+extern void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int* pHeight);
 
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
@@ -799,7 +822,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
  * Paint an emoji.
  */
 static void mdr_renderEmoji(HDC hdc, WCHAR* pEmoji, COLORREF cColor, int x, int y, float zoomFactor, SIZE* pSize) {
-	paint_emoji(hdc, pEmoji, cColor, (int)(12 * zoomFactor), x, y, &pSize->cx, &pSize->cy);
+	paint_emojid2d(hdc, pEmoji, cColor, (int)(12 * zoomFactor), x, y, &pSize->cx, &pSize->cy);
 }
 
 /*
@@ -2910,12 +2933,38 @@ static void mdr_appendRefLinkDefinition(MD_REFERENCE_DEFINITION** pHead, char* p
 }
 
 static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
-	for (int i = 0; i < DIM(_emojis); i++) {
+	// maximim length of Emoji: 20
+	char szDef[20];
+	size_t nLen;
+	szDef[0] = ':';
+	for (int i = 1; i < sizeof(szDef)-1; i++) {
+		szDef[i] = pStream->is_peekc(pStream, i);
+		if (!szDef[i] || szDef[i] == ' ' || szDef[i] == '\n') {
+			return NULL;
+		}
+		if (szDef[i] == ':') {
+			szDef[i + 1] = 0;
+			nLen = i;
+			break;
+		}
+	}
+	int upper = DIM(_emojis);
+	int lower = 0;
+	while (TRUE) {
+		int i = lower + (upper - lower) / 2;
 		char* pszShortcut = _emojis[i].name;
-		size_t nLen = strlen(pszShortcut);
-		if (pStream->is_strncmp(pStream, pszShortcut, nLen) == 0) {
-			pStream->is_skip(pStream, (int) nLen-1);
+		int nResult = strcmp(szDef, pszShortcut);
+		if (nResult == 0) {
+			pStream->is_skip(pStream, (int) nLen);
 			return _emojis[i].emoji;
+		}
+		if (upper <= lower) {
+			break;
+		}
+		if (nResult > 0) {
+			lower = i+1;
+		} else {
+			upper = i-1;
 		}
 	}
 	return NULL;

@@ -15,8 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Markdown renderer supports now:
 	- [reference-style links](https://daringfireball.net/projects/markdown/syntax#link).
 	- images with hyperlinks
-	- simple emoji support has been added. Emojis are for now rendered using GDI making them monochrome
-	  and only a small sub-set of Emojs is supported.
+	- Emoji support has been added. Only a small sub-set of Emojs is supported for now.
 	- image references using http or https URLs.
 - We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default),
   when editing markdown documents.
