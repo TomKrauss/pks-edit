@@ -969,7 +969,13 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			x += pTR->tr_attributes.indent;
 		}
 		if (pTR->tr_isEmoji) {
-			mdr_renderEmoji(hdc, pTR->tr_data.tr_emoji, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
+			WCHAR toPaint[512];
+			StrCpyW(toPaint, pTR->tr_data.tr_emoji);
+			while (pTR->tr_next && pTR->tr_next->tr_isEmoji) {
+				pTR = pTR->tr_next;
+				StrNCatW(toPaint, pTR->tr_data.tr_emoji, sizeof(toPaint)/sizeof(toPaint[0]));
+			}
+			mdr_renderEmoji(hdc, toPaint, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
 			pPartBounds->bottom = y + size.cy;
 			mdr_updateHorizontalPartBounds(pPartBounds, x, x + size.cx);
 			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
@@ -3046,7 +3052,6 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					pRun->tr_isEmoji = TRUE;
 					pRun->tr_data.tr_emoji = pEmoji;
-					mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					pState->hps_currentStyle->fsd_logicalStyles &= ~ATTR_EMOJI;
 					continue;
 				}

@@ -58,6 +58,8 @@ struct DWriteSupport {
         if (hdc != m_hdc) {
             RECT rc;
             GetClientRect(hwnd, &rc);
+            m_width = (FLOAT)(rc.right - rc.left);
+            m_height = (FLOAT)(rc.bottom - rc.top);
             renderTarget->BindDC(hdc, &rc);
             m_hdc = hdc;
         }
@@ -78,15 +80,14 @@ struct DWriteSupport {
 
     D2D1_SIZE_F GetTextExtent(IDWriteTextFormat* textFormat, LPCWSTR text, INT count, FLOAT cx, FLOAT cy) {
         IDWriteTextLayout* write_text_layout = NULL;
-        dwrite_factory->CreateGdiCompatibleTextLayout(text, count, textFormat, 20, 20, 96, NULL, TRUE, &write_text_layout);
+        dwrite_factory->CreateGdiCompatibleTextLayout(text, count, textFormat, cx, cy, 96, NULL, TRUE, &write_text_layout);
         if (!write_text_layout)
             return { 0, 0 };
 
         DWRITE_TEXT_METRICS metrics;
         write_text_layout->GetMetrics(&metrics);
 
-        if (write_text_layout)
-        {
+        if (write_text_layout) {
             write_text_layout->Release();
             write_text_layout = NULL;
         }
@@ -117,9 +118,8 @@ extern "C" __declspec(dllexport) void paint_emojid2d(HDC hdc, WCHAR* emoji, COLO
     ID2D1SolidColorBrush* whiteBrush = NULL;
     // Start rendering
     g_dwrite.renderTarget->BeginDraw();
-
     // Calculate the client area
-    D2D1_RECT_F rect = D2D1::RectF((FLOAT) x, (FLOAT) y, 10, 10);
+    D2D1_RECT_F rect = D2D1::RectF((FLOAT) x, (FLOAT) y, g_dwrite.m_width, g_dwrite.m_height);
 
     // Create a text format
     HRESULT hr;
@@ -145,11 +145,11 @@ extern "C" __declspec(dllexport) void paint_emojid2d(HDC hdc, WCHAR* emoji, COLO
         INT count = lstrlenW(text);
 
         // Draw the text
-        D2D1_SIZE_F extent = g_dwrite.GetTextExtent(textFormat, text, count, g_dwrite.m_width - x, g_dwrite.m_height - y);
+        D2D1_SIZE_F extent = g_dwrite.GetTextExtent(textFormat, text, count, g_dwrite.m_width, g_dwrite.m_height);
         *pWidth = (int)extent.width;
         *pHeight = (int)extent.height;
-        rect.right = rect.left+extent.width;
-        rect.bottom = rect.top+extent.height;
+        rect.right = rect.left+extent.width+2;
+        rect.bottom = rect.top+extent.height+2;
         g_dwrite.DrawText(textFormat, text, count, whiteBrush, rect);
     }
 
