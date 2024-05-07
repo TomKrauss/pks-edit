@@ -41,6 +41,10 @@ You may also ==highlight== important places in the text.
 
 [In-document links to anchors](#images "this brings you to the images") are supported as well.
 
+[This is a reference style link to][1] the file `CHANGELOG.MD`.
+
+[1]: CHANGELOG.md (xxxx)
+
 ## HTML Support
 
 Some HTML formatting is supported in markdown documents. Here are some samples and below one can see the effect.
@@ -146,6 +150,14 @@ Only local images are supported (no http support).
 ![Flying Bird](bird.gif =250x)
 
 <img src="bird.gif" width=250 style="border:5px solid yellow"/>
+
+## Emojis
+
+:+1: :-1: :alien: :angry: :bell: :blue_heart: :blush: :collision:
+:confused: :cupid: :dizzy: :fire: :frowning: :green_heart: :grinning_face: :heart:
+:heart_eyes: :hourglass: :kiss: :purple_heart: :open_mouth: :rocket:
+:shit: :sob: :speaker: :smile: :star: :two_hearts: :yellow_heart: :winking_face:
+:skull: :eyes: :clap: :pray: :cat: :sunny: :snowflake: :bug: :ant:
 
 ## Tables
 

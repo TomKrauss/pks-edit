@@ -17,6 +17,20 @@
           "right": "]"
         }
       ],
+      "templates": [
+        {
+          "match": "for_loop",
+          "contents": "for char${cursor} in [1,2,3]:\n${indent}${tab}print(char${secondary})\n"
+        },
+        {
+          "match": "while_loop",
+          "contents": "while i${cursor} < 10:\n${indent}${tab}print(i${secondary})\n${indent}${tab}i += 1\n"
+        },
+        {
+          "match": "if_elif_else",
+          "contents": "if b > a:\n${indent}${tab}print(\"b is greater than a\")\nelif a == b:\n${indent}${tab}print(\"a and b are equal\")\nelse:\n${indent}${tab}print(\"a is greater than b\")\n"
+        }
+      ],
       "patterns": [
         {
           "begin": "\"\"\"",
