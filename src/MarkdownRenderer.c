@@ -1201,7 +1201,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	}
 	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_param.rvp_level < 3) {
 		int nMargin = (int)(DEFAULT_LEFT_MARGIN * pParams->rfp_zoomFactor);
-		mdr_paintRule(pParams, renderBounds.left + nMargin, renderBounds.right - nMargin, pUsed->bottom - 2, 1);
+		mdr_paintRule(pParams, renderBounds.left + nMargin, renderBounds.right - nMargin, pUsed->bottom - 10, 1);
 	}
 	RestoreDC(hdc, nDCId);
 	pPart->rvp_height = pUsed->bottom - renderBounds.top;

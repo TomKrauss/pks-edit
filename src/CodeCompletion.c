@@ -415,6 +415,7 @@ static HWND codecomplete_createHelpWindow(HWND hwndParent) {
 	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX | WS_VSCROLL, 
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndParent, NULL, hInst, 0);
 	if (hwnd) {
+		SetWindowLong(hwnd, GWL_STYLE, WS_BORDER);
 		theme_enableDarkMode(hwnd);
 	}
 	return hwnd;
@@ -816,7 +817,7 @@ int codecomplete_registerWindowClass() {
 	WNDCLASS  wc;
 
 	cust_initializeWindowClassDefaults(&wc);
-	wc.style = CS_DBLCLKS;
+	wc.style = CS_DBLCLKS|CS_DROPSHADOW;
 	wc.lpfnWndProc = codecomplete_wndProc;
 	wc.cbWndExtra = GWL_SECONDARY_WINDOW+sizeof(HWND);
 	wc.hIcon = NULL;
@@ -881,6 +882,7 @@ int codecomplete_showSuggestionWindow(void) {
 		codecomplete_calculateWindowPos(wp, &pt, height);
 		wp->codecomplete_handle = CreateWindow(CLASS_CODE_COMPLETION, NULL, WS_POPUP|WS_SIZEBOX|WS_VSCROLL|WS_BORDER, 
 			pt.x, pt.y, width, height, wp->ww_handle, NULL, hInst, wp);
+		SetWindowLong(wp->codecomplete_handle, GWL_STYLE, WS_BORDER);
 	} else {
 		RECT rect;
 		GetWindowRect(wp->codecomplete_handle, &rect);

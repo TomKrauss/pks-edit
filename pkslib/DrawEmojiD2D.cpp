@@ -80,7 +80,7 @@ struct DWriteSupport {
 
     D2D1_SIZE_F GetTextExtent(IDWriteTextFormat* textFormat, LPCWSTR text, INT count, FLOAT cx, FLOAT cy) {
         IDWriteTextLayout* write_text_layout = NULL;
-        dwrite_factory->CreateGdiCompatibleTextLayout(text, count, textFormat, cx, cy, 96, NULL, TRUE, &write_text_layout);
+        dwrite_factory->CreateGdiCompatibleTextLayout(text, count, textFormat, cx, cy, 1, NULL, TRUE, &write_text_layout);
         if (!write_text_layout)
             return { 0, 0 };
 
