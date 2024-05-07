@@ -689,6 +689,9 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 	TEMPLATE* pTemplate = pGrammar->templates;
 	while (pTemplate) {
 		grammar_processMatchPattern(&pTemplate->t_pattern, pGrammar->scopeName);
+		if (pTemplate->t_contents == NULL && pTemplate->t_pattern.pattern != NULL) {
+			pTemplate->t_contents = strdup(pTemplate->t_pattern.pattern);
+		}
 		pTemplate = pTemplate->next;
 	}
 	INDENT_PATTERN* pIndent = pGrammar->decreaseIndentPatterns;

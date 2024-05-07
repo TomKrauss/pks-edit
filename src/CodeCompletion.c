@@ -81,6 +81,8 @@ typedef struct tagCODE_COMPLETION_PARAMS {
 	CODE_ACTION* ccp_actions;
 } CODE_COMPLETION_PARAMS;
 
+static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewSelection);
+
 #define	GWL_PARAMS				0
 #define	GWL_SECONDARY_WINDOW	GWL_PARAMS+sizeof(CODE_COMPLETION_PARAMS*)
 
@@ -109,7 +111,6 @@ static void codecomplete_updateScrollbar(HWND hwnd) {
 
 static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
-static char* _pszMatch;
 
 static int codecomplete_compareScore(const CODE_ACTION** p1, const CODE_ACTION** p2) {
 	return (*p2)->ca_score - (*p1)->ca_score;
@@ -157,7 +158,7 @@ static char szIdent[100];
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
-	return string_strcasestr(pszWord, _pszMatch) != NULL;
+	return string_strcasestr(pszWord, szIdent) != NULL;
 }
 
 /*
@@ -209,6 +210,22 @@ static char* codecomplete_helpForTemplate(const char* pszCompletion, void* pText
 }
 
 /*
+ * Tries to find the longest matching pattern close to the caret from the list of 
+ * patterns to match.
+ */
+static void codecomplete_matchPatterns(WINFO* wp, UCLIST* up) {
+	char matched[128];
+	szIdent[0] = 0;
+	while (up) {
+		template_matchIdentifier(wp, up->uc_pattern.pattern, matched, sizeof matched);
+		if (strlen(matched) > strlen(szIdent)) {
+			strcpy(szIdent, matched);
+		}
+		up = up->next;
+	}
+}
+
+/*
  * codecomplete_updateCompletionList
  * update the list of completions awailable.
  */
@@ -222,8 +239,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 
 	codecomplete_destroyActions(pCC);
 	pCC->ccp_topRow = 0;
-	xref_findIdentifierCloseToCaret(wp, &wp->caret, szIdent, szIdent + sizeof szIdent, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
-	_pszMatch = szIdent;
+	codecomplete_matchPatterns(wp, up);
 	_actionList = arraylist_create(37);
 	while (up) {
 		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern)) {
@@ -258,6 +274,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	arraylist_destroy(_actionList);
 	pCC->ccp_size = ll_size((LINKED_LIST*)pCC->ccp_actions);
 	codecomplete_updateScrollbar(wp->codecomplete_handle);
+	codecomplete_changeSelection(wp->codecomplete_handle, pCC, 0);
 	InvalidateRect(wp->codecomplete_handle, NULL, TRUE);
 }
 
@@ -762,12 +779,6 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 
-		case WM_SHOWWINDOW:
-			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
-			if (pCC) {
-				codecomplete_changeSelection(hwnd, pCC, 0);
-			}
-			break;
 		case WM_VSCROLL: 
 			pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 			if (pCC) {

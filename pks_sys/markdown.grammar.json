@@ -111,6 +111,70 @@
           "match": "link",
           "contents": "[${cursor}link_name${selection_end}](image_url)",
           "help": "Inserts a markdown hyperlink.<br>General syntax is: <code>[text_displayed](hyperlink_url \"tooltip to display\")"
+        },
+        {
+          "match": ":+1:",
+          "help": "Inserts a thumbs up icon"
+        },
+        {
+          "match": ":-1:",
+          "help": "Inserts a thumbs down icon"
+        },
+        {
+          "match": ":heart:",
+          "help": "Inserts a heart icon"
+        },
+        {
+          "match": ":bug:",
+          "help": "Inserts a bug icon"
+        },
+        {
+          "match": ":collision:",
+          "help": "Inserts an icon representing a collision"
+        },
+        {
+          "match": ":eyes:",
+          "help": "Inserts an icon representing two eyes"
+        },
+        {
+          "match": ":fire:",
+          "help": "Inserts a fire icon"
+        },
+        {
+          "match": ":kiss:",
+          "help": "Inserts a kiss icon"
+        },
+        {
+          "match": ":pray:",
+          "help": "Inserts an icon displaying a praying guesture"
+        },
+        {
+          "match": ":cat:",
+          "help": "Inserts a cat icon"
+        },
+        {
+          "match": ":rocket:",
+          "help": "Inserts a rocket icon"
+        },
+        {
+          "match": ":dizzy:",
+          "help": "Inserts an icon representing dizzyness"
+        },
+        {
+          "match": ":angry:",
+          "help": "Inserts an angry face icon"
+        },
+        {
+          "match": ":blue_heart:",
+          "help": "Inserts a blue heart icon"
+        },
+        {
+          "match": ":clap:",
+          "help": "Inserts a clap icon"
+        },
+        {
+          "match": ":heart_eyes:",
+          "help": "Inserts an icon showing hearts in the eyes of an Emoji"
         }
       ],
       "patterns":

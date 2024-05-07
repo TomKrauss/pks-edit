@@ -79,6 +79,7 @@ typedef struct tagINDENT_PATTERN {
 typedef struct tagUCLIST {
 	struct tagUCLIST* next;
 	int  	action;						// type of action to perform 
+	BOOL	replaceMatch;				// if true, the match is replaced, when inserting a template.
 	UC_MATCH_PATTERN uc_pattern;
 	union {
 		BRACKET_RULE* uc_bracket;		// if type == UA_SHOWMATCH 
@@ -192,6 +193,14 @@ extern int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextL
  * If an error occurs or there is no current window, this will return NULL.
  */
 extern char* template_expandCodeTemplateFor(UCLIST* up);
+
+/*
+ * Matches a pattern close to the current caret position. Pattern is the pattern of a template to insert (e.g. for ":+1" => "text to insert",
+ * the pattern is ":+1". We try to find out, which part of the pattern is "matched" depending on the caret position. If the caret
+ * is positioned like this ":1|+" the matched part to return in szIdentifier is ":1". nMatchedSize is the space available in
+ * szIdentifier.
+ */
+extern void template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size_t nMatchedSize);
 
 /*
  * Add all suggestions matching 'pszMatch', which can be derived from a grammar by invoking the addCallback.

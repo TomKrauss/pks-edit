@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default),
   when editing markdown documents.
 - Templates in grammars support now an optional "help" section allowing to add a help text for the template to insert.
+- Code completion works better now when matching "non-word" patterns like ":+xxx". Before, the ":+" was not
+  considered in calculation of matching completion candidates and was not correctly replaced, when inserting
+  the template / completion result.
 
 ### Fixed
 - corrected link to release notes.

@@ -187,6 +187,32 @@ char* template_expandCodeTemplateFor(UCLIST* up) {
 	return pResult;
 }
 
+/*
+ * Matches a pattern close to the current caret position. Pattern is the pattern of a template to insert (e.g. for ":+1" => "text to insert",
+ * the pattern is ":+1". We try to find out, which part of the pattern is "matched" depending on the caret position. If the caret
+ * is positioned like this ":1|+" the matched part to return in szIdentifier is ":1". nMatchedSize is the space available in
+ * szIdentifier.
+ */
+void template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size_t nMatchedSize) {
+	size_t nPatternLength;
+	*szIdentifier = 0;
+	if (pPattern && (nPatternLength = strlen(pPattern)) != 0) {
+		int start = wp->caret.offset;
+		for (int i = (int)(start - nPatternLength); i < start; i++) {
+			if (i >= 0 && strncmp(&wp->caret.linePointer->lbuf[i], pPattern, start - i) == 0) {
+				size_t nLen = start - i;
+				if (nLen > nMatchedSize - 1) {
+					nLen = nMatchedSize - 1;
+				}
+				strncpy(szIdentifier, pPattern, nLen);
+				szIdentifier[nLen] = 0;
+				break;
+			}
+		}
+	} else {
+		xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+	}
+}
 
 /*
  * Insert a selected code template 'up'. 
@@ -202,6 +228,7 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, 
 	TEMPLATE_ACTION templateAction;
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
+	char* pPattern = up->uc_pattern.pattern;
 	if (nReplacedTextLength > 0 && nReplacedTextLength <= wp->caret.offset) {
 		if (nReplacedTextLength > sizeof szIdentifier - 1) {
 			nReplacedTextLength = (int)sizeof szIdentifier - 1;
@@ -209,7 +236,7 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, 
 		strncpy(szIdentifier, &wp->caret.linePointer->lbuf[wp->caret.offset-nReplacedTextLength], nReplacedTextLength);
 		szIdentifier[nReplacedTextLength] = 0;
 	} else {
-		xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+		template_matchIdentifier(wp, pPattern, szIdentifier, sizeof szIdentifier);
 	}
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
