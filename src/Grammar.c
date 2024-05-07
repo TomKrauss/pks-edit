@@ -690,7 +690,7 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
 	while (pTemplate) {
 		grammar_processMatchPattern(&pTemplate->t_pattern, pGrammar->scopeName);
 		if (pTemplate->t_contents == NULL && pTemplate->t_pattern.pattern != NULL) {
-			pTemplate->t_contents = strdup(pTemplate->t_pattern.pattern);
+			pTemplate->t_contents = _strdup(pTemplate->t_pattern.pattern);
 		}
 		pTemplate = pTemplate->next;
 	}
