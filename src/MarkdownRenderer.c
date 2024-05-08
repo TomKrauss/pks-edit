@@ -198,6 +198,8 @@ typedef struct tagMD_IMAGE {
 	int					mdi_height;
 	int					mdi_borderWidth;
 	COLORREF			mdi_borderColor;
+	// TRUE, if this is a cached image
+	BOOL				mdi_cached;
 	HBITMAP				mdi_image;
 } MD_IMAGE;
 
@@ -487,6 +489,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	RENDER_VIEW_PART* md_caretView;
 	RENDER_VIEW_PART* md_previousCaretView;
 	TEXT_RUN* md_caretRun;
+	HASHMAP* md_imageCache;
 	MD_REFERENCE_DEFINITION* md_referenceDefinitions;
 	int md_caretRunIndex;
 	int md_caretPartIndex;
@@ -541,6 +544,16 @@ static LOGFONT _defaultFont = {
 	ANTIALIASED_QUALITY,// lfQuality;
 	FF_DONTCARE, 		// lfPitchAndFamily;
 };
+
+static void mdr_assignImageUrl(HASHMAP* pImageCache, TEXT_RUN* pRun, char* pszImageUrl) {
+	HASH_ENTRY entry;
+	if (pImageCache && hashmap_getEntry(pImageCache, (intptr_t)pszImageUrl, &entry)) {
+		pRun->tr_data.tr_image->mdi_image = (HBITMAP)entry.he_value;
+		pRun->tr_data.tr_image->mdi_cached = TRUE;
+	}
+	pRun->tr_imageUrl = pszImageUrl;
+}
+
 /*
  * Create a font for the given font-attributes. 
  */
@@ -803,11 +816,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 	} else {
 		char szFilename[512];
 		char* pszFilepart = string_getBaseFilename(pTR->tr_imageUrl);
-		if (strncmp(pTR->tr_imageUrl, "http", 4) == 0) {
-			sprintf(szFilename, "HTTP Image %s not supported", pszFilepart);
-		} else {
-			sprintf(szFilename, "Cannot load image %s", pszFilepart);
-		}
+		sprintf(szFilename, "Cannot load image %s", pszFilepart);
 		SIZE size;
 		GetTextExtentPoint(hdc, szFilename, (int)strlen(szFilename), &size);
 		if (!bMeasureOnly) {
@@ -1583,13 +1592,14 @@ typedef struct tagHTML_PARSER_STATE {
 	HASHMAP* hps_lastAttributes;
 	MDR_ELEMENT_FORMAT  hps_blockFormat;
 	FONT_STYLE_DELTA	hps_styleTable[20];
-	FONT_STYLE_DELTA* hps_currentStyle;
+	FONT_STYLE_DELTA*	hps_currentStyle;
 	MD_REFERENCE_DEFINITION** hps_referenceDefinitions;
-	RENDER_VIEW_PART** hps_head;
-	RENDER_VIEW_PART* hps_part;
-	RENDER_TABLE* hps_table;
-	RENDER_TABLE_ROW* hps_tableRow;
-	RENDER_TABLE_CELL* hps_tableCell;
+	HASHMAP*			hps_imageCache;
+	RENDER_VIEW_PART**	hps_head;
+	RENDER_VIEW_PART*	hps_part;
+	RENDER_TABLE*		hps_table;
+	RENDER_TABLE_ROW*	hps_tableRow;
+	RENDER_TABLE_CELL*	hps_tableCell;
 } HTML_PARSER_STATE;
 
 static void mdr_ensureParagraph(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState);
@@ -1805,7 +1815,7 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 		}
 		pRun->tr_title = pszTitle;
 		if (pRun->tr_data.tr_image) {
-			pRun->tr_imageUrl = pszLink;
+			mdr_assignImageUrl(pState->hps_imageCache, pRun, pszLink);
 			pRun->tr_data.tr_image->mdi_height = nHeight;
 			pRun->tr_data.tr_image->mdi_width = nWidth;
 		} else {
@@ -2461,13 +2471,15 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 /*
  * Initialize the parser state
  */
-static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, MD_REFERENCE_DEFINITION** pReferenceDefinitions, const char* pszBaseUrl) {
+static void mdr_initParserState(HTML_PARSER_STATE* pState, RENDER_VIEW_PART** pHead, MD_REFERENCE_DEFINITION** pReferenceDefinitions, 
+		HASHMAP* pImageCache, const char* pszBaseUrl) {
 	memset(pState, 0, sizeof *pState);
 	pState->hps_listType = MET_UNORDERED_LIST;
 	pState->hps_text = stringbuf_create(256);
 	pState->hps_head = pHead;
 	*pReferenceDefinitions = 0;
 	pState->hps_referenceDefinitions = pReferenceDefinitions;
+	pState->hps_imageCache = pImageCache;
 	pState->hps_currentStyle = pState->hps_styleTable;
 	pState->hps_baseUrl = pszBaseUrl;
 	mdr_resetFontStyleDelta(pState->hps_currentStyle);
@@ -2848,7 +2860,7 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 	HTML_PARSER_STATE state;
 	MD_REFERENCE_DEFINITION* pUnused;
 
-	mdr_initParserState(&state, &pFirst, &pUnused, pszBaseURL);
+	mdr_initParserState(&state, &pFirst, &pUnused, NULL, pszBaseURL);
 	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (c == '&') {
 			if (mdr_parseEntity(state.hps_text, pStream)) {
@@ -3146,7 +3158,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 							pRun->tr_data.tr_image = calloc(1, sizeof(MD_IMAGE));
 							pRun->tr_data.tr_image->mdi_height = result.lpr_height;
 							pRun->tr_data.tr_image->mdi_width = result.lpr_width;
-							pRun->tr_imageUrl = result.lpr_LinkUrl;
+							mdr_assignImageUrl(pState->hps_imageCache, pRun, result.lpr_LinkUrl);
 							if (bImageLink) {
 								pStream->is_skip(pStream, 1);
 								if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_WAIT_URL)) {
@@ -3415,7 +3427,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 	int nDelta = 0;
 	RENDER_VIEW_PART* pLastPart = 0;
 
-	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, fp->fname);
+	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, pData->md_imageCache, fp->fname);
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
 			if (!mdr_parseTable(pStream, &state)) {
@@ -3875,9 +3887,10 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_imageUrl);
 	free(pRun->tr_title);
 	free(pRun->tr_anchor);
-	if (pRun->tr_data.tr_image && !pRun->tr_isEmoji) {
-		if (pRun->tr_data.tr_image->mdi_image) {
-			DeleteObject(pRun->tr_data.tr_image->mdi_image);
+	MD_IMAGE* pImg = pRun->tr_data.tr_image;
+	if (pImg && !pRun->tr_isEmoji) {
+		if (pImg->mdi_image && !pImg->mdi_cached) {
+			DeleteObject(pImg->mdi_image);
 		}
 		free(pRun->tr_data.tr_image);
 	}
@@ -3909,6 +3922,15 @@ static int mdr_destroyReferenceDefinition(MD_REFERENCE_DEFINITION* pLink) {
 }
 
 /*
+ * Free our cashed images.
+ */
+static int mdr_destroyUrlAndBmp(intptr_t key, intptr_t val) {
+	free((void*) key);
+	DeleteObject((HBITMAP)val);
+	return 1;
+}
+
+/*
  * Destroy a list of view parts releasing unneeded memory.
  */
 void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData) {
@@ -3917,6 +3939,7 @@ void mdr_destroyRendererData(MARKDOWN_RENDERER_DATA* pData) {
 	}
 	ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 	ll_destroy(&pData->md_referenceDefinitions, mdr_destroyReferenceDefinition);
+	hashmap_destroy(pData->md_imageCache, mdr_destroyUrlAndBmp);
 	free(pData);
 }
 
@@ -3932,11 +3955,29 @@ static void mdr_destroyData(WINFO* wp) {
 }
 
 /*
- * Destroy the cached view parts for now. 
+ * Destroy the cached view parts for now. This should be optimized on a long term run.
  */
 static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (pData) {
+		if (pData->md_imageCache == NULL) {
+			pData->md_imageCache = hashmap_create(17, 0, 0);
+		}
+		for (RENDER_VIEW_PART* pPart = pData->md_pElements; pPart != 0; pPart = pPart->rvp_next) {
+			if (pPart->rvp_type == MET_TABLE) {
+				continue;
+			}
+			for (TEXT_RUN* pRun = pPart->rvp_data.rvp_flow.tf_runs; pRun != 0; pRun = pRun->tr_next) {
+				if (pRun->tr_imageUrl != NULL && pRun->tr_data.tr_image && !pRun->tr_isEmoji) {
+					HASH_ENTRY entry;
+					if (!hashmap_getEntry(pData->md_imageCache, (intptr_t) pRun->tr_imageUrl, &entry)) {
+						hashmap_put(pData->md_imageCache, pRun->tr_imageUrl, (intptr_t)pRun->tr_data.tr_image->mdi_image);
+						pRun->tr_imageUrl = NULL;
+						pRun->tr_data.tr_image->mdi_image = NULL;
+					}
+				}
+			}
+		}
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		ll_destroy(&pData->md_referenceDefinitions, mdr_destroyReferenceDefinition);
 		pData->md_pElements = NULL;

@@ -5,7 +5,7 @@ All notable changes to PKS Edit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.5.0] - 2024-05-06
+## [2.5.0] - 2024-05-09
 
 ### Added
 - A grammar definition for `.arb`-files (Flutter Application Resource Bundles) was added.
@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	- images with hyperlinks
 	- Emoji support has been added. Only a small sub-set of Emojs is supported for now.
 	- image references using http or https URLs.
+	- simple SVG and other image formats have been added. Note that we use D2D for SVG rendering which has a very 
+	  limited feature set implemented (no CSS styling, no text elements, etc...).
+	- caching loaded images in Wysiwyg mode.
 - We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default),
   when editing markdown documents.
 - Templates in grammars support now an optional "help" section allowing to add a help text for the template to insert.

@@ -53,7 +53,8 @@ extern HASHMAP* hashmap_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE c
 
 /*
  * Destroy a hashtable. One may pass a callback to be invoked for
- * every entry in the table.
+ * every entry in the table. The callback may return 0 to stop destroying entries
+ * and should return 1 otherwise.
  */
 extern void hashmap_destroy(HASHMAP* pTable, HASH_DESTROY_ENTRY destroyEntryCallback);
 

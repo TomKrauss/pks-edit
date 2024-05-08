@@ -196,9 +196,11 @@ int hashmap_size(HASHMAP* pTable) {
  */
 void hashmap_remove(HASHMAP* pTable, const void* key) {
 	int nIndex = hashmap_findIndex(pTable, (intptr_t)key);
-	pTable->ht_entries[nIndex].he_key = 0;
-	pTable->ht_entries[nIndex].he_value = 0;
-	pTable->ht_size--;
+	if (pTable->ht_entries[nIndex].he_key != 0) {
+		pTable->ht_entries[nIndex].he_key = 0;
+		pTable->ht_entries[nIndex].he_value = 0;
+		pTable->ht_size--;
+	}
 }
 
 /*

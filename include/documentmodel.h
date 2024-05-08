@@ -25,10 +25,10 @@
 #define	ED_VERSION	0x20
 
 #define	LN_ALIGN		2		/* minimum size of the linebuffer content area */
-#define	FBUFSIZE		24000	/* maximum filebuffer- and linesize */
+#define	FBUFSIZE		48000	/* maximum filebuffer- and linesize */
 
 #define	LINEBUFSIZE		2*FBUFSIZE+160	/* sizeof of _linebuf		 */
-#define	MAXLINELEN		12000
+#define	MAXLINELEN		24000
 
 #define	MAXSHIFT		36		/* maximum shiftwidth 			 */
 #define	RM_DELTA		2		/* delta to automatic right margin  */
