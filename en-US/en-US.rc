@@ -1250,7 +1250,7 @@ BEGIN
     IDS_MSGDELICON          "Remove icon %s from the PKS Edit desktop"
     IDS_MSGNOTIMER          "No timer available"
     IDS_MSGNOPRINTER        "!No printer installed"
-    IDS_MSGOVERWRITE        "The file %s already exists\nDo you want to override it"
+    IDS_MSGOVERWRITE        "The file %s already exists.\nDo you want to override it?"
     IDS_MSGQUERYNEWFILE     "Create new file named %s"
     IDS_MSGABANDON          "Do you want to ignore the changes"
     IDS_MSGNOBRACKETS       "No matching bracket"
@@ -1264,7 +1264,7 @@ BEGIN
     IDS_MSGBADMACFORMAT     "!A format error was found in the macro file"
     IDS_MSGSAVESEQ          "Do you want to save the newly defined macros"
     IDS_MSGMACDOUBLEDEF     "!This macro name is in use already"
-    IDS_MSGQUITORSAVE       "%s was edited\nDo you want to save the file"
+    IDS_MSGQUITORSAVE       "%s was edited.\nDo you want to save the file?"
     IDS_MSGWRONGWINDOW      "This window does not exist"
     IDS_MSGLINETOOLONG      "!Line too long"
     IDS_MSGNOSPCE           "!No memory available"
@@ -1298,7 +1298,7 @@ STRINGTABLE
 BEGIN
     IDS_MSGNOBLOCKSELECTED  "No current selection"
     IDS_MSGBADBLOCKMOVE     "This move operation is a no op"
-    IDS_MSGWPROTECT         "%s write protected\nShall I override it"
+    IDS_MSGWPROTECT         "%s is write protected.\nShall I override it?"
     IDS_MSGERRCHMOD         "Error changing file access"
     IDS_MSGNOMOREDIFFS      "No more differences found"
     IDS_MSGDIFFTWOWINDOWS   "!Please open two windows before starting the comparison"
@@ -1338,7 +1338,7 @@ STRINGTABLE
 BEGIN
     IDS_MSGWRITEERR         "!An error has occurred during output of the data"
     IDS_MSGDELOLDKEYBIND    "Do you want to unbind the old key binding to %s"
-    IDS_MSGFILESHAVECHANGED "The file %s had been modified outside of PKSEDIT. Soll do you want to reload it"
+    IDS_MSGFILESHAVECHANGED "The file %s had been modified outside of PKS Edit. Soll do you want to reload it"
     IDS_STRING148           "Demo"
 END
 

@@ -246,7 +246,7 @@ typedef struct tagSPRINTF_ARGS {
 extern int mysprintf(char* pDestination, char* format, SPRINTF_ARGS* pArgs);
 
 /*
- * Return a PKS EDIT variable to be used e.g. in code templates.
+ * Return a PKS Edit variable to be used e.g. in code templates.
  */
 extern void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, size_t nSize);
 

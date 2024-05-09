@@ -128,7 +128,7 @@ extern void ln_errorLineTooLong(void);
 
 #define	FMT_TYPEMASK		(0|1|2|3)
 
-/* Flags for operations changing the selection in PKS EDIT (EdSyncSelectionWithCaret) */
+/* Flags for operations changing the selection in PKS Edit (EdSyncSelectionWithCaret) */
 typedef enum {
 	MARK_START =	 3,
 	MARK_END =		 4,

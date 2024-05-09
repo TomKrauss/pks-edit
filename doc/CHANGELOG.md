@@ -12,23 +12,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 - A more modern version of the Windows open and save dialog was integrated into PKS Edit.
-- The Markdown renderer supports now:
+- Markdown Wysiwyg rendering supports now:
 	- [reference-style links](https://daringfireball.net/projects/markdown/syntax#link).
-	- images with hyperlinks
-	- Emoji support has been added. Only a small sub-set of Emojs is supported for now.
-	- image references using http or https URLs.
-	- simple SVG and other image formats have been added. Note that we use D2D for SVG rendering which has a very 
+	- Images with hyperlinks
+	- Rendering emojis. Only a small sub-set of Emojs is supported for now.
+	- Image references using http or https URLs.
+	- Simple SVG and more image formats. Note that we use D2D for SVG rendering which has a very 
 	  limited feature set implemented (no CSS styling, no text elements, etc...).
-	- caching loaded images in Wysiwyg mode.
-- We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default),
-  when editing markdown documents.
+	- Caching loaded images, in particular useful when viewing markdown documents with many online image references.
+- We added markdown cheatsheet templates, which can now be accessed via code completion (Ctrl+SPACE by default).
 - Templates in grammars support now an optional "help" section allowing to add a help text for the template to insert.
 - Code completion works better now when matching "non-word" patterns like ":+xxx". Before, the ":+" was not
   considered in calculation of matching completion candidates and was not correctly replaced, when inserting
   the template / completion result.
 
 ### Fixed
-- corrected link to release notes.
+- The links to release notes from the tool bar and menu bar had been broken.
+- The main windows resize cursors did not work correctly. There was no top window border resize possible 
+  neither a right bottom diagonal windows resize mouse pointer shown.
+- Converting line ends to Linux (\n) or Windows (\r\n) style did not cause the screen being correctly
+  repainted.
+- Cancelling out the of the process of quitting PKS Edit works now correctly, when multiple open files
+  are changed. Before pressing the "Cancel" button caused other confirmation dialogs popping up for sub-sequent
+  changed windows.
 - The stack size of PKS Edit configured by default was too low causing in particular the open dialog
   to die on some machines. **kudos** and a big thank you to [RBri](https://github.com/rbri) for helping to debug and finding the solution!
 

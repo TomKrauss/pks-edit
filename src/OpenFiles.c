@@ -552,15 +552,21 @@ int ft_cloneWindowNamed(char* pszFilename, const char* pszDock) {
 	return ft_openwin(fp, pszDock);
 }
 
+/*
+ * This flag will be set, if the user cancelled the closing of a window, which will then abort
+ * the process of enumerating further windows to close.
+ */
+BOOL ww_requestToCloseCancelled;
+
 /*------------------------------------------------------------
  * ww_requestToClose()
  * The user requests to close a file (last window of a file). 
  * If the file is modified and cannot be saved or some other error
  * occurs, return 0, otherwise, if the file can be closed return 1.
  */
-int ww_requestToClose(WINFO *wp)
-{
+int ww_requestToClose(WINFO *wp) {
 	FTABLE* fp = wp->fp;
+	ww_requestToCloseCancelled = FALSE;
 	if (ft_isFileModified(fp)) {
 		ShowWindow(hwndMain,SW_SHOW);
 		ww_selectWindow(wp);
@@ -574,7 +580,9 @@ int ww_requestToClose(WINFO *wp)
 				}
 				break;
 			case IDNO: ft_setFlags(fp, fp->flags & ~F_MODIFIED);  break;
-			case IDCANCEL:  return (0);
+			case IDCANCEL:
+				ww_requestToCloseCancelled = TRUE;
+				return (0);
 		}
 	}
 	if (!(fp->flags & (F_TRANSIENT|F_NEWFILE))) {

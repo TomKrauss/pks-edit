@@ -83,7 +83,7 @@ static HSZ		hszDDEService;
 static HMENU	hDefaultMenu;
 
 static char   szStatusClass[] = "StatusWin";
-char   szAppName[] = "PKSEDIT";
+char   szAppName[] = "PKS Edit";
 
 int		_runInteractive = TRUE;
 int		_openIconic = FALSE;

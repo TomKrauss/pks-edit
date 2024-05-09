@@ -570,6 +570,12 @@ extern int ww_isColumnSelectionMode(WINFO* wp);
  */
 extern int ww_requestToClose(WINFO* fp);
 
+/*
+ * This flag will be set, if the user cancelled the closing of a window, which will then abort
+ * the process of enumerating further windows to close.
+ */
+extern BOOL ww_requestToCloseCancelled;
+
 /*------------------------------------------------------------
  * ww_close()
  * Close the passed editor window.

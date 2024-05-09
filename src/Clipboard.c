@@ -123,7 +123,7 @@ EXPORT int clp_setdata(char* whichBuffer)
 
 /*------------------------------------------------------------
  * clp_getdata()
- * get contents of the clipboard for PKS EDIT
+ * get contents of the clipboard for PKS Edit
  */
 EXPORT int clp_getdata(void)
 {	HANDLE 	hClip;

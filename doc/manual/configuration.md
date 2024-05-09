@@ -60,7 +60,7 @@ Layout Options configure the general UI of PKS Edit
 
 - `Undo available` - should be set by default to allow for undo and redo of actions.
 - `Number of undo steps` - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
-- `Silently reload files changed externally` - if set, externally changed files are silently reloaded (unless modified) by PKS EDIT without popping up 
+- `Silently reload files changed externally` - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
    a confirmation dialog.
 - `Hide selection on caret movement` - when the caret is moved and text is selected, the selection "goes away", if this option is set.
 - `Open dialogs close to mouse pointer` - when opening a dialog (e.g. Find or Replace), the dialog opens close to the current mouse position, when this option is set.

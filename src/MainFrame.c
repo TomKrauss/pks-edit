@@ -49,7 +49,7 @@ extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern void		tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
 
-static const char* _applicationName = "PKS EDIT";
+static const char* _applicationName = "PKS Edit";
 static WINFO* _selectedWindow;
 
 /*------------------------------------------------------------
@@ -1978,17 +1978,6 @@ repaintUI:
 		SetWindowPos(hwndMain, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 		break;
 
-	case WM_SETCURSOR: {
-		WORD ncTest = LOWORD(lParam);
-		if (ncTest == HTBOTTOM) {
-			mouse_setSizeNSCursor();
-		} else if (ncTest == HTRIGHT) {
-			mouse_setSizeWECursor();
-		} else {
-			mouse_setArrowCursor();
-		}
-		return TRUE;
-	}
 	case WM_NCHITTEST: {
 		RECT* pRect = mainframe_findSplitterRect(lParam);
 		if (pRect != NULL) {
@@ -2082,6 +2071,7 @@ repaintUI:
 		break;
 
 	case WM_CLOSE:
+		// Must invoke finalize before closing child windows, because we want to save the current session.
 		FinalizePksEdit();
 		mainframe_closeChildWindows(CWF_ALL);
 		if (ww_getNumberOfOpenWindows()) {
@@ -2235,6 +2225,10 @@ static int mainframe_enumChildWindows(BOOL bHideTabsDuringEnum, int (*funcp)(HWN
 			for (int i = 0; i < nSize; i++) {
 				TAB_PAGE* pPage = arraylist_get(pCopy, i);
 				if (pPage->tp_hwnd && (ret = (*funcp)(pPage->tp_hwnd, lParam)) == 0) {
+					if (lParam == CWF_ALL && ww_requestToCloseCancelled) {
+						arraylist_destroy(pCopy);
+						return 0;
+					}
 					ret = 0;
 					break;
 				}

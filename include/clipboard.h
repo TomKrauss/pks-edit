@@ -37,7 +37,7 @@ extern int clp_setdata(char* pszBufferName);
 
 /*------------------------------------------------------------
  * clp_getdata()
- * get contents of the clipboard for PKS EDIT
+ * get contents of the clipboard for PKS Edit
  */
 extern int clp_getdata(void);
 

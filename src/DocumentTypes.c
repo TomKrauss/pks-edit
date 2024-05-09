@@ -4,8 +4,8 @@
  *
  * Project: PKS Edit for MS-WINDOWS
  *
- * purpose: maintain "Major Mode Configuration Files", the in PKSEDIT
- *		  called RULER Files,
+ * purpose: maintain "Major Mode Configuration Files", in PKS Edit
+ *		  also referred to as RULER Files,
  *		  link configuration files to file name extensions
  *		  tapstop calculating functions
  *

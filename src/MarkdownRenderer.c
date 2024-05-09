@@ -1681,7 +1681,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 			}
 		}
 	}
-	if (c == '\n' && pResult->lpr_isReferenceLinkDefinition) {
+	if ((c == '\n' || c == 0) && pResult->lpr_isReferenceLinkDefinition) {
 		szBuf[nUrlPartStart] = 0;
 		char* pszTitle = strpbrk(szBuf, " (\"'");
 		if (pszTitle != 0) {

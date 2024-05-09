@@ -418,7 +418,7 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if (pszData[0] == 0xff && pszData[1] == 0xd8) {
         return CLSID_WICTiffDecoder;
     }
-    if (pszData[0] == 0x49 && pszData[1] == 0x49 && pszData[2] == 0x2a && pszData[2] == 0x2a) {
+    if (pszData[0] == 0x49 && pszData[1] == 0x49 && pszData[2] == 0x2a && pszData[3] == 0x00) {
         return CLSID_WICTiffDecoder;
     }
     if (strncmp(pszData, "RIFF", 4) == 0) {

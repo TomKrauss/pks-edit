@@ -961,7 +961,7 @@ static int edit_findPreviousOffsetForDeletion(WINFO* wp, LINE* lp, int nOffset) 
  * Delete one character at the given caret position, assuming a control type and an optional match character.
  */
 static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar, BOOL bPostProcess) {
-	register	LINE* lp, * lp1 = 0;
+	LINE* lp, * lp1 = 0;
 	FTABLE* fp = wp->fp;
 	long		ln, ln1, o2, o1;
 
@@ -971,8 +971,15 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 
 
 	if (control > 0 && o1 == lp->len) {
-		if (control == MOT_TOEND)
+		if (control == MOT_TOEND) {
 			return 1;
+		}
+		// Special: if one presses delete at the end of the last line - mark the line as being unterminated.
+		if (lp->next == fp->lastl && (lp->lflg & LNNOTERM) == 0) {
+			ln_changeFlag(fp, lp, lp, 0, LNNOTERM, 1);
+			render_repaintLine(fp, pCaret->linePointer);
+			return 1;
+		}
 		return edit_joinLines(wp, pCaret);
 	}
 	else if (control < 0 && o1 == 0) {
@@ -1191,6 +1198,7 @@ long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op) {
 	}
 	if (changed) {
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
+		render_repaintAllForFile(fp);
 	}
 	return 1;
 }
