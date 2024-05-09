@@ -395,22 +395,25 @@ static MDR_ELEMENT_FORMAT _formatFenced = {
 };
 
 #define BLOCK_QUOTE_INDENT		25
-#define BLOCK_QUOTE_MARGIN		4
 
 static MDR_ELEMENT_FORMAT _formatParagraph = {
-	0, 10, DEFAULT_LEFT_MARGIN, 10,  .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
+	.mef_margins = {.m_top = 10, .m_bottom = 10, .m_left = DEFAULT_LEFT_MARGIN, .m_right = 10 },
+	.mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote = {
-	0, 0, DEFAULT_LEFT_MARGIN+BLOCK_QUOTE_INDENT, 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
+	.mef_margins = {.m_top = 10, .m_bottom = 10, .m_left = DEFAULT_LEFT_MARGIN + BLOCK_QUOTE_INDENT, .m_right = 20 },
+	.mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote2 = {
-	0, 0, DEFAULT_LEFT_MARGIN + (2*BLOCK_QUOTE_INDENT), 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
+	.mef_margins = {.m_top = 0, .m_bottom = 0, .m_left = DEFAULT_LEFT_MARGIN + 2*BLOCK_QUOTE_INDENT, .m_right = 20 },
+	.mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatBlockQuote3 = {
-	0, 0, DEFAULT_LEFT_MARGIN + (3 * BLOCK_QUOTE_INDENT), 20, .mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
+	.mef_margins = {.m_top = 0, .m_bottom = 0, .m_left = DEFAULT_LEFT_MARGIN + 3 * BLOCK_QUOTE_INDENT, .m_right = 20 },
+	.mef_fontSize.ss_value = 1.2f, .mef_fontSize.ss_units = CSU_PERCENT, FW_NORMAL
 };
 
 static MDR_ELEMENT_FORMAT _formatTable = {
@@ -494,6 +497,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	int md_caretRunIndex;
 	int md_caretPartIndex;
 	BOOL md_printing;
+	float md_zoomFactor;
 } MARKDOWN_RENDERER_DATA;
 
 /*
@@ -1077,17 +1081,19 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 					DrawFocusRect(hdc, &r);
 				}
 				if (nBlockQuoteLevel) {
+					int blockQuoteDelta = (int)(5 * pRFP->rfp_zoomFactor);
+					int blockQuoteHorizontalDelta = (int)(BLOCK_QUOTE_INDENT * pRFP->rfp_zoomFactor);
 					RECT leftRect;
-					leftRect.top = y - pMargins->m_top;
-					leftRect.bottom = y + nHeight + pMargins->m_bottom;
-					leftRect.left = pBounds->left + _formatText.mef_margins.m_left;
-					leftRect.right = leftRect.left + 5;
+					leftRect.top = y - blockQuoteDelta;
+					leftRect.bottom = y + nHeight + blockQuoteDelta;
+					leftRect.left = pBounds->left + (int)(pRFP->rfp_zoomFactor * _formatText.mef_margins.m_left);
+					leftRect.right = leftRect.left + blockQuoteDelta;
 					for (int i = 0; i < nBlockQuoteLevel; i++) {
 						HBRUSH hBrush = CreateSolidBrush(mdr_codeBackgroundColor(pTheme));
 						FillRect(hdc, &leftRect, hBrush);
 						DeleteObject(hBrush);
-						leftRect.left += BLOCK_QUOTE_INDENT;
-						leftRect.right += BLOCK_QUOTE_INDENT;
+						leftRect.left += blockQuoteHorizontalDelta;
+						leftRect.right += blockQuoteHorizontalDelta;
 					}
 				}
 			}
@@ -3775,6 +3781,12 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), RECT* pClip, HBRUSH hBrushBg, int y) {
 	WINFO* wp = pCtx->rc_wp;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	if (pData->md_zoomFactor != wp->zoomFactor) {
+		if (pData->md_zoomFactor != 0.0) {
+			mdr_invalidateViewpartsLayout(pData);
+		}
+		pData->md_zoomFactor = wp->zoomFactor;
+	}
 	if (!pData->md_pElements) {
 		parsePage(wp);
 	}
