@@ -15,18 +15,24 @@
  */
 
 #include "pch.h"
+#include "..\include\loadimage.h"
 #include <Windows.h>
 #include <tchar.h>
 #include <wincodec.h>
 #include <Shlwapi.h>
 #include <Winhttp.h>
+#include <wininet.h>
 #define NOMINMAX
 #include <d2d1.h>
 #include <dwrite.h>
 #include <d2d1_3.h>
 
+// Number of milli seconds to wait to load an image via HTTP before timing out.
+#define HTTP_LOAD_RESPONSE_TIMEOUT_MS         400
+
 typedef struct tagURL {
     BOOL   url_https;
+    LPWSTR url_url;
     LPWSTR url_host;
     LPWSTR url_path;
     LPWSTR url_extraInfo;
@@ -49,95 +55,117 @@ static IStream* CreateStreamOnResource(LPCCH lpName) {
     return ipStream;
 }
 
-static char* http_loadData(URL* pURL, UINT* pLoaded) {
-    DWORD dwSize = 0;
-    DWORD dwDownloaded = 0;
-    LPSTR pszOutBuffer = 0;
-    BOOL  bResults = FALSE;
-    HINTERNET  hSession = NULL,
-        hConnect = NULL,
-        hRequest = NULL;
+typedef struct tagREQUEST_CONTEXT {
+    HINTERNET rctx_sessionHandle;
+    HINTERNET rctx_httpFileHandle;
+    HINTERNET rctx_requestHandle;
+    BOOL      rctx_requestComplete;
+    DWORD     rctx_error;
+} REQUEST_CONTEXT;
+
+static void http_closeRequestContext(REQUEST_CONTEXT* pContext) {
+    if (pContext->rctx_requestHandle) {
+        InternetCloseHandle(pContext->rctx_requestHandle);
+    }
+    if (pContext->rctx_httpFileHandle) {
+        InternetCloseHandle(pContext->rctx_httpFileHandle);
+    }
+    if (pContext->rctx_sessionHandle) {
+        InternetSetStatusCallback(pContext->rctx_sessionHandle, NULL);
+        InternetCloseHandle(pContext->rctx_sessionHandle);
+    }
+}
+
+static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpStatusInfo, DWORD dwStatusInfoLength) {
+    INTERNET_ASYNC_RESULT* pResult = (INTERNET_ASYNC_RESULT * )lpStatusInfo;
+    REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)dwContext;
+    if (dwInternetStatus == INTERNET_STATUS_HANDLE_CREATED) {
+        pRequestContext->rctx_httpFileHandle = (HINTERNET)pResult->dwResult;
+        pRequestContext->rctx_error = pResult->dwError;
+    }
+    if (dwInternetStatus == INTERNET_STATUS_REQUEST_COMPLETE) {
+        pRequestContext->rctx_requestComplete = TRUE;
+        pRequestContext->rctx_error = pResult->dwError;
+    }
+}
+
+static void http_waitFor(REQUEST_CONTEXT* pContext, int dwMilliSeconds) {
+    for (int i = 0; i < dwMilliSeconds/100; i++) {
+        if (pContext->rctx_requestComplete) {
+            break;
+        }
+        Sleep(100);
+    }
+}
+
+static char* http_loadData(URL* pURL, UINT* pLoaded, IMAGE_LOAD_ASYNC* pAsyncCallback) {
+    BOOL bAsync = pAsyncCallback->ila_hwnd != NULL;
+    REQUEST_CONTEXT requestContext;
 
     *pLoaded = 0;
+    ZeroMemory(&requestContext, sizeof requestContext);
 
-    // Use WinHttpOpen to obtain a session handle.
-    hSession = WinHttpOpen(L"PKS-Edit Image/1.0",
-        WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-        WINHTTP_NO_PROXY_NAME,
-        WINHTTP_NO_PROXY_BYPASS, 0);
+    // Use InternetOpen to obtain a session handle.
+    requestContext.rctx_sessionHandle = InternetOpen(L"PKS Edit/1.0",
+        INTERNET_OPEN_TYPE_PRECONFIG,
+        NULL,
+        NULL, INTERNET_FLAG_ASYNC);
 
-    if (!hSession) {
+    if (!requestContext.rctx_sessionHandle) {
         return 0;
     }
-    // Specify an HTTP server.
-    hConnect = WinHttpConnect(hSession, pURL->url_host, pURL->url_https ? INTERNET_DEFAULT_HTTPS_PORT : INTERNET_DEFAULT_HTTP_PORT, 0);
+
+    if (InternetSetStatusCallback(requestContext.rctx_sessionHandle, http_statusChanged) == INTERNET_INVALID_STATUS_CALLBACK) {
+        http_closeRequestContext(&requestContext);
+        return 0;
+    }
+
+    // Open the URL
+    WCHAR szURL[512];
+    DWORD sizeURL = sizeof szURL / sizeof szURL[0] - 1;
+    InternetCanonicalizeUrl(pURL->url_url, szURL, &sizeURL, 0);
+    szURL[sizeURL] = 0;
+    InternetOpenUrl(requestContext.rctx_sessionHandle, szURL, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_PRAGMA_NOCACHE |
+        INTERNET_FLAG_NO_CACHE_WRITE, (DWORD_PTR) & requestContext);
+    http_waitFor(&requestContext, HTTP_LOAD_RESPONSE_TIMEOUT_MS);
 
     // Create an HTTP request handle.
-    if (hConnect) {
-        hRequest = WinHttpOpenRequest(hConnect, L"GET", pURL->url_pathAndParams,
-            NULL, WINHTTP_NO_REFERER,
-            WINHTTP_DEFAULT_ACCEPT_TYPES,
-            WINHTTP_FLAG_SECURE);
-    }
+    if (requestContext.rctx_httpFileHandle && requestContext.rctx_error == 0) {
+        DWORD nBufSize = 8192;
+        DWORD size;
+        requestContext.rctx_requestComplete = FALSE;
+        char* lpvBuffer = (char*)calloc(static_cast<size_t>(nBufSize) + 1, 1);
+        int nOffset = 0;
+        int nTotalRead = 0;
+        int nAvail = nBufSize;
+        if (lpvBuffer != NULL) {
+            while (InternetReadFile(requestContext.rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size) && size > 0) {
+                nTotalRead += size;
+                nOffset += size;
+                nAvail -= size;
+                if (nAvail == 0) {
+                    nAvail = 8192;
+                    nBufSize += nAvail;
+                    char* pNew = (char*)realloc(lpvBuffer, static_cast<size_t>(nBufSize) + 1);
+                    if (pNew == NULL) {
+                        nTotalRead = 0;
+                        break;
+                    }
+                    lpvBuffer = pNew;
 
-    // Send a request.
-    if (hRequest) {
-        bResults = WinHttpSendRequest(hRequest,
-            WINHTTP_NO_ADDITIONAL_HEADERS,
-            0, WINHTTP_NO_REQUEST_DATA, 0,
-            0, 0);
-    }
-
-    if (!bResults) {
-        return 0;
-    }
-    // End the request.
-    if (bResults) {
-        bResults = WinHttpReceiveResponse(hRequest, NULL);
-    }
-
-    // Keep checking for data until there is nothing left.
-
-    DWORD nTotal = 10000;
-    pszOutBuffer = (LPSTR)calloc(nTotal, 1);
-    DWORD nOffset = 0;
-
-    if (bResults && pszOutBuffer != NULL) {
-        do {
-            // Check for available data.
-            dwSize = 0;
-            if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) {
-                free(pszOutBuffer);
-                pszOutBuffer = 0;
-                break;
-            }
-            if (nOffset + dwSize > nTotal) {
-                nTotal = nOffset + dwSize + 10000;
-                LPSTR pszNew = (LPSTR)realloc(pszOutBuffer, nTotal);
-                if (pszNew == 0) {
-                    free(pszOutBuffer);
-                    pszOutBuffer = 0;
-                    break;
-                }
-                else {
-                    pszOutBuffer = pszNew;
-                    memset(pszOutBuffer + nOffset, 0, nTotal - nOffset);
                 }
             }
-            if (!WinHttpReadData(hRequest, (LPVOID)(pszOutBuffer + nOffset), dwSize, &dwDownloaded)) {
-                free(pszOutBuffer);
-                pszOutBuffer = 0;
-                break;
+            if (nTotalRead > 0) {
+                lpvBuffer[nTotalRead] = 0;
+                *pLoaded = nTotalRead;
+                http_closeRequestContext(&requestContext);
+                return lpvBuffer;
             }
-            nOffset += dwDownloaded;
-        } while (dwSize > 0);
+            free(lpvBuffer);
+        }
     }
-    *pLoaded = nOffset;
-    // Close any open handles.
-    if (hRequest) WinHttpCloseHandle(hRequest);
-    if (hConnect) WinHttpCloseHandle(hConnect);
-    if (hSession) WinHttpCloseHandle(hSession);
-    return pszOutBuffer;
+    http_closeRequestContext(&requestContext);
+    return 0;
 }
 
 static int loadimage_parseURL(char* pszUrl, URL *pURL) {
@@ -160,6 +188,7 @@ static int loadimage_parseURL(char* pszUrl, URL *pURL) {
     if (!WinHttpCrackUrl(pszwUrl, (DWORD)wcslen(pszwUrl), 0, &urlComp) || (urlComp.nScheme != INTERNET_SCHEME_HTTP && urlComp.nScheme != INTERNET_SCHEME_HTTPS)) {
         return 0;
     }
+    pURL->url_url = _wcsdup(pszwUrl);
     pURL->url_https = urlComp.nScheme == INTERNET_SCHEME_HTTPS;
     pURL->url_host = (LPWSTR) calloc(sizeof WCHAR, urlComp.dwHostNameLength + 1);
     StrNCpy(pURL->url_host, urlComp.lpszHostName, urlComp.dwHostNameLength + 1);
@@ -175,6 +204,7 @@ static int loadimage_parseURL(char* pszUrl, URL *pURL) {
 }
 
 static void url_free(URL* pURL) {
+    free(pURL->url_url);
     free(pURL->url_host);
     free(pURL->url_path);
     free(pURL->url_pathAndParams);
@@ -188,7 +218,8 @@ static void url_free(URL* pURL) {
 extern "C" __declspec(dllexport) char* http_loadDataFromUrl(char* pszUrl, UINT* pSize) {
     URL url;
     if (loadimage_parseURL(pszUrl, &url)) {
-        char* ret = http_loadData(&url, pSize);
+        IMAGE_LOAD_ASYNC asyncCallback = {0};
+        char* ret = http_loadData(&url, pSize, &asyncCallback);
         url_free(&url);
         return ret;
     }
@@ -377,7 +408,9 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
     target->BindDC(hdcScreen, &rc);
     // create a DIB section that can hold the image
     hbmp = CreateDIBSection(hdcScreen, &bminfo, DIB_RGB_COLORS, &pvImageBits, NULL, 0);
-
+    if (hbmp == NULL) {
+        return NULL;
+    }
     HDC hdc = CreateCompatibleDC(hdcScreen);
     ReleaseDC(NULL, hdcScreen);
 
@@ -433,7 +466,7 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
  * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
  * If the image format is not supported return 0.
  */
-extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
+extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback) {
     HBITMAP hbmpImage = NULL;
     char* pszLoaded = NULL;
     GUID guid;
@@ -441,7 +474,7 @@ extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
     // load the PNG image data into a stream
     UINT cbSize;
     if (loadimage_parseURL(pszName, &url)) {
-        pszLoaded = http_loadData(&url, &cbSize);
+        pszLoaded = http_loadData(&url, &cbSize, &pAsyncCallback);
         url_free(&url);
         if (pszLoaded == NULL) {
             return NULL;
@@ -466,16 +499,13 @@ extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName) {
     } else {
         // load the bitmap with WIC
         IWICBitmapSource* ipBitmap = LoadBitmapFromStream(ipImageStream, guid);
-        if (ipBitmap == NULL)
-            goto ReleaseStream;
-
-        // create a HBITMAP containing the image
-
-        hbmpImage = CreateHBITMAP(ipBitmap);
-        ipBitmap->Release();
+        if (ipBitmap != NULL) {
+            // create a HBITMAP containing the image
+            hbmpImage = CreateHBITMAP(ipBitmap);
+            ipBitmap->Release();
+        }
     }
 
-ReleaseStream:
     ipImageStream->Release();
     return hbmpImage;
 }

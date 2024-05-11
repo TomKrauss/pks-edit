@@ -257,7 +257,7 @@ typedef struct tagWINFO {
 	int		win_id;
     HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
 
-    int     dispmode;				// Display options: see edierror.h...
+    int     dispmode;				// Display options: see  enum DISPLAY_WINDOW_FLAGS.
     int     charset;                // a special charset to use or 0 for now particular charset.
     int     workmode;
     BOOL	bXtndBlock;			    // we are currently in selection extension mode

@@ -524,7 +524,7 @@ void EdOptionSet(void) {
 	psp[3].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psh.dwSize = sizeof(psh);
-    psh.dwFlags = PSH_PROPSHEETPAGE|PSH_USECALLBACK;
+    psh.dwFlags = PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_NOCONTEXTHELP;
     psh.hwndParent = hwndMain;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;

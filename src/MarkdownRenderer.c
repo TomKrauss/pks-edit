@@ -46,6 +46,7 @@
 #include "documenttypes.h"
 
 #include "syntaxhighlighting.h"
+#include "loadimage.h"
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -60,9 +61,6 @@ typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 extern HINSTANCE		hInst;
 
 static const char _escapedChars[] = "\\`*_{}[]<>()#+-.!|&";
-
-// Loads the an image with a name and a format into a HBITMAP.
-extern HBITMAP loadimage_load(char* pszName);
 
 extern EDTEXTSTYLE* highlight_getTextStyleForLexicalState(HIGHLIGHTER* pHighlighter, LEXICAL_STATE state);
 
@@ -745,11 +743,25 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	pPart->rvp_layouted = TRUE;
 }
 
-static BOOL mdr_loadAndMeasureImage(MD_IMAGE* pImage, const char* pszImageName, int *pWidth, int * pHeight, int *pOrigWidth, int *pOrigHeight) {
+static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp) {
+	if (hBmp == NULL) {
+		return;
+	}
+	MD_IMAGE* pImage = (MD_IMAGE*)pParam;
+	pImage->mdi_image = hBmp;
+	InvalidateRect(hwnd, NULL, FALSE);
+}
+
+static BOOL mdr_loadAndMeasureImage(HWND hwnd, MD_IMAGE* pImage, const char* pszImageName, int *pWidth, int * pHeight, int *pOrigWidth, int *pOrigHeight) {
 	if (!pImage->mdi_image) {
 		char* pszExt = strrchr(pszImageName, '.');
 		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
-			pImage->mdi_image = loadimage_load((char*)pszImageName);
+			IMAGE_LOAD_ASYNC async = {
+				.ila_complete = mdr_imageLoaded,
+				.ila_completionParam = pImage,
+				.ila_hwnd = hwnd
+			};
+			pImage->mdi_image = loadimage_load((char*)pszImageName, async);
 		} else {
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
@@ -788,7 +800,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 	int nHeight;
 	int nOrigWidth;
 	int nOrigHeight;
-	if (mdr_loadAndMeasureImage(pImage, pTR->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
+	if (mdr_loadAndMeasureImage(WindowFromDC(hdc), pImage, pTR->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
 		HGDIOBJ         oldBitmap;
 		HDC             hdcMem;
 		if (nWidth > nMaxWidth) {
@@ -1257,13 +1269,6 @@ static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_ELEMENT_TYPE mCurre
 			if (mCurrentType != MET_BLOCK_QUOTE) {
 				break;
 			}
-#if 0
-			LINE* lpPrev = lp->prev;
-			if (lpPrev && lpPrev->lbuf[0] == '>' && (lpPrev->len == 1 || (lpPrev->len == 2 && lpPrev->lbuf[1] == ' '))) {
-				bRet = TRUE;
-				break;
-			}
-#endif
 			int nLevelNew = 1;
 			while (pStream->is_peekc(pStream, 1) == '>') {
 				nLevelNew++;
@@ -2374,13 +2379,13 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
 		while (pCell) {
 			if (pCell->rtc_flow.tf_text) {
-				int nWidth;
+				int nWidth = 0;
 				TEXT_RUN* pRun = pCell->rtc_flow.tf_runs;
 				if (pRun && pRun->tr_data.tr_image && !pRun->tr_isEmoji) {
 					int nHeight;
 					int nOrigWidth;
 					int nOrigHeight;
-					mdr_loadAndMeasureImage(pRun->tr_data.tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
+					mdr_loadAndMeasureImage(NULL, pRun->tr_data.tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
 				} else {
 					size_t nLen = strlen(pCell->rtc_flow.tf_text);
 					if (nLen > 100) {
@@ -3087,7 +3092,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				// allow for _ only at word borders.
 					(c == '_' && mdr_isAtWordBorder(pStream)) ||
 				c == '~'))) {
-				if (c == '*' || c == '_') {
+				if (nLineOffset == 1 && mType == MET_BLOCK_QUOTE && c == '*' && pStream->is_peekc(pStream, 1) == ' ') {
+					nToggle = ATTR_LINE_BREAK;
+				} else if (c == '*' || c == '_') {
 					if (pStream->is_peekc(pStream, 1) == c) {
 						nToggle = ATTR_STRONG;
 						pStream->is_skip(pStream, 1);

@@ -1151,6 +1151,7 @@
     <ClInclude Include="include\jsonparser.h" />
     <ClInclude Include="include\levensthein.h" />
     <ClInclude Include="include\linkedlist.h" />
+    <ClInclude Include="include\loadimage.h" />
     <ClInclude Include="include\mainframe.h" />
     <ClInclude Include="include\markpositions.h" />
     <ClInclude Include="include\menu.h" />
