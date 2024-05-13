@@ -1317,6 +1317,12 @@ WINFUNC render_defaultWindowProc(
 	case WM_ERASEBKGND:
 		return 1;
 
+	case WM_BACKGROUND_TASK_FINISHED: {
+		BG_TASK* pTask = (BG_TASK*)lParam;
+		pTask->bg_taskFunction(pTask);
+		return TRUE;
+	}
+
 	case WM_PAINT:
 		if ((wp = ww_winfoFromWorkwinHandle(hwnd)) != 0) {
 		   render_paintWindow(wp);

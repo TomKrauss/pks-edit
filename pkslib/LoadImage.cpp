@@ -16,19 +16,22 @@
 
 #include "pch.h"
 #include "..\include\loadimage.h"
+#include "..\include\winterf.h"
+#include "..\include\alloc.h"
 #include <Windows.h>
 #include <tchar.h>
 #include <wincodec.h>
 #include <Shlwapi.h>
 #include <Winhttp.h>
 #include <wininet.h>
+#include <stdio.h>
 #define NOMINMAX
 #include <d2d1.h>
 #include <dwrite.h>
 #include <d2d1_3.h>
 
-// Number of milli seconds to wait to load an image via HTTP before timing out.
-#define HTTP_LOAD_RESPONSE_TIMEOUT_MS         400
+// Fake CLSID to denote SVG image decoding
+#define CLSID_SvgDecoder CLSID_WICRAWDecoder
 
 typedef struct tagURL {
     BOOL   url_https;
@@ -38,6 +41,8 @@ typedef struct tagURL {
     LPWSTR url_extraInfo;
     LPWSTR url_pathAndParams;
 } URL;
+
+static HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize);
 
 static IStream* CreateStreamOnResource(LPCCH lpName) {
     // initialize return value
@@ -56,67 +61,214 @@ static IStream* CreateStreamOnResource(LPCCH lpName) {
 }
 
 typedef struct tagREQUEST_CONTEXT {
+    void      (*rctx_complete)(void* pContext);
     HINTERNET rctx_sessionHandle;
     HINTERNET rctx_httpFileHandle;
     HINTERNET rctx_requestHandle;
-    BOOL      rctx_requestComplete;
-    DWORD     rctx_error;
+    HANDLE    rctx_cleanupEvent;
+    CRITICAL_SECTION rctx_criticalSection;
+    char*            rctx_data;
+    DWORD            rctx_error;
+    UINT             rctx_dataSize;
+    IMAGE_LOAD_ASYNC rctx_callback;
 } REQUEST_CONTEXT;
 
-static void http_closeRequestContext(REQUEST_CONTEXT* pContext) {
-    if (pContext->rctx_requestHandle) {
-        InternetCloseHandle(pContext->rctx_requestHandle);
+static void http_trace(const wchar_t fmt[], ...) {
+    va_list 	ap;
+    WCHAR      b[256];
+
+    va_start(ap, fmt);
+    wvsprintf(b, fmt, ap);
+    va_end(ap);
+    OutputDebugString(b);
+}
+
+static void http_traceError(const wchar_t fmt[], int errorCode) {
+    WCHAR   wszMsgBuff[512];  // Buffer for text.
+
+    DWORD   dwChars;  // Number of chars returned.
+
+    // Try to get the message from the system errors.
+    dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        errorCode,
+        0,
+        wszMsgBuff,
+        512,
+        NULL);
+    if (dwChars == 0) {
+        wsprintf(wszMsgBuff, L"%d", errorCode);
     }
-    if (pContext->rctx_httpFileHandle) {
-        InternetCloseHandle(pContext->rctx_httpFileHandle);
-    }
+    http_trace(fmt, wszMsgBuff);
+}
+
+/*
+ * Release the request context, when image loading from an HTTP URL is complete.
+ */
+static void http_releaseRequestContext(REQUEST_CONTEXT* pContext) {
     if (pContext->rctx_sessionHandle) {
         InternetSetStatusCallback(pContext->rctx_sessionHandle, NULL);
-        InternetCloseHandle(pContext->rctx_sessionHandle);
     }
+    if (pContext->rctx_requestHandle) {
+        InternetCloseHandle(pContext->rctx_requestHandle);
+        //
+        // Wait for the closing of the handle to complete
+        // (waiting for all async operations to complete)
+        //
+        // This is the only safe way to get rid of the context
+        //
+        (VOID)WaitForSingleObject(pContext->rctx_cleanupEvent, INFINITE);
+        pContext->rctx_requestHandle = NULL;
+    }
+    HINTERNET handle = pContext->rctx_httpFileHandle;
+    if (handle) {
+        InternetCloseHandle(handle);
+        pContext->rctx_httpFileHandle = NULL;
+    } else {
+        http_trace(L"HTTP releasing request context %lx - file handle already released?\n", handle);
+    }
+    if (pContext->rctx_sessionHandle) {
+        InternetCloseHandle(pContext->rctx_sessionHandle);
+        pContext->rctx_sessionHandle = NULL;
+    }
+    http_trace(L"HTTP released request context %lx\n", handle);
+}
+
+static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoaded) {
+    // Load the data from the HTTP file opened.
+    http_trace(L"HTTP load image from http file %lx\n", pRequestContext->rctx_httpFileHandle);
+    if (pRequestContext->rctx_httpFileHandle) {
+        DWORD nBufSize = 8192;
+        DWORD size;
+        char* lpvBuffer = (char*)calloc(static_cast<size_t>(nBufSize) + 1, 1);
+        int nOffset = 0;
+        int nTotalRead = 0;
+        int nAvail = nBufSize;
+        if (lpvBuffer == NULL) {
+            http_trace(L"HTTP load image from http file cannot alloc %lx\n", nBufSize);
+            return NULL;
+        }
+        while (InternetReadFile(pRequestContext->rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size) && size > 0) {
+            nTotalRead += size;
+            nOffset += size;
+            nAvail -= size;
+            if (nAvail == 0) {
+                nAvail = 8192;
+                nBufSize += nAvail;
+                char* pNew = (char*)realloc(lpvBuffer, static_cast<size_t>(nBufSize) + 1);
+                if (pNew == NULL) {
+                    nTotalRead = 0;
+                    break;
+                }
+                lpvBuffer = pNew;
+
+            }
+        }
+        if (nTotalRead > 0) {
+            lpvBuffer[nTotalRead] = 0;
+            *pLoaded = nTotalRead;
+            return lpvBuffer;
+        }
+        http_trace(L"HTTP InternetReadFile from %lx did not return data.\n", pRequestContext->rctx_httpFileHandle);
+        free(lpvBuffer);
+    }
+    return NULL;
+}
+
+static void http_onWmThread(void* p) {
+    http_trace(L"HTTP executing callback %lx on WM thread\n", p);
+    REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)p;
+    HBITMAP hbmp = loadimage_fromFileOrData(NULL, pRequestContext->rctx_data, pRequestContext->rctx_dataSize);
+    if (hbmp != NULL) {
+        pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp);
+    }
+    http_trace(L"HTTP freeing request context on WM thread\n");
+    free(pRequestContext);
+}
+
+static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
+    pRequestContext->rctx_data = loadimage_loadHttpFile(pRequestContext, &pRequestContext->rctx_dataSize);
+    if (pRequestContext->rctx_data != NULL) {
+        pRequestContext->rctx_complete = http_onWmThread;
+        http_trace(L"HTTP posting image load %lx to WM thread\n", pRequestContext);
+        PostMessage(pRequestContext->rctx_callback.ila_hwnd, WM_BACKGROUND_TASK_FINISHED, 0, (LPARAM)pRequestContext);
+    }
+    http_releaseRequestContext(pRequestContext);
 }
 
 static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpStatusInfo, DWORD dwStatusInfoLength) {
-    INTERNET_ASYNC_RESULT* pResult = (INTERNET_ASYNC_RESULT * )lpStatusInfo;
+    INTERNET_ASYNC_RESULT* pResult = (INTERNET_ASYNC_RESULT*)lpStatusInfo;
     REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)dwContext;
     if (dwInternetStatus == INTERNET_STATUS_HANDLE_CREATED) {
         pRequestContext->rctx_httpFileHandle = (HINTERNET)pResult->dwResult;
         pRequestContext->rctx_error = pResult->dwError;
-    }
-    if (dwInternetStatus == INTERNET_STATUS_REQUEST_COMPLETE) {
-        pRequestContext->rctx_requestComplete = TRUE;
-        pRequestContext->rctx_error = pResult->dwError;
-    }
-}
-
-static void http_waitFor(REQUEST_CONTEXT* pContext, int dwMilliSeconds) {
-    for (int i = 0; i < dwMilliSeconds/100; i++) {
-        if (pContext->rctx_requestComplete) {
-            break;
+    } else if (dwInternetStatus == INTERNET_STATUS_HANDLE_CLOSING) {
+        SetEvent(pRequestContext->rctx_cleanupEvent);
+    } else if (dwInternetStatus == INTERNET_STATUS_REQUEST_COMPLETE) {
+        HINTERNET handle = pRequestContext->rctx_httpFileHandle;
+        if (handle == NULL) {
+            return;
         }
-        Sleep(100);
+        http_trace(L"HTTP Load Status REQUEST Complete %p\n", handle);
+        if (pResult->dwError) {
+            http_traceError(L"HTTP Load error: %s\n", pResult->dwError);
+        }
+        CRITICAL_SECTION section = pRequestContext->rctx_criticalSection;
+        if (!TryEnterCriticalSection(&section)) {
+            http_trace(L"HTTP Load Status REQUEST complete double call\n");
+            return;
+        }
+        if (!pResult->dwError) {
+            http_onImageRequestComplete(pRequestContext);
+        } else {
+            http_releaseRequestContext(pRequestContext);
+        }
+        LeaveCriticalSection(&section);
+        DeleteCriticalSection(&section);
+        if (pRequestContext->rctx_data == NULL) {
+            http_trace(L"HTTP freeing request context %p\n", handle);
+            free(pRequestContext);
+        }
     }
 }
 
 static char* http_loadData(URL* pURL, UINT* pLoaded, IMAGE_LOAD_ASYNC* pAsyncCallback) {
     BOOL bAsync = pAsyncCallback->ila_hwnd != NULL;
-    REQUEST_CONTEXT requestContext;
+    REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT *) calloc(1, sizeof(REQUEST_CONTEXT));
 
+    if (pRequestContext == NULL) {
+        return NULL;
+    }
     *pLoaded = 0;
-    ZeroMemory(&requestContext, sizeof requestContext);
+    pRequestContext->rctx_callback = *pAsyncCallback;
+    if (!InitializeCriticalSectionAndSpinCount(&pRequestContext->rctx_criticalSection, 10)) {
+        free(pRequestContext);
+        return NULL;
+    }
+    pRequestContext->rctx_cleanupEvent = CreateEvent(NULL,  // Sec attrib
+        FALSE, // Auto reset
+        FALSE, // Initial state unsignalled
+        NULL); 
+    if (pRequestContext->rctx_cleanupEvent == NULL) {
+        DeleteCriticalSection(&pRequestContext->rctx_criticalSection);
+        free(pRequestContext);
+        return NULL;
+    }
 
     // Use InternetOpen to obtain a session handle.
-    requestContext.rctx_sessionHandle = InternetOpen(L"PKS Edit/1.0",
+    pRequestContext->rctx_sessionHandle = InternetOpen(L"PKS Edit/1.0",
         INTERNET_OPEN_TYPE_PRECONFIG,
         NULL,
-        NULL, INTERNET_FLAG_ASYNC);
+        NULL, bAsync ? INTERNET_FLAG_ASYNC : 0);
 
-    if (!requestContext.rctx_sessionHandle) {
+    if (!pRequestContext->rctx_sessionHandle) {
+        http_releaseRequestContext(pRequestContext);
         return 0;
     }
 
-    if (InternetSetStatusCallback(requestContext.rctx_sessionHandle, http_statusChanged) == INTERNET_INVALID_STATUS_CALLBACK) {
-        http_closeRequestContext(&requestContext);
+    if (InternetSetStatusCallback(pRequestContext->rctx_sessionHandle, http_statusChanged) == INTERNET_INVALID_STATUS_CALLBACK) {
+        http_releaseRequestContext(pRequestContext);
         return 0;
     }
 
@@ -125,47 +277,19 @@ static char* http_loadData(URL* pURL, UINT* pLoaded, IMAGE_LOAD_ASYNC* pAsyncCal
     DWORD sizeURL = sizeof szURL / sizeof szURL[0] - 1;
     InternetCanonicalizeUrl(pURL->url_url, szURL, &sizeURL, 0);
     szURL[sizeURL] = 0;
-    InternetOpenUrl(requestContext.rctx_sessionHandle, szURL, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_PRAGMA_NOCACHE |
-        INTERNET_FLAG_NO_CACHE_WRITE, (DWORD_PTR) & requestContext);
-    http_waitFor(&requestContext, HTTP_LOAD_RESPONSE_TIMEOUT_MS);
-
-    // Create an HTTP request handle.
-    if (requestContext.rctx_httpFileHandle && requestContext.rctx_error == 0) {
-        DWORD nBufSize = 8192;
-        DWORD size;
-        requestContext.rctx_requestComplete = FALSE;
-        char* lpvBuffer = (char*)calloc(static_cast<size_t>(nBufSize) + 1, 1);
-        int nOffset = 0;
-        int nTotalRead = 0;
-        int nAvail = nBufSize;
-        if (lpvBuffer != NULL) {
-            while (InternetReadFile(requestContext.rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size) && size > 0) {
-                nTotalRead += size;
-                nOffset += size;
-                nAvail -= size;
-                if (nAvail == 0) {
-                    nAvail = 8192;
-                    nBufSize += nAvail;
-                    char* pNew = (char*)realloc(lpvBuffer, static_cast<size_t>(nBufSize) + 1);
-                    if (pNew == NULL) {
-                        nTotalRead = 0;
-                        break;
-                    }
-                    lpvBuffer = pNew;
-
-                }
-            }
-            if (nTotalRead > 0) {
-                lpvBuffer[nTotalRead] = 0;
-                *pLoaded = nTotalRead;
-                http_closeRequestContext(&requestContext);
-                return lpvBuffer;
-            }
-            free(lpvBuffer);
-        }
+    HINTERNET hFile;
+    hFile = InternetOpenUrl(pRequestContext->rctx_sessionHandle, szURL, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_PRAGMA_NOCACHE |
+        INTERNET_FLAG_NO_CACHE_WRITE, (DWORD_PTR) pRequestContext);
+    if (bAsync) {
+        return NULL;
     }
-    http_closeRequestContext(&requestContext);
-    return 0;
+    char* pResult = NULL;
+    if (hFile) {
+        pRequestContext->rctx_httpFileHandle = hFile;
+        pResult = loadimage_loadHttpFile(pRequestContext, pLoaded);
+    }
+    http_releaseRequestContext(pRequestContext);
+    return pResult;
 }
 
 static int loadimage_parseURL(char* pszUrl, URL *pURL) {
@@ -312,8 +436,6 @@ static HBITMAP CreateHBITMAP(IWICBitmapSource* ipBitmap) {
 
     return hbmp;
 }
-
-#define CLSID_SvgDecoder CLSID_WICRAWDecoder
 
 static GUID loadimage_getType(char* pszName) {
     GUID guid = { 0 };
@@ -462,43 +584,37 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     }
     return guid;
 }
-/*
- * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
- * If the image format is not supported return 0.
- */
-extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback) {
-    HBITMAP hbmpImage = NULL;
-    char* pszLoaded = NULL;
-    GUID guid;
-    URL url;
-    // load the PNG image data into a stream
-    UINT cbSize;
-    if (loadimage_parseURL(pszName, &url)) {
-        pszLoaded = http_loadData(&url, &cbSize, &pAsyncCallback);
-        url_free(&url);
-        if (pszLoaded == NULL) {
-            return NULL;
-        }
-        guid = loadimage_getTypeFromContent(pszLoaded, cbSize);
-    } else {
-        guid = loadimage_getType(pszName);
-    }
 
+/*
+ * Load the image from a given file name or from a data buffer with a given size.
+ * The pszData buffer must be allocated before and will be released as a side effect of calling this method.
+ */
+static HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
+    HBITMAP hbmpImage = NULL;
+    GUID guid = { 0 };
+    if (pszData != NULL) {
+        guid = loadimage_getTypeFromContent(pszData, cbSize);
+    } else if (pszFileName != NULL) {
+        guid = loadimage_getType(pszFileName);
+    }
     if (guid.Data1 == 0) {
-        free(pszLoaded);
+        free(pszData);
         return NULL;
     }
-    IStream* ipImageStream = pszLoaded == NULL ? CreateStreamOnResource(pszName) : SHCreateMemStream((const BYTE*)pszLoaded, cbSize);
+    IStream* ipImageStream = pszData == NULL ? CreateStreamOnResource(pszFileName) : SHCreateMemStream((const BYTE*)pszData, cbSize);
     if (ipImageStream == NULL) {
-        free(pszLoaded);
+        free(pszData);
         return NULL;
     }
 
     if (guid == CLSID_SvgDecoder) {
         hbmpImage = load_bitmapFromSVG(ipImageStream);
-    } else {
+        http_trace(L"HTTP: Loading SVG image -> %lx\n", hbmpImage);
+    }
+    else {
         // load the bitmap with WIC
         IWICBitmapSource* ipBitmap = LoadBitmapFromStream(ipImageStream, guid);
+        http_trace(L"HTTP: Loaded arbitrary image -> %px\n", ipBitmap);
         if (ipBitmap != NULL) {
             // create a HBITMAP containing the image
             hbmpImage = CreateHBITMAP(ipBitmap);
@@ -508,4 +624,23 @@ extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOA
 
     ipImageStream->Release();
     return hbmpImage;
+}
+
+/*
+ * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
+ * If the image format is not supported return 0.
+ */
+extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback) {
+    char* pszLoaded = NULL;
+    URL url;
+    // load the PNG image data into a stream
+    UINT cbSize = 0;
+    if (loadimage_parseURL(pszName, &url)) {
+        pszLoaded = http_loadData(&url, &cbSize, &pAsyncCallback);
+        url_free(&url);
+        if (pszLoaded == NULL) {
+            return NULL;
+        }
+    }
+    return loadimage_fromFileOrData(pszName, pszLoaded, cbSize);
 }

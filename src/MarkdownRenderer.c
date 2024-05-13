@@ -743,12 +743,17 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	pPart->rvp_layouted = TRUE;
 }
 
+
 static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp) {
 	if (hBmp == NULL) {
 		return;
 	}
 	MD_IMAGE* pImage = (MD_IMAGE*)pParam;
 	pImage->mdi_image = hBmp;
+	WINFO* wp = ww_winfoFromWorkwinHandle(hwnd);
+	if (wp != NULL && wp->r_data != NULL) {
+		mdr_invalidateViewpartsLayout(wp->r_data);
+	}
 	InvalidateRect(hwnd, NULL, FALSE);
 }
 

@@ -15,15 +15,19 @@
 #define ENUMFUNC   	BOOL FPE_FUNC
 #define DLGFUNC   	BOOL FPE_FUNC
 
+typedef struct tagBG_TASK {
+	void (*bg_taskFunction)(struct tagBG_TASK* pParam);
+} BG_TASK;
+
 /* PKS Edit private messages */
-#define	WM_EDWINREORG		WM_USER + 101	/* reorganize edit window */
-#define	WM_PKSKEY			WM_USER + 102	/* private key binding */
-#define	WM_PKSKEYDOWN		WM_USER + 103	/* private key down */
-#define	WM_PKSOPTOGGLE		WM_USER + 104	/* option toggle pressed */
-#define	WM_ICONDROP			WM_USER + 105	/* something dropped on icon */
-#define	WM_ICONSELECT		WM_USER + 106	/* select icon picture */
-#define	WM_PROFSAVE			WM_USER + 107	/* save profile item data */
-#define	WM_TASKFINISHED		WM_USER + 109	/* spawned task has finished */
+#define	WM_EDWINREORG				WM_USER + 101	/* reorganize edit window */
+#define	WM_PKSKEY					WM_USER + 102	/* private key binding */
+#define	WM_PKSKEYDOWN				WM_USER + 103	/* private key down */
+#define	WM_PKSOPTOGGLE				WM_USER + 104	/* option toggle pressed */
+#define	WM_ICONDROP					WM_USER + 105	/* something dropped on icon */
+#define	WM_ICONSELECT				WM_USER + 106	/* select icon picture */
+#define	WM_PROFSAVE					WM_USER + 107	/* save profile item data */
+#define	WM_BACKGROUND_TASK_FINISHED	WM_USER + 109	/* a task from has finished. LPARAM is a pointer to a BG_TASK structure */
 
 /* PKS global private message */
 #define	WM_PKSBROADCAST		_wm_pksbroadcast	/* talk with brothers */
