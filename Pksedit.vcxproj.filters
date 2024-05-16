@@ -729,6 +729,17 @@
     <Image Include="rc\broken_image.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\..\Users\tom\Downloads\pngwing.com.png" />
+    <Image Include="rc\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\image_loading.png" />
+    <Image Include="image_loading.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rc\image_loading.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />

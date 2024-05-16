@@ -50,7 +50,8 @@
 #define IDS_PKS_SYS_NOT_FOUND           208
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
-#define IDB_BITMAP1                     235
+#define IDB_BROKEN_IMAGE                235
+#define IDI_LOADING_IMAGE               239
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
 #define DLG_OPT_WARNINGS                556
@@ -86,7 +87,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        236
+#define _APS_NEXT_RESOURCE_VALUE        240
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           101

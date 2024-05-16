@@ -197,8 +197,10 @@ typedef struct tagMD_IMAGE {
 	int					mdi_borderWidth;
 	COLORREF			mdi_borderColor;
 	// TRUE, if this is a cached image
-	BOOL				mdi_cached;
-	HBITMAP				mdi_image;
+	BOOL				mdi_cached : 1;
+	// If the mdi_image is an icon.
+	BOOL				mdi_icon : 1;
+	HANDLE				mdi_image;
 } MD_IMAGE;
 
 typedef enum {
@@ -745,11 +747,12 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 
 
 static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp) {
-	if (hBmp == NULL) {
-		return;
-	}
 	MD_IMAGE* pImage = (MD_IMAGE*)pParam;
+	if (hBmp == NULL) {
+		hBmp = LoadImage(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE), 0, 0, 0, 0);
+	}
 	pImage->mdi_image = hBmp;
+	pImage->mdi_icon = FALSE;
 	WINFO* wp = ww_winfoFromWorkwinHandle(hwnd);
 	if (wp != NULL && wp->r_data != NULL) {
 		mdr_invalidateViewpartsLayout(wp->r_data);
@@ -766,25 +769,38 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, MD_IMAGE* pImage, const char* psz
 				.ila_completionParam = pImage,
 				.ila_hwnd = hwnd
 			};
-			pImage->mdi_image = loadimage_load((char*)pszImageName, async);
+			IMAGE_LOAD_RESULT result = loadimage_load((char*)pszImageName, async);
+			if (result.ilr_bitmap != NULL) {
+				pImage->mdi_image = result.ilr_bitmap;
+			} else if (result.ilr_loading) {
+				pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOADING_IMAGE));
+				pImage->mdi_icon = TRUE;
+			}
 		} else {
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
 		if (pImage->mdi_image == NULL) {
-			pImage->mdi_image = LoadImage(hInst, MAKEINTRESOURCE(IDB_BITMAP1), 0, 0, 0, 0);
+			pImage->mdi_image = LoadImage(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE), 0, 0, 0, 0);
 		}
 	}
 	if (pImage->mdi_image) {
+		HBITMAP hbmp = pImage->mdi_image;
+		if (pImage->mdi_icon) {
+			ICONINFO info = { 0 };
+			info.fIcon = TRUE;
+			GetIconInfo(pImage->mdi_image, &info);
+			hbmp = info.hbmColor;
+		}
 		BITMAP bitmap = { 0 };
-		GetObject(pImage->mdi_image, sizeof(bitmap), &bitmap);
+		GetObject(hbmp, sizeof(bitmap), &bitmap);
 		if (bitmap.bmWidth == 0 || bitmap.bmHeight == 0) {
 			return FALSE;
 		}
 		*pOrigWidth = bitmap.bmWidth;
 		*pOrigHeight = bitmap.bmHeight;
-		* pWidth = pImage->mdi_width ? pImage->mdi_width :
+		*pWidth = pImage->mdi_width ? pImage->mdi_width :
 			(pImage->mdi_height ? bitmap.bmWidth * pImage->mdi_height / bitmap.bmHeight : bitmap.bmWidth);
-		* pHeight = pImage->mdi_height ? pImage->mdi_height :
+		*pHeight = pImage->mdi_height ? pImage->mdi_height :
 			(pImage->mdi_width ? bitmap.bmHeight * pImage->mdi_width / bitmap.bmWidth : bitmap.bmHeight);
 		return TRUE;
 	}
@@ -815,13 +831,17 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 		nHeight = (int)(nHeight * zoomFactor);
 		int nBorder = pImage->mdi_borderWidth;
 		if (!bMeasureOnly) {
-			hdcMem = CreateCompatibleDC(hdc);
-			oldBitmap = SelectObject(hdcMem, pImage->mdi_image);
-			SetStretchBltMode(hdc, COLORONCOLOR);
 			int nDelta = nBorder / 2;
-			StretchBlt(hdc, x+nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, nOrigWidth, nOrigHeight, SRCCOPY);
-			SelectObject(hdcMem, oldBitmap);
-			DeleteDC(hdcMem);
+			if (pImage->mdi_icon) {
+				DrawIcon(hdc, x + nDelta, y + nDelta, pImage->mdi_image);
+			} else {
+				hdcMem = CreateCompatibleDC(hdc);
+				oldBitmap = SelectObject(hdcMem, pImage->mdi_image);
+				SetStretchBltMode(hdc, COLORONCOLOR);
+				StretchBlt(hdc, x + nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, nOrigWidth, nOrigHeight, SRCCOPY);
+				SelectObject(hdcMem, oldBitmap);
+				DeleteDC(hdcMem);
+			}
 			if (nBorder) {
 				HPEN hPen = CreatePen(PS_SOLID, nBorder, pImage->mdi_borderColor);
 				HBRUSH hBrush = GetStockBrush(NULL_BRUSH);

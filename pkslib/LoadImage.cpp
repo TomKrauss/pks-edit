@@ -180,20 +180,16 @@ static void http_onWmThread(void* p) {
     http_trace(L"HTTP executing callback %lx on WM thread\n", p);
     REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)p;
     HBITMAP hbmp = loadimage_fromFileOrData(NULL, pRequestContext->rctx_data, pRequestContext->rctx_dataSize);
-    if (hbmp != NULL) {
-        pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp);
-    }
+    pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp);
     http_trace(L"HTTP freeing request context on WM thread\n");
     free(pRequestContext);
 }
 
 static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
     pRequestContext->rctx_data = loadimage_loadHttpFile(pRequestContext, &pRequestContext->rctx_dataSize);
-    if (pRequestContext->rctx_data != NULL) {
-        pRequestContext->rctx_complete = http_onWmThread;
-        http_trace(L"HTTP posting image load %lx to WM thread\n", pRequestContext);
-        PostMessage(pRequestContext->rctx_callback.ila_hwnd, WM_BACKGROUND_TASK_FINISHED, 0, (LPARAM)pRequestContext);
-    }
+    pRequestContext->rctx_complete = http_onWmThread;
+    http_trace(L"HTTP posting image load %lx to WM thread\n", pRequestContext);
+    PostMessage(pRequestContext->rctx_callback.ila_hwnd, WM_BACKGROUND_TASK_FINISHED, 0, (LPARAM)pRequestContext);
     http_releaseRequestContext(pRequestContext);
 }
 
@@ -226,7 +222,7 @@ static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD d
         }
         LeaveCriticalSection(&section);
         DeleteCriticalSection(&section);
-        if (pRequestContext->rctx_data == NULL) {
+        if (pResult->dwError) {
             http_trace(L"HTTP freeing request context %p\n", handle);
             free(pRequestContext);
         }
@@ -630,17 +626,24 @@ static HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cb
  * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
  * If the image format is not supported return 0.
  */
-extern "C" __declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback) {
+extern "C" __declspec(dllexport) IMAGE_LOAD_RESULT loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback) {
     char* pszLoaded = NULL;
     URL url;
     // load the PNG image data into a stream
     UINT cbSize = 0;
+    IMAGE_LOAD_RESULT result = { 0 };
+
     if (loadimage_parseURL(pszName, &url)) {
         pszLoaded = http_loadData(&url, &cbSize, &pAsyncCallback);
         url_free(&url);
         if (pszLoaded == NULL) {
-            return NULL;
+            result.ilr_loading = TRUE;
+            return result;
         }
     }
-    return loadimage_fromFileOrData(pszName, pszLoaded, cbSize);
-}
+    result.ilr_bitmap = loadimage_fromFileOrData(pszName, pszLoaded, cbSize);
+    if (result.ilr_bitmap == NULL) {
+        result.ilr_notFound = TRUE;
+    }
+    return result;
+}   

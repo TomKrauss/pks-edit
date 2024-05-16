@@ -31,6 +31,12 @@ typedef struct tagIMAGE_LOAD_ASYNC {
     HWND ila_hwnd;
 } IMAGE_LOAD_ASYNC;
 
+typedef struct tagIMAGE_LOAD_RESULT {
+    HBITMAP ilr_bitmap;
+    BOOL    ilr_loading : 1;
+    BOOL    ilr_notFound : 1;
+} IMAGE_LOAD_RESULT;
+
 /*
  * Loads an image with a given name into a HBITMAP trying various formats for loading the image.
  * If the image format is not supported return 0.
@@ -38,7 +44,7 @@ typedef struct tagIMAGE_LOAD_ASYNC {
 #ifdef __cplusplus
 extern "C" 
 #endif
-__declspec(dllexport) HBITMAP loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback);
+__declspec(dllexport) IMAGE_LOAD_RESULT loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback);
 
 #define LOADIMAGE_H
 #endif
