@@ -746,13 +746,19 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 }
 
 
-static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp) {
-	MD_IMAGE* pImage = (MD_IMAGE*)pParam;
+static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp, int dwError) {
+	TEXT_RUN* pRun = (TEXT_RUN*)pParam;
+	MD_IMAGE* pImage = pRun->tr_data.tr_image;
 	if (hBmp == NULL) {
-		hBmp = LoadImage(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE), 0, 0, 0, 0);
+		char szTitle[128];
+		wsprintf(szTitle, "Image load error %d", dwError);
+		pRun->tr_title = _strdup(szTitle);
+		pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
+		pImage->mdi_icon = TRUE;
+	} else {
+		pImage->mdi_image = hBmp;
+		pImage->mdi_icon = FALSE;
 	}
-	pImage->mdi_image = hBmp;
-	pImage->mdi_icon = FALSE;
 	WINFO* wp = ww_winfoFromWorkwinHandle(hwnd);
 	if (wp != NULL && wp->r_data != NULL) {
 		mdr_invalidateViewpartsLayout(wp->r_data);
@@ -760,13 +766,15 @@ static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp) {
 	InvalidateRect(hwnd, NULL, FALSE);
 }
 
-static BOOL mdr_loadAndMeasureImage(HWND hwnd, MD_IMAGE* pImage, const char* pszImageName, int *pWidth, int * pHeight, int *pOrigWidth, int *pOrigHeight) {
+static BOOL mdr_loadAndMeasureImage(HWND hwnd, TEXT_RUN* pRun, int *pWidth, int * pHeight, int *pOrigWidth, int *pOrigHeight) {
+	MD_IMAGE* pImage = pRun->tr_data.tr_image;
+	char* pszImageName = pRun->tr_imageUrl;
 	if (!pImage->mdi_image) {
 		char* pszExt = strrchr(pszImageName, '.');
 		if (pszExt && _stricmp(pszExt + 1, "bmp") != 0) {
 			IMAGE_LOAD_ASYNC async = {
 				.ila_complete = mdr_imageLoaded,
-				.ila_completionParam = pImage,
+				.ila_completionParam = pRun,
 				.ila_hwnd = hwnd
 			};
 			IMAGE_LOAD_RESULT result = loadimage_load((char*)pszImageName, async);
@@ -780,7 +788,8 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, MD_IMAGE* pImage, const char* psz
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
 		if (pImage->mdi_image == NULL) {
-			pImage->mdi_image = LoadImage(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE), 0, 0, 0, 0);
+			pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
+			pImage->mdi_icon = TRUE;
 		}
 	}
 	if (pImage->mdi_image) {
@@ -790,6 +799,9 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, MD_IMAGE* pImage, const char* psz
 			info.fIcon = TRUE;
 			GetIconInfo(pImage->mdi_image, &info);
 			hbmp = info.hbmColor;
+			if (hbmp == NULL) {
+				return FALSE;
+			}
 		}
 		BITMAP bitmap = { 0 };
 		GetObject(hbmp, sizeof(bitmap), &bitmap);
@@ -821,7 +833,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 	int nHeight;
 	int nOrigWidth;
 	int nOrigHeight;
-	if (mdr_loadAndMeasureImage(WindowFromDC(hdc), pImage, pTR->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
+	if (mdr_loadAndMeasureImage(WindowFromDC(hdc), pTR, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight)) {
 		HGDIOBJ         oldBitmap;
 		HDC             hdcMem;
 		if (nWidth > nMaxWidth) {
@@ -2410,7 +2422,7 @@ static void mdr_finishTableSetup(RENDER_TABLE* pTable) {
 					int nHeight;
 					int nOrigWidth;
 					int nOrigHeight;
-					mdr_loadAndMeasureImage(NULL, pRun->tr_data.tr_image, pRun->tr_imageUrl, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
+					mdr_loadAndMeasureImage(NULL, pRun, &nWidth, &nHeight, &nOrigWidth, &nOrigHeight);
 				} else {
 					size_t nLen = strlen(pCell->rtc_flow.tf_text);
 					if (nLen > 100) {
@@ -4289,12 +4301,12 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 	toolinfo.cbSize = sizeof(toolinfo);
 	toolinfo.hwnd = hwnd;
 	toolinfo.hinst = hInst;
-	if (pMatchR && pMatchR->tr_title && pData->md_caretView) {
+	if (pMatchR && pMatchR->tr_title) {
 		// Activate the tooltip.
 		toolinfo.lpszText = pMatchR->tr_title;
 		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
 		POINT pt;
-		RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView, pMatchR);
+		RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView != NULL ? pData->md_caretView : pMatchP, pMatchR);
 		pt.x = rb.left1;
 		pt.y = y - 20;
 		ClientToScreen(hwnd, &pt);

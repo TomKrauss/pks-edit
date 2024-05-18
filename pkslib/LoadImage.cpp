@@ -70,6 +70,7 @@ typedef struct tagREQUEST_CONTEXT {
     char*            rctx_data;
     DWORD            rctx_error;
     UINT             rctx_dataSize;
+    BOOL             rctx_posted;
     IMAGE_LOAD_ASYNC rctx_callback;
 } REQUEST_CONTEXT;
 
@@ -149,7 +150,12 @@ static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoa
             http_trace(L"HTTP load image from http file cannot alloc %lx\n", nBufSize);
             return NULL;
         }
-        while (InternetReadFile(pRequestContext->rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size) && size > 0) {
+        while (TRUE) {
+            size = 0;
+            InternetReadFile(pRequestContext->rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size);
+            if (!size) {
+                break;
+            }
             nTotalRead += size;
             nOffset += size;
             nAvail -= size;
@@ -179,13 +185,18 @@ static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoa
 static void http_onWmThread(void* p) {
     http_trace(L"HTTP executing callback %lx on WM thread\n", p);
     REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)p;
-    HBITMAP hbmp = loadimage_fromFileOrData(NULL, pRequestContext->rctx_data, pRequestContext->rctx_dataSize);
-    pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp);
+    HBITMAP hbmp = pRequestContext->rctx_error ? NULL : loadimage_fromFileOrData(NULL, pRequestContext->rctx_data, pRequestContext->rctx_dataSize);
+    pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp, 
+        pRequestContext->rctx_error);
     http_trace(L"HTTP freeing request context on WM thread\n");
     free(pRequestContext);
 }
 
 static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
+    if (pRequestContext->rctx_complete) {
+        http_trace(L"HTTP avoid double posting image with context %lx to WM thread\n", pRequestContext);
+        return;
+    }
     pRequestContext->rctx_data = loadimage_loadHttpFile(pRequestContext, &pRequestContext->rctx_dataSize);
     pRequestContext->rctx_complete = http_onWmThread;
     http_trace(L"HTTP posting image load %lx to WM thread\n", pRequestContext);
@@ -207,6 +218,7 @@ static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD d
             return;
         }
         http_trace(L"HTTP Load Status REQUEST Complete %p\n", handle);
+        pRequestContext->rctx_error = pResult->dwError;
         if (pResult->dwError) {
             http_traceError(L"HTTP Load error: %s\n", pResult->dwError);
         }
@@ -215,17 +227,9 @@ static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD d
             http_trace(L"HTTP Load Status REQUEST complete double call\n");
             return;
         }
-        if (!pResult->dwError) {
-            http_onImageRequestComplete(pRequestContext);
-        } else {
-            http_releaseRequestContext(pRequestContext);
-        }
+        http_onImageRequestComplete(pRequestContext);
         LeaveCriticalSection(&section);
         DeleteCriticalSection(&section);
-        if (pResult->dwError) {
-            http_trace(L"HTTP freeing request context %p\n", handle);
-            free(pRequestContext);
-        }
     }
 }
 

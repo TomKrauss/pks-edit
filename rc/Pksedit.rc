@@ -815,6 +815,7 @@ IDC_CURSOR2             CURSOR                  "mini move.cur"
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_LOADING_IMAGE       ICON                    "image_loading.ico"
+IDB_BROKEN_IMAGE        ICON                    "broken_image.ico"
 
 APP_ICON                ICON                    "pks.ico"
 
@@ -837,12 +838,12 @@ TEMPLATE                ICON                    "template.ico"
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE
 BEGIN
     "pksrc.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -853,7 +854,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE
 BEGIN
     "\r\n"
     "\0"
@@ -1238,14 +1239,6 @@ IDS_FONT_AWESOME_REGULAR FONT                    "Font Awesome 6 Free-Regular-40
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_BROKEN_IMAGE        BITMAP                  "broken_image.bmp"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -1428,11 +1421,11 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT 
+    IDS_ENTER_PASSWORD_TO_DECRYPT
                             "Geben Sie das Passwort zum Enschlüsseln von %s ein:"
     IDS_INSERT              "Einfügen"
     IDS_CREATE_BUFFER       "Anlegen"
-    IDS_NO_EVALUATION_SUPPORTED 
+    IDS_NO_EVALUATION_SUPPORTED
                             "Die Grammatik der aktuellen Datei unterstützt keine Code Evaluierung."
     IDS_EVALUATION_FAILED   "Die Code Evaluierung ist fehl geschlagen."
     IDS_MSGRE_UNDEFINED_BACKREF "Noch nicht definierter Bezug"
@@ -1440,11 +1433,11 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "mittel"
     203                     "groß"
     IDS_ICON_SIZE_LARGE     "sehr groß"
-    IDS_TT_SORT_FIELD_SEPARATOR 
+    IDS_TT_SORT_FIELD_SEPARATOR
                             "Geben Sie die Trennzeichen für die Trennung in Felder ein, z.B. ""\\t ,;"" um Tabs, Leerzeichen, Komma oder Semikolon zu verwenden"
-    IDS_TT_SORT_FIELD_OPTIONS 
+    IDS_TT_SORT_FIELD_OPTIONS
                             "Geben Sie die Vergleichsoptionen für das Sortieren von Feldern / Spalten mit folgender Syntax an: {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+. Sortfelddefinitionen werden mit , getrennt. l wird von Zeilennummer (in Records) gefolgt, f ist die Feldnummer\n w ist die Breite des Felds\n und o ist der Offset eines Felds.\nOptionen für das Sortieren eines Felds: d = numerischer Vergleich, D = Datumsvergleich,  i = Ignoriere Groß/Klein, b = Leerzeichen ignorieren, a = Schlüsselwortzeichen für den Vergleich verwenden, - = absteigend sortieren"
-    IDS_WARN_FILE_MOVED_OR_DELETED 
+    IDS_WARN_FILE_MOVED_OR_DELETED
                             "Die Datei %s wurde verschoben oder gelöscht"
 END
 
@@ -1455,7 +1448,7 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d mal gefunden"
     IDS_WINDOWLIST          "Fensterliste"
     IDS_SELECTCOMPILEWINDOW "Datei - Auswahl für die Compilation"
-    IDS_TT_REGULAR_EXPRESSION 
+    IDS_TT_REGULAR_EXPRESSION
                             "Reguläre Ausdrücke unterstützen die folgenden Sonderzeichen:\r\n""."" - (alle Zeichen)\r\n""[a-z]"" - alle Zeichen a-z\r\n""*"" - (eine beliebige Anzahl Vorkommen)\r\n""+"" - 1 Vorkommen\r\n""{x,y}"" - mindestens x, maximal y Vorkommen"
     IDS_TT_PRESERVE_CASE    "Beim Ersetzen bleibt die Groß- Kleinschreibung des Ausgangstextes erhalten.\r\nBeispiel: ersetzt man das Wort ""Der"" durch ""die"" entsteht ""Die""."
     IDS_FILE_MODIFIED       "Geändert"
@@ -1463,7 +1456,7 @@ BEGIN
     IDS_SEARCH              "Inkrementell suchen"
     IDS_STATUSLINE          "Z: %2d$l, S: %2d$c!%s$&"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
-    IDS_ENTER_PASSWORD_TO_ENCRYPT 
+    IDS_ENTER_PASSWORD_TO_ENCRYPT
                             "Geben Sie das Passwort zum Verschlüsseln von %s ein:"
 END
 
@@ -1487,7 +1480,7 @@ BEGIN
     IDM_VIEW_BINDINGS_MENU  "Übersicht"
     IDM_MORESETTINGS_MENU   "Weitere Einstellungen"
     IDM_COMPARE_FILES       "Dateien vergleichen"
-    IDS_TRYING_TO_OPEN_TOO_MANY_FILES 
+    IDS_TRYING_TO_OPEN_TOO_MANY_FILES
                             "!Sie versuchen mehr Dateien als das konfigurierte Maximum von %d Dateien auf einmal zu öffnen."
 END
 

@@ -16,9 +16,10 @@
 
 typedef struct tagIMAGE_LOAD_ASYNC {
     /*
-     * Invoked after an image had been loaded.
+     * Invoked after an image had been loaded. Pass ila_completionParam as param, the bitmap loaded
+     * and the error which occurred, if the bitmap is NULL and could not be loaded.
      */
-    void (*ila_complete)(HWND hwnd, void* param, HBITMAP bitmap);
+    void (*ila_complete)(HWND hwnd, void* param, HBITMAP bitmap, int dwEror);
     /*
      * 1st param to pass to ila_complete.
      */
