@@ -20,6 +20,7 @@
 #include <CommCtrl.h>
 #include <Shlwapi.h>
 #include <stdio.h>
+#include <wininet.h>
 
 #include "winfo.h"
 #include "pksrc.h"
@@ -749,11 +750,20 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp, int dwError) {
 	TEXT_RUN* pRun = (TEXT_RUN*)pParam;
 	MD_IMAGE* pImage = pRun->tr_data.tr_image;
+	if (pImage->mdi_image) {
+		DeleteObject(pImage->mdi_image);
+		pImage->mdi_image = NULL;
+	}
 	if (hBmp == NULL) {
+		if (dwError != ERROR_INTERNET_CONNECTION_RESET) {
+			pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
+		}
 		char szTitle[128];
 		wsprintf(szTitle, "Image load error %d", dwError);
+		if (pRun->tr_title) {
+			free(pRun->tr_title);
+		}
 		pRun->tr_title = _strdup(szTitle);
-		pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
 		pImage->mdi_icon = TRUE;
 	} else {
 		pImage->mdi_image = hBmp;

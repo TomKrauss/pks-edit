@@ -71,6 +71,7 @@ typedef struct tagREQUEST_CONTEXT {
     DWORD            rctx_error;
     UINT             rctx_dataSize;
     BOOL             rctx_posted;
+    BOOL             rctx_requestComplete;
     IMAGE_LOAD_ASYNC rctx_callback;
 } REQUEST_CONTEXT;
 
@@ -134,6 +135,7 @@ static void http_releaseRequestContext(REQUEST_CONTEXT* pContext) {
         pContext->rctx_sessionHandle = NULL;
     }
     http_trace(L"HTTP released request context %lx\n", handle);
+    free(pContext);
 }
 
 static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoaded) {
@@ -152,9 +154,18 @@ static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoa
         }
         while (TRUE) {
             size = 0;
-            InternetReadFile(pRequestContext->rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size);
-            if (!size) {
+            BOOL bResult = InternetReadFile(pRequestContext->rctx_httpFileHandle, &lpvBuffer[nOffset], nAvail, &size);
+            if (bResult && !size) {
                 break;
+            }
+            if (!bResult) {
+                DWORD error = GetLastError();
+                http_traceError(L"HTTP load InternetReadFile failed with %s. Retrying...", error);
+                if (error == ERROR_INVALID_HANDLE) {
+                    nTotalRead = 0;
+                    break;
+                }
+                Sleep(100);
             }
             nTotalRead += size;
             nOffset += size;
@@ -189,7 +200,7 @@ static void http_onWmThread(void* p) {
     pRequestContext->rctx_callback.ila_complete(pRequestContext->rctx_callback.ila_hwnd, pRequestContext->rctx_callback.ila_completionParam, hbmp, 
         pRequestContext->rctx_error);
     http_trace(L"HTTP freeing request context on WM thread\n");
-    free(pRequestContext);
+    http_releaseRequestContext(pRequestContext);
 }
 
 static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
@@ -197,11 +208,10 @@ static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
         http_trace(L"HTTP avoid double posting image with context %lx to WM thread\n", pRequestContext);
         return;
     }
-    pRequestContext->rctx_data = loadimage_loadHttpFile(pRequestContext, &pRequestContext->rctx_dataSize);
+    pRequestContext->rctx_data = pRequestContext->rctx_error ? NULL : loadimage_loadHttpFile(pRequestContext, &pRequestContext->rctx_dataSize);
     pRequestContext->rctx_complete = http_onWmThread;
     http_trace(L"HTTP posting image load %lx to WM thread\n", pRequestContext);
     PostMessage(pRequestContext->rctx_callback.ila_hwnd, WM_BACKGROUND_TASK_FINISHED, 0, (LPARAM)pRequestContext);
-    http_releaseRequestContext(pRequestContext);
 }
 
 static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpStatusInfo, DWORD dwStatusInfoLength) {
@@ -213,10 +223,15 @@ static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD d
     } else if (dwInternetStatus == INTERNET_STATUS_HANDLE_CLOSING) {
         SetEvent(pRequestContext->rctx_cleanupEvent);
     } else if (dwInternetStatus == INTERNET_STATUS_REQUEST_COMPLETE) {
+        if (pRequestContext->rctx_requestComplete) {
+            http_trace(L"HTTP Load Status REQUEST complete double call\n");
+            return;
+        }
         HINTERNET handle = pRequestContext->rctx_httpFileHandle;
         if (handle == NULL) {
             return;
         }
+        pRequestContext->rctx_requestComplete = TRUE;
         http_trace(L"HTTP Load Status REQUEST Complete %p\n", handle);
         pRequestContext->rctx_error = pResult->dwError;
         if (pResult->dwError) {
@@ -264,7 +279,7 @@ static char* http_loadData(URL* pURL, UINT* pLoaded, IMAGE_LOAD_ASYNC* pAsyncCal
 
     if (!pRequestContext->rctx_sessionHandle) {
         http_releaseRequestContext(pRequestContext);
-        return 0;
+        return NULL;
     }
 
     if (InternetSetStatusCallback(pRequestContext->rctx_sessionHandle, http_statusChanged) == INTERNET_INVALID_STATUS_CALLBACK) {
