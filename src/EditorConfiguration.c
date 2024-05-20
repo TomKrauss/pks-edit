@@ -65,7 +65,7 @@ static SEARCH_ENGINE _searchEngines[] = {
 	{"Babylon", "http://search.babylon.com/?q=$1"},
 	{"Kiddle", "https://www.kiddle.co/s.php?q=$1"},
 	{"Yandex", "https://yandex.com/search/?text=$1"},
-	{"Wolframe | Alpha", "https://www.wolframalpha.com/input/?i=$1"},
+	{"Wolfram|Alpha", "https://www.wolframalpha.com/input/?i=$1"},
 	0
 };
 
