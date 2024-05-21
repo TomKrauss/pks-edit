@@ -1803,6 +1803,14 @@ static void mainframe_updateTitle() {
 	SetWindowText(hwndMain, szTitle);
 }
 
+static void ww_propagateThemeChange() {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	while (wp) {
+		PostMessage(wp->ww_handle, WM_THEMECHANGED, 0, 0);
+		wp = wp->next;
+	}
+}
+
 /*
  * Window procedure of the main frame window.
  */
@@ -1968,14 +1976,51 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		}
 		break;
 	case WM_THEMECHANGED:
+		ww_propagateThemeChange();
 		darkmode_allowForApp(theme_getCurrent()->th_isDarkMode);
 		theme_enableDarkMode(hwndFrameWindow);
 		darkmode_flushMenuThemes();
 repaintUI:
 		tb_updateImageList(hwnd, NULL, 0);
-		RedrawWindow(hwndMain, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
-		// TODO: title bar is not correctly repainted upon theme change.
-		SetWindowPos(hwndMain, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+		RedrawWindow(hwnd, NULL, 0, RDW_INVALIDATE | RDW_ERASE | RDW_FRAME | RDW_ALLCHILDREN);
+		GetWindowRect(hwnd, &rect);
+		// This ugly hack is necessary to force Windows to correctly redraw the frame of PKS-Edit, when the theme changes.
+		if (IsZoomed(hwnd)) {
+			// Window is currently maximized.
+			WINDOWPLACEMENT placement = {0};
+			GetWindowPlacement(hwnd, &placement);
+
+			// Remember the old restore rect.
+			const RECT oldrect = placement.rcNormalPosition;
+
+			// Change the restore rect to almost the same as the current
+			// maximized rect.
+			placement.rcNormalPosition = rect;
+			placement.rcNormalPosition.right -= 1;
+			SetWindowPlacement(hwnd, &placement);
+
+			// Restore and then re-maximize the window. Don't update in-between.
+			LockWindowUpdate(hwnd);
+			ShowWindow(hwnd, SW_SHOWNORMAL);
+			ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+			LockWindowUpdate(NULL);
+
+			// Put back the old restore rect.
+			placement.rcNormalPosition = oldrect;
+			SetWindowPlacement(hwnd, &placement);
+		}
+		else {
+			HDWP defer = BeginDeferWindowPos(2);
+			DeferWindowPos(defer, hwnd, NULL, 0, 0,
+				rect.right - rect.left - 1, rect.bottom - rect.top,
+				SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+			DeferWindowPos(defer, hwnd, NULL, 0, 0, rect.right - rect.left,
+				rect.bottom - rect.top,
+				SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+			LockWindowUpdate(hwnd);
+			EndDeferWindowPos(defer);
+			LockWindowUpdate(NULL);
+		}
 		break;
 
 	case WM_NCHITTEST: {

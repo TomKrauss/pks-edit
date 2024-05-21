@@ -1247,6 +1247,9 @@ WINFUNC render_defaultWindowProc(
 		return 1;
 	}
 		
+	case WM_THEMECHANGED:
+		theme_enableDarkMode(hwnd);
+		break;
 
 	case WM_COMMAND: {
 		int nCommand = (int)wParam;
