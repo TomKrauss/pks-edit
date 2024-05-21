@@ -550,9 +550,18 @@ static LOGFONT _defaultFont = {
 	FF_DONTCARE, 		// lfPitchAndFamily;
 };
 
+static void mdr_releaseBitmapHandle(MD_IMAGE* pImage) {
+	if (pImage->mdi_image && !pImage->mdi_cached) {
+		DeleteObject(pImage->mdi_image);
+	}
+	pImage->mdi_image = NULL;
+	pImage->mdi_cached = FALSE;
+}
+
 static void mdr_assignImageUrl(HASHMAP* pImageCache, TEXT_RUN* pRun, char* pszImageUrl) {
 	HASH_ENTRY entry;
 	if (pImageCache && hashmap_getEntry(pImageCache, (intptr_t)pszImageUrl, &entry)) {
+		mdr_releaseBitmapHandle(pRun->tr_data.tr_image);
 		pRun->tr_data.tr_image->mdi_image = (HBITMAP)entry.he_value;
 		pRun->tr_data.tr_image->mdi_cached = TRUE;
 	}
@@ -750,10 +759,7 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp, int dwError) {
 	TEXT_RUN* pRun = (TEXT_RUN*)pParam;
 	MD_IMAGE* pImage = pRun->tr_data.tr_image;
-	if (pImage->mdi_image) {
-		DeleteObject(pImage->mdi_image);
-		pImage->mdi_image = NULL;
-	}
+	mdr_releaseBitmapHandle(pImage);
 	if (hBmp == NULL) {
 		if (dwError != ERROR_INTERNET_CONNECTION_RESET) {
 			pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
@@ -798,9 +804,6 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, TEXT_RUN* pRun, int *pWidth, int 
 				pImage->mdi_icon = TRUE;
 			}
 		} else {
-			if (pImage->mdi_image != NULL) {
-				DeleteObject(pImage->mdi_image);
-			}
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
 		if (pImage->mdi_image == NULL) {
@@ -3961,9 +3964,7 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 	free(pRun->tr_anchor);
 	MD_IMAGE* pImg = pRun->tr_data.tr_image;
 	if (pImg && !pRun->tr_isEmoji) {
-		if (pImg->mdi_image && !pImg->mdi_cached) {
-			DeleteObject(pImg->mdi_image);
-		}
+		mdr_releaseBitmapHandle(pImg);
 		free(pImg);
 	}
 	return 1;
@@ -4046,6 +4047,7 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 						hashmap_put(pData->md_imageCache, pRun->tr_imageUrl, (intptr_t)pRun->tr_data.tr_image->mdi_image);
 						pRun->tr_imageUrl = NULL;
 						pRun->tr_data.tr_image->mdi_image = NULL;
+						pRun->tr_data.tr_image->mdi_cached = FALSE;
 					}
 				}
 			}

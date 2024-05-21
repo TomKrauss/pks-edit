@@ -639,9 +639,9 @@ HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
     }
     // This will also release the pszData...
     ipImageStream->Release();
-    if (pszData) {
-        free(pszData);
-    }
+    //if (pszData) {
+    //    free(pszData);
+    //}
     return hbmpImage;
 }
 
@@ -669,4 +669,4 @@ extern "C" __declspec(dllexport) IMAGE_LOAD_RESULT loadimage_load(char* pszName,
         result.ilr_notFound = TRUE;
     }
     return result;
-}   
+}

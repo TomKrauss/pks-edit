@@ -35,7 +35,9 @@ static void image_freeData(WINFO* p) {
 	if (pData == NULL) {
 		return;
 	}
-	DeleteObject(pData->ird_handle);
+	if (pData->ird_handle) {
+		DeleteObject(pData->ird_handle);
+	}
 	free(pData);
 	p->r_data = NULL;
 }
@@ -68,6 +70,7 @@ static HANDLE image_createHandle(FTABLE* fp) {
 	}
 
 	HANDLE hRet = loadimage_fromFileOrData(NULL, p, (int) n);
+	free(p);
 	return hRet;
 }
 /*
