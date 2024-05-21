@@ -72,7 +72,8 @@ int sl_size(WINFO *wp) {
 		n = screenTop = 0;
 	} else {
 		screenTop = wp->minln;
-		long nlines = wp->renderer->r_calculateMaxLine(wp);
+		CALCULATE_MAX_LINE_FUNCTION pFunc = wp->renderer->r_calculateMaxLine;
+		long nlines = pFunc ? pFunc(wp) : 1;
 		n = nlines+1L;
 	}
 	SetWin32ScrollInfo(wp, SB_VERT, screenTop, wp->maxln - wp->minln + 1, n);
@@ -81,7 +82,8 @@ int sl_size(WINFO *wp) {
 		n = 0;
 	} else {
 		if (wp->maxVisibleLineLen < 0) {
-			wp->maxVisibleLineLen = wp->renderer->r_calculateMaxScreenColumn(wp);
+			CALCULATE_MAX_LINE_FUNCTION pFunc = wp->renderer->r_calculateMaxScreenColumn;
+			wp->maxVisibleLineLen = pFunc ? pFunc(wp) : 1;
 		}
 		n = wp->mincol;
 		if (n > wp->maxVisibleLineLen) {
@@ -137,7 +139,8 @@ int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 	} 
 
 	if (dy) {
-		long nlines = wp->renderer->r_calculateMaxLine(wp);
+		CALCULATE_MAX_LINE_FUNCTION pFunc = wp->renderer->r_calculateMaxLine;
+		long nlines = pFunc ? pFunc(wp) : 1;
 		val = sl_calcnewmin(dy,nlines,wp->minln);
 		*pDeltaY = val-wp->minln;
 		wp->minln = val;
@@ -159,7 +162,10 @@ void sl_winchanged(WINFO *wp,long dy, long dx) {
 
 	if ((dy < my && dy > -my) && 
 	    (dx < mx && dx > -mx)) {
-		wp->renderer->r_scroll(wp,(int)dy,(int)dx);
+		RENDERER_SCROLL pFunc = wp->renderer->r_scroll;
+		if (pFunc) {
+			pFunc(wp, (int)dy, (int)dx);
+		}
 	} else {
 		if (wp->lineNumbers_handle && dy != 0) {
 			win_sendRedrawToWindow(wp->lineNumbers_handle);
@@ -265,6 +271,9 @@ int EdScrollScreen(WINFO* wp, int mtype)
 	}
 
 	dln *= _multiplier;
+	if (!wp->renderer->r_calculateMaxLine) {
+		return 0;
+	}
 	long nlines = wp->renderer->r_calculateMaxLine(wp);
 	if ((ln = wp->caret.ln+dln) < 0 ||ln >= nlines)
 		return 0;

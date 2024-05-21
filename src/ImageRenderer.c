@@ -134,9 +134,9 @@ static void image_paintWindowParams(WINFO* wp) {
 static LRESULT image_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	switch (message) {
-	case WM_SHOWWINDOW:
 	case WM_SIZE:
-		return 0;
+		InvalidateRect(hwnd, NULL, TRUE);
+		break;
 	case WM_PAINT: {
 		WINFO* wp = ww_winfoFromWorkwinHandle(hwnd);
 		if (wp != 0) {
