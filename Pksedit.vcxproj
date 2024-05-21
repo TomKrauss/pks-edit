@@ -314,6 +314,7 @@
     <ClCompile Include="src\CodeCompletion.c" />
     <ClCompile Include="src\HexRenderer.c" />
     <ClCompile Include="src\DpiSupport.c" />
+    <ClCompile Include="src\ImageRenderer.c" />
     <ClCompile Include="src\MacroMemory.c" />
     <ClCompile Include="src\MacroRecorder.c" />
     <ClCompile Include="src\MacroDebugger.c" />

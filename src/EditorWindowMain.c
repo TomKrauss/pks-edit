@@ -70,6 +70,7 @@ extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int s
 extern RENDERER* hex_getRenderer();
 extern RENDERER* mdr_getRenderer();
 extern RENDERER* mdr_getHTMLRenderer();
+extern RENDERER* image_getRenderer();
 
 #define  LINE_ANNOTATION_WIDTH			5
 #define  LINE_ANNOATION_PADDING			2
@@ -642,7 +643,10 @@ void ww_modeChanged(WINFO* wp) {
 
 	wp->scroll_dx = 4;
 	ww_setScrollCheckBounds(wp);
-	wp->renderer->r_adjustScrollBounds(wp);
+	RENDERER_SCROLL_SET_BOUNDS pFunc = wp->renderer->r_adjustScrollBounds;
+	if (pFunc) {
+		pFunc(wp);
+	}
 	win_sendRedrawToWindow(wp->ww_handle);
 	if (wp->lineNumbers_handle) {
 		win_sendRedrawToWindow(wp->lineNumbers_handle);
@@ -1687,6 +1691,7 @@ int ww_register(void) {
 	ww_registerRenderer("hex", hex_getRenderer());
 	ww_registerRenderer("markdown", mdr_getRenderer());
 	ww_registerRenderer("html", mdr_getHTMLRenderer());
+	ww_registerRenderer("image", image_getRenderer());
 	return 1;
 }
 

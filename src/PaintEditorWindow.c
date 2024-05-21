@@ -551,7 +551,8 @@ struct tagLINE_REDRAW {
 };
 
 static int render_repaintLineForWindow(WINFO* wp, struct tagLINE_REDRAW* pRedraw) {
-	return wp->renderer->r_repaint(wp, pRedraw->ln, pRedraw->ln, pRedraw->col1, pRedraw->col2);
+	RENDERER_REPAINT pFunc = wp->renderer->r_repaint;
+	return pFunc && pFunc(wp, pRedraw->ln, pRedraw->ln, pRedraw->col1, pRedraw->col2);
 }
 
 int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCol, int nLastCol) {

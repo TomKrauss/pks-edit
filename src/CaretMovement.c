@@ -422,7 +422,8 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
  * cursor absolut positioning for the given file.
  */
 EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol, int xDelta) {
-	if (!wp->renderer->r_placeCaret(wp, &ln, col, &screenCol, 1, xDelta)) {
+	PLACE_CARET_FUNCTION pFunc = wp->renderer->r_placeCaret;
+	if (!pFunc || !pFunc(wp, &ln, col, &screenCol, 1, xDelta)) {
 		return 0;
 	}
 	wt_curpos(wp, ln, screenCol);

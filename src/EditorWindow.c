@@ -162,7 +162,10 @@ int render_adjustScrollBounds(WINFO *wp) {
  */
 void ww_adjustWindowSizes() {
 	for (WINFO* wp = ww_getCurrentEditorWindow(); wp; ) {
-		wp->renderer->r_adjustScrollBounds(wp);
+		RENDERER_SCROLL_SET_BOUNDS pFunc = wp->renderer->r_adjustScrollBounds;
+		if (pFunc) {
+			pFunc(wp);
+		}
 		wp = wp->next;
 	}
 }
@@ -174,7 +177,10 @@ void wt_curpos(WINFO *wp, long ln, long col)
 {
 	caret_moveToLine(wp, ln);
 	wp->caret.col = col;
-	wp->renderer->r_adjustScrollBounds(wp);
+	RENDERER_SCROLL_SET_BOUNDS pFunc = wp->renderer->r_adjustScrollBounds;
+	if (pFunc) {
+		pFunc(wp);
+	}
 	render_updateCaret(wp);
 	if (wp->bXtndBlock) {
 		caret_extendSelection(wp);

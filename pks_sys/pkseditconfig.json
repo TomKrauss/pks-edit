@@ -255,6 +255,13 @@
       "filenamePatterns": "*.md"
     },
     {
+      "name": "svg",
+      "description": "SVG Files (*.svg)",
+      "grammar": "svg",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.svg"
+    },
+    {
       "name": "pksmacro",
       "description": "PKS Edit Macro Files (*.pkc,*.mac)",
       "grammar": "pksedit",

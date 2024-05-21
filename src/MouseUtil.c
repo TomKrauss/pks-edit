@@ -173,7 +173,11 @@ static MOUSE_DRAG_HANDLER* mouse_getDragHandler(WINFO* wp, int x, int y) {
 void caret_placeToXY(WINFO* wp, int x, int y) {
 	long col, ln;
 
-	wp->renderer->r_hitTest(wp, x, y, &ln, &col);
+	RENDERER_HIT_TEST pFunc = wp->renderer->r_hitTest;
+	if (!pFunc) {
+		return;
+	}
+	pFunc(wp, x, y, &ln, &col);
 	if (wp->renderer->r_placeCaretAfterClick(wp, &ln, &col, 1)) {
 		wt_curpos(wp, ln, col);
 	}

@@ -1,0 +1,97 @@
+{
+  "grammars": [
+    {
+      "scopeName": "svg",
+      "description": "SVG Images",
+      "wysiwygRenderer": "image",
+      "formatter": "text",
+      "highlightBrackets": [
+        {
+          "left": "\\< *([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
+          "right": "\\< */([a-zA-Z0-9_-]+)[^>]+[^/>]\\>",
+          "dynamic-match": true,
+          "regex": true
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "<!--",
+          "end": "-->",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "begin": "<![CDATA[",
+          "end": "]]>",
+          "style": "italic",
+          "name": "xml.cdata"
+        },
+        {
+          "keywords": [
+            "svg",
+            "path",
+            "text",
+            "style",
+            "circle",
+            "ellipse",
+            "rect",
+            "line",
+            "g"
+          ],
+          "style": "keyword",
+          "name": "keyword.cpp"
+        },
+        {
+          "match": "\\</?[a-zA-Z0-9_-]+",
+          "style": "annotation",
+          "name": "xml.start"
+        },
+        {
+          "match": "\\>",
+          "style": "keyword",
+          "name": "xml.end"
+        },
+        {
+          "match": "\\<\\? *[a-zA-Z]*",
+          "style": "italic",
+          "name": "xml.processing"
+        },
+        {
+          "match": "\\?\\>",
+          "style": "italic",
+          "name": "xml.processing.end"
+        },
+        {
+          "match": "\\<![^>-]+\\>",
+          "style": "hyperlink",
+          "name": "xml.meta"
+        },
+        {
+          "match": "(<[a-zA-Z_0-9:-]+>)\\s*=\\s*(\"[^\"]*\")",
+          "name": "string.xml.propertyDefinition",
+          "captures": [
+            {
+              "name": "string.xml.attribute"
+            },
+            {
+              "name": "string.xml.value"
+            }
+          ]
+        },
+        {
+          "match": "\\&[#a-z]+;",
+          "style": "annotation",
+          "name": "xml.entity"
+        },
+        {
+          "name": "string.xml.attribute",
+          "style": "literal"
+        },
+        {
+          "name": "string.xml.value",
+          "style": "bold-italic"
+        }
+      ]
+    }
+  ]
+}
