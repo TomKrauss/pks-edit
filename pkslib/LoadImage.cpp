@@ -559,13 +559,15 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
         dc->DrawSvgDocument(svg);
         hr = target->EndDraw();
     }
+    svg->Release();
     target->Release();
     if (hbmpOld != nullptr) {
         SelectObject(hdc, hbmpOld);
     }
-    ReleaseDC(0, hdc);
+    ReleaseDC(NULL, hdc);
     DeleteDC(hdc);
     ReleaseDC(NULL, hdcScreen);
+    DeleteDC(hdcScreen);
 
     return hbmp;
 }
@@ -637,6 +639,9 @@ HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
     }
     // This will also release the pszData...
     ipImageStream->Release();
+    if (pszData) {
+        free(pszData);
+    }
     return hbmpImage;
 }
 

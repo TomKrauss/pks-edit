@@ -789,12 +789,18 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, TEXT_RUN* pRun, int *pWidth, int 
 			};
 			IMAGE_LOAD_RESULT result = loadimage_load((char*)pszImageName, async);
 			if (result.ilr_bitmap != NULL) {
+				if (pImage->mdi_image != NULL) {
+					DeleteObject(pImage->mdi_image);
+				}
 				pImage->mdi_image = result.ilr_bitmap;
 			} else if (result.ilr_loading) {
 				pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOADING_IMAGE));
 				pImage->mdi_icon = TRUE;
 			}
 		} else {
+			if (pImage->mdi_image != NULL) {
+				DeleteObject(pImage->mdi_image);
+			}
 			pImage->mdi_image = LoadImage(NULL, pszImageName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 		}
 		if (pImage->mdi_image == NULL) {
@@ -3958,7 +3964,7 @@ static int mdr_destroyRun(TEXT_RUN* pRun) {
 		if (pImg->mdi_image && !pImg->mdi_cached) {
 			DeleteObject(pImg->mdi_image);
 		}
-		free(pRun->tr_data.tr_image);
+		free(pImg);
 	}
 	return 1;
 }

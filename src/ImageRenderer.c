@@ -68,7 +68,6 @@ static HANDLE image_createHandle(FTABLE* fp) {
 	}
 
 	HANDLE hRet = loadimage_fromFileOrData(NULL, p, (int) n);
-	free(p);
 	return hRet;
 }
 /*
