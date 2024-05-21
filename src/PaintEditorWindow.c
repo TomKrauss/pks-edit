@@ -713,7 +713,10 @@ void ww_setZoom(WINFO* wp, float newFactor) {
 	EndPaint(wp->ww_handle, &ps);
 	wt_setCaretVisibility(wp, 0);
 	wt_setCaretVisibility(wp, 1);
-	wp->renderer->r_adjustScrollBounds(wp);
+	RENDERER_SCROLL_SET_BOUNDS pFunc = wp->renderer->r_adjustScrollBounds;
+	if (pFunc != NULL) {
+		pFunc(wp);
+	}
 	render_repaintForWindow(wp, NULL);
 
 }

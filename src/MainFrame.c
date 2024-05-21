@@ -2038,6 +2038,19 @@ repaintUI:
 		}
 		break;
 
+	case WM_SETCURSOR: {
+		WORD ncTest = LOWORD(lParam);
+		if (ncTest == HTBOTTOM) {
+			mouse_setSizeNSCursor();
+			return TRUE;
+		}
+		else if (ncTest == HTRIGHT) {
+			mouse_setSizeWECursor();
+			return TRUE;
+		}
+		break;
+	}
+
 	case WM_NOTIFY:
 		switch (((LPNMHDR)lParam)->code) {
 		case TTN_NEEDTEXT: {

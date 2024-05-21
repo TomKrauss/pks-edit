@@ -265,6 +265,19 @@ long ln_nBytes(LINE* lp) {
 	return offset;
 }
 
+/*
+ * Calculates the number of bytes in a file.
+ */
+long long ft_totalBytes(FTABLE* fp) {
+	long long n = 0;
+	LINE* lp = fp->firstl;
+	while (lp && lp != fp->lastl) {
+		n += ln_nBytes(lp);
+		lp = lp->next;
+	}
+	return n;
+}
+
 /*---------------------------------
  * ln_removeFlag()
  *

@@ -47,5 +47,14 @@ extern "C"
 #endif
 __declspec(dllexport) IMAGE_LOAD_RESULT loadimage_load(char* pszName, IMAGE_LOAD_ASYNC pAsyncCallback);
 
+/*
+ * Load the image from a given file name or from a data buffer with a given size.
+ * The pszData buffer must be allocated before and will be released as a side effect of calling this method.
+ */
+#ifdef __cplusplus
+extern "C"
+#endif
+__declspec(dllexport) HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize);
+
 #define LOADIMAGE_H
 #endif

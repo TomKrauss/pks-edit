@@ -496,7 +496,7 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
     props.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
     ID2D1DCRenderTarget* target;
     d2d_factory->CreateDCRenderTarget(&props, &target);
-    D2D1_SIZE_F size = { 1920, 1920 };
+    D2D1_SIZE_F size = { 256, 256};
     // this requires Windows 10 1703
     ID2D1DeviceContext5* dc;
     hr = target->QueryInterface(&dc);
@@ -520,12 +520,12 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
         root->GetAttributeValue(L"width", &svgWidth);
         root->GetAttributeValue(L"height", &svgHeight);
         if (svgWidth != 0 && svgHeight != 0) {
-            rc.right = (LONG)svgWidth;
-            rc.bottom = (LONG)svgHeight;
             size.width = svgWidth;
             size.height = svgHeight;
         }
     }
+    rc.right = (LONG)size.width;
+    rc.bottom = (LONG)size.height;
 
     HBITMAP hbmp = NULL;
     BITMAPINFO bminfo;
@@ -556,7 +556,6 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
         target->BindDC(hdc, &rc);
         // draw it on the render target
         target->BeginDraw();
-        target->Clear();
         dc->DrawSvgDocument(svg);
         hr = target->EndDraw();
     }
@@ -604,7 +603,7 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
  * Load the image from a given file name or from a data buffer with a given size.
  * The pszData buffer must be allocated before and will be released as a side effect of calling this method.
  */
-static HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
+HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
     HBITMAP hbmpImage = NULL;
     GUID guid = { 0 };
     if (pszData != NULL) {
@@ -636,7 +635,7 @@ static HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cb
             ipBitmap->Release();
         }
     }
-
+    // This will also release the pszData...
     ipImageStream->Release();
     return hbmpImage;
 }

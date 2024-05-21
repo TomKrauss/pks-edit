@@ -370,6 +370,11 @@ extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, const LINE* lpend, int flags
  */
 extern long ln_nBytes(LINE* lp);
 
+/*
+ * Calculates the number of bytes in a file.
+ */
+extern long long ft_totalBytes(FTABLE* fp);
+
 /*---------------------------------
  * ln_removeFlag()
  *
