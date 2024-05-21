@@ -21,6 +21,7 @@
 #include "documentmodel.h"
 #include "edierror.h"
 #include "errordialogs.h"
+#include "fileutil.h"
 #include "editorconfiguration.h"
 #include "winfo.h"
 #include "winterf.h"
@@ -316,7 +317,7 @@ void error_showErrorById(int nId, ...)
 void error_displayGenericErrorNumber(int num)
 {	char buf[100];
 
-	wsprintf(buf,/*STR*/"Allgemeiner Fehler %d", num);
+	wsprintf(buf,/*STR*/"Generic error: %d", num);
 	error_displayAlertDialog(buf);
 }
 
@@ -324,8 +325,13 @@ void error_displayGenericErrorNumber(int num)
  * error_openingFileFailed()
  * Display an (OS level) error about a file.
  */
-void error_openingFileFailed(char *fn, int fd)
-{
+void error_openingFileFailed(char *fn, int fd) {
+	BOOL bDirectory = FALSE;
+	file_getFileAttributes(fn, NULL, NULL, &bDirectory);
+	if (bDirectory) {
+		error_showErrorById(IDS_FILE_IS_DIRECTORY, (LPSTR)string_abbreviateFileName(fn));
+		return;
+	}
 	DWORD dw = GetLastError();
 	LPVOID lpMsgBuf = 0;
 

@@ -415,7 +415,7 @@ nullfile:
 		ret = 1;
 		fp->nlines = 1;
 	} else {
-		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
+		file_getFileAttributes(fp->fname, &fp->ti_created, &fp->ti_modified, NULL);
 		fileHandle = CreateFile(fp->fname, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
 		if (fileHandle == INVALID_HANDLE_VALUE) {
@@ -424,8 +424,7 @@ nullfile:
 				goto readerr;
 			}
 			fp->flags |= F_RDONLY;
-		}
-		else {
+		} else {
 			fd = (int)(uintptr_t)fileHandle;
 		}
 		if (codepage == -1) {
@@ -486,13 +485,13 @@ ret0:			ret = 0;
 	doctypes_reassignDocumentTypeDescriptor(fp);
 
 readerr:
-
-	fp->fileSize = _llseek(fd, 0, SEEK_END);
-	if ((GetConfiguration()->options & O_LOCKFILES) == 0) {
-		file_closeFile(&fd);
+	if (fd > 0) {
+		fp->fileSize = _llseek(fd, 0, SEEK_END);
+		if ((GetConfiguration()->options & O_LOCKFILES) == 0) {
+			file_closeFile(&fd);
+		}
+		fp->lockFd = fd;
 	}
-
-	fp->lockFd = fd;
 	if (_verbose) {
 		mouse_setDefaultCursor();
 	}
@@ -722,7 +721,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 		ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 		ft_settime(&fp->ti_saved);
-		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
+		file_getFileAttributes(fp->fname, &fp->ti_created, &fp->ti_modified, NULL);
 		fp->fileSize = _llseek(fd, 0, SEEK_END);
 	}
 

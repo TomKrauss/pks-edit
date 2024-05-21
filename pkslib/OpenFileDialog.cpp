@@ -20,10 +20,10 @@
 #include <Shlwapi.h>
 #include "..\include\fileselector.h"
 
-#define CONTROL_GROUP 2000
-#define CONTROL_GROUP_ENCODING 2001
-#define CONTROL_ENCRYPT 1
-#define CONTROL_ENCODING 2
+constexpr int CONTROL_GROUP = 2000;
+constexpr int CONTROL_GROUP_ENCODING = 2001;
+constexpr int CONTROL_ENCRYPT = 1;
+constexpr int CONTROL_ENCODING = 2;
 
 static int _codepages[] = {
     -1,
@@ -109,6 +109,9 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
     UINT nCount = 0;
     UINT nSize = 10;
     COMDLG_FILTERSPEC* pSpec = (COMDLG_FILTERSPEC*)calloc(sizeof(COMDLG_FILTERSPEC), nSize);
+    if (pSpec == NULL) {
+        return NULL;
+    }
     int selected = 0;
     while (*pszFileTypes) {
         char* pszName = pszFileTypes;
@@ -123,7 +126,11 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
         pszFileTypes += strlen(pszFileTypes) + 1;
         if (nCount >= nSize) {
             nSize += 10;
-            pSpec = (COMDLG_FILTERSPEC*)realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC));
+            COMDLG_FILTERSPEC* pSpec2 = (COMDLG_FILTERSPEC*)realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC));
+            if (pSpec2 == NULL) {
+                break;
+            }
+            pSpec = pSpec2;
         }
         size_t l1 = lstrlenA(pszName) + 1;
         pSpec[nCount].pszName = (LPCWSTR) calloc(l1, sizeof(WCHAR));
@@ -158,8 +165,11 @@ static int file_getResults(IFileOpenDialog* pFileOpenDialog, char* pszResult) {
     for (DWORD i = 0; i < nCount; i++) {
         IShellItem* pItem;
         psiaResults->GetItemAt(i, &pItem);
-        PWSTR pszFilePath;
+        PWSTR pszFilePath = NULL;
         pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        if (pszFilePath == NULL) {
+            continue;
+        }
         WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, fullPath, sizeof(fullPath), 0, 0);
         strcpy_s(fileName, MAX_PATH, fullPath);
         PathStripPathA(fileName);

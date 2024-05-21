@@ -154,7 +154,7 @@ void ft_checkForChangedFiles(BOOL bActive) {
 	BOOL bAbandoned = FALSE;
 
 	for (fp = _filelist; fp && !bAbandoned; fp = fp->next) {
-		if (!file_getAccessTime(fp->fname, 0, &lCurrentTime)) {
+		if (!file_getFileAttributes(fp->fname, 0, &lCurrentTime, NULL)) {
 			// File was deleted on disk - for now ignore. There are valid cases for this anyways: temporary macro files etc....
 			continue;
 		}
@@ -761,7 +761,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	if (szAsPath[0]) {
 		ft_setFlags(fp, fp->flags | F_MODIFIED);
 		// restore the time from the actual file - do not use the timestamp of the auto-saved file.
-		file_getAccessTime(fp->fname, &fp->ti_created, &fp->ti_modified);
+		file_getFileAttributes(fp->fname, &fp->ti_created, &fp->ti_modified, NULL);
 	}
 
 	caret_placeCursorInCurrentFile(WIPOI(fp), line,0L);

@@ -70,15 +70,18 @@ static EDTIME ConvertFileTimeToLTime(FILETIME *pTime) {
 }
 
 /**
- * Returns the last time, a file was accessed and created.
+ * Returns the last time, a file was accessed and created and determines, whether the file is a directory.
  * If unsuccessful 0 is returned.
  */
-int file_getAccessTime(char *fname, EDTIME* pCreated, EDTIME* pModified) {
+int file_getFileAttributes(char *fname, EDTIME* pCreated, EDTIME* pModified, BOOL* pIsDirectory) {
 	HANDLE				lHandle;
 	WIN32_FIND_DATA		findData;
 
 	if ((lHandle = FindFirstFile(fname, &findData)) == INVALID_HANDLE_VALUE) {
 		return 0;
+	}
+	if (pIsDirectory) {
+		*pIsDirectory = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	}
 	if (pCreated) {
 		*pCreated = ConvertFileTimeToLTime(&findData.ftCreationTime);

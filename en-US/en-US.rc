@@ -1330,7 +1330,8 @@ BEGIN
     IDS_MSGNODISKSPACE      "!No space left on the device"
     IDS_MSGCLEARBUFFERS     "Do you want to empty all clipboard-\nand undo-buffers"
     IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
-    IDS_MSGOPEN             "!Cannot open %s. Error was %s"
+    IDS_MSGOPEN             "!Cannot open %s. Error: %s"
+    IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
     IDS_MSGNOHELP           "!No help for this context available"
 END
 
