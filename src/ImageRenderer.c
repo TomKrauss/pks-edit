@@ -69,10 +69,11 @@ static HANDLE image_createHandle(FTABLE* fp) {
 		lp = lp->next;
 	}
 
-	HANDLE hRet = loadimage_fromFileOrData(NULL, p, (int) n);
+	HANDLE ret = loadimage_fromFileOrData(NULL, p, (int) n);
 	free(p);
-	return hRet;
+	return ret;
 }
+
 /*
  * Returns the renderer data for the given window.
  */

@@ -134,6 +134,9 @@ static void http_releaseRequestContext(REQUEST_CONTEXT* pContext) {
         InternetCloseHandle(pContext->rctx_sessionHandle);
         pContext->rctx_sessionHandle = NULL;
     }
+    if (pContext->rctx_data != NULL) {
+        free(pContext->rctx_data);
+    }
     http_trace(L"HTTP released request context %lx\n", handle);
     free(pContext);
 }
@@ -583,10 +586,10 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if (strncmp(pszData, "GIF8", 4) == 0) {
         return CLSID_WICGifDecoder;
     }
-    if (pszData[0] == 0xff && pszData[1] == 0xd8) {
+    if ((unsigned char)pszData[0] == 0xff && (unsigned char)pszData[1] == 0xd8) {
         return CLSID_WICJpegDecoder;
     }
-    if (pszData[0] == 0xff && pszData[1] == 0xd8) {
+    if ((unsigned char)pszData[0] == 0xff && (unsigned char)pszData[1] == 0xd8) {
         return CLSID_WICTiffDecoder;
     }
     if (pszData[0] == 0x49 && pszData[1] == 0x49 && pszData[2] == 0x2a && pszData[3] == 0x00) {
@@ -595,7 +598,7 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if (strncmp(pszData, "RIFF", 4) == 0) {
         return CLSID_WICWebpDecoder;
     }
-    if (pszData[0] == 0x89 && pszData[1] == 0x50 && pszData[2] == 0x4e && pszData[3] == 0x47) {
+    if ((unsigned char)pszData[0] == 0x89 && pszData[1] == 'P' && pszData[2] == 'N' && pszData[3] == 'G') {
         return CLSID_WICPngDecoder;
     }
     return guid;
@@ -614,12 +617,10 @@ HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
         guid = loadimage_getType(pszFileName);
     }
     if (guid.Data1 == 0) {
-        free(pszData);
         return NULL;
     }
     IStream* ipImageStream = pszData == NULL ? CreateStreamOnResource(pszFileName) : SHCreateMemStream((const BYTE*)pszData, cbSize);
     if (ipImageStream == NULL) {
-        free(pszData);
         return NULL;
     }
 
@@ -637,11 +638,7 @@ HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
             ipBitmap->Release();
         }
     }
-    // This will also release the pszData...
     ipImageStream->Release();
-    //if (pszData) {
-    //    free(pszData);
-    //}
     return hbmpImage;
 }
 
@@ -665,6 +662,9 @@ extern "C" __declspec(dllexport) IMAGE_LOAD_RESULT loadimage_load(char* pszName,
         }
     }
     result.ilr_bitmap = loadimage_fromFileOrData(pszName, pszLoaded, cbSize);
+    if (pszLoaded != NULL) {
+        free(pszLoaded);
+    }
     if (result.ilr_bitmap == NULL) {
         result.ilr_notFound = TRUE;
     }

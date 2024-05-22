@@ -262,6 +262,13 @@
       "filenamePatterns": "*.svg"
     },
     {
+      "name": "image",
+      "description": "Image Files (*.png, *.gif, *.jpg, *.webp)",
+      "grammar": "image",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.png;*.gif;*.jpg;*.webp"
+    },
+    {
       "name": "pksmacro",
       "description": "PKS Edit Macro Files (*.pkc,*.mac)",
       "grammar": "pksedit",
