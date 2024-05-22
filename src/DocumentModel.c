@@ -871,7 +871,7 @@ EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
 /*---------------------------------
  * ln_createFromBuffer()
  * Creates a line from a buffer p. The end of the buffer
- * is passed in pend.
+ * is passed in pend. Lines are split in fixed blocks from the given input buffer.
  */
 unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, const unsigned char* pend) {
 	int  nl;
@@ -879,8 +879,9 @@ unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescr
 	int rightMargin = documentDescriptor->rmargin;
 
 	nl = 0;
-	if (rightMargin <= 0)
-		rightMargin = 1;
+	if (rightMargin <= 0) {
+		rightMargin = 80;
+	}
 	while (p < pend) {
 		size = (long)(pend - p);
 		if (size >= rightMargin) {

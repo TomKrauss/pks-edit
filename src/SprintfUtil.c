@@ -194,16 +194,17 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 
 	format = *fmt;
 
+	SCREEN_OFFSET_TO_BUFFER_FUNCTION pFunction = wp->renderer->r_screenToBuffer;
 	switch(*format) {
 
 	case 'O':
-		if (wp && wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && pFunction && pFunction(wp, wp->caret.ln, wp->caret.col, &pos)) {
 			return pos.ibp_byteOffset;
 		}
 		return 0;
 
 	case 'C': {
-		if (wp && wp->renderer->r_screenToBuffer(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && pFunction && pFunction(wp, wp->caret.ln, wp->caret.col, &pos)) {
 			LINE* lp = pos.ibp_lp;
 			int nOffs = pos.ibp_lineOffset;
 			if (nOffs >= lp->len) {

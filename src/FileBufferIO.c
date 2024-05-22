@@ -383,7 +383,7 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long 
 	int				fd;
 	register	char *	buf;
 	char				pw[64];
-	unsigned char *(*f)(FTABLE *par, EDIT_CONFIGURATION *linp, unsigned char *p, unsigned char *pend);
+	unsigned char *(*pExtractFunction)(FTABLE *par, EDIT_CONFIGURATION *linp, unsigned char *p, unsigned char *pend);
 
 	fd = -1;
 	fp->longLinesSplit = 0;
@@ -399,13 +399,15 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long 
 	if (_verbose)
 		mouse_setBusyCursor();
 
-	f = ln_createMultipleLinesFromBuffer;
+	pExtractFunction = ln_createMultipleLinesFromBuffer;
 	if (documentDescriptor == 0) {
 		documentDescriptor = doctypes_getDefaultDocumentTypeDescriptor();
 	}
 
-	if ((nl = documentDescriptor->nl) < 0)
-		f = ln_createFromBuffer;
+	if ((nl = documentDescriptor->nl) <= 0) {
+		// split the contents of the file in fixed blocks (e.g. binary files)
+		pExtractFunction = ln_createFromBuffer;
+	}
 
 	if (fp->flags & F_NEWFILE) {
 nullfile:
@@ -452,7 +454,7 @@ nullfile:
 			}
 		}
 		fp->codepage = codepage;
-		if ((ret = ft_readDocumentFromFile(fd, &fp->codepage, f,fp)) == 0) {
+		if ((ret = ft_readDocumentFromFile(fd, &fp->codepage, pExtractFunction, fp)) == 0) {
 			goto readerr;
 		}
 
@@ -464,7 +466,7 @@ nullfile:
 			buf = _scratchstart;
 			if (nl >= 0)
 				*buf++ = nl;
-			if ((*f)(fp,documentDescriptor, &_scratchstart[-_scratchlen],buf) == 0) {
+			if ((*pExtractFunction)(fp,documentDescriptor, &_scratchstart[-_scratchlen],buf) == 0) {
 ret0:			ret = 0;
 				goto readerr;
 			}

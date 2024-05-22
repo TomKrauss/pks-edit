@@ -595,6 +595,12 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if (pszData[0] == 0x49 && pszData[1] == 0x49 && pszData[2] == 0x2a && pszData[3] == 0x00) {
         return CLSID_WICTiffDecoder;
     }
+    if (strncmp(pszData, "BM", 2) == 0) {
+        return CLSID_WICBmpDecoder;
+    }
+    if (pszData[0] == 0 && pszData[1] == 0 && pszData[2] == 1) {
+        return CLSID_WICIcoDecoder;
+    }
     if (strncmp(pszData, "RIFF", 4) == 0) {
         return CLSID_WICWebpDecoder;
     }
