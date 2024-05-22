@@ -1531,6 +1531,9 @@ static void draw_lineNumbers(WINFO* wp) {
 	PAINTSTRUCT ps;
 	THEME_DATA* pTheme = theme_getCurrent();
 
+	if (!wp->renderer->r_calculateMaxLine) {
+		return;
+	}
 	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	GetClientRect(wp->lineNumbers_handle, &rect);
 	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);

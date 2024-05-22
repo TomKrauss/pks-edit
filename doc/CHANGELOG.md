@@ -2,7 +2,8 @@
 
 All notable changes to PKS Edit will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The form
+at is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [2.5.0] - 2024-05-09
@@ -10,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A grammar definition for `.arb`-files (Flutter Application Resource Bundles) was added.
 - An image wysiwyg renderer mode was added allowing to display an image as such (currently only implemented for SVG).
--
+
 ### Improved
 - A more modern version of the Windows open and save dialog was integrated into PKS Edit.
 - Markdown Wysiwyg rendering supports now:
@@ -26,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code completion works better now when matching "non-word" patterns like ":+xxx". Before, the ":+" was not
   considered in calculation of matching completion candidates and was not correctly replaced, when inserting
   the template / completion result.
+- One may define the default display mode, in which a file is opened (currently hex, default or wysiwyg)
+  in the grammar for the file now.
 
 ### Fixed
 - The links to release notes from the tool bar and menu bar had been broken.

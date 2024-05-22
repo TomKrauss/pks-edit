@@ -517,10 +517,25 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pszHint)) == 0) {
 		return 0;
 	}
+	WINFO* wp = ww_getWinfoForHwnd(hwndNew);
+	if (wp == NULL) {
+		return 1;
+	}
 	if (nOldWindows == 1) {
-		WINFO* wp = ww_getWinfoForHwnd(hwndNew);
-		if (wp && wp->renderer->r_supportsMode(SHOW_WYSIWYG_DISPLAY)) {
+		RENDERER_SUPPORTS_MODE pFunc = wp->renderer->r_supportsMode;
+		if (pFunc && pFunc(SHOW_WYSIWYG_DISPLAY)) {
 			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
+		}
+	} else if (nOldWindows == 0) {
+		const char* pszMode = grammar_defaultDisplayMode(fp->documentDescriptor->grammar);
+		if (pszMode != NULL) {
+			int flag = wp->dispmode;
+			if (strcmp(pszMode, "hex") == 0) {
+				flag |= SHOW_HEX_DISPLAY;
+			} else if (strcmp(pszMode, "wysiwyg") == 0) {
+				flag |= SHOW_WYSIWYG_DISPLAY;
+			}
+			ww_changeDisplayMode(wp, flag);
 		}
 	}
 	return 1;

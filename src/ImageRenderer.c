@@ -43,7 +43,7 @@ static void image_freeData(WINFO* p) {
 }
 
 static int image_supportsMode(int mode) {
-	return FALSE;
+	return (mode & (SHOW_CARET_LINE_HIGHLIGHT | SHOW_CONTROL_CHARS | SHOW_LINENUMBERS | SHOW_CARET_PRESERVE_COLUMN | SHOW_SYNTAX_HIGHLIGHT)) == 0;
 }
 
 static HANDLE image_createHandle(FTABLE* fp) {

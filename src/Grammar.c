@@ -91,7 +91,7 @@ typedef struct tagGRAMMAR {
 	INDENT_PATTERN* decreaseIndentPatterns;	// Patterns defining the condition on which the indent should be decreased.
 	BOOL indentPatternsImported;		// If indent patterns where imported from common grammar - this is true.
 	char wysiwygRenderer[32];			// The name of the wysiwyg renderer
-	char defaultRenderer[32];			// The name of the default renderer
+	char defaultDisplayMode[32];		// The name of the default display mode to use: "hex" or "default" or "wysiwyg"
 	BRACKET_RULE* highlightBrackets;	// The rule patterns for "highlight" bracket matching.
 	BOOL highlightBracketsImported;		// If highlightBrackets where imported from common grammar - this is true.
 	GRAMMAR_PATTERN* patternDefinitions;// The patterns defined directrly in this grammar.
@@ -251,7 +251,7 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
 	{	RT_OBJECT_LIST, "decreaseIndentPatterns", offsetof(GRAMMAR, decreaseIndentPatterns),
 			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
-	{	RT_CHAR_ARRAY, "defaultRenderer", offsetof(GRAMMAR, defaultRenderer), sizeof(((GRAMMAR*)NULL)->defaultRenderer)},
+	{	RT_CHAR_ARRAY, "defaultDisplayMode", offsetof(GRAMMAR, defaultDisplayMode), sizeof(((GRAMMAR*)NULL)->defaultDisplayMode)},
 	{	RT_CHAR_ARRAY, "wysiwygRenderer", offsetof(GRAMMAR, wysiwygRenderer), sizeof(((GRAMMAR*)NULL)->wysiwygRenderer)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
@@ -1197,11 +1197,12 @@ const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar) {
 }
 
 /*
- * Returns the name of the default renderer to be used when editing files for the this grammar or 0,
- * if the default text renderer should be used.
+ * Returns the name of the default display mode to be used when editing files for the this grammar or 0,
+ * if the default display mode should be used. Currently display modes "hex", "default" and "wysiwyg" are
+ * supported.
  */
-const char* grammar_defaultRenderer(GRAMMAR* pGrammar) {
-	return (pGrammar == NULL || pGrammar->defaultRenderer[0] == 0) ? NULL : pGrammar->defaultRenderer;
+const char* grammar_defaultDisplayMode(GRAMMAR* pGrammar) {
+	return (pGrammar == NULL || pGrammar->defaultDisplayMode[0] == 0) ? NULL : pGrammar->defaultDisplayMode;
 }
 
 

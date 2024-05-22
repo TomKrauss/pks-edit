@@ -4,7 +4,7 @@
       "scopeName": "image",
       "description": "Images",
       "wysiwygRenderer": "image",
-      "defaultRenderer": "image",
+      "defaultDisplayMode": "wysiwyg",
       "highlightBrackets": [
       ],
       "patterns": [

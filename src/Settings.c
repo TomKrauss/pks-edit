@@ -211,6 +211,9 @@ static int op_toggleOption(WINFO* wp, struct optiontab *op)
 {    int *flg;
 
 	if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
+		if ((*flg & op->flag) == 0 && !wp->renderer->r_supportsMode(op->flag)) {
+			return 0;
+		}
 		*flg ^= op->flag;
 		op_changeFlag(wp, op,1);
 		return 1;

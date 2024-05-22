@@ -247,7 +247,7 @@ extern const char* grammar_wysiwygRenderer(GRAMMAR* pGrammar);
  * Returns the name of the default renderer to be used when editing files for the this grammar or 0, 
  * if the default text renderer should be used.
  */
-extern const char* grammar_defaultRenderer(GRAMMAR* pGrammar);
+extern const char* grammar_defaultDisplayMode(GRAMMAR* pGrammar);
 
 /*
  * A lexical context used for determining, whether actions such as code completion etc are available.
