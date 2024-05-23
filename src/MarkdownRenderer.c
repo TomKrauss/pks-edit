@@ -869,7 +869,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 				hdcMem = CreateCompatibleDC(hdc);
 				oldBitmap = SelectObject(hdcMem, pImage->mdi_image);
 				SetStretchBltMode(hdc, COLORONCOLOR);
-				StretchBlt(hdc, x + nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, nOrigWidth, nOrigHeight, SRCCOPY);
+				TransparentBlt(hdc, x + nDelta, y + nDelta, nWidth, nHeight, hdcMem, 0, 0, nOrigWidth, nOrigHeight, RGB(0,0,0));
 				SelectObject(hdcMem, oldBitmap);
 				DeleteDC(hdcMem);
 			}

@@ -19,6 +19,8 @@
 #include <d2d1.h>
 #include <dwrite.h>
 
+extern ID2D1Factory* create_d2dFactory();
+
 struct DWriteSupport {
     ID2D1Factory* d2d_factory = NULL;
     IDWriteFactory* dwrite_factory = NULL;
@@ -37,11 +39,9 @@ struct DWriteSupport {
     HRESULT Setup(HDC hdc) {
         HWND hwnd = WindowFromDC(hdc);
         HRESULT hr;
+        d2d_factory = create_d2dFactory();
         if (!d2d_factory) {
-            hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory);
-            if (FAILED(hr)) {
-                return hr;
-            }
+            return FAILED(-1);
         }
         if (!renderTarget) {
             if (renderTarget) {

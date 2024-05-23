@@ -485,14 +485,22 @@ static GUID loadimage_getType(char* pszName) {
     return guid;
 }
 
-static ID2D1Factory* d2d_factory;
-static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
+ID2D1Factory* create_d2dFactory() {
+    static ID2D1Factory* d2d_factory;
     HRESULT hr;
     if (!d2d_factory) {
         hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory);
         if (FAILED(hr)) {
             return NULL;
         }
+    }
+    return d2d_factory;
+}
+
+static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
+    ID2D1Factory* d2d_factory = create_d2dFactory();
+    if (d2d_factory == NULL) {
+        return NULL;
     }
     D2D1_RENDER_TARGET_PROPERTIES props = {};
     props.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -502,7 +510,7 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
     D2D1_SIZE_F size = { 256, 256};
     // this requires Windows 10 1703
     ID2D1DeviceContext5* dc;
-    hr = target->QueryInterface(&dc);
+    HRESULT hr = target->QueryInterface(&dc);
     if (FAILED(hr)) {
         target->Release();
         return 0;
@@ -526,6 +534,7 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
             size.width = svgWidth;
             size.height = svgHeight;
         }
+        root->Release();
     }
     rc.right = (LONG)size.width;
     rc.bottom = (LONG)size.height;
@@ -563,6 +572,7 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
         hr = target->EndDraw();
     }
     svg->Release();
+    dc->Release();
     target->Release();
     if (hbmpOld != nullptr) {
         SelectObject(hdc, hbmpOld);
