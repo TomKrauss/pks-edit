@@ -269,6 +269,13 @@
       "filenamePatterns": "*.png;*.gif;*.jpg;*.webp;*.tiff;*.ico;*.bmp"
     },
     {
+      "name": "iss",
+      "description": "InnoSetup Script Files (*.iss)",
+      "grammar": "iss",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.iss"
+    },
+    {
       "name": "pksmacro",
       "description": "PKS Edit Macro Files (*.pkc,*.mac)",
       "grammar": "pksedit",

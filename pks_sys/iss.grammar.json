@@ -1,0 +1,66 @@
+{
+  "grammars": [
+    {
+      "scopeName": "iss",
+      "description": "Inno Setup Script Language",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        {
+          "pattern": "BEGIN",
+          "ignore-case": true
+        }
+      ],
+      "decreaseIndentPatterns": [
+        {
+          "pattern": "END",
+          "ignore-case": true
+        }
+      ],
+      "patterns": [
+        {
+          "match": "^;.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "'(?:\\'|[^'])+'",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "\"(?:\\'|[^\"])+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "#define",
+            "Function",
+            "begin",
+            "if",
+            "then",
+            "else",
+            "end",
+            "Function",
+            "MsgOpenWith",
+            "AssociateFiles",
+            "ExtensionsGroup"
+          ],
+          "ignore-case": true,
+          "style": "keyword",
+          "name": "keyword.iss"
+        },
+        {
+          "match": "<\\[[a-zA-Z_][a-zA-Z_0-9]*\\]>",
+          "style": "literal",
+          "name": "annotation.iss"
+        },
+        {
+          "match": ":?=",
+          "style": "operator",
+          "name": "keyword.assignment"
+        }
+      ]
+    }
+  ]
+}

@@ -250,10 +250,11 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
 		if (!_searchContext.sc_trymatch) {
 			find_inFilesMatchFound(pszFile, -1, 0, 0);
-		}
-		else {
-			long nPage = CP_ACP;
-			ft_readDocumentFromFile(fd, &nPage, find_inLine, pszFile);
+		} else {
+			CODE_PAGE_INFO cpInfo = {
+				.cpi_codepage = CP_ACP
+			};
+			ft_readDocumentFromFile(fd, &cpInfo, find_inLine, pszFile);
 		}
 		if (nOldFound != _searchContext.sc_matches) {
 			_searchContext.sc_files++;
@@ -319,8 +320,10 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
 	if ((fd = file_openFile(pszStepfile)) <= 0) {
 		return pResult;
 	}
-	long nPage = CP_ACP;
-	ft_readDocumentFromFile(fd, &nPage, find_collectFileFromLine, pResult);
+	CODE_PAGE_INFO cpInfo = {
+		.cpi_codepage = CP_ACP
+	};
+	ft_readDocumentFromFile(fd, &cpInfo, find_collectFileFromLine, pResult);
 	file_closeFile(&fd);
 	return pResult;
 }

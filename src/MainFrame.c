@@ -618,13 +618,15 @@ static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover,
 	brush.lbColor = pTheme->th_dialogBorder;
 	brush.lbHatch = 0;
 	brush.lbStyle = PS_SOLID;
-	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, bRollover && twWidgetType == TW_CLOSER ? 4 : 2, &brush, 0, NULL);
+	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_ROUND | PS_ENDCAP_ROUND, 
+		dpisupport_getSize(bRollover && twWidgetType == TW_CLOSER ? 4 : 2), &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	h2 = (pRect->bottom - pRect->top) / 2;
 	if (bRollover) {
-		InflateRect(pRect, 3, 3);
+		int inflate = dpisupport_getSize(3);
+		InflateRect(pRect, inflate, inflate);
 		FillRect(hdc, pRect, theme_getDialogLightBackgroundBrush());
-		InflateRect(pRect, -3, -3);
+		InflateRect(pRect, -inflate, -inflate);
 	}
 	switch (twWidgetType) {
 	case TW_CLOSER:
@@ -637,11 +639,13 @@ static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover,
 		MoveTo(hdc, pRect->right-nDelta, pRect->top+nDelta);
 		LineTo(hdc, pRect->left+nDelta, pRect->top + h2);
 		LineTo(hdc, pRect->right-nDelta, pRect->bottom-nDelta);
+		LineTo(hdc, pRect->right - nDelta, pRect->top + nDelta);
 		break;
 	case TW_SCROLL_RIGHT:
 		MoveTo(hdc, pRect->left+nDelta, pRect->top+nDelta);
 		LineTo(hdc, pRect->right-nDelta, pRect->top + h2);
 		LineTo(hdc, pRect->left+nDelta, pRect->bottom-nDelta);
+		LineTo(hdc, pRect->left + nDelta, pRect->top + nDelta);
 		break;
 	}
 	DeleteObject(SelectObject(hdc, hPenOld));
@@ -674,7 +678,7 @@ static void tabcontrol_measureTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected) {
 	SIZE sText;
 	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
 	GetTextExtentPoint(hdc, pszTitle, (int)nLen, &sText);
-	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + tabcontrol_getCloserSize() + 2 * CLOSER_DISTANCE;
+	pPage->tp_width = sText.cx + nIconSize + 2 * nMargin + tabcontrol_getCloserSize() + 2 * dpisupport_getSize(CLOSER_DISTANCE);
 	DeleteObject(SelectObject(hdc, hFont));
 }
 
@@ -699,13 +703,13 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 		int nCloserSize = tabcontrol_getCloserSize();
 		pControl->tc_closer.tw_visible = TRUE;
 		pRect = &pControl->tc_closer.tw_bounds;
-		pRect->right = rect.right - CLOSER_DISTANCE;
+		pRect->right = rect.right - dpisupport_getSize(CLOSER_DISTANCE);
 		pRect->left = pRect->right - nCloserSize;
 		int dDelta = (pControl->tc_stripHeight - nCloserSize) / 2;
 		pRect->top = rect.top + dDelta;
 		pRect->bottom = rect.top + pRect->top + nCloserSize;
 	}
-	pControl->tc_tabstripRect.right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
+	pControl->tc_tabstripRect.right = pControl->tc_closer.tw_bounds.left - dpisupport_getSize(SCROLL_BUTTON_PADDING);
 	pControl->tc_tabstripRect.top = rect.top;
 	pControl->tc_tabstripRect.bottom = rect.bottom;
 
@@ -731,12 +735,12 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 
 	pRect = &pControl->tc_leftScroller.tw_bounds;
 	if (pControl->tc_firstVisibleTab > 0) {
-		int delta = (rect.bottom - rect.top - SCROLL_BUTTON_WIDTH) / 2;
+		int delta = (rect.bottom - rect.top - dpisupport_getSize(SCROLL_BUTTON_WIDTH)) / 2;
 		pRect->top = rect.top + delta;
 		pRect->bottom = rect.bottom- delta;
-		pRect->left = pControl->tc_firstTabOffset+SCROLL_BUTTON_PADDING;
-		pRect->right = pRect->left + SCROLL_BUTTON_WIDTH;
-		pControl->tc_tabstripRect.left = pRect->right + SCROLL_BUTTON_PADDING;
+		pRect->left = pControl->tc_firstTabOffset+ dpisupport_getSize(SCROLL_BUTTON_PADDING);
+		pRect->right = pRect->left + dpisupport_getSize(SCROLL_BUTTON_WIDTH);
+		pControl->tc_tabstripRect.left = pRect->right + dpisupport_getSize(SCROLL_BUTTON_PADDING);
 		pControl->tc_leftScroller.tw_visible = TRUE;
 	} else {
 		pControl->tc_leftScroller.tw_visible = FALSE;
@@ -746,12 +750,12 @@ static void tabcontrol_measureTabStrip(HWND hwnd, TAB_CONTROL* pControl) {
 
 	pRect = &pControl->tc_rightScroller.tw_bounds;
 	if (nTotalWidth > nAvailableSpace) {
-		int delta = (rect.bottom - rect.top - SCROLL_BUTTON_WIDTH) / 2;
+		int delta = (rect.bottom - rect.top - dpisupport_getSize(SCROLL_BUTTON_WIDTH)) / 2;
 		pRect->top = rect.top + delta;
 		pRect->bottom = rect.bottom - delta;
-		pRect->right = pControl->tc_closer.tw_bounds.left - SCROLL_BUTTON_PADDING;
-		pRect->left = pRect->right - SCROLL_BUTTON_WIDTH;
-		pControl->tc_tabstripRect.right = pRect->left + SCROLL_BUTTON_PADDING;
+		pRect->right = pControl->tc_closer.tw_bounds.left - dpisupport_getSize(SCROLL_BUTTON_PADDING);
+		pRect->left = pRect->right - dpisupport_getSize(SCROLL_BUTTON_WIDTH);
+		pControl->tc_tabstripRect.right = pRect->left + dpisupport_getSize(SCROLL_BUTTON_PADDING);
 		pControl->tc_rightScroller.tw_visible = TRUE;
 	} else {
 		pControl->tc_rightScroller.tw_visible = FALSE;
@@ -1089,8 +1093,6 @@ static void tabcontrol_handleButtonDown(HWND hwnd, LPARAM lParam, BOOL bDrag) {
 		tabcontrol_scrollTabs(hwnd, 1);
 		return;
 	}
-	int tOffset = pControl->tc_tabstripRect.left;
-	x -= tOffset;
 	int i;
 	TAB_PAGE* pPage = tabcontrol_getPageFor(pControl, x, &i);
 	if (pPage) {
@@ -1173,7 +1175,8 @@ static BOOL tabcontrol_setWidgetRollover(HWND hwnd, TAB_WIDGET* pWidget, BOOL bR
 	if (bRollover != pWidget->tw_rollover) {
 		pWidget->tw_rollover = bRollover;
 		RECT rInvalidate = pWidget->tw_bounds;
-		InflateRect(&rInvalidate, 1, 1);
+		int delta = dpisupport_getSize(4);
+		InflateRect(&rInvalidate, delta, delta);
 		InvalidateRect(hwnd, &rInvalidate, TRUE);
 		return TRUE;
 	}
@@ -1266,13 +1269,17 @@ static void tabcontrol_createTooltip(TAB_CONTROL* pControl) {
 }
 
 static void tabcontrol_openContextMenu(HWND hwnd, int x, int y) {
+	POINT pt = { .x = x, .y = y };
+	ScreenToClient(hwnd, &pt);
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 	int i;
-	TAB_PAGE* pPage = tabcontrol_getPageFor(pControl, x, &i);
+	TAB_PAGE* pPage = tabcontrol_getPageFor(pControl, pt.x, &i);
 	if (pPage) {
 		WINFO* wp = ww_getWinfoForHwnd(pPage->tp_hwnd);
 		if (wp) {
 			_selectedWindow = wp;
+			FTABLE* fp = FTPOI(wp);
+			printf(fp->fname);
 			menu_showContextMenu(wp->ww_handle, wp, "editor-tabs", x, y);
 		}
 	}

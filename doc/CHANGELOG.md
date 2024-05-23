@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changed windows.
 - The stack size of PKS Edit configured by default was too low causing in particular the open dialog
   to die on some machines. **kudos** and a big thank you to [RBri](https://github.com/rbri) for helping to debug and finding the solution!
+- Context menus on tab buttons did refer to the "wrong" tab button / sometimes it was not able to open a context
+  menu on a tab button (tabs displaying the individual editors), as the X coordinates of the events had been interpreted
+  in a wrong way.
 
 ## [2.4.0] - 2023-07-09
 

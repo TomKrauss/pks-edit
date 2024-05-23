@@ -260,13 +260,25 @@ static int file_detectCodepage(const char* pData, int nSize) {
 	return CP_ACP;
 }
 
+/*
+ * Try to find out, whether a file has a BOM defining the code page of it.
+ */
+static long file_analyzeBom(unsigned char* pBuffer, int nSize, unsigned char** bufferEnd) {
+	if (nSize > 3 && pBuffer[0] == 0xEF && pBuffer[1] == 0xBB && pBuffer[2] == 0xBF) {
+		*bufferEnd = pBuffer + 3;
+		return CP_UTF8;
+	}
+	return -1;
+}
+
 /*---------------------------------
  * ft_readDocumentFromFile()
  * Standard implementation to read a file in PKS Edit given the file descriptor,
  * a callback method to invoked for each line read and an optional parameter (typically, but not neccessarily the filepointer itself) to
  * be parsed as the first argument to the callback.
  *---------------------------------*/
-EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par) {
+EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage, 
+		unsigned char * (*lineExtractedCallback)(void *, EDIT_CONFIGURATION*, unsigned char *, unsigned char *), void *par) {
 	int 	cflg,got,len;
 	long	bufferSize;
 	char	*q;
@@ -281,9 +293,8 @@ EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*li
 	_crypting = 0;
 	while ((got = Fread(fd,bufferSize,bufferStart)) > 0) {
 		if (cflg) {
-			char buf[2];
+			char buf[2] = { 0 };
 			int cont = Fread(fd,1,buf);
-
 			if (cont)
 				Fseek(-1l,fd,1);
 			if ((got = crypt_de(bufferStart, got, cont)) < 0) {
@@ -291,13 +302,18 @@ EXPORT int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char * (*li
 				return 0;
 			}
 		}
-		if (*pCodepage != CP_ACP) {
-			if (*pCodepage == -1) {
-				*pCodepage = file_detectCodepage(bufferStart, got);
+		if (pCodepage->cpi_codepage != CP_ACP) {
+			if (pCodepage->cpi_codepage == -1) {
+				pCodepage->cpi_codepage = file_analyzeBom(bufferStart, got, &bufferStart);
+				if (pCodepage->cpi_codepage == -1) {
+					pCodepage->cpi_codepage = file_detectCodepage(bufferStart, got);
+				} else {
+					pCodepage->cpi_bomType = BOM_UTF8;
+				}
 			}
-			if (*pCodepage != CP_ACP) {
+			if (pCodepage->cpi_codepage != CP_ACP) {
 				wchar_t* pszDest = malloc(got * 2);
-				int nConv = MultiByteToWideChar(*pCodepage, MB_PRECOMPOSED, bufferStart, got, pszDest, got);
+				int nConv = MultiByteToWideChar(pCodepage->cpi_codepage, MB_PRECOMPOSED, bufferStart, got, pszDest, got);
 				char cDefault = '?';
 				got = WideCharToMultiByte(CP_ACP, 0, pszDest, nConv, bufferStart, nConv, &cDefault, NULL);
 				free(pszDest);
@@ -454,9 +470,13 @@ nullfile:
 			}
 		}
 		fp->codepage = codepage;
-		if ((ret = ft_readDocumentFromFile(fd, &fp->codepage, pExtractFunction, fp)) == 0) {
+		CODE_PAGE_INFO cpiInfo = {
+			.cpi_codepage = codepage
+		};
+		if ((ret = ft_readDocumentFromFile(fd, &cpiInfo, pExtractFunction, fp)) == 0) {
 			goto readerr;
 		}
+		fp->codepage = cpiInfo.cpi_codepage;
 
 		if (fp->nlines == 0 && _scratchlen == 0) {	/* 0-file glitch */
 			goto nullfile;

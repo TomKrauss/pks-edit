@@ -389,6 +389,20 @@ extern void ft_deleteautosave(FTABLE* fp);
 extern void ft_destroy(FTABLE* fp);
 extern FTABLE* ft_new(void);
 
+typedef enum {
+	BOM_NONE = 0,
+	BOM_UTF8,
+	BOM_UTF16BE,
+	BOM_UTF16LE,
+	BOM_UTF32BE,
+	BOM_UTF32LE
+} BOM_TYPE;
+
+typedef struct tagCODE_PAGE_INFO {
+	long	 cpi_codepage;
+	BOM_TYPE cpi_bomType;
+} CODE_PAGE_INFO;
+
 /*------------------------------
  * ft_initializeReadWriteBuffers()
 /*------------------------------*/
@@ -402,7 +416,8 @@ extern BOOL ft_initializeReadWriteBuffers(void);
  * be parsed as the first argument to the callback.
  * If the codepage passed is -1, a codepage detection is performed and the detected code page will be returned in pCodepage.
  *---------------------------------*/
-extern int ft_readDocumentFromFile(int fd, long *pCodepage, unsigned char* (*lineExtractedCallback)(void*, EDIT_CONFIGURATION*, unsigned char*, unsigned char*), void* par);
+extern int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage, 
+	unsigned char* (*lineExtractedCallback)(void*, EDIT_CONFIGURATION*, unsigned char*, unsigned char*), void* par);
 
 /*
  * Determines the name of the code page of the file and writes the codepage name
