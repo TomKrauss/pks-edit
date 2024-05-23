@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A grammar definition for `.arb`-files (Flutter Application Resource Bundles) was added.
 - An image wysiwyg renderer mode was added allowing to display an image as such (currently only implemented for SVG).
+- InnoSetup Script Grammar has been added.
+- BOM Analysis to detect code pages added.
 
 ### Improved
 - A more modern version of the Windows open and save dialog was integrated into PKS Edit.
