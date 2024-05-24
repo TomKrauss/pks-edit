@@ -798,7 +798,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	char backupFilename[EDMAXPATHLEN];
 
 	ft_getBackupFilename(fp, backupFilename);
-	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, &(FT_OPEN_OPTIONS) { NULL, fp->codepage });
+	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, &(FT_OPEN_OPTIONS) { NULL, fp->codepageInfo.cpi_codepage });
 	if (fpBackup != NULL) {
 		ft_setFlags(fpBackup, fpBackup->flags | F_RDONLY | F_TRANSIENT);
 		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor);
@@ -918,7 +918,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 
 	if (undo_initializeManager(fp) == 0 || 
 	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
-	    !ft_readfile(fp,fp->documentDescriptor, fp->codepage, 0)) {
+	    !ft_readfile(fp,fp->documentDescriptor, fp->codepageInfo.cpi_codepage, 0)) {
 		fp->flags = 0;
 		ww_close(wp);
 		return 0;
@@ -1021,7 +1021,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		FILE_SELECT_PARAMS fsp;
 		fsp.fsp_saveAs = TRUE;
 		fsp.fsp_optionsAvailable = TRUE;
-		fsp.fsp_codepage = fp->codepage;
+		fsp.fsp_codepage = fp->codepageInfo.cpi_codepage;
 		fsp.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE;
 		if (fsel_selectFileWithTitle(CMD_SAVE_FILE_AS, newname, &fsp) == 0) {
 			return 0;
@@ -1031,7 +1031,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		} else {
 			pConfig->workmode &= ~O_CRYPTED;
 		}
-		fp->codepage = fsp.fsp_codepage;
+		fp->codepageInfo.cpi_codepage = fsp.fsp_codepage;
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
 			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
 				return 0;

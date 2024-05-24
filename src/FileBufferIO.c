@@ -58,15 +58,16 @@ typedef struct tagMAGIC {
 	byte m_size;
 	long m_codePage;
 	BOOL m_crypted;
+	BOM_TYPE m_bomType;
 } MAGIC;
 
 static MAGIC _magicMarkers[] = {
-	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE},
-	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE},
-	{"\xFE\xFF", 2, 1201, FALSE},				// UTF-16 Big Endian
-	{"\xFF\xFE", 2, 1200, FALSE},				// UTF-16 Little Endian
-	{"\x00\x00\xFE\xFF", 2, 12001, FALSE},		// UTF-32 Big Endian
-	{"\xFF\xFE\x00\x00", 2, 12000, FALSE},		// UTF-32 Little Endian
+	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE, BOM_NONE},
+	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE, BOM_UTF8},
+	{"\xFE\xFF", 2, 1201, FALSE, BOM_UTF16BE},				// UTF-16 Big Endian
+	{"\xFF\xFE", 2, 1200, FALSE, BOM_UTF16LE},				// UTF-16 Little Endian
+	{"\x00\x00\xFE\xFF", 2, 12001, FALSE, BOM_UTF32BE},		// UTF-32 Big Endian
+	{"\xFF\xFE\x00\x00", 2, 12000, FALSE, BOM_UTF32LE},		// UTF-32 Little Endian
 	0
 };
 
@@ -75,6 +76,36 @@ static MAGIC* _cryptMarker = &_magicMarkers[0];
 // TODO: get rid of this hack.
 char* _linebuf;
 
+/*
+ * Compare the start of a file (bytes in szMagic) with the well-known BOMs used to 
+ * mark file encodings. If a BOM is present, return the MAGIC number structure with
+ * the details.
+ */
+static MAGIC* ft_findMagic(char* szMagic, int nBytes) {
+	MAGIC* pMagic = _magicMarkers;
+	while (pMagic->m_size) {
+		if (pMagic->m_size < nBytes && memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
+			return pMagic;
+		}
+		pMagic++;
+	}
+	return NULL;
+}
+
+/*
+ * Find the the MAGIC number structure for a file originally read with the BOM described in pInfo
+ * and with the codepage described.
+ */
+static MAGIC* ft_findMagicForCodePageinfo(CODE_PAGE_INFO* pInfo) {
+	MAGIC* pMagic = _magicMarkers;
+	while (pMagic->m_size) {
+		if (pMagic->m_bomType == pInfo->cpi_bomType && pMagic->m_codePage == pInfo->cpi_codepage) {
+			return pMagic;
+		}
+		pMagic++;
+	}
+	return NULL;
+}
 /*------------------------------*/
 /* ft_initializeReadWriteBuffers()			  */
 /*------------------------------*/
@@ -100,7 +131,7 @@ void ft_destroyCaches() {
  * to pszName, but only if there is enough space as described by nMaxNameLen.
  */
 void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen) {
-	long nCp = fp->codepage;
+	long nCp = fp->codepageInfo.cpi_codepage;
 	if (nCp == -1) {
 		if (nMaxNameLen > 5) {
 			strcpy(pszName, "auto");
@@ -263,10 +294,12 @@ static int file_detectCodepage(const char* pData, int nSize) {
 /*
  * Try to find out, whether a file has a BOM defining the code page of it.
  */
-static long file_analyzeBom(unsigned char* pBuffer, int nSize, unsigned char** bufferEnd) {
-	if (nSize > 3 && pBuffer[0] == 0xEF && pBuffer[1] == 0xBB && pBuffer[2] == 0xBF) {
-		*bufferEnd = pBuffer + 3;
-		return CP_UTF8;
+static long file_analyzeBom(unsigned char* pBuffer, int nSize, unsigned char** bufferEnd, BOM_TYPE* pType) {
+	MAGIC* pMagic = ft_findMagic(pBuffer, nSize);
+	if (pMagic) {
+		*pType = pMagic->m_bomType;
+		*bufferEnd = pBuffer + pMagic->m_size;
+		return pMagic->m_codePage;
 	}
 	return -1;
 }
@@ -304,11 +337,9 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 		}
 		if (pCodepage->cpi_codepage != CP_ACP) {
 			if (pCodepage->cpi_codepage == -1) {
-				pCodepage->cpi_codepage = file_analyzeBom(bufferStart, got, &bufferStart);
+				pCodepage->cpi_codepage = file_analyzeBom(bufferStart, got, &bufferStart, &pCodepage->cpi_bomType);
 				if (pCodepage->cpi_codepage == -1) {
 					pCodepage->cpi_codepage = file_detectCodepage(bufferStart, got);
-				} else {
-					pCodepage->cpi_bomType = BOM_UTF8;
 				}
 			}
 			if (pCodepage->cpi_codepage != CP_ACP) {
@@ -369,8 +400,8 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long*
 	char szMagic[sizeof ((MAGIC*)0)->m_bytes];
 	BOOL bHeaderHandled = FALSE;
 	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
-		MAGIC* pMagic = _magicMarkers;
-		while (pMagic->m_size) {
+		MAGIC* pMagic = ft_findMagic(szMagic, sizeof szMagic);
+		if (pMagic) {
 			if ((*pCodepage == -1 || pMagic->m_crypted) && memcmp(szMagic, pMagic->m_bytes, pMagic->m_size) == 0) {
 				*pCodepage = pMagic->m_codePage;
 				if (pMagic->m_crypted) {
@@ -378,9 +409,7 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long*
 				}
 				_llseek(fd, pMagic->m_size, SEEK_SET);
 				bHeaderHandled = TRUE;
-				break;
 			}
-			pMagic++;
 		}
 	}
 	if (!bHeaderHandled) {
@@ -469,14 +498,10 @@ nullfile:
 				return 0;
 			}
 		}
-		fp->codepage = codepage;
-		CODE_PAGE_INFO cpiInfo = {
-			.cpi_codepage = codepage
-		};
-		if ((ret = ft_readDocumentFromFile(fd, &cpiInfo, pExtractFunction, fp)) == 0) {
+		fp->codepageInfo.cpi_codepage = codepage;
+		if ((ret = ft_readDocumentFromFile(fd, &fp->codepageInfo, pExtractFunction, fp)) == 0) {
 			goto readerr;
 		}
-		fp->codepage = cpiInfo.cpi_codepage;
 
 		if (fp->nlines == 0 && _scratchlen == 0) {	/* 0-file glitch */
 			goto nullfile;
@@ -589,7 +614,7 @@ int ft_flushBuffer(int fd, char* buffer, int size, int rest)
 /*--------------------------------------------------------------------------
  * ft_flushBufferAndCrypt()
  */
-static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long codepage, char *pw) {
+static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, CODE_PAGE_INFO *pCodepageInfo, char *pw) {
 	if (*pw) {
 		int news;
 
@@ -601,6 +626,7 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, long cod
 		}
 		size = news;
 	}
+	long codepage = pCodepageInfo->cpi_codepage;
 	if (codepage != -1 && codepage != CP_ACP) {
 		wchar_t* pwszMultiByteDest = malloc(size * 2);
 		int nConv = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, _linebuf, size, pwszMultiByteDest, size);
@@ -705,7 +731,13 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	offset = 0;
 	if (pw[0]) {
 		ft_flushBuffer(fd, _cryptMarker->m_bytes, _cryptMarker->m_size, 0);
+	} else if (fp->codepageInfo.cpi_bomType != BOM_NONE) {
+		MAGIC* pMagic = ft_findMagicForCodePageinfo(&fp->codepageInfo);
+		if (pMagic != NULL) {
+			ft_flushBuffer(fd, pMagic->m_bytes, pMagic->m_size, 0);
+		}
 	}
+
 	// don't save last line
 	while (lp != fp->lastl) {
 		// Make sure we are not overriding end of _linebuf, which has size LINEBUFSIZE
@@ -724,12 +756,12 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		} else {
 			no = (offset > 2*FBUFSIZE) ? 2*FBUFSIZE : offset & (~0xF);
 			offset -= no;
-			nFlushResult = ft_flushBufferAndCrypt(fd, no, offset, 1, fp->codepage, pw);
+			nFlushResult = ft_flushBufferAndCrypt(fd, no, offset, 1, &fp->codepageInfo, pw);
 			if (nFlushResult < 1)
 				goto wfail;
 		}
 	}
-	nFlushResult = ft_flushBufferAndCrypt(fd, offset, 0, 0, fp->codepage, pw);
+	nFlushResult = ft_flushBufferAndCrypt(fd, offset, 0, 0, &fp->codepageInfo, pw);
 	if (nFlushResult < 1) {
 	wfail:	
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);

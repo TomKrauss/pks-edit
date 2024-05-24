@@ -207,6 +207,20 @@ typedef struct tagCARET {
 	long  col;				/* The column index in screen coordinates (not into the buffer) */
 } CARET;
 
+typedef enum {
+	BOM_NONE = 0,
+	BOM_UTF8,
+	BOM_UTF16BE,
+	BOM_UTF16LE,
+	BOM_UTF32BE,
+	BOM_UTF32LE
+} BOM_TYPE;
+
+typedef struct tagCODE_PAGE_INFO {
+	long	 cpi_codepage;
+	BOM_TYPE cpi_bomType;
+} CODE_PAGE_INFO;
+
 typedef struct tagFTABLE {
 	struct tagFTABLE*next;
 	char 	fname[512];			// The full pathname.
@@ -228,7 +242,7 @@ typedef struct tagFTABLE {
 	EDTIME	ti_created;			// creation time
 	EDTIME  ti_saved;			// last save time
 	EDTIME  ti_lastChanged;		// last time the file was changed in PKS edit by the user.
-	long	codepage;			// The codepage with which this document was read.
+	CODE_PAGE_INFO codepageInfo;// The codepage with which this document was read.
 	void* navigationPattern;	// For files containing either a PKS Edit search result list or displaying a compiler output, this contains a pointer 
 								// to the NAVIGATION_PATTERN (see CrossReferenceLinks.c) defining how to parse the individual lines in the file.
 	int		lockFd;				// Filedescriptor for locking - <= 0 if none
@@ -388,20 +402,6 @@ extern int ft_triggerAutosaveAllFiles(void);
 extern void ft_deleteautosave(FTABLE* fp);
 extern void ft_destroy(FTABLE* fp);
 extern FTABLE* ft_new(void);
-
-typedef enum {
-	BOM_NONE = 0,
-	BOM_UTF8,
-	BOM_UTF16BE,
-	BOM_UTF16LE,
-	BOM_UTF32BE,
-	BOM_UTF32LE
-} BOM_TYPE;
-
-typedef struct tagCODE_PAGE_INFO {
-	long	 cpi_codepage;
-	BOM_TYPE cpi_bomType;
-} CODE_PAGE_INFO;
 
 /*------------------------------
  * ft_initializeReadWriteBuffers()

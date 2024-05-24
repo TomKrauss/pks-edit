@@ -389,7 +389,7 @@
       "showSyntaxHighlight": true,
       "highlightCaretLine": true,
       "insertMode": true,
-      "statuslineFormat": "%6d$O: 0%o$C",
+      "statuslineFormat": "%s$f!%6d$O: 0%o$C!\t%s$&",
       "tabCharacter": " ",
       "newlineCharacter": "\\0",
       "crCharacter": "\\0",

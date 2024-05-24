@@ -115,6 +115,7 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 {
 	char *	format;
 	char *	ext;
+	CPINFOEX cpinfo;
 
 	if (fp == 0) {
 		return "";
@@ -123,6 +124,10 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 	format = *fmt;
 
 	switch(*format) {
+	case 'P':
+		GetCPInfoEx(fp->codepageInfo.cpi_codepage, 0, &cpinfo);
+		strcpy(fname, cpinfo.CodePageName);
+		return fname;
 
 	case 'f':
 		return string_getBaseFilename(fp->fname);

@@ -96,20 +96,20 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 			}
 		}
 	}
-	if (nSegments != SendMessage(hwndStatus, SB_GETPARTS, 0, 0)) {
-		for (i = 0, offset = dpisupport_getSize(150); i < nSegments; i++) {
-			pSegments[i] = offset;
-			offset += dpisupport_getSize(150);
-		}
-		pSegments[nSegments] = -1;
-		SendMessage(hwndStatus, SB_SETPARTS, nSegments + 1, (LPARAM)pSegments);
+	for (i = 0, offset = 0; i < nSegments; i++) {
+		char* pszText = pszStrArr[i];
+		// This size is irrelevant - we will paint the status bar and determine the segments size dynamically
+		offset += 10;
+		pSegments[i] = offset;
 	}
+	pSegments[nSegments] = -1;
+	SendMessage(hwndStatus, SB_SETPARTS, nSegments + 1, (LPARAM)pSegments);
 	if (!bUpdateMessageOnly) {
 		for (i = 0; i < nSegments; i++) {
 			SendMessage(hwndStatus, SB_SETTEXT, i, (LPARAM)pszStrArr[i]);
 		}
 	}
-	SendMessage(hwndStatus, SB_SETTEXT, nSegments | SBT_NOBORDERS,
+	SendMessage(hwndStatus, SB_SETTEXT, nSegments,
 			(LPARAM)(pszStatusMessage ? pszStatusMessage : ""));
 }
 
@@ -172,9 +172,6 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 	case WM_PAINT: {
 		THEME_DATA* pTheme = theme_getCurrent();
-		if (pTheme->th_isWinTheme) {
-			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
-		}
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
 		HBRUSH brush = CreateSolidBrush(pTheme->th_dialogBackground);
@@ -188,39 +185,53 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
 		RECT rect;
 		GetClientRect(hwnd, &rect);
+		int width = rect.right / 12;
 		MoveTo(hdc, rect.left, rect.top );
 		LineTo(hdc, rect.right, rect.top);
+		int nDelta = dpisupport_getSize(3);
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc;
-			char szText[1024];
-			memset(&rc, 0, sizeof rc);
-			SendMessage(hwndStatus, SB_GETRECT, i, (LPARAM)&rc);
+			rc.top = 0;
+			rc.bottom = rect.bottom;
+			rc.left = i * rect.right / 12;
+			rc.right = rc.left + width;
 			if (rc.left > ps.rcPaint.right) {
 				break;
 			}
-			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);
 			if (i < nSegments - 1) {
-				MoveTo(hdc, rc.right, rc.top + 1);
-				LineTo(hdc, rc.right, rc.bottom - 1);
+				MoveTo(hdc, rc.right-1, rc.top + 1);
+				LineTo(hdc, rc.right-1, rc.bottom - 1);
 			}
+			char szText[1024];
+			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);
 			if (!szText[0] || szText[0] == ' ') {
 				continue;
 			}
-			rc.top += 1;
-			InflateRect(&rc, -2, -2);
-			DrawText(hdc, szText, (int) strlen(szText), &rc, DT_END_ELLIPSIS);
+			int nFlags = DT_SINGLELINE | DT_END_ELLIPSIS | DT_VCENTER;
+			char* pszText = szText;
+			if (szText[0] == '\t') {
+				nFlags |= DT_CENTER;
+				pszText++;
+			} else {
+				rc.left += nDelta;
+			}
+			DrawText(hdc, pszText, (int) strlen(pszText), &rc, nFlags);
 		}
 		WINDOWPLACEMENT placement;
 		GetWindowPlacement(hwndMain, &placement);
 		if (placement.showCmd != SW_MAXIMIZE) {
 			brush = CreateSolidBrush(pTheme->th_dialogBorder);
-			for (int y = 1; y <= 3; y++) {
-				for (int i = 0; i < 4 - y; i++) {
+			int nPix = dpisupport_getSize(2)-1;
+			if (nPix < 2) {
+				nPix = 2;
+			}
+			for (int y = 1; y <= nDelta; y++) {
+				for (int i = 0; i < nDelta + 1 - y; i++) {
 					RECT rc;
-					rc.left = rect.right - i * 3 - 3;
-					rc.top = rect.bottom - y * 3 - 1;
-					rc.bottom = rc.top + 2;
-					rc.right = rc.left + 2;
+					rc.left = rect.right - i * nDelta - nDelta;
+					rc.top = rect.bottom - y * nDelta - 1;
+					rc.bottom = rc.top + nPix;
+					rc.right = rc.left + nPix;
 					FillRect(hdc, &rc, brush);
 				}
 			}

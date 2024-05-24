@@ -283,7 +283,10 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
     DWORD dwOptions;
     // In case of multi-select - set options.
     pFileDialog->GetOptions(&dwOptions);
-    if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {
+    if (pParams->fsp_saveAs) {
+        dwOptions &= ~FOS_OVERWRITEPROMPT;
+        pFileDialog->SetOptions(dwOptions);
+    } else if (pParams->fsp_multiSelect) {
         dwOptions |= FOS_ALLOWMULTISELECT;
         pFileDialog->SetOptions(dwOptions);
     }

@@ -27,5 +27,6 @@ Here is a list of the placeholders supported:
 - `$S` - the last save date of the current document
 - `$c` - the creation time of the current document
 - `$C` - the creation date of the current document
+- `$P` - the name of the codepage (character set) with which the document was read / will be saved by default.
 
 
