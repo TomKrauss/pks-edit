@@ -64,12 +64,11 @@ typedef struct tagMAGIC {
 
 static MAGIC _magicMarkers[] = {
 	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE, BOM_NONE, ""},
-	{"\x2B\x2F\x76", 3, CP_UTF7, FALSE, BOM_UTF7, "UTF7 BOM"},
 	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE, BOM_UTF8, "UTF8 BOM"},
 	{"\xFE\xFF", 2, 1201, FALSE, BOM_UTF16BE, "UTF16 BOM-BE"},				// UTF-16 Big Endian
 	{"\xFF\xFE", 2, 1200, FALSE, BOM_UTF16LE, "UTF16 BOM-LE"},				// UTF-16 Little Endian
-	{"\x00\x00\xFE\xFF", 2, 12001, FALSE, BOM_UTF32BE, "UTF32 BOM-BE"},		// UTF-32 Big Endian
-	{"\xFF\xFE\x00\x00", 2, 12000, FALSE, BOM_UTF32LE, "UTF16 BOM-LE"},		// UTF-32 Little Endian
+	{"\x00\x00\xFE\xFF", 4, 12001, FALSE, BOM_UTF32BE, "UTF32 BOM-BE"},		// UTF-32 Big Endian
+	{"\xFF\xFE\x00\x00", 4, 12000, FALSE, BOM_UTF32LE, "UTF16 BOM-LE"},		// UTF-32 Little Endian
 	0
 };
 
@@ -390,9 +389,6 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 		error_showErrorById(IDS_MSGREADERROR); 
 		return 0;
 	}
-	if (pCodepage->cpi_hasUnsupportedChars) {
-		error_showErrorById(IDS_UNSUPPORTED_CHARACTERS);
-	}
 	return 1;
 }
 
@@ -543,8 +539,10 @@ ret0:			ret = 0;
 	if (!ln_createAndAdd(fp,_eof,sizeof _eof -2,LNNOTERM))
 		goto ret0;
 
-	if (fp->longLinesSplit > 0 && _verbose) {
-		error_showErrorById(IDS_MSGWRAPPEDLINES);
+	if (fp->codepageInfo.cpi_hasUnsupportedChars) {
+		error_showErrorById(IDS_UNSUPPORTED_CHARACTERS, string_getBaseFilename(fp->fname));
+	} else if (fp->longLinesSplit > 0 && _verbose) {
+		error_showErrorById(IDS_MSGWRAPPEDLINES, string_getBaseFilename(fp->fname));
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	}
 

@@ -1363,13 +1363,13 @@ BEGIN
     IDS_MSGNOMATCHTOSTART   "Zum Anfang nichts gefunden"
     IDS_MSGNORANGESELECTED  "Kein Arbeitsbereich selektiert"
     IDS_MSGREADERROR        "!Fehler beim Lesen"
-    IDS_MSGWRAPPEDLINES     "Es wurden lange Zeilen umgebrochen"
+    IDS_MSGWRAPPEDLINES     "Es wurden lange Zeilen in Datei %s umgebrochen."
     IDS_MSGNODISKSPACE      "!Kein Platz auf der Festplatte"
     IDS_MSGCLEARBUFFERS     "Sollen alle Ablage- und\nUndo-Zwischenspeicher\ngeleert werden?"
     IDS_MSGNOUNDOBLOCK      "Der Undoblock existiert nicht"
     IDS_MSGOPEN             "!Kann Datei %s nicht öffnen. Fehler: %s."
     IDS_FILE_IS_DIRECTORY   "!%s ist ein Verzeichnis und kann nicht geöffnet werden."
-    IDS_UNSUPPORTED_CHARACTERS   "!Die Datei enthält nicht unterstützte Zeichen und kann nicht ohne Verlust gespeichert werden."
+    IDS_UNSUPPORTED_CHARACTERS   "!Die Datei %s enthält nicht unterstützte Zeichen und kann nicht ohne Verlust gespeichert werden."
     IDS_MSGNOHELP           "!Keine Hilfe für\ndiese Situation verfügbar"
 END
 

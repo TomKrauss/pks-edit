@@ -1326,13 +1326,13 @@ BEGIN
     IDS_MSGNOMATCHTOSTART   "Nothing found to the begin of the file"
     IDS_MSGNORANGESELECTED  "No text selection"
     IDS_MSGREADERROR        "!Error during read"
-    IDS_MSGWRAPPEDLINES     "Long Lines have been wrapped"
+    IDS_MSGWRAPPEDLINES     "File %s: Long Lines have been wrapped"
     IDS_MSGNODISKSPACE      "!No space left on the device"
     IDS_MSGCLEARBUFFERS     "Do you want to empty all clipboard-\nand undo-buffers"
     IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
     IDS_MSGOPEN             "!Cannot open %s. Error: %s"
     IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
-    IDS_UNSUPPORTED_CHARACTERS   "!The file contains unsupported characters and cannot be saved without loss."
+    IDS_UNSUPPORTED_CHARACTERS   "!The file %s contains unsupported characters and cannot be saved without loss."
     IDS_MSGNOHELP           "!No help for this context available"
 END
 
