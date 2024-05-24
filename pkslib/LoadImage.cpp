@@ -520,6 +520,7 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
     ID2D1SvgDocument* svg;
     hr = dc->CreateSvgDocument(ipImageStream, size, &svg);
     if (FAILED(hr)) {
+        dc->Release();
         target->Release();
         return 0;
     }
@@ -557,28 +558,26 @@ static HBITMAP load_bitmapFromSVG(IStream* ipImageStream) {
     target->BindDC(hdcScreen, &rc);
     // create a DIB section that can hold the image
     hbmp = CreateDIBSection(hdcScreen, &bminfo, DIB_RGB_COLORS, &pvImageBits, NULL, 0);
-    if (hbmp == NULL) {
-        return NULL;
-    }
-    HDC hdc = CreateCompatibleDC(hdcScreen);
-    ReleaseDC(NULL, hdcScreen);
-
-    auto hbmpOld = SelectObject(hdc, hbmp);
     if (hbmp != NULL) {
-        target->BindDC(hdc, &rc);
-        // draw it on the render target
-        target->BeginDraw();
-        dc->DrawSvgDocument(svg);
-        hr = target->EndDraw();
+        HDC hdc = CreateCompatibleDC(hdcScreen);
+
+        auto hbmpOld = SelectObject(hdc, hbmp);
+        if (hbmp != NULL) {
+            target->BindDC(hdc, &rc);
+            // draw it on the render target
+            target->BeginDraw();
+            dc->DrawSvgDocument(svg);
+            hr = target->EndDraw();
+        }
+        if (hbmpOld != nullptr) {
+            SelectObject(hdc, hbmpOld);
+        }
+        ReleaseDC(NULL, hdc);
+        DeleteDC(hdc);
     }
     svg->Release();
     dc->Release();
     target->Release();
-    if (hbmpOld != nullptr) {
-        SelectObject(hdc, hbmpOld);
-    }
-    ReleaseDC(NULL, hdc);
-    DeleteDC(hdc);
     ReleaseDC(NULL, hdcScreen);
     DeleteDC(hdcScreen);
 
