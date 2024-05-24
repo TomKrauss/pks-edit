@@ -147,7 +147,7 @@ static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoa
     if (pRequestContext->rctx_httpFileHandle) {
         DWORD nBufSize = 8192;
         DWORD size;
-        char* lpvBuffer = (char*)calloc(static_cast<size_t>(nBufSize) + 1, 1);
+        char* lpvBuffer = static_cast<char*>(calloc(static_cast<size_t>(nBufSize) + 1, 1));
         int nOffset = 0;
         int nTotalRead = 0;
         int nAvail = nBufSize;
@@ -176,7 +176,7 @@ static char* loadimage_loadHttpFile(REQUEST_CONTEXT* pRequestContext, UINT* pLoa
             if (nAvail == 0) {
                 nAvail = 8192;
                 nBufSize += nAvail;
-                char* pNew = (char*)realloc(lpvBuffer, static_cast<size_t>(nBufSize) + 1);
+                char* pNew = static_cast<char*>(realloc(lpvBuffer, static_cast<size_t>(nBufSize) + 1));
                 if (pNew == NULL) {
                     nTotalRead = 0;
                     break;
@@ -218,10 +218,10 @@ static void http_onImageRequestComplete(REQUEST_CONTEXT* pRequestContext) {
 }
 
 static void http_statusChanged(HINTERNET hInternet, DWORD_PTR dwContext, DWORD dwInternetStatus, LPVOID lpStatusInfo, DWORD dwStatusInfoLength) {
-    INTERNET_ASYNC_RESULT* pResult = (INTERNET_ASYNC_RESULT*)lpStatusInfo;
-    REQUEST_CONTEXT* pRequestContext = (REQUEST_CONTEXT*)dwContext;
+    INTERNET_ASYNC_RESULT* pResult = reinterpret_cast<INTERNET_ASYNC_RESULT*>(lpStatusInfo);
+    REQUEST_CONTEXT* pRequestContext = reinterpret_cast<REQUEST_CONTEXT*>(dwContext);
     if (dwInternetStatus == INTERNET_STATUS_HANDLE_CREATED) {
-        pRequestContext->rctx_httpFileHandle = (HINTERNET)pResult->dwResult;
+        pRequestContext->rctx_httpFileHandle = reinterpret_cast<HINTERNET>(pResult->dwResult);
         pRequestContext->rctx_error = pResult->dwError;
     } else if (dwInternetStatus == INTERNET_STATUS_HANDLE_CLOSING) {
         SetEvent(pRequestContext->rctx_cleanupEvent);
@@ -598,9 +598,6 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if ((unsigned char)pszData[0] == 0xff && (unsigned char)pszData[1] == 0xd8) {
         return CLSID_WICJpegDecoder;
     }
-    if ((unsigned char)pszData[0] == 0xff && (unsigned char)pszData[1] == 0xd8) {
-        return CLSID_WICTiffDecoder;
-    }
     if (pszData[0] == 0x49 && pszData[1] == 0x49 && pszData[2] == 0x2a && pszData[3] == 0x00) {
         return CLSID_WICTiffDecoder;
     }
@@ -634,7 +631,7 @@ HBITMAP loadimage_fromFileOrData(char* pszFileName, char* pszData, int cbSize) {
     if (guid.Data1 == 0) {
         return NULL;
     }
-    IStream* ipImageStream = pszData == NULL ? CreateStreamOnResource(pszFileName) : SHCreateMemStream((const BYTE*)pszData, cbSize);
+    IStream* ipImageStream = pszData == NULL ? CreateStreamOnResource(pszFileName) : SHCreateMemStream(reinterpret_cast<BYTE*>(pszData), cbSize);
     if (ipImageStream == NULL) {
         return NULL;
     }

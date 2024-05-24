@@ -795,9 +795,6 @@ static BOOL mdr_loadAndMeasureImage(HWND hwnd, TEXT_RUN* pRun, int *pWidth, int 
 			};
 			IMAGE_LOAD_RESULT result = loadimage_load((char*)pszImageName, async);
 			if (result.ilr_bitmap != NULL) {
-				if (pImage->mdi_image != NULL) {
-					DeleteObject(pImage->mdi_image);
-				}
 				pImage->mdi_image = result.ilr_bitmap;
 			} else if (result.ilr_loading) {
 				pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LOADING_IMAGE));
@@ -1769,7 +1766,6 @@ static TEXT_RUN** mdr_getBlockRunsOf(RENDER_VIEW_PART* pPart) {
  */
 static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bIndented, const char* pEndTag) {
 	size_t nLastOffset = 0;
-	int nOffs;
 	char c;
 	LINE* lp;
 	int bSkipEmptyFirst = 0;
@@ -1785,7 +1781,7 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 		pPart = pState->hps_part;
 	}
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
-		nOffs = 0;
+		int nOffs = 0;
 		if (bIndented) {
 			if (c == '\t') {
 				nOffs = 1;
@@ -2176,7 +2172,7 @@ static int mdr_getTag(INPUT_STREAM* pStream, FONT_STYLE_DELTA* pFSD, HTML_TAG* p
 		pTag->ht_isOpen = 1;
 	}
 	pFSD->fsd_styleName = 0;
-	while (nDestSize > 1) {
+	while (TRUE) {
 		char c = pStream->is_getc(pStream);
 		if (c == 0) {
 			break;
@@ -2618,7 +2614,6 @@ static void mdr_applyGrammar(RENDER_VIEW_PART* pPart) {
 	int lineEndSpanning = 0;
 	LEXICAL_STATE startState = INITIAL;
 	int nOffset = 0;
-	THEME_DATA* pTheme = theme_getCurrent();
 	while (pRun != NULL) {
 		size_t lLength = pRun->tr_size;
 		TEXT_RUN* pNext = pRun->tr_next;
@@ -3529,7 +3524,7 @@ static RENDER_VIEW_PART* mdr_getViewPartAt(RENDER_VIEW_PART* pFirstPart, long n)
 /*
  * Returns the view part corresponding with the passed line pointer.
  */
-static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, LINE* lp, int* pIndex) {
+static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, const LINE* lp, int* pIndex) {
 	if (!pFirstPart) {
 		return 0;
 	}

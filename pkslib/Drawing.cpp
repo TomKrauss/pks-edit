@@ -49,7 +49,7 @@ extern "C" __declspec(dllexport) BOOL paint_loadFontAwesome(void* pFontData, DWO
 /*
  * Draws a text in an antialiased way. 
  */
-static void paint_awesomeIcons(HDC hdc, CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
+static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
 	paint_initGdiPlus();
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));

@@ -131,7 +131,6 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bPara
 	pAction->ca_param.text = pszCopy;
 	pAction->ca_replaceWord = TRUE;
 	pAction->ca_freeName = bAlloc;
-	int nScore = bParam->acp_score;
 	pAction->ca_score = bParam->acp_score;
 	pAction->ca_replacedTextLength = bParam->acp_replacedTextLength;
 	pAction->ca_helpCB = fHelpCB;

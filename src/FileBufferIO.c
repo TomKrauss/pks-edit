@@ -243,11 +243,10 @@ EXPORT char* file_readFileAsString(int fd) {
 static int file_detectCodepage(const char* pData, int nSize) {
 	const unsigned char* str = (unsigned char*)pData;
 	const unsigned char* end = str + nSize;
-	unsigned char byte;
 	unsigned int nLength, i;
 	wchar_t ch;
 	while (str != end) {
-		byte = *str++;
+		unsigned char byte = *str++;
 		if (byte <= 0x7F || str >= end) {
 			/* 1 byte sequence: U+0000..U+007F */
 			continue;

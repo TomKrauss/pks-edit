@@ -99,10 +99,10 @@ static int _codepages[] = {
 
 static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
     for (int i = 0; i < nCount; i++) {
-        free((void*) pFilters[i].pszName);
-        free((void*) pFilters[i].pszSpec);
+        free((void*)pFilters[i].pszName);
+        free((void*)pFilters[i].pszSpec);
     }
-    free((void*) pFilters);
+    free(pFilters);
 }
 
 static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCurrent, UINT*pNumberOfTypes, UINT* pSelected) {

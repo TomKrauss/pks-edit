@@ -74,15 +74,6 @@ static HANDLE image_createHandle(FTABLE* fp) {
 	return ret;
 }
 
-/*
- * Returns the renderer data for the given window.
- */
-static IMAGE_RENDERER_DATA* image_dataFromWindow(HWND hwnd) {
-	WINFO* wp = ww_winfoFromWorkwinHandle(hwnd);
-	return wp ? wp->r_data : 0;
-}
-
-
 /*--------------------------------------------------------------------------
  * render_paintWindowParams()
  */

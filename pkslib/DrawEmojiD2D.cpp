@@ -44,10 +44,6 @@ struct DWriteSupport {
             return FAILED(-1);
         }
         if (!renderTarget) {
-            if (renderTarget) {
-                renderTarget->Release();
-                renderTarget = NULL;
-            }
             D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, 
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
             hr = d2d_factory->CreateDCRenderTarget(&props, &renderTarget);
@@ -86,11 +82,7 @@ struct DWriteSupport {
 
         DWRITE_TEXT_METRICS metrics;
         write_text_layout->GetMetrics(&metrics);
-
-        if (write_text_layout) {
-            write_text_layout->Release();
-            write_text_layout = NULL;
-        }
+        write_text_layout->Release();
 
         return { metrics.width, metrics.height };
     }
