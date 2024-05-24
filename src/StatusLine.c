@@ -227,11 +227,12 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 			for (int y = 1; y <= nDelta; y++) {
 				for (int i = 0; i < nDelta + 1 - y; i++) {
-					RECT rc;
-					rc.left = rect.right - i * nDelta - nDelta;
-					rc.top = rect.bottom - y * nDelta - 1;
-					rc.bottom = rc.top + nPix;
-					rc.right = rc.left + nPix;
+					RECT rc = {
+					.left = rect.right - i * nDelta - nDelta,
+					.top = rect.bottom - y * nDelta - 1,
+					.bottom = rc.top + nPix,
+					.right = rc.left + nPix
+					};
 					FillRect(hdc, &rc, brush);
 				}
 			}

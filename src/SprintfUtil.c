@@ -124,10 +124,17 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 	format = *fmt;
 
 	switch(*format) {
-	case 'P':
-		GetCPInfoEx(fp->codepageInfo.cpi_codepage, 0, &cpinfo);
-		strcpy(fname, cpinfo.CodePageName);
+	case 'P': {
+		char* pName = ft_magicName(fp->codepageInfo.cpi_bomType);
+		if (pName != NULL) {
+			strcpy(fname, pName);
+		}
+		else {
+			GetCPInfoEx(fp->codepageInfo.cpi_codepage, 0, &cpinfo);
+			strcpy(fname, cpinfo.CodePageName);
+		}
 		return fname;
+	}
 
 	case 'f':
 		return string_getBaseFilename(fp->fname);

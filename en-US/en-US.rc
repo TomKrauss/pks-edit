@@ -1332,6 +1332,7 @@ BEGIN
     IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
     IDS_MSGOPEN             "!Cannot open %s. Error: %s"
     IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
+    IDS_UNSUPPORTED_CHARACTERS   "!The file contains unsupported characters and cannot be saved without loss."
     IDS_MSGNOHELP           "!No help for this context available"
 END
 
@@ -1340,7 +1341,6 @@ BEGIN
     IDS_MSGWRITEERR         "!An error has occurred during output of the data"
     IDS_MSGDELOLDKEYBIND    "Do you want to unbind the old key binding to %s"
     IDS_MSGFILESHAVECHANGED "The file %s had been modified outside of PKS Edit. Soll do you want to reload it"
-    IDS_STRING148           "Demo"
 END
 
 STRINGTABLE

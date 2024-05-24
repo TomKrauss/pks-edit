@@ -209,6 +209,7 @@ typedef struct tagCARET {
 
 typedef enum {
 	BOM_NONE = 0,
+	BOM_UTF7,
 	BOM_UTF8,
 	BOM_UTF16BE,
 	BOM_UTF16LE,
@@ -216,9 +217,16 @@ typedef enum {
 	BOM_UTF32LE
 } BOM_TYPE;
 
+/*
+ * Returns the name of a magic BOM type encoding.
+ */
+extern char* ft_magicName(BOM_TYPE type);
+
 typedef struct tagCODE_PAGE_INFO {
-	long	 cpi_codepage;
-	BOM_TYPE cpi_bomType;
+	long	 cpi_codepage;				// The code page to use (encoding).
+	BOM_TYPE cpi_bomType;				// The type of BOM present in the original file or to be written when saving the file
+	BOOL     cpi_hasUnsupportedChars;	// set to TRUE, if reading the file revealed, that the file contains characters which could not be converted
+										// to 8 bit characters and are not support by PKS Edit
 } CODE_PAGE_INFO;
 
 typedef struct tagFTABLE {

@@ -59,15 +59,17 @@ typedef struct tagMAGIC {
 	long m_codePage;
 	BOOL m_crypted;
 	BOM_TYPE m_bomType;
+	char m_name[12];
 } MAGIC;
 
 static MAGIC _magicMarkers[] = {
-	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE, BOM_NONE},
-	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE, BOM_UTF8},
-	{"\xFE\xFF", 2, 1201, FALSE, BOM_UTF16BE},				// UTF-16 Big Endian
-	{"\xFF\xFE", 2, 1200, FALSE, BOM_UTF16LE},				// UTF-16 Little Endian
-	{"\x00\x00\xFE\xFF", 2, 12001, FALSE, BOM_UTF32BE},		// UTF-32 Big Endian
-	{"\xFF\xFE\x00\x00", 2, 12000, FALSE, BOM_UTF32LE},		// UTF-32 Little Endian
+	{"\0enc\03\07\01\0", 8, CP_ACP, TRUE, BOM_NONE, ""},
+	{"\x2B\x2F\x76", 3, CP_UTF7, FALSE, BOM_UTF7, "UTF7 BOM"},
+	{"\xEF\xBB\xBF", 3, CP_UTF8, FALSE, BOM_UTF8, "UTF8 BOM"},
+	{"\xFE\xFF", 2, 1201, FALSE, BOM_UTF16BE, "UTF16 BOM-BE"},				// UTF-16 Big Endian
+	{"\xFF\xFE", 2, 1200, FALSE, BOM_UTF16LE, "UTF16 BOM-LE"},				// UTF-16 Little Endian
+	{"\x00\x00\xFE\xFF", 2, 12001, FALSE, BOM_UTF32BE, "UTF32 BOM-BE"},		// UTF-32 Big Endian
+	{"\xFF\xFE\x00\x00", 2, 12000, FALSE, BOM_UTF32LE, "UTF16 BOM-LE"},		// UTF-32 Little Endian
 	0
 };
 
@@ -75,6 +77,20 @@ static MAGIC* _cryptMarker = &_magicMarkers[0];
 
 // TODO: get rid of this hack.
 char* _linebuf;
+
+/*
+ * Returns the name of a magic BOM type encoding. 
+ */
+char* ft_magicName(BOM_TYPE type) {
+	MAGIC* pMagic = _magicMarkers;
+	while (pMagic->m_size) {
+		if (pMagic->m_bomType == type) {
+			return pMagic->m_name;
+		}
+		pMagic++;
+	}
+	return NULL;
+}
 
 /*
  * Compare the start of a file (bytes in szMagic) with the well-known BOMs used to 
@@ -346,7 +362,9 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 				wchar_t* pszDest = malloc(got * 2);
 				int nConv = MultiByteToWideChar(pCodepage->cpi_codepage, MB_PRECOMPOSED, bufferStart, got, pszDest, got);
 				char cDefault = '?';
-				got = WideCharToMultiByte(CP_ACP, 0, pszDest, nConv, bufferStart, nConv, &cDefault, NULL);
+				BOOL bUnsupported;
+				got = WideCharToMultiByte(CP_ACP, 0, pszDest, nConv, bufferStart, nConv, &cDefault, &bUnsupported);
+				pCodepage->cpi_hasUnsupportedChars |= bUnsupported;
 				free(pszDest);
 			}
 		}
@@ -371,6 +389,9 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 	if (got < 0) {
 		error_showErrorById(IDS_MSGREADERROR); 
 		return 0;
+	}
+	if (pCodepage->cpi_hasUnsupportedChars) {
+		error_showErrorById(IDS_UNSUPPORTED_CHARACTERS);
 	}
 	return 1;
 }

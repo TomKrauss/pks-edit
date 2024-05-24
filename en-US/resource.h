@@ -141,7 +141,6 @@
 #define IDS_MSGWRITEERR                 144
 #define IDS_MSGDELOLDKEYBIND            145
 #define IDS_MSGFILESHAVECHANGED         146
-#define IDS_STRING148                   148
 #define IDM_HLP_MANUAL_TOC              150
 #define IDM_HLPONDESKTOP                151
 #define IDM_HLPOVERVIEW                 152
