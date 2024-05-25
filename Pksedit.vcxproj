@@ -1282,6 +1282,7 @@
     <Image Include="RC\BITMAP1.BMP" />
     <Image Include="rc\bookmark.ico" />
     <Image Include="rc\broken_image.bmp" />
+    <Image Include="rc\broken_image.ico" />
     <Image Include="rc\clip2.ico" />
     <Image Include="rc\crossreference.ico" />
     <Image Include="rc\icon2.ico" />

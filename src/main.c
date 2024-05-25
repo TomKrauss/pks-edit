@@ -180,7 +180,7 @@ void ui_switchToLanguage(char* pszLanguage) {
 
 static void checkCommonControlLibraryVersion() {
 	HMODULE hDll;
-	DWORD dwMajorVersion = -1;
+	EdTRACE(DWORD dwMajorVersion = -1);
 
 	hDll = LoadLibrary("COMCTL32.DLL");
 	if (hDll != NULL) {
@@ -191,7 +191,7 @@ static void checkCommonControlLibraryVersion() {
 		if (fn_DllGetVersion != NULL) {
 			vi.cbSize = sizeof(DLLVERSIONINFO);
 			fn_DllGetVersion(&vi);
-			dwMajorVersion = vi.dwMajorVersion;
+			EdTRACE(dwMajorVersion = vi.dwMajorVersion);
 		}
 		FreeLibrary(hDll);
 	}
@@ -272,7 +272,6 @@ static void main_restoreSizeAndMakeVisible() {
 
 static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 		HSZ hsz1, HSZ hsz2, HDDEDATA hdata, ULONG_PTR dw1, ULONG_PTR dw2) {
-	char * pszData;
 
 	switch (uType) {
 	case XTYP_CONNECT:
@@ -283,6 +282,7 @@ static HDDEDATA CALLBACK EdDDECallback(UINT uType, UINT uFmt, HCONV hconv,
 	case XTYP_EXECUTE:
 		if (hsz1 == hszDDEExecuteMacro || (
 				hsz1 == hszDDECommandLine && hwndMain != 0)) {
+			char* pszData;
 			if ((pszData = DdeAccessData(hdata, 0)) == 0) {
 				error_displayAlertDialog("Cannot access DDE data handle, error %d", DdeGetLastError(hDDE));
 			} else {

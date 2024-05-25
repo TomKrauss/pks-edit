@@ -103,31 +103,26 @@ BOOL UAHWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* 
         DWORD dwFlags = DT_CENTER | DT_SINGLELINE | DT_VCENTER;
 
         int iTextStateID = 0;
-        int iBackgroundStateID = 0;
         {
             if ((pUDMI->dis.itemState & ODS_INACTIVE) | (pUDMI->dis.itemState & ODS_DEFAULT)) {
                 // normal display
                 iTextStateID = MPI_NORMAL;
-                iBackgroundStateID = MPI_NORMAL;
             }
             if (pUDMI->dis.itemState & ODS_HOTLIGHT) {
                 // hot tracking
                 iTextStateID = MPI_HOT;
-                iBackgroundStateID = MPI_HOT;
 
                 pbrBackground = &brItemBackgroundHot;
             }
             if (pUDMI->dis.itemState & ODS_SELECTED) {
                 // clicked -- MENU_POPUPITEM has no state for this, though MENU_BARITEM does
                 iTextStateID = MPI_HOT;
-                iBackgroundStateID = MPI_HOT;
 
                 pbrBackground = &brItemBackgroundSelected;
             }
             if ((pUDMI->dis.itemState & ODS_GRAYED) || (pUDMI->dis.itemState & ODS_DISABLED)) {
                 // disabled / grey text
                 iTextStateID = MPI_DISABLED;
-                iBackgroundStateID = MPI_DISABLED;
             }
             if (pUDMI->dis.itemState & ODS_NOACCEL) {
                 dwFlags |= DT_HIDEPREFIX;

@@ -1525,7 +1525,6 @@ static void draw_lineNumbers(WINFO* wp) {
 	int			yPos;
 	RECT		rect;
 	size_t		textLen;
-	FTABLE* fp = wp->fp;
 	int maxln = wp->maxln;
 	HDC 		hdc;
 	PAINTSTRUCT ps;

@@ -1736,11 +1736,10 @@ static BOOL mainWindowIsOther;
 
 static BOOL mainframe_enumChildWindowProc(HWND hwnd, LPARAM pParam) {
 	int* pCount = (int*)pParam;
-	char winClass[64];
 	if (hwnd == hwndMain) {
 		(*pCount)++;
-	}
-	else {
+	} else {
+		char winClass[64];
 		GetClassName(hwnd, winClass, sizeof winClass);
 		if (strcmp(winClass, szFrameClass) == 0) {
 			char winTitle[64];

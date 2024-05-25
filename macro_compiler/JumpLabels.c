@@ -122,7 +122,6 @@ static int bytecode_closeLabels(LABEL *lp)
 int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 {
 	LABEL *	lp;
-	int		i;
 	char* recp = pBuffer->bb_current;
 
 	if ((lp = bytecode_findLabelNamed(_labels,name)) != 0) {
@@ -145,7 +144,7 @@ int bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name)
 		lp->recp->offset = 
 			(int)(recp - (unsigned char *)lp->recp);
 		lp->type = L_RESOLVED;
-		for (i = 0; i < _ngotos; i++) {
+		for (int i = 0; i < _ngotos; i++) {
 			if (_gotos[i].lp == lp) {
 				_gotos[i].recp->offset = (int)(recp - (unsigned char*)_gotos[i].recp);
 				// mark goto as being resolved.

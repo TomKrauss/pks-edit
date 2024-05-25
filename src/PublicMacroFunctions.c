@@ -879,7 +879,7 @@ int EdFilesCompare(int dir) {
 	compareDialListPars[1].dp_data = &dlist;
 	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, compareDialListPars, NULL);
 	if (nRet == IDD_BUT3) {
-		FTABLE* fp = ft_openBackupfile(_compareFile1->fp);
+		fp = ft_openBackupfile(_compareFile1->fp);
 		if (fp == NULL) {
 			return 0;
 		}

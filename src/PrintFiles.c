@@ -392,9 +392,7 @@ static void print_headerOrFooter(HDC hdc, DEVEXTENTS *dep, int y, long pageno,
  */
 static int print_singleLineOfText(RENDER_CONTEXT* pRC, PRINT_LINE *pLine) {
 	PRTPARAM* pParams = config_getPrintConfiguration();
-	char 	szBuff[80];
 	HDC		hdc = pRC->rc_hdc;
-	int		nCount;
 	int		max;
 	int		xPos = pLine->xPos;
 	int		nMaxCharsPerLine;
@@ -407,8 +405,9 @@ static int print_singleLineOfText(RENDER_CONTEXT* pRC, PRINT_LINE *pLine) {
 	pLine->wrappedLineOffset = 0;
 	nMaxCharsPerLine = 0;
 	if (pParams->options & PRTO_LINE_NUMBERS) {
+		char 	szBuff[80];
 		wsprintf(szBuff, "%3ld: ", pLine->lineNumber);
-		nCount = (int)strlen(szBuff);
+		int		nCount = (int)strlen(szBuff);
 		if (printing && nActualLine >= nFirstActualLineToPrint) {
 			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
 			TextOut(hdc, pLine->xPos, pLine->yPos, szBuff, nCount);
@@ -483,7 +482,7 @@ static int print_isInPrintRange(PRTPARAM *pParams, WINFO *wp, int nCurrentPage, 
 		if (nCurrentLine > wp->maxln) {
 			return -1;
 		}
-		return nCurrentLine + pParams->pagelen >= wp->minln && nCurrentLine <= wp->maxln;
+		return nCurrentLine + pParams->pagelen >= wp->minln;
 	}
 	if (pRange->prtr_type == PRTR_SELECTION) {
 		// already handled in restricting the range to print.
@@ -496,7 +495,6 @@ static int print_isInPrintRange(PRTPARAM *pParams, WINFO *wp, int nCurrentPage, 
  * Default printing implementation to print in standard ASCII mode. 
  */
 PRINT_FRAGMENT_RESULT print_asciiLines(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam, DEVEXTENTS*	pExtents) {
-	HDC hdc = pRC->rc_hdc;
 	if (printLineParam->yPos + pExtents->lineHeight > printLineParam->maxYPos) {
 footerprint:
 		if (!printLineParam->pElement || P_EQ(printLineParam->pElement, printLineParam->pLastElement))
@@ -741,7 +739,7 @@ static void prt_decolboxfill(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, CB_SETCURSEL, pType, 0);
 }
 
-static prt_decodraw(HDC hdc, RECT* rcp, void *pParam, int nItem, int nCtl) {
+static prt_decodraw(HDC hdc, const RECT* rcp, const void *pParam, int nItem, int nCtl) {
 	COLORREF cColor = RGB(50, 50, 100);
 	PAGE_DECORATION_TYPE pType = (PAGE_DECORATION_TYPE)pParam;
 	RECT rect = *rcp;

@@ -371,7 +371,6 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 	} else {
 		SetCapture(wp->ww_handle);
 		CARET c1 = wp->caret;
-		CARET c2;
 		LINE* lpPrevious;
 		int cPrevious;
 		MOUSE_DRAG_HANDLER* pHandler = mouse_getDragHandler(wp, x, y);
@@ -408,7 +407,7 @@ EXPORT int caret_moveToXY(WINFO* wp, int x, int y)
 				wp->renderer->r_hitTest(wp, x, y, &ln, &col);
 				wp->caret.offset = col;
 			}
-			c2 = wp->caret;
+			CARET c2 = wp->caret;
 			if (cPrevious != c2.offset || lpPrevious != c2.linePointer) {
 				cPrevious = c2.offset;
 				lpPrevious = c2.linePointer;
@@ -465,9 +464,9 @@ extern MOUSE_EVENT_BINDING* bindings_getMouseBinding(int nButton, int nShift, in
 /*----------------------------*/
 EXPORT int mouse_onMouseClicked(WINFO *wp, int x, int y, int b, int nclicks, int nModifier)
 {
-	MOUSE_EVENT_BINDING *	mp = NULL;
+	MOUSE_EVENT_BINDING *	mp;
 
-	if (mp || (mp = bindings_getMouseBinding(b, nModifier, nclicks, wp->actionContext)) != 0) {
+	if ((mp = bindings_getMouseBinding(b, nModifier, nclicks, wp->actionContext)) != 0) {
 		recorder_stopAutoInsertRecording(NULL, NULL);
 		mouse_executeBinding(wp, mp, x, y);
 		return 1;

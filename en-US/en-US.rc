@@ -31,12 +31,12 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "#include ""windows.h""\r\n"
@@ -48,7 +48,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -1331,8 +1331,6 @@ BEGIN
     IDS_MSGCLEARBUFFERS     "Do you want to empty all clipboard-\nand undo-buffers"
     IDS_MSGNOUNDOBLOCK      "The undo-buffer is not defined"
     IDS_MSGOPEN             "!Cannot open %s. Error: %s"
-    IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
-    IDS_UNSUPPORTED_CHARACTERS   "!The file %s contains unsupported characters and cannot be saved without loss."
     IDS_MSGNOHELP           "!No help for this context available"
 END
 
@@ -1341,6 +1339,9 @@ BEGIN
     IDS_MSGWRITEERR         "!An error has occurred during output of the data"
     IDS_MSGDELOLDKEYBIND    "Do you want to unbind the old key binding to %s"
     IDS_MSGFILESHAVECHANGED "The file %s had been modified outside of PKS Edit. Soll do you want to reload it"
+    IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
+    IDS_UNSUPPORTED_CHARACTERS 
+                            "!The file %s contains unsupported characters and cannot be saved without loss."
 END
 
 STRINGTABLE
@@ -1367,7 +1368,7 @@ BEGIN
     IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
-    IDS_NO_EVALUATION_SUPPORTED
+    IDS_NO_EVALUATION_SUPPORTED 
                             "The grammar of this file does not support evaluation of code."
     IDS_EVALUATION_FAILED   "The evaluation of the currently selected text failed."
     IDS_MSGRE_UNDEFINED_BACKREF "Undefined bracket back reference"
@@ -1375,9 +1376,9 @@ BEGIN
     IDS_ICON_SIZE_MEDIUM    "medium"
     IDS_ICON_SIZE_BIG       "big"
     IDS_ICON_SIZE_LARGE     "large"
-    IDS_TT_SORT_FIELD_SEPARATOR
+    IDS_TT_SORT_FIELD_SEPARATOR 
                             "Enter the list of characters to use as field separators, e.g. ""\\t ,;"" to use Tab, Space, Komma or Semicolon"
-    IDS_TT_SORT_FIELD_OPTIONS
+    IDS_TT_SORT_FIELD_OPTIONS 
                             "Enter the comparison options for sorting the individual fields / columns.\nUse the syntax {f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]}+ to define one sort field (delimited by ,), where\nl is the line number (in clustered sorting),\nf is the field number and\nw is the width of a field\no is the offset for a field.\nt is the option for sorting a field:\n  d = sort numerically\n  D = sort as Date\n  i = sort strings case ignore\n  b = skip blanks when comparing\n  a = use keyword chars only for comparison\n  - = sort descending"
     IDS_WARN_FILE_MOVED_OR_DELETED "File %s was moved or deleted"
 END
@@ -1389,13 +1390,13 @@ BEGIN
     IDS_MSGNTIMESFOUND      "%d times found"
     IDS_WINDOWLIST          "Open window list"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
-    IDS_TT_REGULAR_EXPRESSION
+    IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text a  re preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
     IDS_FILE_READONLY       "Read-only"
     IDS_SEARCH              "Search incrementally"
-    IDS_STATUSLINE          "%s$f!L: %2d$l, C: %2d$c!\t%s$P!\t%s$&"
+    IDS_STATUSLINE          "%s$f!Ln: %2d$l, Col: %2d$c!\t%s$P!\t%s$&"
     IDS_NO_MACROS_DEFINED   "No macros defined."
     IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"
 END
@@ -1420,7 +1421,7 @@ BEGIN
     IDM_VIEW_BINDINGS_MENU  "View Bindings"
     IDM_MORESETTINGS_MENU   "More Settings"
     IDM_COMPARE_FILES       "Compare Files"
-    IDS_TRYING_TO_OPEN_TOO_MANY_FILES
+    IDS_TRYING_TO_OPEN_TOO_MANY_FILES 
                             "!You are trying to open more than the configured maximum of %d files at once."
 END
 

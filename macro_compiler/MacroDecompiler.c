@@ -557,12 +557,12 @@ static char* decompile_testOperationAsString(unsigned char op) {
 	return "??";
 }
 
-static BOOL decompile_expressionNeedsBrackets(COM_BINOP* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
+static BOOL decompile_expressionNeedsBrackets(COM_BINOP* cp, DECOMPILATION_STACK_ELEMENT* pStackCurrent, const DECOMPILATION_STACK_ELEMENT* pStack) {
 	if (pStackCurrent <= pStack) {
 		return FALSE;
 	}
 	DECOMPILATION_STACK_ELEMENT* pPrevious = &pStackCurrent[-1];
-	if (pStackCurrent > pStack && pPrevious->dse_instruction->typ == C_BINOP) {
+	if (pPrevious->dse_instruction->typ == C_BINOP) {
 		COM_BINOP* pExpr = (COM_BINOP * )pPrevious->dse_instruction;
 		// TODO: other precedences to be handled here?
 		if (pExpr->op == BIN_ADD || pExpr->op == BIN_SUB) {
@@ -705,14 +705,13 @@ static void (*_decompileFunction)(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOptions)
 static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOptions)
 {
 	unsigned char* sp, * spend, * data;
-	MACROC_INSTRUCTION_OP_CODE t;
 	MACRO* mp = pOptions->do_macro;
 
 	decompile_print(pBuf, "%s:", decompile_quoteString(MAC_NAME(mp)));
 	data = MAC_DATA(mp);
 
 	for (sp = data, spend = sp + mp->mc_bytecodeLength; sp < spend; ) {
-		t = ((COM_1FUNC*)sp)->typ;
+		MACROC_INSTRUCTION_OP_CODE t = ((COM_1FUNC*)sp)->typ;
 		int nOffs = (int)(sp - data);
 		decompile_print(pBuf, "\n0x%04x:   ", nOffs);
 		if (pOptions->do_instructionPointer == sp) {
@@ -816,7 +815,7 @@ static CONTROL_FLOW_MARK_INDEX* decompile_controlFlowMarkForOffset(CONTROL_FLOW_
 /*
  * Analyse the byte code jump instructions and "guess" the original control flow from which they were created.
  */
-static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char* pBytecode, unsigned char* pBytecodeEnd, int* nMarks) {
+static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char* pBytecode, const unsigned char* pBytecodeEnd, int* nMarks) {
 	unsigned char* pStart = pBytecode;
 	int nMax = 128;
 	CONTROL_FLOW_MARK_INDEX* pResult = calloc(nMax, sizeof * pResult);
@@ -891,7 +890,7 @@ static decompile_indent(STRING_BUF* pBuf, int nIndent) {
 /*
  * Finc the next native function call statement and return the function descriptor, if a call statement was found.
  */
-static NATIVE_FUNCTION* decompile_findFunctionDescriptor(unsigned char* pBytecode, unsigned char* spend) {
+static NATIVE_FUNCTION* decompile_findFunctionDescriptor(unsigned char* pBytecode, const unsigned char* spend) {
 	while (pBytecode < spend) {
 		if (!C_IS_PUSH_OPCODE(*pBytecode)) {
 			if (*pBytecode == C_0FUNC) {

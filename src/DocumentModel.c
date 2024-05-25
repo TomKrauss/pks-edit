@@ -875,7 +875,6 @@ EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
  */
 unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor, unsigned char* p, const unsigned char* pend) {
 	int  nl;
-	long size;
 	int rightMargin = documentDescriptor->rmargin;
 
 	nl = 0;
@@ -883,7 +882,7 @@ unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescr
 		rightMargin = 80;
 	}
 	while (p < pend) {
-		size = (long)(pend - p);
+		long size = (long)(pend - p);
 		if (size >= rightMargin) {
 			size = rightMargin;
 		}

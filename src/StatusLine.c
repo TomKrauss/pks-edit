@@ -97,7 +97,6 @@ static void st_setparts(char *text, BOOL bUpdateMessageOnly)
 		}
 	}
 	for (i = 0, offset = 0; i < nSegments; i++) {
-		char* pszText = pszStrArr[i];
 		// This size is irrelevant - we will paint the status bar and determine the segments size dynamically
 		offset += 10;
 		pSegments[i] = offset;

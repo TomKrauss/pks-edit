@@ -411,7 +411,6 @@ static void tb_initSearchEntryCueBanner(char* pszText) {
  */
 HWND tb_initRebar(HWND hwndOwner) {
     HWND hwndEntryField;
-    HWND hwndToolbar;
     CHAR_WITH_STYLE searchIcons[] = {
         {FA_ICON_SEARCH, 0},
         {FA_ICON_ARROW_DOWN, 0},

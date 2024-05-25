@@ -743,6 +743,9 @@
     <Image Include="rc\image_loading.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="rc\broken_image.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Font Include="rc\Font Awesome 5 Free-Solid-900.ttf" />

@@ -217,7 +217,6 @@ char *fsel_initPathes(FSELINFO *fp)
  */
 int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	char* szFileNameIn = pFSParams->fsp_inputFile;
-	char* szFullPathOut = pFSParams->fsp_resultFile;
 	int  	ret;
 	LPSTR 	pszExt;
 	LPSTR	pszFileName;

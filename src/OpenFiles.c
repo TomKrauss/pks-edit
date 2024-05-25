@@ -964,7 +964,7 @@ int ft_checkReadonlyWithError(FTABLE* fp)
  * Checks whether the passed file buffer can be modified or whether it is readonly. 
  */
 int ft_isReadonly(FTABLE* fp) {
-	return fp->flags & (F_RDONLY|F_WATCH_LOGFILE) ? 1 : 0;
+	return (fp->flags & (F_RDONLY|F_WATCH_LOGFILE)) ? 1 : 0;
 }
 
 /*--------------------------------------------------------------------------

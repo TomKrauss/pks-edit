@@ -99,8 +99,8 @@ static int _codepages[] = {
 
 static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
     for (int i = 0; i < nCount; i++) {
-        free((void*)pFilters[i].pszName);
-        free((void*)pFilters[i].pszSpec);
+        free((void*)(pFilters[i].pszName));
+        free((void*) pFilters[i].pszSpec);
     }
     free(pFilters);
 }
@@ -108,7 +108,7 @@ static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
 static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCurrent, UINT*pNumberOfTypes, UINT* pSelected) {
     UINT nCount = 0;
     UINT nSize = 10;
-    COMDLG_FILTERSPEC* pSpec = (COMDLG_FILTERSPEC*)calloc(sizeof(COMDLG_FILTERSPEC), nSize);
+    COMDLG_FILTERSPEC* pSpec = reinterpret_cast<COMDLG_FILTERSPEC*>(calloc(sizeof(COMDLG_FILTERSPEC), nSize));
     if (pSpec == NULL) {
         return NULL;
     }
@@ -126,17 +126,17 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
         pszFileTypes += strlen(pszFileTypes) + 1;
         if (nCount >= nSize) {
             nSize += 10;
-            COMDLG_FILTERSPEC* pSpec2 = (COMDLG_FILTERSPEC*)realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC));
+            COMDLG_FILTERSPEC* pSpec2 = reinterpret_cast<COMDLG_FILTERSPEC*>(realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC)));
             if (pSpec2 == NULL) {
                 break;
             }
             pSpec = pSpec2;
         }
         size_t l1 = lstrlenA(pszName) + 1;
-        pSpec[nCount].pszName = (LPCWSTR) calloc(l1, sizeof(WCHAR));
+        pSpec[nCount].pszName = reinterpret_cast<LPCWSTR>(calloc(l1, sizeof(WCHAR)));
         MultiByteToWideChar(CP_UTF8, 0, pszName, -1, (LPWSTR) pSpec[nCount].pszName, (int)(l1 * sizeof(WCHAR)));
         size_t l2 = lstrlenA(pszFilter) + 1;
-        pSpec[nCount].pszSpec = (LPCWSTR) calloc(l2, sizeof(WCHAR));
+        pSpec[nCount].pszSpec = reinterpret_cast<LPCWSTR>(calloc(l2, sizeof(WCHAR)));
         MultiByteToWideChar(CP_UTF8, 0, pszFilter, -1, (LPWSTR) pSpec[nCount].pszSpec, (int)(l2 * sizeof(WCHAR)));
         nCount++;
     }
@@ -179,6 +179,9 @@ static int file_getResults(IFileOpenDialog* pFileOpenDialog, char* pszResult) {
             pszResult += strlen(pszResult) + 1;
             bFirst = 0;
         }
+        if (pszResult + strlen(fileName) + 1 > pEnd) {
+            break;
+        }
         strcpy_s(pszResult, MAX_PATH, fileName);
         pszResult += strlen(pszResult) + 1;
         *pszResult = 0;
@@ -205,7 +208,6 @@ static int file_getResult(IFileDialog* pFileDialog, char* pszResult) {
         ret = 1;
         WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, pszResult, 1024, 0, 0);
         CoTaskMemFree(pszFilePath);
-        ret = 1;
     }
     pItem->Release();
     return ret;

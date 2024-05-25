@@ -70,7 +70,6 @@ EXPORT BOOL init_initializeVariables(void )
 	char	homeDirectory[EDMAXPATHLEN];
 	char	datadir[EDMAXPATHLEN];
 	char *	pks_sys = PKS_SYS;
-	char *  tempFound;
 	int     tempLen;
 	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 
@@ -90,7 +89,7 @@ EXPORT BOOL init_initializeVariables(void )
 			GetProfileString("PksEdit", pks_sys, "", _pksSysFolder, EDMAXPATHLEN);
 			if (!*_pksSysFolder || !_checkPksSys(_pksSysFolder)) {
 				// Finally: PKS_SYS from the path where the executable is located.
-				tempFound = strrchr(homeDirectory, '\\');
+				char* tempFound = strrchr(homeDirectory, '\\');
 				if (tempFound != NULL && (tempFound - homeDirectory) > 1) {
 					tempFound[-1] = 0;
 					string_concatPathAndFilename(homeDirectory, homeDirectory, pks_sys);

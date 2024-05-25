@@ -126,7 +126,7 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 	switch(*format) {
 	case 'P': {
 		char* pName = ft_magicName(fp->codepageInfo.cpi_bomType);
-		if (pName != NULL) {
+		if (pName != NULL && pName[0]) {
 			strcpy(fname, pName);
 		}
 		else {
@@ -275,7 +275,7 @@ static char* sprintf_float(char* pszDest, char* fmt, double nNumber) {
 /*
  * Format a string into an output buffer 
  */
-static char* string_formatWithPadding(char* pszDestination, char* pszEnd, char* pszText, int nWidth, int cFiller, int bLeftJustify) {
+static char* string_formatWithPadding(char* pszDestination, const char* pszEnd, char* pszText, int nWidth, int cFiller, int bLeftJustify) {
 	if (pszDestination + nWidth > pszEnd)
 		return pszDestination;
 	if (pszText) {
