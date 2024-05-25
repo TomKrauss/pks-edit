@@ -11,6 +11,7 @@ typedef struct tagSEARCH_AND_REPLACE_PARAMETER {
 	char	pathlist[512];			// for search in files: a list of pathes (separated by ",") to scan
 	char	filenamePattern[50];	// for search in files: filename pattern for files to consider.
 	int		fileScanDepth;			// for search in files: the maximum folder depth for traversal -1 means: no limit.
+    RE_PATTERN compiled;            // The pattern in compiled form.
 } SEARCH_AND_REPLACE_PARAMETER;
 
 extern SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
@@ -20,7 +21,7 @@ extern SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams;
  * Compiles a regular expression passing in a char array into which the appropriate compiled expression is placed (should be big enough - typically 500 bytes
  * the pattern to compile and the RE_... flags as specified in regexp.h
  */
-extern RE_PATTERN* find_regexCompile(char* compiledExpression, const char* pattern, int flags);
+extern RE_PATTERN* find_regexCompile(RE_PATTERN* pPattern, char* compiledExpression, const char* pattern, int flags);
 
 /*--------------------------------------------------------------------------
  * regex_compileWithDefault()
@@ -44,7 +45,7 @@ extern int find_initializeReplaceByExpression(unsigned const char* replaceByExpr
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-extern int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN* pPattern, int options);
+extern int find_expressionInCurrentFile(WINFO* wp, int dir, char* pszString, RE_PATTERN* pPattern, int options);
 
 /*--------------------------------------------------------------------------
  * find_expressionAgainInCurrentFile()

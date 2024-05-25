@@ -57,10 +57,9 @@ SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams = {
 	0,
 	"",
 	"",
-	-1
+	-1,
+	0
 };
-static RE_PATTERN	_lastCompiledPattern;
-static RE_PATTERN	_lastSearchPattern;
 
 /*
  * Create an option object for compiling a regular expression. 
@@ -88,13 +87,13 @@ static int regex_compilationFailed(int errorCode) {
 /*--------------------------------------------------------------------------
  * find_regexCompile()
  */
-RE_PATTERN *find_regexCompile(char *ebuf, const char *pat, int flags) {
+RE_PATTERN *find_regexCompile(RE_PATTERN* pCompiled, char *ebuf, const char *pat, int flags) {
 	flags &= (RE_DOREX|RE_IGNCASE|RE_SHELLWILD);
-	if (!regex_compile(createREOptions(pat, ebuf, flags, 0), &_lastCompiledPattern)) {
-		regex_compilationFailed(_lastCompiledPattern.errorCode);
+	if (!regex_compile(createREOptions(pat, ebuf, flags, 0), pCompiled)) {
+		regex_compilationFailed(pCompiled->errorCode);
 		return 0;
 	}
-	return &_lastCompiledPattern;
+	return pCompiled;
 }
 
 static REPLACEMENT_PATTERN _currentReplacementPattern;
@@ -122,7 +121,7 @@ int find_initializeReplaceByExpression(unsigned const char* replaceByExpression)
 			.replacementPattern = (char*)replaceByExpression, 
 			.flags = _currentSearchAndReplaceParams.options, 
 			.newlineCharacter = nlchar, 
-			.maxCaptureGroups = _lastCompiledPattern.nbrackets },
+			.maxCaptureGroups = _currentSearchAndReplaceParams.compiled.nbrackets },
 		& _currentReplacementPattern);
 	if (_currentReplacementPattern.errorCode) {
 		regex_compilationFailed(_currentReplacementPattern.errorCode);
@@ -147,11 +146,11 @@ RE_PATTERN* regex_compileWithError(const char* expression) {
 	static UCHAR 	_expbuf[ESIZE];
 	RE_PATTERN* pPattern;
 
-	if ((pPattern = find_regexCompile(_expbuf, expression, _currentSearchAndReplaceParams.options)) == NULL) {
+	if ((pPattern = find_regexCompile(&_currentSearchAndReplaceParams.compiled, _expbuf, expression, _currentSearchAndReplaceParams.options)) == NULL) {
 		return NULL;
 	}
 	find_setCurrentSearchExpression(expression);
-	_lastSearchPattern = *pPattern;
+	_currentSearchAndReplaceParams.compiled = *pPattern;
 	return pPattern;
 }
 
@@ -162,7 +161,7 @@ RE_PATTERN* regex_compileWithError(const char* expression) {
 RE_PATTERN *regex_compileWithDefault(const char *expression) {
 	RE_PATTERN* pPattern = regex_compileWithError(expression);
 	if (!pPattern) {
-		pPattern = &_lastCompiledPattern;
+		pPattern = &_currentSearchAndReplaceParams.compiled;
 	}
 	return pPattern;
 }
@@ -333,7 +332,7 @@ static int find_expressionInCurrentFileStartingFrom(FTABLE* fp, CARET cCaret, in
 /*--------------------------------------------------------------------------
  * find_expressionInCurrentFile()
  */
-int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN *pPattern,int options) {
+int find_expressionInCurrentFile(WINFO* wp, int dir, char* pszString, RE_PATTERN *pPattern,int options) {
 	long ln,col;
 	int ret = 0;
 	int wrap = options & RE_WRAPSCAN;
@@ -351,6 +350,7 @@ int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN *pPattern,int op
 	}
 	fp = wp->fp;
 	mouse_setBusyCursor();
+
 	ret = find_expressionInCurrentFileStartingFrom(fp, wp->caret, dir, pPattern, options, &ln, &col, &match, &wrapped);
 	mouse_setDefaultCursor();
 
@@ -361,7 +361,7 @@ int find_expressionInCurrentFile(WINFO* wp, int dir, RE_PATTERN *pPattern,int op
 	}
 	else {
 		if (wrap)
-			error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+			error_showErrorById(IDS_MSGSTRINGNOTFOUND, pszString);
 		else
 			error_showErrorById((dir > 0) ? IDS_MSGNOMATCHTOEND :
 							 IDS_MSGNOMATCHTOSTART);
@@ -409,7 +409,7 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	if (ret) {
 		find_updateSelectionToShowMatch(wp, ln, col, &match);
 	} else if (pszString[0]) {
-		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND, pszString);
 	}
 	return ret;
 }
@@ -429,8 +429,16 @@ int find_startIncrementalSearch() {
 int find_expressionAgainInCurrentFile(WINFO* wp, int dir) {
 	RE_PATTERN* pPattern;
 
-	pPattern = _lastSearchPattern.compiledExpression ? &_lastSearchPattern : regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
-	return pPattern && find_expressionInCurrentFile(wp, dir,pPattern, _currentSearchAndReplaceParams.options);
+	if (_currentSearchAndReplaceParams.compiled.compiledExpression == NULL && !_currentSearchAndReplaceParams.searchPattern[0]) {
+		hist_getCurrentHistoryEntry(SEARCH_PATTERNS, _currentSearchAndReplaceParams.searchPattern, sizeof _currentSearchAndReplaceParams.searchPattern);
+		if (!_currentSearchAndReplaceParams.searchPattern[0]) {
+			error_showErrorById(IDS_MSGNOSEARCHSTRING);
+			return 0;
+		}
+	}
+	pPattern = _currentSearchAndReplaceParams.compiled.compiledExpression ? &_currentSearchAndReplaceParams.compiled : 
+		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+	return pPattern && find_expressionInCurrentFile(wp, dir, _currentSearchAndReplaceParams.searchPattern, pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*--------------------------------------------------------------------------
@@ -795,14 +803,14 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 		}
 
 		if (col) {
-			if (!match.circf && regex_match(&_lastCompiledPattern, &lp->lbuf[col], &lp->lbuf[maxlen], &match))
+			if (!match.circf && regex_match(&_currentSearchAndReplaceParams.compiled, &lp->lbuf[col], &lp->lbuf[maxlen], &match))
 				goto success;
 		} else {
 			if (marked && (lp->lflg & LNXMARKED) == 0)
 				goto nextline;
 			if (find_abortProgress())
 				break;
-			if (regex_match(&_lastCompiledPattern, lp->lbuf, &lp->lbuf[maxlen], &match))
+			if (regex_match(&_currentSearchAndReplaceParams.compiled, lp->lbuf, &lp->lbuf[maxlen], &match))
 				goto success;
 		}
 
@@ -925,7 +933,7 @@ endrep:
 			error_showMessageInStatusbar(IDS_MSGNREPL, pszSearchPattern, nReplacements, ln);
 		}
 	} else if (bResult != RTR_CANCELLED) {
-		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND, pszSearchPattern);
 		return RTR_NOT_FOUND;
 	}
 	return bResult;

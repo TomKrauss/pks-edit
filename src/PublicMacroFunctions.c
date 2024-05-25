@@ -1580,10 +1580,6 @@ int EdReplaceAgain(WINFO* wp) {
  */
 int EdFindAgain(WINFO *wp, int dir)
 {	
-	if (!_currentSearchAndReplaceParams.searchPattern[0]) {
-		error_showErrorById(IDS_MSGNOSEARCHSTRING);
-		return 0;
-	}
 	return find_expressionAgainInCurrentFile(wp, (dir) ? (_dir = dir) : _dir);
 }
 

@@ -408,7 +408,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	_compiledPattern = xref_compileSearchListPattern();
 	pFilesMap = find_collectFiles(stepfile);
 	if (hashmap_size(pFilesMap) == 0) {
-		error_showErrorById(IDS_MSGSTRINGNOTFOUND);
+		error_showErrorById(IDS_MSGSTRINGNOTFOUND, "Error Pattern");
 	} else {
 		hashmap_forEachKey(pFilesMap, find_replaceInFile, pParams);
 	}

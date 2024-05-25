@@ -185,15 +185,18 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		int width = rect.right / 12;
-		MoveTo(hdc, rect.left, rect.top );
-		LineTo(hdc, rect.right, rect.top);
 		int nDelta = dpisupport_getSize(3);
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc;
 			rc.top = 0;
 			rc.bottom = rect.bottom;
 			rc.left = i * rect.right / 12;
-			rc.right = rc.left + width;
+			if (i == nSegments - 1) {
+				rc.right = rect.right;
+			}
+			else {
+				rc.right = rc.left + width;
+			}
 			if (rc.left > ps.rcPaint.right) {
 				break;
 			}

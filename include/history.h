@@ -48,6 +48,11 @@ typedef struct tagSESSION_DATA {
 	void* sd_histories[OPEN_IN_EDITOR+1];				// the various histories
 } SESSION_DATA;
 
+/*
+ * Returns the current history entry.
+ */
+extern void hist_getCurrentHistoryEntry(HISTORY_TYPE type, char* pszDest, size_t nSize);
+
 extern void hist_saveString(HISTORY_TYPE type, const char *string);
 extern void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bForceInit);
 extern char *hist_getString(HISTORY_TYPE type, int nItem);

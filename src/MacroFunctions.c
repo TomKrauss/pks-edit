@@ -513,6 +513,7 @@ char* macroc_substituteStringWith(char* string, char* pattern, char* with, long 
 	unsigned char nlchar;
 	char		replace[256];
 	RE_MATCH	match;
+	RE_PATTERN  rePattern;
 	REPLACEMENT_PATTERN replacementPattern;
 
 	_linebuf[0] = 0;
@@ -526,7 +527,7 @@ char* macroc_substituteStringWith(char* string, char* pattern, char* with, long 
 	if (pattern &&
 		string &&
 		with &&
-		(pPattern = find_regexCompile(ebuf, pattern, nREFlags)) &&
+		(pPattern = find_regexCompile(&rePattern, ebuf, pattern, nREFlags)) &&
 		regex_initializeReplaceByExpressionOptions(&(REPLACEMENT_OPTIONS) { with, nREFlags, nlchar, pPattern->nbrackets }, & replacementPattern)) {
 		src = string;
 		send = _linebuf;
@@ -563,11 +564,12 @@ char* macroc_substituteStringWith(char* string, char* pattern, char* with, long 
 long long macroc_findPattern(const char* string, char* pattern, int nREFlags) {
 	char		ebuf[ESIZE];
 	RE_MATCH	match;
+	RE_PATTERN  rePattern;
 	RE_PATTERN* pPattern;
 
 	if (!pattern ||
 		!string ||
-		!(pPattern = find_regexCompile(ebuf, pattern, nREFlags))) {
+		!(pPattern = find_regexCompile(&rePattern, ebuf, pattern, nREFlags))) {
 		interpreter_raiseError("Wrong parameters or failure to compile pattern %s", pattern ? pattern : "NO_PATTERN");
 		return -1;
 	} 

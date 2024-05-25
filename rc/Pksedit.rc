@@ -1357,7 +1357,7 @@ BEGIN
     IDS_MSGNOTAGFILE        "!Keine Suchergebnisse, keine Fehlerliste und keine Tagliste definiert"
     IDS_MSGUNKNOWNCOMPILER  "Keine Definition für dieses Compiler Fehler Format"
     IDS_MSGNOMOREERRS       "Keine weiteren Fehler"
-    IDS_MSGSTRINGNOTFOUND   "Nichts gefunden"
+    IDS_MSGSTRINGNOTFOUND   "%s nicht gefunden"
     IDS_MSGFILENOTFOUND     "Datei nicht gefunden"
     IDS_MSGWRAPPED          "Gefunden nach fortgesetzter Suche"
     IDS_MSGNOMATCHTOEND     "Zum Ende nichts gefunden"

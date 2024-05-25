@@ -198,8 +198,9 @@ int xref_restoreFromConfigFile(void)
 /*---------------------------------*/
 static RE_PATTERN *xref_initializeNavigationPattern(NAVIGATION_PATTERN *s) {
 	static char ebuf[ESIZE];
+	static RE_PATTERN pattern;
 	_exprerror = s;
-	return find_regexCompile(ebuf,_exprerror->pattern,RE_DOREX);
+	return find_regexCompile(&pattern, ebuf,_exprerror->pattern,RE_DOREX);
 }
 
 /*---------------------------------*/
@@ -776,6 +777,7 @@ static int xref_navigateToHyperlink(char* urlSpec, char* pTag) {
 static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForceDialog) {
 	TAG_REFERENCE * tp;
 	char     	buffer[EDMAXPATHLEN];
+	RE_PATTERN  pattern;
 	int			ret = 0;
 	TAGSOURCE* ttl;
 	FTABLE* fp;
@@ -804,8 +806,8 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 				xref_openFile(buffer, tp->ln, NULL);
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
-					if (pPattern = find_regexCompile(buffer, tp->searchCommand, (int)RE_DOREX)) {
-						find_expressionInCurrentFile(wp, 1, pPattern, RE_WRAPSCAN);
+					if (pPattern = find_regexCompile(&pattern, buffer, tp->searchCommand, (int)RE_DOREX)) {
+						find_expressionInCurrentFile(wp, 1, tp->searchCommand, pPattern, RE_WRAPSCAN);
 					}
 				}
 				ret = 1;
@@ -1282,7 +1284,7 @@ int EdFindWordCursor(WINFO* wp, int dir)
 
 	xref_getSelectedIdentifier(wp, buf, sizeof buf);
 	RE_PATTERN *pPattern = regex_compileWithDefault(buf);
-	return pPattern && find_expressionInCurrentFile(wp, dir, pPattern, _currentSearchAndReplaceParams.options);
+	return pPattern && find_expressionInCurrentFile(wp, dir, buf, pPattern, _currentSearchAndReplaceParams.options);
 }
 
 /*---------------------------------*/

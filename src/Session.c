@@ -120,6 +120,19 @@ int hist_readDockingPlacement(int aNumber, char* pszDockName, float* x, float* y
 	return 1;
 }
 
+/*
+ * Returns the current history entry.
+ */
+void hist_getCurrentHistoryEntry(HISTORY_TYPE type, char* pszDest, size_t nSize) {
+	pszDest[0] = 0;
+	ARRAY_LIST* pArray = hist_getHistoryArray(type);
+	size_t nArrayLength;
+	if (pArray != NULL && (nArrayLength = arraylist_size(pArray)) > 0) {
+		strncpy(pszDest, arraylist_get(pArray, (int)(nArrayLength -1)), nSize-1);
+		pszDest[nSize - 1] = 0;
+	}
+}
+
 /*---------------------------------*/
 /* hist_saveString()					*/
 /*---------------------------------*/
@@ -159,6 +172,7 @@ static ARRAY_LIST* hist_getOpenFilePathes() {
 	}
 	return pArray;
 }
+
 /*------------------------------------------------------------
  * hist_combo()
  */

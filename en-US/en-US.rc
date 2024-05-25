@@ -1319,7 +1319,7 @@ BEGIN
     IDS_MSGNOTAGFILE        "!No search results / errors / tags defined"
     IDS_MSGUNKNOWNCOMPILER  "This compiler output format is not defined"
     IDS_MSGNOMOREERRS       "No more errors"
-    IDS_MSGSTRINGNOTFOUND   "Nothing found"
+    IDS_MSGSTRINGNOTFOUND   "%s could not be found"
     IDS_MSGFILENOTFOUND     "File not found"
     IDS_MSGWRAPPED          "Found match after wrapping search"
     IDS_MSGNOMATCHTOEND     "Nothing found to the end of the file"
