@@ -498,6 +498,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	int md_caretRunIndex;
 	int md_caretPartIndex;
 	BOOL md_printing;
+	BOOL md_needsSBUdpdate;
 	float md_zoomFactor;
 } MARKDOWN_RENDERER_DATA;
 
@@ -3553,18 +3554,11 @@ static int mdr_supportsMode(int aMode) {
 	return 1;
 }
 
-/*
- * Invoked, when the size of the window has changed - update scrollbars to display visible
- * area etc...
- */
-static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, BOOL bUpdateScrollbarOnly) {
-	if (!pData) {
+static int mdr_slSize(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {
+	SIZE size;
+	mdr_getViewpartsExtend(pData, &size, -1);
+	if (size.cy == 0) {
 		return 0;
-	}
-	if (!bUpdateScrollbarOnly) {
-		mdr_invalidateViewpartsLayout(pData);
-		InvalidateRect(hwnd, 0, FALSE);
-		UpdateWindow(hwnd);
 	}
 	SCROLLINFO info = {
 		.nMin = 0,
@@ -3573,14 +3567,27 @@ static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, BOOL 
 	};
 	GetScrollInfo(hwnd, SB_VERT, &info);
 	ShowScrollBar(hwnd, SB_HORZ, FALSE);
-	SIZE size;
-	mdr_getViewpartsExtend(pData, &size, -1);
 	info.nMax = size.cy;
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	info.nPage = rect.bottom - rect.top;
 	SetScrollInfo(hwnd, SB_VERT, &info, 1);
 	return 1;
+}
+
+/*
+ * Invoked, when the size of the window has changed - update scrollbars to display visible
+ * area etc...
+ */
+static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {
+	if (!pData) {
+		return 0;
+	}
+	mdr_invalidateViewpartsLayout(pData);
+	InvalidateRect(hwnd, 0, FALSE);
+	UpdateWindow(hwnd);
+	pData->md_needsSBUdpdate = TRUE;
+	return mdr_slSize(hwnd, pData);
 }
 
 /*
@@ -4384,11 +4391,15 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			return 0;
 		}
 		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {
-			mdr_windowSizeChanged(hwnd, pData, FALSE);
+			mdr_windowSizeChanged(hwnd, pData);
 		}
 		return 0;
 	}
-	return render_defaultWindowProc(hwnd, message, wParam, lParam);
+	LRESULT result = render_defaultWindowProc(hwnd, message, wParam, lParam);
+	if (message == WM_PAINT && (pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_needsSBUdpdate) {
+		mdr_slSize(hwnd, pData);
+	}
+	return result;
 }
 
 typedef struct tag_RUN_OFFSET {
