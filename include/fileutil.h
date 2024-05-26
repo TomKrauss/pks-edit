@@ -115,7 +115,15 @@ extern int file_getFileAttributes(char* fname, EDTIME* pCreated, EDTIME* pModifi
  */
 extern char* file_readFileAsString(int fd);
 
+/*
+ * The PKS_SYS install directory, where PKS-Edit config files are located.
+ */
 extern char* _pksSysFolder;
+
+/*
+ * A folder in the Users home directory, where PKS-Edit config files may be placed to override the installed files.
+ */
+extern char _homePksSysFolder[];
 
 #define FILEUTIL_H
 #endif

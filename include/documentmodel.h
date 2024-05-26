@@ -21,6 +21,7 @@
 
 #include <crtdefs.h>
 #include "edtypes.h"
+#include "gitintegration.h"
 
 #define	ED_VERSION	0x20
 
@@ -246,6 +247,7 @@ typedef struct tagFTABLE {
 	HIDDENP	undo;
 	long    fileSize;			// The size of the file as it was "last known": is updated during reading and saving the file.
 	long 	as_time;			// next time for AUTOSAVE 
+	VC_STATUS vcStatus;			// The current repository version status
 	EDTIME	ti_modified;		// last modification time
 	EDTIME	ti_created;			// creation time
 	EDTIME  ti_saved;			// last save time

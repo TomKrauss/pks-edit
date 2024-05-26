@@ -332,16 +332,16 @@ static int loadimage_parseURL(char* pszUrl, URL *pURL) {
     }
     pURL->url_url = _wcsdup(pszwUrl);
     pURL->url_https = urlComp.nScheme == INTERNET_SCHEME_HTTPS;
-    pURL->url_host = (LPWSTR) calloc(sizeof WCHAR, urlComp.dwHostNameLength + 1);
-    StrNCpy(pURL->url_host, urlComp.lpszHostName, urlComp.dwHostNameLength + 1);
-    pURL->url_path = (LPWSTR)calloc(sizeof WCHAR, urlComp.dwUrlPathLength + 1);
-    StrNCpy(pURL->url_path, urlComp.lpszUrlPath, urlComp.dwUrlPathLength + 1);
+    pURL->url_host = (LPWSTR) calloc(sizeof WCHAR, static_cast<size_t>(urlComp.dwHostNameLength) + 1);
+    StrNCpy(pURL->url_host, urlComp.lpszHostName, static_cast<size_t>(urlComp.dwHostNameLength) + 1);
+    pURL->url_path = (LPWSTR)calloc(sizeof WCHAR, static_cast<size_t>(urlComp.dwUrlPathLength) + 1);
+    StrNCpy(pURL->url_path, urlComp.lpszUrlPath, static_cast<size_t>(urlComp.dwUrlPathLength) + 1);
     if (urlComp.dwExtraInfoLength > 0) {
-        pURL->url_extraInfo = (LPWSTR)calloc(sizeof WCHAR, urlComp.dwExtraInfoLength + 1);
-        StrNCpy(pURL->url_extraInfo, urlComp.lpszExtraInfo, urlComp.dwExtraInfoLength + 1);
+        pURL->url_extraInfo = (LPWSTR)calloc(sizeof WCHAR, static_cast<size_t>(urlComp.dwExtraInfoLength) + 1);
+        StrNCpy(pURL->url_extraInfo, urlComp.lpszExtraInfo, static_cast<size_t>(urlComp.dwExtraInfoLength) + 1);
     }
-    pURL->url_pathAndParams = (LPWSTR)calloc(sizeof WCHAR, urlComp.dwUrlPathLength + urlComp.dwExtraInfoLength + 1);
-    StrNCpy(pURL->url_pathAndParams, urlComp.lpszUrlPath, urlComp.dwUrlPathLength + urlComp.dwExtraInfoLength + 1);
+    pURL->url_pathAndParams = (LPWSTR)calloc(sizeof WCHAR, static_cast<size_t>(urlComp.dwUrlPathLength) + urlComp.dwExtraInfoLength + 1);
+    StrNCpy(pURL->url_pathAndParams, urlComp.lpszUrlPath, static_cast<size_t>(urlComp.dwUrlPathLength) + urlComp.dwExtraInfoLength + 1);
     return 1;
 }
 

@@ -99,7 +99,7 @@ static int _codepages[] = {
 
 static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
     for (int i = 0; i < nCount; i++) {
-        free((void*)(pFilters[i].pszName));
+        free((void*) (pFilters[i].pszName));
         free((void*) pFilters[i].pszSpec);
     }
     free(pFilters);
@@ -132,12 +132,12 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
             }
             pSpec = pSpec2;
         }
-        size_t l1 = lstrlenA(pszName) + 1;
+        size_t l1 = static_cast<size_t>(lstrlenA(pszName)) + 1;
         pSpec[nCount].pszName = reinterpret_cast<LPCWSTR>(calloc(l1, sizeof(WCHAR)));
-        MultiByteToWideChar(CP_ACP, 0, pszName, -1, (LPWSTR) pSpec[nCount].pszName, (int)(l1 * sizeof(WCHAR)));
-        size_t l2 = lstrlenA(pszFilter) + 1;
+        MultiByteToWideChar(CP_ACP, 0, pszName, -1, (LPWSTR) pSpec[nCount].pszName, (int)l1);
+        size_t l2 = static_cast<size_t>(lstrlenA(pszFilter)) + 1;
         pSpec[nCount].pszSpec = reinterpret_cast<LPCWSTR>(calloc(l2, sizeof(WCHAR)));
-        MultiByteToWideChar(CP_ACP, 0, pszFilter, -1, (LPWSTR) pSpec[nCount].pszSpec, (int)(l2 * sizeof(WCHAR)));
+        MultiByteToWideChar(CP_ACP, 0, pszFilter, -1, (LPWSTR) pSpec[nCount].pszSpec, (int)l2);
         nCount++;
     }
     *pSelected = selected;

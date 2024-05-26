@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.0] - 2024-05-25
 
+### Added
+- PKS Edit was integrated with libgit2 and provides now some basic GIT information about the files edited.
+
 ### Improved
+- One may now place config files into a PKS_SYS directory located in `$HOME` and override the installed configuration
+  files (e.g. `pksactionbindings.json`). Note, that this will for now completely replace the installed version. We will
+  come up with a more flexible mechanism later.
 - Find & replace will now always be initialized with patterns searched in previous PKS Edit sessions. One
   can for instance use find again without opening the find dialog.
 - Some language related inconsistencies were corrected (sometimes the wrong language was used in some places)

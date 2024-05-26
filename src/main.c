@@ -49,6 +49,7 @@
 #include "winutil.h"
 #include "textblocks.h"
 #include "menu.h"
+#include "gitintegration.h"
 
 #define	PROF_OFFSET	1
 
@@ -130,7 +131,10 @@ static BOOL InitApplication(void)
 	}
 #endif
 
-	CoInitialize(NULL);
+	HRESULT hr = CoInitialize(NULL);
+	if (FAILED(hr)) {
+		return FALSE;
+	}
 	hModuleEnglishUS = LoadLibrary("pksedit.enu.dll");
 
 	if ( !ww_register() ||
@@ -197,11 +201,11 @@ static void checkCommonControlLibraryVersion() {
 	hDll = LoadLibrary("COMCTL32.DLL");
 	if (hDll != NULL) {
 		DLLGETVERSIONPROC fn_DllGetVersion;
-		DLLVERSIONINFO vi;
-
 		fn_DllGetVersion = (DLLGETVERSIONPROC)GetProcAddress(hDll, "DllGetVersion");
 		if (fn_DllGetVersion != NULL) {
-			vi.cbSize = sizeof(DLLVERSIONINFO);
+			DLLVERSIONINFO vi = {
+				.cbSize = sizeof(DLLVERSIONINFO)
+			};
 			fn_DllGetVersion(&vi);
 			EdTRACE(dwMajorVersion = vi.dwMajorVersion);
 		}
@@ -411,6 +415,7 @@ static int dde_delegateArguments(LPSTR lpCmdLine) {
 	}
 	if (hconv) {
 		DdeDisconnect(hconv);
+		hconv = 0;
 	}
 	return ret;
 }
@@ -441,6 +446,7 @@ void main_cleanup(void) {
 	function_destroy();
 	if (pksEditMutex) {
 		ReleaseMutex(pksEditMutex);
+		CloseHandle(pksEditMutex);
 		pksEditMutex = 0;
 	}
 }
@@ -499,6 +505,7 @@ void FinalizePksEdit(void)
 	GetConfiguration()->autosaveOnExit();
 	bl_autosavePasteBuffers();
 	ft_saveWindowStates();
+	gi_shutdown();
 }
 
 

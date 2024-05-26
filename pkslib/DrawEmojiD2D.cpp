@@ -25,8 +25,8 @@ struct DWriteSupport {
     ID2D1Factory* d2d_factory = NULL;
     IDWriteFactory* dwrite_factory = NULL;
     ID2D1DCRenderTarget* renderTarget = NULL;
-    FLOAT m_width;
-    FLOAT m_height;
+    FLOAT m_width = 0;
+    FLOAT m_height = 0;
     HDC m_hdc = NULL;
 
     DWriteSupport()
@@ -41,7 +41,7 @@ struct DWriteSupport {
         HRESULT hr;
         d2d_factory = create_d2dFactory();
         if (!d2d_factory) {
-            return FAILED(-1);
+            return static_cast<HRESULT>(FAILED(-1));
         }
         if (!renderTarget) {
             D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, 

@@ -333,6 +333,9 @@
     <ClCompile Include="src\ImageRenderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\GitIntegration.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -575,6 +578,9 @@
     <ClInclude Include="include\loadimage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\gitintegration.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -726,20 +732,13 @@
     </Image>
     <Image Include="doc\dice.png" />
     <Image Include="doc\manual\pksedit-ui.png" />
-    <Image Include="broken_image.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="rc\broken_image.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\Users\tom\Downloads\pngwing.com.png" />
     <Image Include="rc\icon2.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="rc\image_loading.png" />
-    <Image Include="image_loading.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="rc\image_loading.ico">
       <Filter>Resource Files</Filter>
     </Image>

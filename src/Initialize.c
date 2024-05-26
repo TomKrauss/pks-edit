@@ -16,6 +16,7 @@
  
 #include <windows.h> 
 #include <direct.h>
+#include <Shlobj.h>
 #include "pksrc.h"
 #include "documentmodel.h"
 #include "xdialog.h"
@@ -38,6 +39,7 @@ extern int file_exists(char *s);
 char*	PKS_SYS = "PKS_SYS";
 char	*_pksSysFolder;	// PKS_SYS directory, where the config files are located.
 static char _sysdir[EDMAXPATHLEN];
+char _homePksSysFolder[EDMAXPATHLEN];
 
 /*--------------------------------------------------------------------------
  * Getenv()
@@ -67,45 +69,50 @@ static BOOL _checkPksSys(char* pathName) {
  */
 EXPORT BOOL init_initializeVariables(void ) 
 {
-	char	homeDirectory[EDMAXPATHLEN];
+	char	installationDirectory[EDMAXPATHLEN];
 	char	datadir[EDMAXPATHLEN];
 	char *	pks_sys = PKS_SYS;
 	int     tempLen;
 	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 
 	_pksSysFolder = _sysdir;
-	tempLen = GetModuleFileName(NULL, homeDirectory, EDMAXPATHLEN);
-	homeDirectory[tempLen] = 0;
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, _homePksSysFolder))) {
+		strcat(_homePksSysFolder, "\\pks_sys");
+	}
+	tempLen = GetModuleFileName(NULL, installationDirectory, EDMAXPATHLEN);
+	installationDirectory[tempLen] = 0;
 	// PKS_SYS environment var first
-	Getenv(pks_sys, datadir, sizeof(_pksSysFolder));
+	Getenv(pks_sys, datadir, sizeof(_sysdir));
 	if (*datadir) {
 		lstrcpy(_pksSysFolder, datadir);
 	} else {
 		// current directory - PKS_SYS sub-directory next
-		_getcwd(_pksSysFolder, EDMAXPATHLEN);
+		if (_getcwd(_pksSysFolder, EDMAXPATHLEN) == NULL) {
+			_pksSysFolder[0] = 0;
+		}
 		string_concatPathAndFilename(_pksSysFolder, _pksSysFolder, pks_sys);
 		if (!_checkPksSys(_pksSysFolder)) {
 			// Next: config from win.ini
 			GetProfileString("PksEdit", pks_sys, "", _pksSysFolder, EDMAXPATHLEN);
 			if (!*_pksSysFolder || !_checkPksSys(_pksSysFolder)) {
 				// Finally: PKS_SYS from the path where the executable is located.
-				char* tempFound = strrchr(homeDirectory, '\\');
-				if (tempFound != NULL && (tempFound - homeDirectory) > 1) {
+				char* tempFound = strrchr(installationDirectory, '\\');
+				if (tempFound != NULL && (tempFound - installationDirectory) > 1) {
 					tempFound[-1] = 0;
-					string_concatPathAndFilename(homeDirectory, homeDirectory, pks_sys);
-					if (_checkPksSys(homeDirectory)) {
-						strcpy(_pksSysFolder, homeDirectory);
+					string_concatPathAndFilename(installationDirectory, installationDirectory, pks_sys);
+					if (_checkPksSys(installationDirectory)) {
+						strcpy(_pksSysFolder, installationDirectory);
 					}
 				} else {
-					homeDirectory[0] = '\0';
+					installationDirectory[0] = '\0';
 				}
 			}
 		}
 	}
-	if (homeDirectory[0] == 0) {
-		_getcwd(homeDirectory,sizeof homeDirectory);
+	if (installationDirectory[0] == 0) {
+		_getcwd(installationDirectory,sizeof installationDirectory);
 	}
-	string_concatPathAndFilename(homeDirectory,homeDirectory,"");
+	string_concatPathAndFilename(installationDirectory,installationDirectory,"");
 	if (*_pksSysFolder == 0) {
 		while(1) {
 			char *s = dlg_getResourceString(IDS_PKS_SYS_NOT_FOUND);

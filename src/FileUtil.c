@@ -207,6 +207,9 @@ EXPORT char *file_searchFileInPKSEditLocation(const char *s)
 	if (dostat((char*)s)) {
 		return (char*)s;
 	}
+	if (pathstat(_homePksSysFolder, (char*)s)) {
+		return _found;
+	}
 	if (pathstat(_pksSysFolder, (char*)s)) {
 		return _found;
 	}

@@ -2,6 +2,8 @@
 
 The basic PKS Edit configuration of PKS Edit is stored in a file named `pkseditini.json` located in the `pks_sys` directory.
 Note, that all PKS Edit configuration files are placed in the `pks_sys` sub-folder of the PKS Edit installation folder.
+To override any of the configuration files installed in the `pks_sys`sub-folder of the PKS Edit install directory, place
+a `pks_sys` folder in you `$HOME` folder and put the files herein.
 You may set the overall PKS Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 
 ## Configuration Files of PKS Edit

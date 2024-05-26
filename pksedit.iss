@@ -11,7 +11,7 @@ Name: fileAssociation; Description: "{cm:AssociateFiles}"; GroupDescription: "{c
 
 [Setup]
 AppName=PKS Edit
-AppVersion=2.5.0
+AppVersion=2.6.0
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit
 UsePreviousAppDir=yes
@@ -71,6 +71,8 @@ Filename: "{app}\{#MyAppExeName}"; Parameters: "readme.md /w"; Flags: postinstal
 
 [Files]
 Source: "x64\Release\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
+Source: "{#GetEnv('GITLIBDIRECTORY')}\bin\git2.dll"; DestDir: "{app}"; DestName: "git2.dll"; Flags: ignoreversion
+Source: "licenses\COPYING.libgit2"; DestDir: "{app}\licenses"; DestName: "COPYING.libgit2"; Flags: ignoreversion
 Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
 Source: "x64\Release\pkslib.dll"; DestDir: "{app}"; DestName: "pkslib.dll"; Flags: ignoreversion
 Source: "pks_sys\*.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
