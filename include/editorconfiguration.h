@@ -204,6 +204,11 @@ extern int fkey_getKeyboardSize(WORD* w, WORD* h);
  */
 extern int fkey_initKeyboardWidget(HWND hwndPapa);
 
+/*
+ * May be invoked, if the current language changes.
+ */
+extern void fkey_languageChanged(HWND hwndMain);
+
 /*----------------------------
  * fkey_updateTextOfFunctionKeys()
  * Update the text on the FKEYS keyboard.

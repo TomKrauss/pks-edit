@@ -26,6 +26,7 @@
 #include "linkedlist.h"
 #include "dial2.h"
 #include "pksrc.h"
+#include "fontawesome.h"
 #include "xdialog.h"
 #include "printing.h"
 #include "editorconfiguration.h"
@@ -37,7 +38,7 @@
 #include "mainframe.h"
 
 extern void fkey_visibilitychanged(void);
-extern void tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
+extern void tb_updateImageList(HWND hwnd, CHAR_WITH_STYLE* tbIcons, int nCount);
 
 static EDITOR_CONFIGURATION _configuration;
 
@@ -528,7 +529,7 @@ void EdOptionSet(void) {
     psh.hwndParent = hwndMain;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;
-    psh.pszCaption = (LPSTR) "Options...";
+    psh.pszCaption = (LPSTR) dlg_getResourceString(IDS_OPTIONS);
     psh.nPages = sizeof(psp) / sizeof(psp[0]);
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;

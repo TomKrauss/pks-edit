@@ -160,21 +160,33 @@ HINSTANCE ui_getResourceModule() {
  */
 void ui_switchToLanguage(char* pszLanguage) {
 	if (_stricmp("de-de", pszLanguage) == 0 || _stricmp("deutsch", pszLanguage) == 0) {
+		if (hLanguageInst == hInst) {
+			return;
+		}
+		SetThreadUILanguage(MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN));
 		hLanguageInst = hInst;
-		return;
-	}
-	if (_stricmp("english", pszLanguage) == 0) {
-		pszLanguage = "en-US";
-	}
-	// for now - hardcoded to English
-	SetThreadUILanguage(0x00000409);
-	char pszDLLName[80];
-	sprintf(pszDLLName, "pksedit.%s.dll", pszLanguage);
-	HMODULE hModule = LoadLibrary(pszDLLName);
-	if (hModule) {
-		hLanguageInst = hModule;
 	} else {
-		hLanguageInst = hInst;
+		if (_stricmp("english", pszLanguage) == 0) {
+			pszLanguage = "en-US";
+			SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
+		}
+		char pszDLLName[80];
+		sprintf(pszDLLName, "pksedit.%s.dll", pszLanguage);
+		HMODULE hModule = LoadLibrary(pszDLLName);
+		if (hModule) {
+			if (hLanguageInst == hModule) {
+				return;
+			}
+			hLanguageInst = hModule;
+		} else {
+			if (hLanguageInst == hInst) {
+				return;
+			}
+			hLanguageInst = hInst;
+		}
+	}
+	if (hwndMain) {
+		SendMessage(hwndMain, WM_LANGUAGE_CHANGED, 0, 0);
 	}
 }
 

@@ -42,6 +42,7 @@
 #include "winutil.h"
 #include "themes.h"
 
+#define IDD_APPLYNOW 0x3021
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
 #define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
 						(i) == IDD_3S1 || (i) == IDD_3S2)
@@ -1131,6 +1132,8 @@ intptr_t dlg_propertySheetCallback(HWND hwnd, UINT nMessage, WPARAM wParam, LPAR
 	if (nMessage == PSCB_INITIALIZED) {
 		SetWindowSubclass(hwnd, dlg_propertySheetSubclassProc, propSheetSubclassId, 0);
 		nMessage = WM_INITDIALOG;
+		SetDlgItemText(hwnd, IDCANCEL, dlg_getResourceString(IDS_CANCEL));
+		SetDlgItemText(hwnd, IDD_APPLYNOW, dlg_getResourceString(IDS_APPLY));
 	}
 	return dlg_defaultWndProc(hwnd, nMessage, wParam, lParam);
 }

@@ -47,6 +47,10 @@
 #define IDS_TT_SORT_FIELD_OPTIONS       206
 #define IDS_WARN_FILE_MOVED_OR_DELETED  207
 #define IDS_PKS_SYS_NOT_FOUND           208
+#define IDS_APPLY                       209
+#define IDS_CANCEL                      210
+#define IDS_CANCEL2                     211
+#define IDS_OPTIONS                     211
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
 #define IDB_BROKEN_IMAGE                235

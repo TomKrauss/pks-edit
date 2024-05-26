@@ -409,7 +409,7 @@ char *ft_visibleName(FTABLE *fp) {
 	static char buf[EDMAXPATHLEN];
 
 	if (fp) {
-		OemToAnsi(fp->fname, buf);
+		strcpy(buf, fp->fname);
 	}
 	return buf;
 }

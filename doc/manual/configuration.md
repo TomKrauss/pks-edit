@@ -18,7 +18,7 @@ The following files are loaded by PKS Edit during startup form the 'pks_sys' fol
 |`pksedit.mac`|Contains a binary / compiled version of macros defined. Note, that one may refer to a macro by name from this file e.g. in a save action or an action binding|
 
 
-## Autosave Options
+## Save Options
 
 In this section you may configure all actions performed during startup and shutdown and the way files are automatically saved.
 
@@ -36,14 +36,14 @@ PKS Edit supports two _autosave_ modes: it may either save the files directly au
 - `Provide clipboard history` - will maintain a list of recently used clipboard contents automatically.
 - `Autosave files to temporary directory or file` - when set, copies of files are saved during autosave (to a temporary directory), when unset, changed files are automatically saved directly.
 
-## Warnings Options
+## Notification Options
 
 PKS Edit differentiates between major errors (disk full or the like) and minor errors / hints (search pattern not found). Major errors are always shown in modal message boxes. The way minor errors are shown can be configured
 in this section.
 
 - `Play sound on error` - when set, a warning sound is played, when an error occurs in PKS Edit.
-- `Error flash` - when set, the editor window is _flashed_ during errors.
-- `Error window` - when set, a _toast window_ is opened when an error occurs. Otherwise minor errors are shown less intrusive in the status bar.
+- `Flash window on error` - when set, the editor window is _flashed_ during errors.
+- `Display error in popup window` - when set, a _toast window_ is opened when an error occurs. Otherwise minor errors are shown less intrusive in the status bar.
 
 ## Layout Options
 

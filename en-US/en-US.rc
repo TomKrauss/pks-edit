@@ -776,9 +776,9 @@ BEGIN
     CONTROL         "Named Clipboards Only",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,87,8
 END
 
-DLG_OPT_WARNINGS DIALOGEX 69, 15, 241, 80
+DLG_OPT_WARNINGS DIALOGEX 69, 15, 228, 80
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Warnings"
+CAPTION "Notifications"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "&Play sound on error",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,11,210,8
@@ -786,9 +786,9 @@ BEGIN
     CONTROL         "Display &error in popup window",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,35,210,8
 END
 
-DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 271, 196
+DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 249, 196
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Autosave"
+CAPTION "Saving"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Autosave &time [sec]:",-1,12,12,78,8,NOT WS_GROUP
@@ -808,7 +808,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,169,231,10
 END
 
-DLG_OPT_MISC DIALOGEX 0, 0, 277, 261
+DLG_OPT_MISC DIALOGEX 0, 0, 261, 229
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Miscellanous"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -820,17 +820,16 @@ BEGIN
     CONTROL         "Open dialogs close to mouse pointer",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,242,12
     LTEXT           "&Maximum number of open windows:",-1,12,46,119,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,177,46,79,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Theme:",-1,12,149,84,12,NOT WS_GROUP
+    LTEXT           "UI &Theme:",-1,12,149,84,12,NOT WS_GROUP
     LTEXT           "&Language:",-1,12,164,84,12,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST1,177,163,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDD_STRINGLIST2,177,147,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "To activate the selected language PKS Edit must be restarted.",IDD_EXPLANATION,12,180,242,12,NOT WS_GROUP
     CONTROL         "Lock edited files",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,95,242,12
-    PUSHBUTTON      "Select Font...",IDD_FONTSELECT,176,198,79,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Select Font...",IDD_FONTSELECT,177,198,77,14,NOT WS_TABSTOP
     LTEXT           "Default te&xt font:",-1,12,199,84,11,NOT WS_GROUP
-    LTEXT           "Default search engine:",-1,11,217,84,11,NOT WS_GROUP
-    COMBOBOX        IDD_STRINGLIST3,177,216,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Reuse running PKS Edit instance",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,132,242,12
+    LTEXT           "Default search engine:",-1,11,182,84,11,NOT WS_GROUP
+    COMBOBOX        IDD_STRINGLIST3,177,181,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Reuse running PKS Edit instance",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,128,242,12
     CONTROL         "Silently reload files changed externally",IDD_OPT18,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,111,242,12
 END
@@ -1013,8 +1012,7 @@ BEGIN
 
     DLG_OPT_MISC, DIALOG
     BEGIN
-        RIGHTMARGIN, 273
-        BOTTOMMARGIN, 214
+        BOTTOMMARGIN, 228
     END
 
     DLG_OPT_LAYOUT, DIALOG
@@ -1321,9 +1319,9 @@ BEGIN
     IDS_MSGNOMOREERRS       "No more errors"
     IDS_MSGSTRINGNOTFOUND   "%s could not be found"
     IDS_MSGFILENOTFOUND     "File not found"
-    IDS_MSGWRAPPED          "Found match after wrapping search"
-    IDS_MSGNOMATCHTOEND     "Nothing found to the end of the file"
-    IDS_MSGNOMATCHTOSTART   "Nothing found to the begin of the file"
+    IDS_MSGWRAPPED          "Found the 1st occurence from the top. The end of the document had been reached."
+    IDS_MSGNOMATCHTOEND     "No more matches from cursor to the end of file"
+    IDS_MSGNOMATCHTOSTART   "No more matches from cursor to the begin of file"
     IDS_MSGNORANGESELECTED  "No text selection"
     IDS_MSGREADERROR        "!Error during read"
     IDS_MSGWRAPPEDLINES     "File %s: Long Lines have been wrapped"
@@ -1747,6 +1745,9 @@ END
 STRINGTABLE
 BEGIN
     IDS_PKS_SYS_NOT_FOUND   "PKS Edit cannot find the configuration files (PKS_SYS folder) and will not function properly. Please locate the PKS_SYS folder."
+    IDS_APPLY               "Apply"
+    IDS_CANCEL              "Cancel"
+    IDS_OPTIONS             "Options"
 END
 
 #endif    // Englisch (USA) resources

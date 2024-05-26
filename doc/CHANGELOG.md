@@ -8,8 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.6.0] - 2024-05-25
 
+### Improved
+- Find & replace will now always be initialized with patterns searched in previous PKS Edit sessions. One
+  can for instance use find again without opening the find dialog.
+- Some language related inconsistencies were corrected (sometimes the wrong language was used in some places)
+  and changing the language works now without restarting PKS Edit.
+
 ### Fixed
 - Scrollbars were sometimes not correctly update in markdown wysiwyg editor windows.
+- The Open Dialogs were using the wrong code page resulting in bad display of Umlauts (e.g. Datei öffnen)
+  in the dialog title area and othr places.
+- Editor Tabs were displaying filenames containing Umlauts incorrectly.
 
 ## [2.5.0] - 2024-05-25
 

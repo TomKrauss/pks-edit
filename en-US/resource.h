@@ -185,6 +185,7 @@
 #define IDS_WARN_FILE_MOVED_OR_DELETED  207
 #define IDM_UNDO                        210
 #define IDM_DOAGAIN                     211
+#define IDS_OPTIONS                     211
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
 #define DLGFINDINFILES                  535
@@ -211,7 +212,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        207
+#define _APS_NEXT_RESOURCE_VALUE        209
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101

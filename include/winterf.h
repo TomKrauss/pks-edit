@@ -22,11 +22,9 @@ typedef struct tagBG_TASK {
 /* PKS Edit private messages */
 #define	WM_EDWINREORG				WM_USER + 101	/* reorganize edit window */
 #define	WM_PKSKEY					WM_USER + 102	/* private key binding */
-#define	WM_PKSKEYDOWN				WM_USER + 103	/* private key down */
 #define	WM_PKSOPTOGGLE				WM_USER + 104	/* option toggle pressed */
 #define	WM_ICONDROP					WM_USER + 105	/* something dropped on icon */
-#define	WM_ICONSELECT				WM_USER + 106	/* select icon picture */
-#define	WM_PROFSAVE					WM_USER + 107	/* save profile item data */
+#define	WM_LANGUAGE_CHANGED			WM_USER + 106	/* sent to the main window, if the language has changed */
 #define	WM_BACKGROUND_TASK_FINISHED	WM_USER + 109	/* a task from has finished. LPARAM is a pointer to a BG_TASK structure */
 
 /* PKS global private message */

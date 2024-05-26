@@ -134,10 +134,10 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
         }
         size_t l1 = lstrlenA(pszName) + 1;
         pSpec[nCount].pszName = reinterpret_cast<LPCWSTR>(calloc(l1, sizeof(WCHAR)));
-        MultiByteToWideChar(CP_UTF8, 0, pszName, -1, (LPWSTR) pSpec[nCount].pszName, (int)(l1 * sizeof(WCHAR)));
+        MultiByteToWideChar(CP_ACP, 0, pszName, -1, (LPWSTR) pSpec[nCount].pszName, (int)(l1 * sizeof(WCHAR)));
         size_t l2 = lstrlenA(pszFilter) + 1;
         pSpec[nCount].pszSpec = reinterpret_cast<LPCWSTR>(calloc(l2, sizeof(WCHAR)));
-        MultiByteToWideChar(CP_UTF8, 0, pszFilter, -1, (LPWSTR) pSpec[nCount].pszSpec, (int)(l2 * sizeof(WCHAR)));
+        MultiByteToWideChar(CP_ACP, 0, pszFilter, -1, (LPWSTR) pSpec[nCount].pszSpec, (int)(l2 * sizeof(WCHAR)));
         nCount++;
     }
     *pSelected = selected;
@@ -170,7 +170,7 @@ static int file_getResults(IFileOpenDialog* pFileOpenDialog, char* pszResult) {
         if (pszFilePath == NULL) {
             continue;
         }
-        WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, fullPath, sizeof(fullPath), 0, 0);
+        WideCharToMultiByte(CP_ACP, 0, pszFilePath, -1, fullPath, sizeof(fullPath), 0, 0);
         strcpy_s(fileName, MAX_PATH, fullPath);
         PathStripPathA(fileName);
         if (bFirst) {
@@ -206,7 +206,7 @@ static int file_getResult(IFileDialog* pFileDialog, char* pszResult) {
     // Display the file name to the user.
     if (SUCCEEDED(hr)) {
         ret = 1;
-        WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, pszResult, 1024, 0, 0);
+        WideCharToMultiByte(CP_ACP, 0, pszFilePath, -1, pszResult, 1024, 0, 0);
         CoTaskMemFree(pszFilePath);
     }
     pItem->Release();
@@ -244,7 +244,7 @@ IFileDialogCustomize* file_customizeDialog(IFileDialog *pfd, FILE_SELECT_PARAMS*
     if (SUCCEEDED(hr)) {
         pfdc->StartVisualGroup(CONTROL_GROUP_ENCODING, L"Encoding:");
         pfdc->AddComboBox(CONTROL_ENCODING);
-        file_addEncodingItems(pfdc, !pParams->fsp_saveAs, pParams->fsp_codepage);
+        file_addEncodingItems(pfdc, pParams->fsp_saveAs == 0, pParams->fsp_codepage);
         pfdc->EndVisualGroup();
         if (pParams->fsp_saveAs) {
             pfdc->StartVisualGroup(CONTROL_GROUP_ENCODING, L"Options:");
@@ -261,20 +261,20 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
     pFileDialog->SetFileTypes(*pCount, pFileTypes);
     pFileDialog->SetFileTypeIndex(nSelected);
     WCHAR wText[256];
-    MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_title, -1, wText, sizeof wText / sizeof(wText[0]));
+    MultiByteToWideChar(CP_ACP, 0, pParams->fsp_title, -1, wText, sizeof wText / sizeof(wText[0]));
     pFileDialog->SetTitle(wText);
     size_t nLen = strlen(pParams->fsp_inputFile);
     IShellItem* pCurFolder = NULL;
     if (nLen > 0 && pParams->fsp_inputFile[nLen - 1] == '\\') {
-        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        MultiByteToWideChar(CP_ACP, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
         wText[nLen - 1] = 0;
     }
     else {
-        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        MultiByteToWideChar(CP_ACP, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
         PathStripPath(wText);
         pFileDialog->SetFileName(wText);
         nLen = wcslen(wText);
-        MultiByteToWideChar(CP_UTF8, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
+        MultiByteToWideChar(CP_ACP, 0, pParams->fsp_inputFile, -1, wText, sizeof wText / sizeof(wText[0]));
         wText[wcslen(wText) - 1 - nLen] = 0;
     }
     HRESULT hr = SHCreateItemFromParsingName(wText, NULL, IID_PPV_ARGS(&pCurFolder));
@@ -318,7 +318,7 @@ extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS*
             }
             UINT nSelected;
             pFileDialog->GetFileTypeIndex(&nSelected);
-            WideCharToMultiByte(CP_UTF8, 0, pFileTypes[nSelected].pszSpec, -1, pParams->fsp_namePatterns, 1024, 0, 0);
+            WideCharToMultiByte(CP_ACP, 0, pFileTypes[nSelected].pszSpec, -1, pParams->fsp_namePatterns, 1024, 0, 0);
             DWORD encodingIndex = 0;
             pfdc->GetSelectedControlItem(CONTROL_ENCODING, &encodingIndex);
             pParams->fsp_codepage = _codepages[encodingIndex];

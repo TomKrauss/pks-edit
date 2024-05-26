@@ -272,15 +272,34 @@ void menu_updateMenubarPopup(HMENU hMenu) {
 }
 
 /*
+ * Refresh the labels on the menubar.
+ */
+void menu_refreshLanguageInMenubar(HWND hwndMain) {
+	HMENU hwndMenu = GetMenu(hwndMain);
+	MENU_ITEM_DEFINITION* pMenu = bindings_getMenuBarFor(DEFAULT_ACTION_CONTEXT);
+	char charsWithMnemonic[256];
+	memset(charsWithMnemonic, 0, sizeof charsWithMnemonic);
+	int i = 0; 
+	while (pMenu) {
+		char szLabel[100];
+		menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, TRUE);
+		ModifyMenu(hwndMenu, i, MF_POPUP|MF_BYPOSITION, (UINT_PTR)pMenu->mid_menuHandle, szLabel);
+		pMenu = pMenu->mid_next;
+		i++;
+	}
+	DrawMenuBar(hwndMain);
+}
+
+/*
  * Create the main application menu bar from the actionbinding definitions loaded before.
  */
 HMENU menu_createMenubar() {
+	char charsWithMnemonic[256];
 	HMENU hMenuBar = CreateMenu();
 	MENU_ITEM_DEFINITION* pMenu = bindings_getMenuBarFor(DEFAULT_ACTION_CONTEXT);
-	char szLabel[100];
-	char charsWithMnemonic[256];
 	memset(charsWithMnemonic, 0, sizeof charsWithMnemonic);
 	while (pMenu) {
+		char szLabel[100];
 		HMENU hMenu = CreateMenu();
 		pMenu->mid_menuHandle = hMenu;
 		menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, TRUE);

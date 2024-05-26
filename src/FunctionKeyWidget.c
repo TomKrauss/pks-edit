@@ -354,16 +354,27 @@ static char *szKeys = "DLGFKEYS";
 /*--------------------------------------------------------------------------
  * fkey_show()
  */
-static void fkey_show(HWND hwndPapa) {
+static void fkey_show(HWND hwndParent) {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
 		HRSRC  hRes = FindResource(ui_getResourceModule(), szKeys, RT_DIALOG);
 		DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
-		hwndFkeys = CreateDialogIndirect(0, pTemplate, hwndPapa, NULL);
+		hwndFkeys = CreateDialogIndirect(0, pTemplate, hwndParent, NULL);
 		if (!hwndFkeys) {
 			EdTRACE(log_errorArgs(DEBUG_ERR, "Error creating FKEYS %ld. %ld %ld", GetLastError(), hRes, hwndFkeys));
 		}
 		fkey_updateTextOfFunctionKeys(-1);
 	}
+}
+
+/*
+ * May be invoked, if the current language changes.
+ */
+void fkey_languageChanged(HWND hwndMain) {
+	if (hwndFkeys != NULL) {
+		DeleteObject(hwndFkeys);
+		hwndFkeys = NULL;
+	}
+	fkey_show(hwndMain);
 }
 
 /*--------------------------------------------------------------------------

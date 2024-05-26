@@ -39,6 +39,11 @@ extern POINT menu_getContextMenuPopupPosition();
 extern void menu_selectActionContext(const char* pszContext);
 
 /*
+ * Refresh the labels on the menubar.
+ */
+extern void menu_refreshLanguageInMenubar(HWND hwndMain);
+
+/*
  * Create the main application menu bar from the actionbinding definitions loaded before.
  */
 extern HMENU menu_createMenubar();

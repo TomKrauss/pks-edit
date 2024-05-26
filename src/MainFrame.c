@@ -1936,6 +1936,11 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		break;
 	}
 
+	case WM_LANGUAGE_CHANGED:
+		menu_refreshLanguageInMenubar(hwnd);
+		fkey_languageChanged(hwnd);
+		return TRUE;
+
 	case WM_TIMER:
 		if (closed) {
 			break;
