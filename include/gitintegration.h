@@ -18,6 +18,7 @@ typedef enum {
 	VCS_NEW,				// File is in repo with a status of NEW
 	VCS_MODIFIED,			// File is under version control and is modified.
 	VCS_CONFLICTED,			// File is under version control and has conflicts.
+	VCS_IGNORED,			// File is ignored by VCS.
 	VCS_DELETED				// File is under version control and was deleted.
 } VC_STATUS;
 
@@ -46,6 +47,12 @@ extern void gi_freeVersionInfo(VC_INFO* pInfo);
  * Return the current GIT status for a given version info.
  */
 extern VC_STATUS gi_getStatus(VC_INFO* pInfo);
+
+/*
+ * Print the hash of the current ref of the file loaded into pszBuffer with a maximum length of nLen+1. If nLen is 0
+ * GIT_OID_SHA1_HEXSIZE  + 1 characters are used for printing, so pszBuffer must be at least that big.
+ */
+extern void gi_printHash(VC_INFO* pInfo, char* pszBuffer, int nLen);
 
 #define	GITINTEGRATION_H
 # endif

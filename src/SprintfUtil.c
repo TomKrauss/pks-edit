@@ -108,6 +108,26 @@ void string_formatDate(char *szDbuf, EDTIME *ltime)
 	}
 }
 
+static void printVCStatus(char* pszDest, VC_INFO* pInfo) {
+	VC_STATUS status = gi_getStatus(pInfo);
+	if (status == VCS_NONE) {
+		strcpy(pszDest, "-");
+		return;
+	}
+	gi_printHash(pInfo, pszDest, 12);
+	char* pszInfo = "";
+	switch (status) {
+	case VCS_MODIFIED: pszInfo = "modified"; break;
+	case VCS_CURRENT: pszInfo = "current"; break;
+	case VCS_CONFLICTED: pszInfo = "conflicts"; break;
+	case VCS_DELETED: pszInfo = "deleted"; break;
+	case VCS_IGNORED: pszInfo = "ignored"; break;
+	case VCS_NEW: pszInfo = "new"; break;
+	}
+	strcat(pszDest, " - ");
+	strcat(pszDest, pszInfo);
+}
+
 /*--------------------------------------------------------------------------
  * string_evaluatePrintfReference()
  */
@@ -144,6 +164,10 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 		if ((ext = strrchr(fname,'.')) != 0) {
 			*ext = 0;
 		}
+		return fname;
+
+	case 'V':
+		printVCStatus(fname, fp->vcInfo);
 		return fname;
 
 	case 'C':

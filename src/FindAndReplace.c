@@ -534,12 +534,14 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 			col = nextTabStop;
 		} else if (c == chSpace) {
 			s--;
+			BOOL bModified = FALSE;
 			for (int i = 0; s + i < pszEnd; i++) {
 				if (i + col == nextTabStop) {
 					*pszDest++ = '\t';
 					s += i;
 					col = nextTabStop;
 					(* nt)++;
+					bModified = TRUE;
 					break;
 				}
 				if (s[i] != chSpace) {
@@ -548,8 +550,12 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 						*pszDest++ = *s++;
 						col++;
 					}
+					bModified = TRUE;
 					break;
 				}
+			}
+			if (!bModified) {
+				s++;
 			}
 			continue;
 		} else {

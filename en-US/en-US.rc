@@ -1395,7 +1395,7 @@ BEGIN
     IDS_FILE_MODIFIED       "Modified"
     IDS_FILE_READONLY       "Read-only"
     IDS_SEARCH              "Search incrementally"
-    IDS_STATUSLINE          "%s$f!Ln: %2d$l, Col: %2d$c!\t%s$P!\t%s$&"
+    IDS_STATUSLINE          "%s$f!Ln: %2d$l, Col: %2d$c!\t%s$P!\t%s$&!\t%s$V"
     IDS_NO_MACROS_DEFINED   "No macros defined."
     IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"
 END
