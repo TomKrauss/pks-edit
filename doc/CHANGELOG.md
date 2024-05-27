@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   can for instance use find again without opening the find dialog.
 - Some language related inconsistencies were corrected (sometimes the wrong language was used in some places)
   and changing the language works now without restarting PKS Edit.
+- captures are now supported in nested patterns in a grammar leading to improved syntax highlighting support.
 
 ### Fixed
 - Scrollbars were sometimes not correctly update in markdown wysiwyg editor windows.

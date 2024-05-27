@@ -214,17 +214,18 @@
           "style": "bold-italic",
           "patterns": [
             {
+              "match": "`[^`]+`",
+              "name": "markdown.code.bullet",
+              "style": "code"
+            },
+            {
               "match": "\\(((http|https|file|ftp):[^)]+)\\)",
               "name": "markdown.url",
               "captures": [
                 {
-                  "name": "string.hyperlink2"
+                  "name": "string.hyperlink"
                 }
               ]
-            },
-            {
-              "name": "string.hyperlink2",
-              "style": "hyperlink"
             }
           ]
         },
@@ -243,13 +244,9 @@
               "name": "markdown.url",
               "captures": [
                 {
-                  "name": "string.hyperlink2"
+                  "name": "string.hyperlink"
                 }
               ]
-            },
-            {
-              "name": "string.hyperlink2",
-              "style": "hyperlink"
             }
           ]
         },
