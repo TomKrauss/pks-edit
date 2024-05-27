@@ -3288,8 +3288,9 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			}
 		}
 		if (c == ' ' && lastC == ' ') {
+			pStream->is_skip(pStream, 1);
 			bEnforceBreak = TRUE;
-		} else {
+		} else if (lastC != ' ') {
 			stringbuf_appendChar(pState->hps_text, ' ');
 		}
 		if (bEnforceBreak) {

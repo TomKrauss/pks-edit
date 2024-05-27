@@ -19,12 +19,20 @@
 #include "linkedlist.h"
 #include <git2.h>
 
+//#define GIT_INTEGRATION 1
+
 #ifdef GIT_INTEGRATION
+
+struct tagVC_INFO {
+	VC_STATUS vci_status;
+	git_oid   vci_id;
+};
 
 typedef struct tagGIT_REPO_DIR {
 	struct tagGIT_REPO_DIR* gr_next;
-	char* gr_path;
+	char*			gr_path;
 	git_repository* gr_repository;
+	git_tree*		gr_root;
 } GIT_REPO_DIR;
 
 static BOOL gitInitialized;
@@ -67,11 +75,17 @@ static GIT_REPO_DIR* gi_tryOpenRepo(const char* pszFilename) {
 	GIT_REPO_DIR* pRepository = calloc(sizeof(GIT_REPO_DIR), 1);
 	git_repository_open_ext(&pRepository->gr_repository, pszDirectory, 0, NULL);
 	if (pRepository->gr_repository) {
-		const char* pszWorkdir = git_repository_workdir(pRepository->gr_repository);
-		if (pszWorkdir != NULL) {
-			free(pszDirectory);
+		git_oid oid = { 0 };
+		if (git_tree_lookup(&pRepository->gr_root, pRepository->gr_repository, &oid) != 0) {
+			git_repository_free(pRepository->gr_repository);
+			pRepository->gr_repository = NULL;
+		} else {
+			const char* pszWorkdir = git_repository_workdir(pRepository->gr_repository);
+			if (pszWorkdir != NULL) {
+				free(pszDirectory);
+			}
+			pszDirectory = _strdup(pszWorkdir);
 		}
-		pszDirectory = _strdup(pszWorkdir);
 	}
 	pRepository->gr_path = pszDirectory;
 	ll_add(&gitRepositories, (LINKED_LIST*) pRepository);
@@ -79,9 +93,9 @@ static GIT_REPO_DIR* gi_tryOpenRepo(const char* pszFilename) {
 }
 
 /*
- * Return the current GIT status of a given file name.
+ * Return the current version control information for a given file name.
  */
-VC_STATUS gi_getStatus(const char* pszFilename) {
+VC_INFO* gi_getVersionInfo(const char* pszFilename) {
 	gi_initialize();
 	GIT_REPO_DIR* pDir = gi_findRepo(pszFilename);
 	if (pDir == NULL) {
@@ -89,36 +103,56 @@ VC_STATUS gi_getStatus(const char* pszFilename) {
 	} 
 	unsigned int status = 0;
 	if (!pDir->gr_repository) {
-		return VCS_NONE;
+		return NULL;
 	}
 	char szRelative[MAX_PATH];
 	strcpy(szRelative, pszFilename + strlen(pDir->gr_path));
 	gi_normalizePath(szRelative);
+	git_tree_entry* entry;
+	VC_INFO* vcInfo = (VC_INFO*) calloc(sizeof *vcInfo, 1);
+	if (git_tree_entry_bypath(&entry, pDir->gr_root, szRelative)) {
+		vcInfo->vci_id = *git_tree_entry_id(entry);
+		git_tree_entry_free(entry);
+	}
 	int ret = git_status_file(&status, pDir->gr_repository, szRelative);
+	vcInfo->vci_status = VCS_NONE;
 	if (ret == 0) {
 		if (status == GIT_STATUS_CURRENT) {
-			return VCS_CURRENT;
-		}
-		if (status & GIT_STATUS_WT_MODIFIED) {
-			return VCS_MODIFIED;
-		}
-		if (status & GIT_STATUS_WT_DELETED) {
-			return VCS_DELETED;
-		}
-		if (status & GIT_STATUS_WT_NEW) {
-			return VCS_NEW;
-		}
-		if (status & GIT_STATUS_CONFLICTED) {
-			return VCS_CONFLICTED;
+			vcInfo->vci_status = VCS_CURRENT;
+		} else if (status & GIT_STATUS_WT_MODIFIED) {
+			vcInfo->vci_status = VCS_MODIFIED;
+		} else if (status & GIT_STATUS_WT_DELETED) {
+			vcInfo->vci_status = VCS_DELETED;
+		} else if (status & GIT_STATUS_WT_NEW) {
+			vcInfo->vci_status = VCS_NEW;
+		} else if (status & GIT_STATUS_CONFLICTED) {
+			vcInfo->vci_status = VCS_CONFLICTED;
 		}
 	}
-	return VCS_NONE;
+	return vcInfo;
+}
+
+/*
+ * Return the current GIT status for a given version info.
+ */
+VC_STATUS gi_getStatus(VC_INFO* pInfo) {
+	return pInfo == NULL ? VCS_NONE : pInfo->vci_status;
+}
+
+/*
+ * Release the version information for a file.
+ */
+void gi_freeVersionInfo(VC_INFO* pVCInfo) {
+	free(pVCInfo);
 }
 
 static gi_freeRepoDir(void* p) {
 	GIT_REPO_DIR* pRepo = (GIT_REPO_DIR*)p;
 	if (pRepo->gr_path) {
 		free(pRepo->gr_path);
+	}
+	if (pRepo->gr_root) {
+		git_tree_free(pRepo->gr_root);
 	}
 	if (pRepo->gr_repository) {
 		git_repository_free(pRepo->gr_repository);

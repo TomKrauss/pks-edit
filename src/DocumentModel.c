@@ -209,6 +209,7 @@ static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, L
  */
 void ft_bufdestroy(FTABLE* fp) {
 	destroy(&fp->documentDescriptor);
+	gi_freeVersionInfo(fp->vcInfo);
 	ln_listfree(fp->firstl);
 	fp->tln = fp->firstl = 0;
 	file_closeFile(&fp->lockFd);

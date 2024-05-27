@@ -22,14 +22,30 @@ typedef enum {
 } VC_STATUS;
 
 /*
+ * Info about the version control state of a file.
+ */
+typedef struct tagVC_INFO VC_INFO;
+
+/*
  * Shutdown the GIT integration.
  */
 extern void gi_shutdown();
 
 /*
- * Return the current GIT status of a given file name.
+ * Return the current version control information for a given file name. Note, that the
+ * version info object must be released, when not used any more with gi_freeVersionInfo.
  */
-extern VC_STATUS gi_getStatus(const char* pszFilename);
+extern VC_INFO* gi_getVersionInfo(const char* pszFilename);
+
+/*
+ * Free the version info object allocated with gi_getVersionInfo.
+ */
+extern void gi_freeVersionInfo(VC_INFO* pInfo);
+
+/*
+ * Return the current GIT status for a given version info.
+ */
+extern VC_STATUS gi_getStatus(VC_INFO* pInfo);
 
 #define	GITINTEGRATION_H
 # endif

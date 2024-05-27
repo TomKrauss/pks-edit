@@ -548,7 +548,7 @@ ret0:			ret = 0;
 	fp->lastl = fp->lpReadPointer;
 	fp->lpReadPointer = fp->firstl;
 	doctypes_reassignDocumentTypeDescriptor(fp);
-	fp->vcStatus = gi_getStatus(fp->fname);
+	fp->vcInfo = gi_getVersionInfo(fp->fname);
 
 readerr:
 	if (fd > 0) {

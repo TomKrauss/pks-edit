@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Open Dialogs were using the wrong code page resulting in bad display of Umlauts (e.g. Datei öffnen)
   in the dialog title area and othr places.
 - Editor Tabs were displaying filenames containing Umlauts incorrectly.
-
+- markdown rendering: space handling at end of line corrected.
+	- 
 ## [2.5.0] - 2024-05-25
 
 ### Added
