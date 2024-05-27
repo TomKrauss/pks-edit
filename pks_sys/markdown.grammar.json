@@ -177,61 +177,96 @@
           "help": "Inserts an icon showing hearts in the eyes of an Emoji"
         }
       ],
-      "patterns":
-        [
-          {
-            "match": "^#+.*",
-            "name": "markdown.header",
-            "style": "keyword"
-          },
-          {
-            "match": "`[^`]+`",
-            "name": "markdown.code",
-            "style": "code"
-          },
-          {
-            "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
-            "name": "markdown.bold_italic",
-            "style": "bold-italic"
-          },
-          {
-            "match": "([\\*_]{2})[^*_]+\\1",
-            "name": "markdown.bold",
-            "style": "bold"
-          },
-          {
-            "match": "[\\*_][^*_]+[\\*_]",
-            "name": "markdown.italic",
-            "style": "italic"
-          },
-          {
-            "match": "\\[[^]]+\\]",
-            "name": "markdown.url.title",
-            "style": "literal"
-          },
-          {
-            "match": "^\\>\\s.*",
-            "name": "markdown.blockquote",
-            "style": "bold-italic"
-          },
-          {
-            "match": "^[*-].*",
-            "name": "markdown.bullet",
-            "style": "bold",
-            "patterns": [
-              {
-                "match": "`[^`]+`",
-                "name": "markdown.code.bullet",
-                "style": "code"
-              }
-            ]
-          },
-          {
-            "match": "\\([/a-zA-Z0-9_.:]+\\)",
-            "name": "markdown.url",
-            "style": "hyperlink"
-          }
-        ]
+      "patterns": [
+        {
+          "match": "^#+.*",
+          "name": "markdown.header",
+          "style": "keyword"
+        },
+        {
+          "match": "`[^`]+`",
+          "name": "markdown.code",
+          "style": "code"
+        },
+        {
+          "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
+          "name": "markdown.bold_italic",
+          "style": "bold-italic"
+        },
+        {
+          "match": "([\\*_]{2})[^*_]+\\1",
+          "name": "markdown.bold",
+          "style": "bold"
+        },
+        {
+          "match": "[\\*_][^*_]+[\\*_]",
+          "name": "markdown.italic",
+          "style": "italic"
+        },
+        {
+          "match": "\\[[^]]+\\]",
+          "name": "markdown.url.title",
+          "style": "literal"
+        },
+        {
+          "match": "^\\>\\s.*",
+          "name": "markdown.blockquote",
+          "style": "bold-italic",
+          "patterns": [
+            {
+              "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink2"
+                }
+              ]
+            },
+            {
+              "name": "string.hyperlink2",
+              "style": "hyperlink"
+            }
+          ]
+        },
+        {
+          "match": "^[*-].*",
+          "name": "markdown.bullet",
+          "style": "bold",
+          "patterns": [
+            {
+              "match": "`[^`]+`",
+              "name": "markdown.code.bullet",
+              "style": "code"
+            },
+            {
+              "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink2"
+                }
+              ]
+            },
+            {
+              "name": "string.hyperlink2",
+              "style": "hyperlink"
+            }
+          ]
+        },
+        {
+          "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+          "name": "markdown.url",
+          "captures": [
+            {
+              "name": "string.hyperlink"
+            }
+          ]
+        },
+        {
+          "name": "string.hyperlink",
+          "style": "hyperlink"
+        }
+      ]
     }
   ]
 }

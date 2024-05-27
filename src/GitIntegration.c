@@ -179,7 +179,15 @@ void gi_shutdown() {
 void gi_shutdown() {
 }
 
-VC_STATUS gi_getStatus(const char* pszFilename) {
+VC_STATUS gi_getStatus(VC_INFO* pInfo) {
 	return VCS_NONE;
 }
+
+VC_INFO* gi_getVersionInfo(const char* pszFilename) {
+	return NULL;
+}
+
+void gi_freeVersionInfo(VC_INFO* pVCInfo) {
+}
+
 #endif
