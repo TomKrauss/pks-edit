@@ -342,7 +342,7 @@
     },
     {
       "key": "Ctrl+X",
-      "command": "@delete-selection"
+      "command": "@cut-to-clipboard"
     },
     {
       "key": "Ctrl+Y",
@@ -817,7 +817,7 @@
       "command": "@copy-to-clipboard"
     },
     {
-      "command": "@delete-selection"
+      "command": "@cut-to-clipboard"
     },
     {
       "command": "@paste-clipboard"
@@ -924,7 +924,7 @@
         { "command": "@re-insert" },
         { "separator": true },
         { "command": "@copy-to-clipboard" },
-        { "command": "@delete-selection" },
+        { "command": "@cut-to-clipboard" },
         { "command": "@paste-clipboard" },
         { "command": "@erase-selection" },
         { "command": "@copy-selection" },
@@ -1116,7 +1116,7 @@
       "icon": "fa-trash-can-o"
     },
     {
-      "command": "@delete-selection",
+      "command": "@cut-to-clipboard",
       "icon": "fa-cut"
     },
     {

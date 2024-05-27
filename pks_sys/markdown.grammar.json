@@ -204,9 +204,20 @@
           "style": "italic"
         },
         {
-          "match": "\\[[^]]+\\]",
+          "match": "\\[[^]]+\\]\\([^)]+\\)",
           "name": "markdown.url.title",
-          "style": "literal"
+          "style": "literal",
+          "patterns": [
+            {
+              "match": "\\] *\\(([^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink"
+                }
+              ]
+            }
+          ]
         },
         {
           "match": "^\\>\\s.*",
@@ -219,7 +230,7 @@
               "style": "code"
             },
             {
-              "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+              "match": "\\] *\\(([^)]+)\\)",
               "name": "markdown.url",
               "captures": [
                 {
@@ -240,7 +251,7 @@
               "style": "code"
             },
             {
-              "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+              "match": "\\] *\\(([^)]+)\\)",
               "name": "markdown.url",
               "captures": [
                 {
@@ -251,7 +262,7 @@
           ]
         },
         {
-          "match": "\\(((http|https|file|ftp):[^)]+)\\)",
+          "match": "\\] *\\(([^)]+)\\)",
           "name": "markdown.url",
           "captures": [
             {

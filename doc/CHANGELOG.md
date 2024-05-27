@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and changing the language works now without restarting PKS Edit.
 - captures are now supported in nested patterns in a grammar leading to improved syntax highlighting support.
 
+### Changed
+- The action `delete-selection` was renamed to `cut-to-clipnoard`.
+
 ### Fixed
 - Scrollbars were sometimes not correctly update in markdown wysiwyg editor windows.
 - The Open Dialogs were using the wrong code page resulting in bad display of Umlauts (e.g. Datei öffnen)

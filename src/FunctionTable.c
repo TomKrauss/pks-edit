@@ -360,7 +360,7 @@ COMMAND _commandTable[] = {
 44, C_1FUNC, 10 /* EdBlockPaste */, 						1, PASTE_CLIP, "paste-clipboard",
 45, C_1FUNC, 10 /* EdBlockPaste */, 						1, PASTE_UNDO, "paste-trash",
 46, C_1FUNC, 82 /* xref_navigateSearchErrorList */, 		1, LIST_CURR, "errorlist-current-line",
-47, C_1FUNC, 3 /* EdBlockDelete */, 						1, 1 , "delete-selection",
+47, C_1FUNC, 3 /* EdBlockDelete */, 						1, 1 , "cut-to-clipboard",
 48, C_0FUNC, 2 /* EdBlockCopy */, 							1, 0 , "copy-selection",
 49, C_0FUNC, 6 /* EdBlockMove */, 							1, 0 , "move-selection",
 50, C_0FUNC, 13 /* bl_cutLines */, 							1, 0 , "cut-lines",
