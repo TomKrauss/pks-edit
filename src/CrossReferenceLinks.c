@@ -46,6 +46,7 @@
 #include "mainframe.h"
 #include "codeanalyzer.h"
 #include "dpisupport.h"
+#include "pksrc.h"
 
 typedef enum TAG_KIND {
 	TK_FUNCTION = 'f', TK_MEMBER = 'm', TK_VARIABLE = 'v', TK_STRUCT = 's', TK_NUMBER_VALUE = 'n', TK_BOOLEAN_VALUE = 'b', TK_STRING_VALUE = 's', TK_OTHER
@@ -1050,8 +1051,7 @@ int xref_navigateSearchErrorList(int dir) {
 		}
 		return 0;
 	}
-	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS :
-					 IDS_MSGSTRINGNOTFOUND);
+	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS : IDS_NO_MATCHES_FOUND);
 	return 0;
 }
 

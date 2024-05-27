@@ -141,6 +141,7 @@
 #define IDS_MSGWRITEERR                 144
 #define IDS_MSGDELOLDKEYBIND            145
 #define IDS_MSGFILESHAVECHANGED         146
+#define IDS_NO_MATCHES_FOUND            149
 #define IDM_HLP_MANUAL_TOC              150
 #define IDM_HLPONDESKTOP                151
 #define IDM_HLPOVERVIEW                 152
@@ -212,7 +213,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        209
+#define _APS_NEXT_RESOURCE_VALUE        212
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101

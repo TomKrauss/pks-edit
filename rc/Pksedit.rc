@@ -1378,6 +1378,7 @@ BEGIN
     IDS_FILE_IS_DIRECTORY   "!%s ist ein Verzeichnis und kann nicht geöffnet werden."
     IDS_UNSUPPORTED_CHARACTERS 
                             "!Die Datei %s enthält nicht unterstützte Zeichen und kann nicht ohne Verlust gespeichert werden."
+    IDS_NO_MATCHES_FOUND    "!Das angegebene Muster konnte nirgendwo gefunden werden."
 END
 
 STRINGTABLE

@@ -1340,6 +1340,7 @@ BEGIN
     IDS_FILE_IS_DIRECTORY   "!%s is a directory and cannot be opened."
     IDS_UNSUPPORTED_CHARACTERS 
                             "!The file %s contains unsupported characters and cannot be saved without loss."
+    IDS_NO_MATCHES_FOUND    "!The entered pattern could not be found in any of the affected files."
 END
 
 STRINGTABLE
