@@ -1817,6 +1817,14 @@ static void ww_propagateThemeChange() {
 	}
 }
 
+static int main_convertMenuId(int idCtrl) {
+	int nType = idCtrl >> 8;
+	if (nType == CMD_CMDSEQ || nType == CMD_MACRO) {
+		idCtrl = (nType << 12) + (idCtrl & 0xFF);
+	}
+	return idCtrl;
+}
+
 /*
  * Window procedure of the main frame window.
  */
@@ -1976,7 +1984,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			macro_showHelpForMenu(-1);
 		}
 		else if ((fwMenu & (MF_SYSMENU | MF_SEPARATOR | MF_POPUP)) == 0) {
-			macro_showHelpForMenu((int)GET_WM_MENUSELECT_CMD(wParam, lParam));
+			fwMenu = GET_WM_MENUSELECT_CMD(wParam, lParam);
+			macro_showHelpForMenu(main_convertMenuId(fwMenu));
 		}
 		break;
 
@@ -2086,10 +2095,7 @@ repaintUI:
 			break;
 		}
 		// special hack for toolbars supporting only 16 bit commands ??
-		int nType = idCtrl >> 8;
-		if (nType == CMD_CMDSEQ || nType == CMD_MACRO) {
-			idCtrl = (nType << 16) + (idCtrl & 0xFF);
-		}
+		idCtrl = main_convertMenuId(idCtrl);
 		int nCommand = macro_translateToOriginalMenuIndex(idCtrl);
 		if (bHelp) {
 			bHelp = FALSE;

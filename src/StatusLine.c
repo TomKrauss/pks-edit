@@ -44,8 +44,7 @@ static int		_redrawsPosted;
 /*------------------------------------------------------------
  * st_format()
  */
-static int st_format(char *dest)
-{
+static int st_format(char *dest) {
 	int 	len;
 	WINFO *	wp = ww_getCurrentEditorWindow();
 
@@ -187,9 +186,10 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		int width = rect.right / 12;
 		int nDelta = dpisupport_getSize(3);
 		for (int i = 0; i < nSegments; i++) {
-			RECT rc;
-			rc.top = 0;
-			rc.bottom = rect.bottom;
+			RECT rc = {
+				.top = 0,
+				.bottom = rect.bottom
+			};
 			rc.left = i * rect.right / 12;
 			if (i == nSegments - 1) {
 				rc.right = rect.right;
@@ -219,7 +219,9 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			}
 			DrawText(hdc, pszText, (int) strlen(pszText), &rc, nFlags);
 		}
-		WINDOWPLACEMENT placement;
+		WINDOWPLACEMENT placement = {
+			.length = sizeof(placement)
+		};
 		GetWindowPlacement(hwndMain, &placement);
 		if (placement.showCmd != SW_MAXIMIZE) {
 			brush = CreateSolidBrush(pTheme->th_dialogBorder);

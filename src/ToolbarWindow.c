@@ -119,10 +119,11 @@ static void tb_loadFont(int id) {
         }
     }
 }
+
 /*
  * Load the font-awesome font.
  */
-static void tb_loadFontAwesome() {
+void tb_loadFontAwesome() {
     static BOOL fontLoaded;
 
     if (fontLoaded) {

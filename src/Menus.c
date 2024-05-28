@@ -154,7 +154,7 @@ static int menu_appendMacroEntries(WINFO* wp, HMENU hMenu, int wItemIndex, const
 			bFirst = FALSE;
 		}
 		macro_getLabelFor(mp, szLabel, sizeof szLabel);
-		AppendMenu(hMenu, MF_STRING, (CMD_MACRO << 16) + i, szLabel);
+		AppendMenu(hMenu, MF_STRING, (CMD_MACRO << 12) + i, szLabel);
 		nItems++;
 		menu_enableItem(wp, hMenu, wItemIndex + nItems, CMD_MACRO, i);
 	}
@@ -182,7 +182,7 @@ static BOOL menu_appendMenuItems(WINFO* wp, HMENU hMenu, MENU_ITEM_DEFINITION* p
 		}
 		else {
 			menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, FALSE);
-			AppendMenu(hMenu, MF_STRING, ((int)pMenu->mid_command.typ << 16) + pMenu->mid_command.index, szLabel);
+			AppendMenu(hMenu, MF_STRING, ((int)pMenu->mid_command.typ << 12) + pMenu->mid_command.index, szLabel);
 			menu_enableItem(wp, hMenu, wItem, pMenu->mid_command.typ, pMenu->mid_command.index);
 		}
 		pMenu = pMenu->mid_next;

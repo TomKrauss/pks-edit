@@ -238,9 +238,9 @@ MACRO* macro_getNamespaceByIdx(int idx) {
 MACROREF* macro_translateMenuCommand(int nCommand) {
 	static MACROREF macroref;
 
-	macroref.typ = nCommand >> 16;
+	macroref.typ = nCommand >> 12;
 	if (macroref.typ) {
-		macroref.index = nCommand & 0xFFFF;
+		macroref.index = nCommand & 0xFFF;
 		return &macroref;
 	}
 	return NULL;
@@ -559,7 +559,7 @@ int macro_translateToOriginalMenuIndex(int wParam) {
 	if (wParam < IDM_USERDEF0) {
 		return wParam;
 	}
-	if (wParam >> 16) {
+	if (wParam >> 12) {
 		return wParam;
 	}
 	return wParam;
@@ -800,6 +800,7 @@ static void macro_updateMacroList(HWND hwnd)
  * command_getTooltipAndLabel()
  * Returns the label and tooltip for a given command described by command.
  * The result is copied into the space passed with szTooltip.
+ * Note, that one must pass an szTooltip with at least MAC_COMMENTLEN size.
  * If szLabel is not NULL, it will contain a longer text used in a tooltip or a help context.
  */
 char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabel) {
@@ -864,13 +865,17 @@ char *macro_getMenuTooltTip(int dMenuId) {
  */
 void macro_showHelpForMenu(int dMenuId)
 {
-	char			szBuf[256];
+	char			szBuf[MAC_COMMENTLEN];
 	MACROREF *	mp;
 
 	st_switchtomenumode(dMenuId != -1);
 	if (dMenuId != -1 && (mp = macro_translateMenuCommand(dMenuId)) != 0) {
 		command_getTooltipAndLabel(*mp, szBuf, NULL);
-		st_setStatusLineMessage(*szBuf ? szBuf : (char *)0);
+		char *pszText = szBuf;
+		while (*pszText && *pszText == ' ') {
+			pszText++;
+		}
+		st_setStatusLineMessage(pszText);
 	} else {
 		st_setStatusLineMessage((char *)0);
 	}
