@@ -456,6 +456,17 @@ char* config_getPKSEditTempPath() {
 }
 
 /*
+ * Returns the configured language with a locale identifier (e.g. "de" or "en").
+ */
+char* config_getLocale() {
+	char* pszLang = GetConfiguration()->language;
+	if (pszLang == NULL || _stricmp("english", pszLang) == 0) {
+		return "en";
+	}
+	return "de";
+}
+
+/*
  * Returns the command to be used to search for something on the internet
  * with the currently configured search engine.
  */

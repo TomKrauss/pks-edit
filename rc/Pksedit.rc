@@ -1456,7 +1456,6 @@ BEGIN
     IDS_FILE_MODIFIED       "Geändert"
     IDS_FILE_READONLY       "Nur lesen"
     IDS_SEARCH              "Inkrementell suchen"
-    IDS_STATUSLINE          "%s$f!Zeile: %2d$l, Spalte: %2d$c!\t%s$P!\t%s$&!\t%s$V"
     IDS_NO_MACROS_DEFINED   "Keine Makros definiert."
     IDS_ENTER_PASSWORD_TO_ENCRYPT 
                             "Geben Sie das Passwort zum Verschlüsseln von %s ein:"

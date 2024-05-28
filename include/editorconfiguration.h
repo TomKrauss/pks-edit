@@ -127,6 +127,11 @@ extern char* config_getPKSEditTempPath();
  */
 extern char* config_getInternetSearchCommand();
 
+/*
+ * Returns the configured language with a locale identifier (e.g. "de" or "en").
+ */
+extern char* config_getLocale();
+
 /*--------------------------------------------------------------------------
  * prof_setinifile()
  */

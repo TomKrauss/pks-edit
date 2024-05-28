@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Some language related inconsistencies were corrected (sometimes the wrong language was used in some places)
   and changing the language works now without restarting PKS Edit.
 - captures are now supported in nested patterns in a grammar leading to improved syntax highlighting support.
+- Statusline Configuration is now more flexible and more intuitive. The individual segments can be configured individually
+  may also contain icons and may tagged with a locale for I18N.
 
 ### Changed
 - The action `delete-selection` was renamed to `cut-to-clipnoard`.

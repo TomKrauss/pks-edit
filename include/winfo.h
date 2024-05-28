@@ -50,7 +50,7 @@ typedef enum {
 	WM_ABBREV = 0x4,
 	WM_AUTOWRAP = 0x8,
 	WM_AUTOINDENT = 0x10,
-    // AUtomatically correct wrong capitals as in JAnuary->January or "sold. this is" -> sold. This is
+    // Automatically correct wrong capitals as in JAnuary->January or "sold. this is" -> sold. This is
     WM_FIX_CAPITALS = 0x20, 
 	WM_WATCH_LOGFILE = 0x40,
 	WM_LINE_SELECTION = 0x80,
@@ -271,8 +271,7 @@ typedef struct tagWINFO {
     MARK* fmark;
     MARK* blstart, * blend;   	    // Marks for Block Operations
     int   blcol1, blcol2;		    // column for Blockmarks
-
-    char*  statusline;			    // status line format, if a special format  should be used - otherwise NULL.
+    STATUS_LINE_SEGMENT* statuslineSegments; // The status line definition.
     int    cx,cy,cmx,cmy,cheight,cwidth;
     int    ctype;        	        // caret - type
 

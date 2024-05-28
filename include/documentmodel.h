@@ -143,6 +143,18 @@ typedef struct tagWINFO WINFO;
 
 typedef struct tagGRAMMAR GRAMMAR;
 
+/*
+ * Defines one segment of the status line with an optional icon and a text.
+ * A segment may be tagged with a language if it is available only in a special selected
+ * language. Language identifiers are "de", "en", ...
+ */
+typedef struct tagSTATUS_LINE_SEGMENT {
+	struct tagSTATUS_LINE_SEGMENT* sls_next;
+	char						   sls_lang[8];
+	char*						   sls_text;
+	char*						   sls_icon;
+} STATUS_LINE_SEGMENT;
+
 typedef struct tagEDIT_CONFIGURATION {
 	struct tagEDIT_CONFIGURATION* next;
 	unsigned char	name[16];				// configuration name
@@ -158,7 +170,7 @@ typedef struct tagEDIT_CONFIGURATION {
 	char			tabDisplayFillCharacter;// Display tabs filled with this.
 	char			expandTabsWith;			// when inserting a tabulator - replace with this (fill character). If 0 - tabs are not expanded.
 	int				tabulatorSizes[32];		// arbitrary tab stops - allowing us to have have tabs at positions 2, 5, 9, 15, ...
-	unsigned char	statusline[60];			// the special status
+	STATUS_LINE_SEGMENT* statuslineSegments; // A status line defined for this configuration.
 	char			backupExtension[10];	// Backup extension
 	unsigned char	createActionName[24];	// action (command / macro) to execute on document creation
 	unsigned char	saveActionName[24];		// action to execute before saving

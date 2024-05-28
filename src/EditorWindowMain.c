@@ -35,6 +35,7 @@
 #include "iccall.h"
 #include "stringutil.h"
 #include "arraylist.h"
+#include "documenttypes.h"
 #include "editorconfiguration.h"
 #include "propertychange.h"
 #include "winutil.h"
@@ -682,7 +683,10 @@ void ww_applyDisplayProperties(WINFO* wp) {
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
 	}
-	wp->statusline = linp->statusline[0] ? linp->statusline : NULL;
+	wp->statuslineSegments = linp->statuslineSegments;
+	if (wp->statuslineSegments == NULL) {
+		wp->statuslineSegments = doctypes_getDefaultDocumentTypeDescriptor()->statuslineSegments;
+	}
 	wp->scrollflags = linp->scrollflags;
 	wp->cursaftersearch = linp->cursaftersearch;
 	wp->vscroll = linp->vscroll;

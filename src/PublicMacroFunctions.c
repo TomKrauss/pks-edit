@@ -1088,12 +1088,9 @@ static int doDocumentTypes(int nDlg) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
-	lastSelectedDocType = doctypes_getPrivateDocumentType(
-		pConfig ? pConfig->name : "default");
 
-	doctypes_fillParameters(docTypePars, (void*)lastSelectedDocType);
+	doctypes_fillParameters(docTypePars, (void*)pConfig);
 	if (DoDialog(nDlg, doctype_dialogProcedure,docTypePars, NULL) == IDCANCEL) {
-		lastSelectedDocType = 0;
 		return 0;
 	}
 
@@ -1228,9 +1225,29 @@ static DIALPARS* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];
 }
 
+static dlg_updateStatusline(EDIT_CONFIGURATION* linp, char* status) {
+	STATUS_LINE_SEGMENT* pSegment = linp->statuslineSegments;
+	char* pszText = status;
+	char* pszStart = pszText;
+	while (*pszText) {
+		if (pSegment == NULL) {
+			break;
+		}
+		if (*pszText++ == '!') {
+			pszText[-1] = 0;
+			if (pSegment->sls_text) {
+				free(pSegment->sls_text);
+				pSegment->sls_text = _strdup(pszStart);
+			}
+			pszStart = pszText;
+			pSegment = pSegment->sls_next;
+		}
+	}
+}
+
 int dlg_configureEditorModes(void) {
 	int scrollmin, mindelta, cursafter, flags;
-	char 	status[64];
+	char 	status[256];
 	long 	bgcolor;
 	char 	tabDisplayFillCharacter;
 	int  	dispmode;
@@ -1335,7 +1352,20 @@ int dlg_configureEditorModes(void) {
 	cursafter = linp->cursaftersearch;
 	scrollmin = linp->vscroll + 1;
 	mindelta = linp->scroll_dy;
-	lstrcpy(status,linp->statusline);
+	status[0] = 0;
+	STATUS_LINE_SEGMENT* pSegment = linp->statuslineSegments;
+	while (pSegment) {
+		if (status[0]) {
+			strcat(status, "!");
+		}
+		if (pSegment->sls_text) {
+			if (strlen(status) + strlen(pSegment->sls_text) + 2 > sizeof(status)) {
+				break;
+			}
+			strcat(status, pSegment->sls_text);
+		}
+		pSegment = pSegment->sls_next;
+	}
 	tabsize = linp->tabsize;
 	rmargin = linp->rmargin;
 	dispmode = wp->dispmode;
@@ -1386,7 +1416,7 @@ int dlg_configureEditorModes(void) {
 	if (tempRet != 1) {
 		return 0;
 	}
-	lstrcpy(linp->statusline,status);
+	dlg_updateStatusline(linp, status);
 	if (tabsize == 0) {
 		tabsize = 8;
 	}

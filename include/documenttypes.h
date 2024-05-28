@@ -69,6 +69,13 @@ extern EDIT_CONFIGURATION* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p);
  */
 extern void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp);
 
+/**
+ * Cleanup: delete a document descriptor.
+ */
+extern BOOL doctypes_destroyDocumentType(DOCUMENT_TYPE* dt);
+
+extern BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration);
+
 /*--------------------------------------------------------------------------
  * doctypes_assignDocumentTypeDescriptor()
  * assign document type properties / descriptor to file

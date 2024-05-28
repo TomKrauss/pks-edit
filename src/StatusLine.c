@@ -42,57 +42,45 @@ static HWND		hwndStatus;
 static int		_redrawsPosted;
 
 /*------------------------------------------------------------
- * st_format()
- */
-static int st_format(char *dest) {
-	int 	len;
-	WINFO *	wp = ww_getCurrentEditorWindow();
-
-	*dest = 0;
-	if (!wp) {
-		return 0;
-	}
-	union U_ARG_VALUE values[] = {
-		{0}
-	};
-	SPRINTF_ARGS args = (SPRINTF_ARGS){ .sa_wp = wp, .sa_values = values };
-	len = mysprintf(dest,
-				 (wp && wp->statusline) ? 
-				 wp->statusline : 
-				 dlg_getResourceString(IDS_STATUSLINE), &args);
-	return len;
-}
-
-/*------------------------------------------------------------
  * st_setparts()
  */
-static void st_setparts(char *text, BOOL bUpdateMessageOnly)
-{
+static void st_setparts(BOOL bUpdateMessageOnly) {
+	static char	szBuf[1024];
 	INT					pSegments[MAXSEGMENTS];
 	LPSTR				pszStrArr[MAXSEGMENTS];
-	LPSTR				s;
-	LPSTR				pszEnd;
+	LPSTR				pszStart = szBuf;
 	int					i;
 	int					offset;
-	int					nSegments;
+	int					nSegments = 0;
 
 	if (!hwndStatus) {
 		return;
 	}
-	if (bSimpleMode) {
-		nSegments = 0;
-	} else {
-		for (nSegments = 0, s = text; ;) {
-			if (nSegments >= MAXSEGMENTS-2) {
+	if (!bSimpleMode) {
+		WINFO* wp = ww_getCurrentEditorWindow();
+		if (!wp) {
+			return;
+		}
+		STATUS_LINE_SEGMENT* pSegment = wp->statuslineSegments;
+		union U_ARG_VALUE values[] = {
+			{0}
+		};
+		SPRINTF_ARGS args = (SPRINTF_ARGS){ .sa_wp = wp, .sa_values = values };
+		char* pszLocale = config_getLocale();
+		while (pSegment) {
+			if (pSegment->sls_text == NULL || (pSegment->sls_lang[0] && strcmp(pSegment->sls_lang, pszLocale) != 0)) {
+				pSegment = pSegment->sls_next;
+				continue;
+			}
+			int len = mysprintf(pszStart, pSegment->sls_text, &args);
+			pszStrArr[nSegments] = pszStart;
+			pszStart += len;
+			*pszStart++ = 0;
+			nSegments++;
+			if (nSegments >= MAXSEGMENTS - 2) {
 				break;
 			}
-			if ((pszEnd = strchr(s, '!')) != 0) {
-				*pszEnd++ = 0;
-			}
-			pszStrArr[nSegments++] = s;
-			if ((s = pszEnd) == 0) {
-				break;
-			}
+			pSegment = pSegment->sls_next;
 		}
 	}
 	for (i = 0, offset = 0; i < nSegments; i++) {
@@ -158,12 +146,10 @@ void status_wh(WORD *width, WORD *height)
  */
 static WNDPROC _wpOrigStatusWndProc;
 LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	static char	szBuf[1024];
 
 	switch (msg) {
 	case WM_ST_REDRAW: {
-		st_format(szBuf);
-		st_setparts(szBuf, (BOOL)wParam);
+		st_setparts((BOOL)wParam);
 		_redrawsPosted = 0;
 		return 0;
 	}

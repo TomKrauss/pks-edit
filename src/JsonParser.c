@@ -529,6 +529,10 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 
 	switch (pRule->r_type) {
 	case RT_ALLOC_STRING:
+		pSourceSlot = *((char**)pSourceSlot);
+		if (!pSourceSlot) {
+			return 0;
+		}
 	case RT_CHAR_ARRAY:
 		if (!(*(char*)pSourceSlot)) {
 			return 0;
@@ -567,6 +571,9 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		json_marshalObject(fp, indent, FALSE, pSourceSlot, pRule->r_descriptor.r_t_nestedObjectRules);
 		return 1;
 	case RT_OBJECT_LIST:
+		if (*(void**)pSourceSlot == NULL) {
+			return 0;
+		}
 		if (bNeedsTermination) {
 			fprintf(fp, ",%s", _nl);
 		}

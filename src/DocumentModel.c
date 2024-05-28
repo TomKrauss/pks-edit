@@ -21,6 +21,7 @@
 #include "textblocks.h"
 #include "edierror.h"
 #include "linkedlist.h"
+#include "documenttypes.h"
 #include "syntaxhighlighting.h"
 #include "markpositions.h"
 #include "stringutil.h"
@@ -208,6 +209,7 @@ static void ln_singleLineChanged(FTABLE* fp, MODEL_CHANGE_TYPE type, LINE* lp, L
  * Release all resources associated with a file. Do not close associated views.
  */
 void ft_bufdestroy(FTABLE* fp) {
+	doctypes_destroyEditConfiguration(fp->documentDescriptor);
 	destroy(&fp->documentDescriptor);
 	gi_freeVersionInfo(fp->vcInfo);
 	ln_listfree(fp->firstl);

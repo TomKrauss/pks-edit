@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * DocumentTypes.c
  *
  * Project: PKS Edit for MS-WINDOWS
@@ -9,7 +9,7 @@
  *		  link configuration files to file name extensions
  *		  tapstop calculating functions
  *
- * 										created: 
+ * 										created:
  * 										last modified:
  *										author: Tom
  *
@@ -50,21 +50,20 @@ typedef struct tagDOCUMENT_TYPE {
 	/*
 	 * Next Document Type - they are maintained in a linked list.
 	 */
-	struct tagDOCUMENT_TYPE *	ll_next;
+	struct tagDOCUMENT_TYPE* ll_next;
 	char				ll_name[32];						// name of the document type.
 	char				ll_grammarScope[32];				// name of the grammar associated with this file type - is also used as primary language name.
-	ARRAY_LIST*			ll_languages;						// The list of alternative language names - if any.
+	ARRAY_LIST* ll_languages;						// The list of alternative language names - if any.
 	char				ll_description[80];					// Description for file selector.
-	int					ll_privateEditorConfiguration;		// Whether this is a private configuration. If true, this is used for single files explicitly
 	char				ll_editorConfigurationName[32];		// Editor configuration name
 	char   				ll_match[64];						// file name pattern to match
 	char				ll_firstlineMatch[64];				// Can be used to match a file by parsing the 1st line contained in that file.
-	EDIT_CONFIGURATION * ll_documentDescriptor;
+	EDIT_CONFIGURATION* ll_documentDescriptor;
 } DOCUMENT_TYPE;
 
-DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp);
+DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp);
 
-FSELINFO _linfsel = {	"", "pkseditconfig.json", "*.json" };
+FSELINFO _linfsel = { "", "pkseditconfig.json", "*.json" };
 
 #define	LINSPACE	offsetof(EDIT_CONFIGURATION, ts)
 
@@ -76,9 +75,19 @@ static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
 	{	RT_CHAR_ARRAY, "filenamePatterns", offsetof(DOCUMENT_TYPE, ll_match), sizeof(((DOCUMENT_TYPE*)NULL)->ll_match)},
 	{	RT_CHAR_ARRAY, "firstlineMatch", offsetof(DOCUMENT_TYPE, ll_firstlineMatch), sizeof(((DOCUMENT_TYPE*)NULL)->ll_firstlineMatch)},
-	{	RT_FLAG, "isPrivate", offsetof(DOCUMENT_TYPE, ll_privateEditorConfiguration), 1},
 	{	RT_END}
 };
+
+static JSON_MAPPING_RULE _statuslineSegmentRules[] = {
+	{	RT_CHAR_ARRAY,	"language", offsetof(STATUS_LINE_SEGMENT, sls_lang), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_lang)},
+	{	RT_ALLOC_STRING,"text", offsetof(STATUS_LINE_SEGMENT, sls_text), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_text)},
+	{	RT_ALLOC_STRING,"icon", offsetof(STATUS_LINE_SEGMENT, sls_icon), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_icon)},
+	{	RT_END}
+};
+
+static STATUS_LINE_SEGMENT* doctypes_createStatuslineSegment() {
+	return (STATUS_LINE_SEGMENT*)calloc(1, sizeof(STATUS_LINE_SEGMENT));
+}
 
 static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(EDIT_CONFIGURATION, name), sizeof(((EDIT_CONFIGURATION*)NULL)->name)},
@@ -107,7 +116,8 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "expandAbbreviations", offsetof(EDIT_CONFIGURATION, workmode), WM_ABBREV},
 	{	RT_FLAG, "oemEncoding", offsetof(EDIT_CONFIGURATION, workmode), WM_OEMMODE},
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
-	{	RT_CHAR_ARRAY, "statuslineFormat", offsetof(EDIT_CONFIGURATION, statusline), sizeof(((EDIT_CONFIGURATION*)NULL)->statusline)},
+	{	RT_OBJECT_LIST, "statuslineSegments", offsetof(EDIT_CONFIGURATION, statuslineSegments),
+			{.r_t_arrayDescriptor = {doctypes_createStatuslineSegment, _statuslineSegmentRules}}},
 	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
 	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, expandTabsWith)},
 	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
@@ -140,21 +150,54 @@ static void* doctypes_create() {
 static const char* DEFAULT = "default";
 
 static JSON_MAPPING_RULE _doctypeConfigurationRules[] = {
-	{	RT_OBJECT_LIST, "documentTypes", offsetof(DOCTYPE_CONFIGURATION, dc_types), 
+	{	RT_OBJECT_LIST, "documentTypes", offsetof(DOCTYPE_CONFIGURATION, dc_types),
 			{.r_t_arrayDescriptor = {doctypes_create, _documentTypeRules}}},
-	{	RT_OBJECT_LIST, "editorConfigurations", offsetof(DOCTYPE_CONFIGURATION, dc_editorConfigurations), 
+	{	RT_OBJECT_LIST, "editorConfigurations", offsetof(DOCTYPE_CONFIGURATION, dc_editorConfigurations),
 			{.r_t_arrayDescriptor = {doctypes_createDefaultDocumentTypeDescriptor, _editorConfigurationRules}}},
 	{	RT_END}
 };
 
 static DOCTYPE_CONFIGURATION config;
 
+static BOOL doctypes_destroySegment(STATUS_LINE_SEGMENT* pSegment) {
+	free(pSegment->sls_icon);
+	free(pSegment->sls_text);
+	return TRUE;
+}
+
+/*
+ * Copy a document descriptor from a source to a target.
+ */
+static void doctypes_copyDescriptor(EDIT_CONFIGURATION* pDest, EDIT_CONFIGURATION* pSource) {
+	if (pDest == pSource) {
+		return;
+	}
+	if (pDest->statuslineSegments != NULL) {
+		ll_destroy(&pDest->statuslineSegments, doctypes_destroySegment);
+	}
+	memmove(pDest, pSource, sizeof * pSource);
+	pDest->statuslineSegments = NULL;
+	STATUS_LINE_SEGMENT* pSegment = pSource->statuslineSegments;
+	while (pSegment) {
+		STATUS_LINE_SEGMENT* pNew = calloc(sizeof * pNew, 1);
+		if (pSegment->sls_icon != NULL) {
+			pNew->sls_icon = _strdup(pSegment->sls_icon);
+		}
+		if (pSegment->sls_text != NULL) {
+			pNew->sls_text = _strdup(pSegment->sls_text);
+		}
+		strcpy(pNew->sls_lang, pSegment->sls_lang);
+		ll_add(&pDest->statuslineSegments, (LINKED_LIST*)pNew);
+		pSegment = pSegment->sls_next;
+	}
+}
+
 /*--------------------------------------------------------------------------
  * Creates the default attributes for editing a document. The returned structure
  * must be freed, when done using it.
  */
 EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
-	EDIT_CONFIGURATION* pDescriptor = calloc(1, sizeof *pDescriptor);
+	EDIT_CONFIGURATION* pDescriptor = calloc(1, sizeof * pDescriptor);
 
 	pDescriptor->rmargin = 80;
 	pDescriptor->tabsize = 8;
@@ -164,7 +207,6 @@ EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	pDescriptor->cr = '\r';
 	pDescriptor->nl = '\n';
 	pDescriptor->tabDisplayFillCharacter = ' ';
-	pDescriptor->statusline[0] = 0;
 	pDescriptor->actionContext[0] = 0;
 	return pDescriptor;
 }
@@ -185,7 +227,7 @@ EDIT_CONFIGURATION* doctypes_getDefaultDocumentTypeDescriptor() {
  */
 void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 	LPSTR		pszEnd;
-	DOCUMENT_TYPE *	llp;
+	DOCUMENT_TYPE* llp;
 	int			nCopied;
 
 	pszEnd = pszDest + nMax - 2;
@@ -242,12 +284,14 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 		}
 		SHFILEINFO sfi = { 0 };
 		SHGetFileInfo(llp->ll_match, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-		ImageList_AddIcon(hSmall, sfi.hIcon);
-		if (ListView_InsertItem(hwndList, &lvI) == -1) {
-			return FALSE;
+		if (sfi.hIcon != NULL) {
+			ImageList_AddIcon(hSmall, sfi.hIcon);
+			if (ListView_InsertItem(hwndList, &lvI) == -1) {
+				return FALSE;
+			}
+			DestroyIcon(sfi.hIcon);
+			nCnt++;
 		}
-		DestroyIcon(sfi.hIcon);
-		nCnt++;
 	}
 	ListView_SetImageList(hwndList, hSmall, LVSIL_SMALL);
 	if (nSelected >= 0) {
@@ -289,9 +333,7 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	if (ppszGrammar) {
 		*ppszGrammar = llp->ll_grammarScope;
 	}
-	if (pOwn) {
-		*pOwn = &llp->ll_privateEditorConfiguration;
-	}
+	*pOwn = FALSE;
 	return TRUE;
 }
 
@@ -325,30 +367,33 @@ static BOOL doctypes_matchLine(const char* pszFirstLine, size_t nFirstLineLen, c
  * 	2. if common document descriptor try to find a match via name pattern or a match of the first line (if defined - maybe NULL).
  *	3. if neither, use standard document descriptor
  */
-static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filename, const char* pszFirstLine, size_t nFirstLineLen) {
+static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION* linp, char* filename, const char* pszFirstLine, size_t nFirstLineLen) {
 	char 			fname[1024];
-	DOCUMENT_TYPE *		llp;
-	EDIT_CONFIGURATION*	lp;
+	DOCUMENT_TYPE* llp;
+	EDIT_CONFIGURATION* lp;
 
 	int nRanking = 100;
 	int nMatchRanking;
 	DOCUMENT_TYPE* pFound = NULL;
-	string_splitFilename(filename,(char *)0, fname);
+	string_splitFilename(filename, (char*)0, fname);
 	for (llp = config.dc_types, lp = 0; llp != 0 && lp == 0; llp = llp->ll_next) {
 		if (pszFirstLine && doctypes_matchLine(pszFirstLine, nFirstLineLen, llp->ll_firstlineMatch)) {
 			// prefer over file name matching
 			pFound = llp;
 			break;
 		}
-		if (string_matchFilename(fname,llp->ll_match)) {
+		if (string_matchFilename(fname, llp->ll_match)) {
 			// Select most explicit file name pattern - e.g. prefer *.c over *.* and prefer *.cpp over *.cpp;*.h
 			if (strstr(llp->ll_match, "*.*")) {
 				nMatchRanking = 3;
-			} else if (strstr(llp->ll_match, "*")) {
+			}
+			else if (strstr(llp->ll_match, "*")) {
 				nMatchRanking = 2;
-			} else if (strstr(llp->ll_match, "?")) {
+			}
+			else if (strstr(llp->ll_match, "?")) {
 				nMatchRanking = 1;
-			} else {
+			}
+			else {
 				nMatchRanking = 0;
 			}
 			if (nMatchRanking < nRanking) {
@@ -366,17 +411,18 @@ static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION *linp, char *filenam
 	}
 	if (!lp) {
 		EDIT_CONFIGURATION* defaultLin = doctypes_createDefaultDocumentTypeDescriptor();
-		memmove(linp, defaultLin, sizeof *defaultLin);
+		doctypes_copyDescriptor(linp, defaultLin);
 		free(defaultLin);
 	} else {
-		memmove(linp, lp, sizeof * lp);
+		doctypes_copyDescriptor(linp, lp);
 	}
 	if (llp && llp->ll_grammarScope[0]) {
 		linp->grammar = grammar_findNamed(llp->ll_grammarScope);
 	}
 	if (pFound && strcmp(pFound->ll_name, "default") == 0) {
 		linp->documentType = NULL;
-	} else {
+	}
+	else {
 		linp->documentType = pFound;
 	}
 	return TRUE;
@@ -415,7 +461,7 @@ GRAMMAR* doctypes_findGrammarForLanguage(const char* pszGrammarName) {
  * if pDocumentDescriptor == 0, read document descriptor from disc according to filename pattern
  * match
  */
-int doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocumentDescriptor) {
+int doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION* pDocumentDescriptor) {
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
 	int wMode;
 	int dMode;
@@ -423,13 +469,19 @@ int doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocum
 	if (pConfig) {
 		wMode = pConfig->workmode;
 		dMode = pConfig->dispmode;
-	} else {
-		if ((fp->documentDescriptor = malloc(sizeof * fp->documentDescriptor)) == 0)
-			return 0;
+	}
+
+	if (fp->documentDescriptor) {
+		doctypes_destroyEditConfiguration(fp->documentDescriptor);
+		free(fp->documentDescriptor);
+	}
+
+	if ((fp->documentDescriptor = calloc(1, sizeof * fp->documentDescriptor)) == 0) {
+		return 0;
 	}
 
 	if (pDocumentDescriptor) {
-		memmove(fp->documentDescriptor,pDocumentDescriptor,sizeof *pDocumentDescriptor);
+		doctypes_copyDescriptor(fp->documentDescriptor, pDocumentDescriptor);
 		return 1;
 	}
 	const char* pszFirstLine = NULL;
@@ -438,7 +490,7 @@ int doctypes_assignDocumentTypeDescriptor(FTABLE *fp, EDIT_CONFIGURATION *pDocum
 		pszFirstLine = fp->firstl->lbuf;
 		nFirstLineLen = fp->firstl->len;
 	}
-	doctypes_getFileDocumentType(fp->documentDescriptor,fp->fname, pszFirstLine, nFirstLineLen);
+	doctypes_getFileDocumentType(fp->documentDescriptor, fp->fname, pszFirstLine, nFirstLineLen);
 	if (pConfig) {
 		fp->documentDescriptor->workmode = wMode;
 		fp->documentDescriptor->dispmode = dMode;
@@ -467,13 +519,12 @@ int doctypes_reassignDocumentTypeDescriptor(FTABLE* fp) {
  * If a pointer of a changed configuration is passed, the configuration will be
  * copied back to our prototype configuration.
  */
-int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, char *pszFilename) {
+int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, char* pszFilename) {
 
 	if (pChangedConfiguration) {
 		for (EDIT_CONFIGURATION* pConfiguration = config.dc_editorConfigurations; pConfiguration; pConfiguration = pConfiguration->next) {
 			if (strcmp(pChangedConfiguration->name, pConfiguration->name) == 0) {
-				size_t nOffset = sizeof pConfiguration->next;
-				memcpy(((unsigned char*)pConfiguration) + nOffset, ((unsigned char*)pChangedConfiguration) + nOffset, sizeof * pConfiguration - nOffset);
+				doctypes_copyDescriptor(pConfiguration, pChangedConfiguration);
 				break;
 			}
 		}
@@ -481,9 +532,9 @@ int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, cha
 	if (pszFilename == NULL) {
 		pszFilename = _linfsel.fname;
 	}
-	if (!json_marshal(pszFilename, &config, _doctypeConfigurationRules)) {
+ 	if (!json_marshal(pszFilename, &config, _doctypeConfigurationRules)) {
 		// TODO: I18N
-		error_displayAlertDialog("Error saving the file with the editor configiration.");
+		error_displayAlertDialog("Error saving the file with the editor configuration.");
 		return 0;
 	}
 	return 1;
@@ -492,18 +543,18 @@ int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, cha
 /*--------------------------------------------------------------------------
  * doctypes_createDocumentType()
  */
-DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
+DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp)
 {
-	DOCUMENT_TYPE * llpNew;
+	DOCUMENT_TYPE* llpNew;
 	int		nLen;
 
-	if ((llpNew = ll_insert(&config.dc_types, sizeof *llpNew)) == 0) {
+	if ((llpNew = ll_insert(&config.dc_types, sizeof * llpNew)) == 0) {
 		return 0;
 	}
 	if (llp) {
-	/* do not copy link pointer ! */
-		memmove(&llpNew->ll_name, &llp->ll_name, 
-			sizeof *llpNew - sizeof llpNew->ll_next);
+		/* do not copy link pointer ! */
+		memmove(&llpNew->ll_name, &llp->ll_name,
+			sizeof * llpNew - sizeof llpNew->ll_next);
 	}
 	llpNew->ll_documentDescriptor = 0;
 	if ((nLen = (int)strlen(llpNew->ll_name)) < sizeof(llpNew->ll_name) - 2) {
@@ -516,37 +567,40 @@ DOCUMENT_TYPE *doctypes_createDocumentType(DOCUMENT_TYPE *llp)
 /**
  * Cleanup: delete a document descriptor.
  */
-static BOOL doctypes_freeDocumentType(DOCUMENT_TYPE* dt) {
-	if (dt->ll_privateEditorConfiguration && dt->ll_documentDescriptor) {
-		free(dt->ll_documentDescriptor);
-	}
+static BOOL doctypes_destroyDocumentType(DOCUMENT_TYPE* dt) {
 	arraylist_destroyStringList(dt->ll_languages);
 	return TRUE;
 }
 
+
+BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration) {
+	ll_destroy(&pConfiguration->statuslineSegments, doctypes_destroySegment);
+	return TRUE;
+}
+
 /**
- * Deletes and de-allocates all known document types and editor configurations. 
+ * Deletes and de-allocates all known document types and editor configurations.
  */
 void doctypes_destroyAllDocumentTypes() {
-	ll_destroy(&config.dc_types, doctypes_freeDocumentType);
-	ll_destroy(&config.dc_editorConfigurations, NULL);
+	ll_destroy(&config.dc_types, doctypes_destroyDocumentType);
+	ll_destroy(&config.dc_editorConfigurations, doctypes_destroyEditConfiguration);
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_deleteDocumentType()
  * Deletes a given document type.
  */
-void doctypes_deleteDocumentType(DOCUMENT_TYPE *llp) {
+void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp) {
 	ll_delete(&config.dc_types, llp);
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_getPrivateDocumentType()
- * 
+ *
  * Return the private document type given the name of the document type.
  */
-DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name) {
-	DOCUMENT_TYPE *	llp;
+DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char* name) {
+	DOCUMENT_TYPE* llp;
 
 	for (llp = config.dc_types; llp; llp = llp->ll_next) {
 		if (lstrcmp(llp->ll_name, name) == 0) {
@@ -560,7 +614,7 @@ DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char *name) {
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescriptor()
  */
-EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE *p)
+EDIT_CONFIGURATION* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p)
 {
 	if (p == 0) {
 		return 0;
@@ -570,7 +624,7 @@ EDIT_CONFIGURATION *doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE *p)
 
 /*--------------------------------------------------------------------------
  * doctypes_initAllDocumentTypes()
- * init all document types and editor configurations by reading our JSON 
+ * init all document types and editor configurations by reading our JSON
  * config file.
  */
 int doctypes_initAllDocumentTypes(void) {
@@ -620,3 +674,4 @@ int doctypes_saveToFile(void) {
 	}
 	return 1;
 }
+

@@ -1,475 +1,539 @@
 {
-  "documentTypes": [
+    "documentTypes": [
     {
-      "name": "default",
-      "description": "All Files (*.*)",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.*"
+        "name": "default",
+        "description": "All Files (*.*)",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.*"
     },
     {
-      "name": "c+cpp",
-      "description": "C/ C++ Files (*.c,*.h,*.cpp,*.hpp)",
-      "languages": [ "c++", "c" ],
-      "grammar": "cpp",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
+        "name": "c+cpp",
+        "languages": [
+            "c++",
+            "c"
+        ],
+        "description": "C/ C++ Files (*.c,*.h,*.cpp,*.hpp)",
+        "grammar": "cpp",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.c;*.h;*.cpp;*.hpp"
     },
     {
-      "name": "text",
-      "description": "Text Files (*.txt)",
-      "grammar": "text",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.txt"
+        "name": "text",
+        "description": "Text Files (*.txt)",
+        "grammar": "text",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.txt"
     },
     {
-      "name": "tex",
-      "description": "LaTeX Files (*.tex)",
-      "grammar": "latex",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.tex"
+        "name": "tex",
+        "description": "LaTeX Files (*.tex)",
+        "grammar": "latex",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.tex"
     },
     {
-      "name": "java",
-      "description": "Java Files (*.java)",
-      "grammar": "java",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.java"
+        "name": "java",
+        "description": "Java Files (*.java)",
+        "grammar": "java",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.java"
     },
     {
-      "name": "gradle",
-      "description": "Gradle Files (*.gradle)",
-      "grammar": "groovy",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.gradle"
+        "name": "gradle",
+        "description": "Gradle Files (*.gradle)",
+        "grammar": "groovy",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.gradle"
     },
     {
-      "name": "groovy",
-      "description": "Groovy Files (*.groovy)",
-      "grammar": "groovy",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.groovy"
+        "name": "groovy",
+        "description": "Groovy Files (*.groovy)",
+        "grammar": "groovy",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.groovy"
     },
     {
-      "name": "scala",
-      "description": "Scala Files (*.scala)",
-      "grammar": "scala",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.scala"
+        "name": "scala",
+        "description": "Scala Files (*.scala)",
+        "grammar": "scala",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.scala"
     },
     {
-      "name": "go",
-      "description": "Go Files (*.go)",
-      "grammar": "go",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.go"
+        "name": "go",
+        "description": "Go Files (*.go)",
+        "grammar": "go",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.go"
     },
     {
-      "name": "cs",
-      "description": "CSharp Files (*.cs)",
-      "grammar": "cs",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.cs"
+        "name": "cs",
+        "description": "CSharp Files (*.cs)",
+        "grammar": "cs",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.cs"
     },
     {
-      "name": "stalk",
-      "description": "Smalltalk Files (*.st, *.cls)",
-      "grammar": "smalltalk",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.st;*.cls"
+        "name": "stalk",
+        "description": "Smalltalk Files (*.st, *.cls)",
+        "grammar": "smalltalk",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.st;*.cls"
     },
     {
-      "name": "properties",
-      "description": "Property Files (*.properties)",
-      "grammar": "properties",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.properties"
+        "name": "properties",
+        "description": "Property Files (*.properties)",
+        "grammar": "properties",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.properties"
     },
     {
-      "name": "log",
-      "description": "Log Files (*.log, *.err, *.out, *.logfile)",
-      "grammar": "logfile",
-      "editorConfiguration": "logfile",
-      "filenamePatterns": "*.log;*.err;*.out;*.logfile"
+        "name": "log",
+        "description": "Log Files (*.log, *.err, *.out, *.logfile)",
+        "grammar": "logfile",
+        "editorConfiguration": "logfile",
+        "filenamePatterns": "*.log;*.err;*.out;*.logfile"
     },
     {
-      "name": "xmlmarkup",
-      "description": "XML Files (*.xml, *.xsd)",
-      "grammar": "xml",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.xml;*.xsd;.trend;*.vcxproj",
-      "firstlineMatch": "^\\<\\?xml.*\\?\\>$"
+        "name": "xmlmarkup",
+        "description": "XML Files (*.xml, *.xsd)",
+        "grammar": "xml",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.xml;*.xsd;.trend;*.vcxproj",
+        "firstlineMatch": "^\\<\\?xml.*\\?\\>$"
     },
     {
-      "name": "html",
-      "description": "HTML Files (*.html; *.htm)",
-      "grammar": "html",
-      "languages": [ "xhtml", "rss", "svg", "plist" ],
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.html;*.htm"
+        "name": "html",
+        "languages": [
+            "xhtml",
+            "rss",
+            "svg",
+            "plist"
+        ],
+        "description": "HTML Files (*.html; *.htm)",
+        "grammar": "html",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.html;*.htm"
     },
     {
-      "name": "css",
-      "description": "CSS Files (*.css; *.scss)",
-      "grammar": "css",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.css;*.scss"
+        "name": "css",
+        "description": "CSS Files (*.css; *.scss)",
+        "grammar": "css",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.css;*.scss"
     },
     {
-      "name": "csv",
-      "description": "Comma Separated Files (*.csv)",
-      "grammar": "csv",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.csv"
+        "name": "csv",
+        "description": "Comma Separated Files (*.csv)",
+        "grammar": "csv",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.csv"
     },
     {
-      "name": "dart",
-      "description": "Dart Files (*.dart)",
-      "grammar": "dart",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.dart"
+        "name": "dart",
+        "description": "Dart Files (*.dart)",
+        "grammar": "dart",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.dart"
     },
     {
-      "name": "fitnesse",
-      "description": "Fitnesse Files (content.txt)",
-      "grammar": "fitnesse",
-      "editorConfiguration": "default",
-      "filenamePatterns": "content.txt"
+        "name": "fitnesse",
+        "description": "Fitnesse Files (content.txt)",
+        "grammar": "fitnesse",
+        "editorConfiguration": "default",
+        "filenamePatterns": "content.txt"
     },
     {
-      "name": "integrity",
-      "description": "Integrity Files (*.integrity)",
-      "grammar": "integrity",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.integrity"
+        "name": "integrity",
+        "description": "Integrity Files (*.integrity)",
+        "grammar": "integrity",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.integrity"
     },
     {
-      "name": "makefile",
-      "description": "Makefiles (makefile, *.mak)",
-      "grammar": "makefile",
-      "languages": [ "mk", "mak", "make" ],
-      "editorConfiguration": "default",
-      "filenamePatterns": "makefile;*.mak"
+        "name": "makefile",
+        "languages": [
+            "mk",
+            "mak",
+            "make"
+        ],
+        "description": "Makefiles (makefile, *.mak)",
+        "grammar": "makefile",
+        "editorConfiguration": "default",
+        "filenamePatterns": "makefile;*.mak"
     },
     {
-      "name": "proto",
-      "description": "Protobuf Files (*.proto)",
-      "grammar": "proto",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.proto"
+        "name": "proto",
+        "description": "Protobuf Files (*.proto)",
+        "grammar": "proto",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.proto"
     },
     {
-      "name": "pascal",
-      "languages": [ "pas", "delphi", "dpr", "dfm" ],
-      "description": "Pascal files (*.pas)",
-      "grammar": "pascal",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.pas"
+        "name": "pascal",
+        "languages": [
+            "pas",
+            "delphi",
+            "dpr",
+            "dfm"
+        ],
+        "description": "Pascal files (*.pas)",
+        "grammar": "pascal",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.pas"
     },
     {
-      "name": "batch-files",
-      "description": "Batch Files (*.bat, *.cmd)",
-      "grammar": "batch",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.bat;*.cmd"
+        "name": "batch-files",
+        "description": "Batch Files (*.bat, *.cmd)",
+        "grammar": "batch",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.bat;*.cmd"
     },
     {
-      "name": "windows-resources",
-      "description": "Windows Resource Files (*.rc)",
-      "grammar": "resource",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.rc"
+        "name": "windows-resources",
+        "description": "Windows Resource Files (*.rc)",
+        "grammar": "resource",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.rc"
     },
     {
-      "name": "typescript",
-      "languages": [ "ts" ],
-      "description": "Typescript Files (*.ts)",
-      "grammar": "typescript",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.ts"
+        "name": "typescript",
+        "languages": [
+            "ts"
+        ],
+        "description": "Typescript Files (*.ts)",
+        "grammar": "typescript",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.ts"
     },
     {
-      "name": "javascript",
-      "languages": [ "js" ],
-      "description": "Javascript Files (*.js)",
-      "grammar": "javascript",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.js"
+        "name": "javascript",
+        "languages": [
+            "js"
+        ],
+        "description": "Javascript Files (*.js)",
+        "grammar": "javascript",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.js"
     },
     {
-      "name": "shell-files",
-      "description": "Shell Files (*.sh, *.ora)",
-      "grammar": "shell",
-      "languages": [ "bash", "sh", "csh", "zsh" ],
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.sh;*.ora"
+        "name": "shell-files",
+        "languages": [
+            "bash",
+            "sh",
+            "csh",
+            "zsh"
+        ],
+        "description": "Shell Files (*.sh, *.ora)",
+        "grammar": "shell",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.sh;*.ora"
     },
     {
-      "name": "system-config-files",
-      "description": "System Configuration Files (hosts, services, networks)",
-      "grammar": "sysconfig",
-      "editorConfiguration": "default",
-      "filenamePatterns": "hosts;services;networks;protocol"
+        "name": "system-config-files",
+        "description": "System Configuration Files (hosts, services, networks)",
+        "grammar": "sysconfig",
+        "editorConfiguration": "default",
+        "filenamePatterns": "hosts;services;networks;protocol"
     },
     {
-      "name": "pksbinding",
-      "description": "PKS Edit Binding Files (*binding.json)",
-      "grammar": "pksbindings",
-      "editorConfiguration": "default",
-      "filenamePatterns": "pksactionbindings.json"
+        "name": "pksbinding",
+        "description": "PKS Edit Binding Files (*binding.json)",
+        "grammar": "pksbindings",
+        "editorConfiguration": "default",
+        "filenamePatterns": "pksactionbindings.json"
     },
     {
-      "name": "json-files",
-      "description": "Json Files (*.json)",
-      "grammar": "json",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.json"
+        "name": "json-files",
+        "description": "Json Files (*.json)",
+        "grammar": "json",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.json"
     },
     {
-      "name": "arb-files",
-      "description": "Arb Files (*.arb)",
-      "grammar": "arb",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.arb"
+        "name": "arb-files",
+        "description": "Arb Files (*.arb)",
+        "grammar": "arb",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.arb"
     },
     {
-      "name": "yaml-files",
-      "description": "YAML Files (*.yaml)",
-      "grammar": "yaml",
-      "editorConfiguration": "yaml",
-      "filenamePatterns": "*.yml;*.yaml"
+        "name": "yaml-files",
+        "description": "YAML Files (*.yaml)",
+        "grammar": "yaml",
+        "editorConfiguration": "yaml",
+        "filenamePatterns": "*.yml;*.yaml"
     },
     {
-      "name": "registry-files",
-      "description": "Registry Files (*.reg)",
-      "grammar": "reg",
-      "languages": [ "registry" ],
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.reg"
+        "name": "registry-files",
+        "languages": [
+            "registry"
+        ],
+        "description": "Registry Files (*.reg)",
+        "grammar": "reg",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.reg"
     },
     {
-      "name": "markdown",
-      "languages": [ "md", "mkd", "mkdown" ],
-      "description": "Markdown Files (*.md)",
-      "grammar": "markdown",
-      "editorConfiguration": "readme",
-      "filenamePatterns": "*.md"
+        "name": "markdown",
+        "languages": [
+            "md",
+            "mkd",
+            "mkdown"
+        ],
+        "description": "Markdown Files (*.md)",
+        "grammar": "markdown",
+        "editorConfiguration": "readme",
+        "filenamePatterns": "*.md"
     },
     {
-      "name": "svg",
-      "description": "SVG Files (*.svg)",
-      "grammar": "svg",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.svg"
+        "name": "svg",
+        "description": "SVG Files (*.svg)",
+        "grammar": "svg",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.svg"
     },
     {
-      "name": "image",
-      "description": "Image Files (*.png, *.gif, *.jpg, *.tiff, *.webp, *.ico)",
-      "grammar": "image",
-      "editorConfiguration": "binary",
-      "filenamePatterns": "*.png;*.gif;*.jpg;*.webp;*.tiff;*.ico;*.bmp"
+        "name": "image",
+        "description": "Image Files (*.png, *.gif, *.jpg, *.tiff, *.webp, *.ico)",
+        "grammar": "image",
+        "editorConfiguration": "binary",
+        "filenamePatterns": "*.png;*.gif;*.jpg;*.webp;*.tiff;*.ico;*.bmp"
     },
     {
-      "name": "iss",
-      "description": "InnoSetup Script Files (*.iss)",
-      "grammar": "iss",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.iss"
+        "name": "iss",
+        "description": "InnoSetup Script Files (*.iss)",
+        "grammar": "iss",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.iss"
     },
     {
-      "name": "pksmacro",
-      "description": "PKS Edit Macro Files (*.pkc,*.mac)",
-      "grammar": "pksedit",
-      "languages": [ "pksmacroc", "pksc" ],
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.pkc;*.mac"
+        "name": "pksmacro",
+        "languages": [
+            "pksmacroc",
+            "pksc"
+        ],
+        "description": "PKS Edit Macro Files (*.pkc,*.mac)",
+        "grammar": "pksedit",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.pkc;*.mac"
     },
     {
-      "name": "pkssearch",
-      "description": "PKS Edit Search Results (*.grep)",
-      "grammar": "pksgrep",
-      "editorConfiguration": "searchresults",
-      "filenamePatterns": "*.grep"
+        "name": "pkssearch",
+        "description": "PKS Edit Search Results (*.grep)",
+        "grammar": "pksgrep",
+        "editorConfiguration": "searchresults",
+        "filenamePatterns": "*.grep"
     },
     {
-      "name": "python",
-      "description": "Python Files (*.py)",
-      "grammar": "python",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.py"
+        "name": "python",
+        "description": "Python Files (*.py)",
+        "grammar": "python",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.py"
     },
     {
-      "name": "sql",
-      "description": "SQL Files (*.sql, *.ddl)",
-      "grammar": "sql",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.sql;*.ddl"
+        "name": "sql",
+        "description": "SQL Files (*.sql, *.ddl)",
+        "grammar": "sql",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.sql;*.ddl"
     },
     {
-      "name": "binary",
-      "description": "Binary Files (*.pdb,*.obj,*.class)",
-      "editorConfiguration": "binary",
-      "filenamePatterns": "*.pdb;*.obj;*.class"
+        "name": "binary",
+        "description": "Binary Files (*.pdb,*.obj,*.class)",
+        "editorConfiguration": "binary",
+        "filenamePatterns": "*.pdb;*.obj;*.class"
     },
     {
-      "name": "ps1",
-      "description": "PowerShell Files (*.ps1)",
-      "grammar": "ps",
-      "editorConfiguration": "default",
-      "filenamePatterns": "*.ps1"
+        "name": "ps1",
+        "description": "PowerShell Files (*.ps1)",
+        "grammar": "ps",
+        "editorConfiguration": "default",
+        "filenamePatterns": "*.ps1"
     }
-  ],
-  "editorConfigurations": [
+    ],
+    "editorConfigurations": [
     {
-      "name": "default",
-      "id": 1,
-      "leftMargin": 0,
-      "rightMargin": 100,
-      "tabSize": 4,
-      "codepage": -1,
-      "tabulatorSizes": [ 4 ],
-      "shiftWidth": 4,
-      "showWhitespace": true,
-      "showLineNumbers": true,
-      "showSyntaxHighlight": true,
-      "insertMode": true,
-      "autoIndent": true,
-      "fixCapitals": true,
-      "expandAbbreviations": true,
-      "smartSpaceDelete": true,
-      "tabCharacter": " ",
-      "newlineCharacter": "\n",
-      "crCharacter": "\r",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 0,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "backupExtension": "bak",
-      "executeOnSave": "TrimTrailingBlanks"
+        "name": "default",
+        "id": 1,
+        "leftMargin": 0,
+        "rightMargin": 100,
+        "tabSize": 4,
+        "codepage": -1,
+        "tabulatorSizes": [4],
+        "shiftWidth": 4,
+        "showWhitespace": true,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "insertMode": true,
+        "autoIndent": true,
+        "fixCapitals": true,
+        "expandAbbreviations": true,
+        "smartSpaceDelete": true,
+        "statuslineSegments": [
+        {
+            "text": "%s$f"
+        },
+        {
+            "language": "de",
+            "text": "Zeile %2d$l Spalte %2d$c"
+        },
+        {
+            "language": "en",
+            "text": "Line %2d$l Column %2d$c"
+        },
+        {
+            "text": "\t%s$P %s$&"
+        },
+        {
+            "text": "\t%s$V"
+        }
+        ],
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 0,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "backupExtension": "bak",
+        "executeOnSave": "TrimTrailingBlanks"
     },
     {
-      "name": "readme",
-      "id": 2,
-      "leftMargin": 0,
-      "rightMargin": 100,
-      "tabSize": 4,
-      "codepage": -1,
-      "tabulatorSizes": [ 4 ],
-      "shiftWidth": 4,
-      "showWhitespace": true,
-      "showLineNumbers": true,
-      "showSyntaxHighlight": true,
-      "highlightCaretLine": true,
-      "insertMode": true,
-      "autoIndent": true,
-      "fixCapitals": true,
-      "smartSpaceDelete": true,
-      "tabCharacter": "\t",
-      "newlineCharacter": "\n",
-      "crCharacter": "\r",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 5,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "caretFollowsScrollbar": true
+        "name": "readme",
+        "id": 2,
+        "leftMargin": 0,
+        "rightMargin": 100,
+        "tabSize": 4,
+        "codepage": -1,
+        "tabulatorSizes": [4],
+        "shiftWidth": 4,
+        "showWhitespace": true,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
+        "insertMode": true,
+        "autoIndent": true,
+        "fixCapitals": true,
+        "smartSpaceDelete": true,
+        "tabCharacter": "\t",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true
     },
     {
-      "name": "binary",
-      "id": 3,
-      "leftMargin": 0,
-      "rightMargin": 80,
-      "tabSize": 8,
-      "codepage": -1,
-      "shiftWidth": 4,
-      "hexMode": true,
-      "showLineNumbers": true,
-      "showSyntaxHighlight": true,
-      "highlightCaretLine": true,
-      "insertMode": true,
-      "statuslineFormat": "%s$f!%6d$O: 0%o$C!\t%s$&",
-      "tabCharacter": " ",
-      "newlineCharacter": "\\0",
-      "crCharacter": "\\0",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 5,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "caretFollowsScrollbar": true,
-      "backupExtension": "bak"
+        "name": "binary",
+        "id": 3,
+        "leftMargin": 0,
+        "rightMargin": 80,
+        "tabSize": 8,
+        "codepage": -1,
+        "shiftWidth": 4,
+        "hexMode": true,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
+        "insertMode": true,
+        "statuslineSegments": [
+        {
+            "text": "%s$f"
+        },
+        {
+            "text": "%6d$O: 0%o$C"
+        },
+        {
+            "text": "\t%s$&"
+        }
+        ],
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true,
+        "backupExtension": "bak"
     },
     {
-      "name": "logfile",
-      "id": 4,
-      "leftMargin": 0,
-      "rightMargin": 80,
-      "tabSize": 8,
-      "codepage": 0,
-      "shiftWidth": 4,
-      "showLineNumbers": true,
-      "showSyntaxHighlight": true,
-      "highlightCaretLine": true,
-      "insertMode": true,
-      "watchLogfile": true,
-      "tabCharacter": " ",
-      "newlineCharacter": "\n",
-      "crCharacter": "\r",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 5,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "caretFollowsScrollbar": true
+        "name": "logfile",
+        "id": 4,
+        "leftMargin": 0,
+        "rightMargin": 80,
+        "tabSize": 8,
+        "codepage": 0,
+        "shiftWidth": 4,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
+        "insertMode": true,
+        "watchLogfile": true,
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true
     },
     {
-      "name": "searchresults",
-      "id": 5,
-      "leftMargin": 0,
-      "rightMargin": 80,
-      "tabSize": 8,
-      "codepage": 0,
-      "shiftWidth": 4,
-      "showSyntaxHighlight": true,
-      "insertMode": true,
-      "watchLogfile": true,
-      "tabCharacter": " ",
-      "newlineCharacter": "\n",
-      "crCharacter": "\r",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 1,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "caretFollowsScrollbar": true
+        "name": "searchresults",
+        "id": 5,
+        "leftMargin": 0,
+        "rightMargin": 80,
+        "tabSize": 8,
+        "codepage": 0,
+        "shiftWidth": 4,
+        "showSyntaxHighlight": true,
+        "insertMode": true,
+        "watchLogfile": true,
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 1,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true
     },
     {
-      "name": "yaml",
-      "id": 6,
-      "leftMargin": 0,
-      "rightMargin": 80,
-      "tabSize": 2,
-      "codepage": 0,
-      "shiftWidth": 4,
-      "showLineNumbers": true,
-      "showSyntaxHighlight": true,
-      "highlightCaretLine": true,
-      "insertMode": true,
-      "tabCharacter": " ",
-      "newlineCharacter": "\n",
-      "crCharacter": "\r",
-      "scrollVerticallyBy": 0,
-      "scrollHorizontallyBy": 0,
-      "scrollVerticalBorder": 5,
-      "caretSearchPlacement": 1,
-      "scrollSupportTrackThumb": true,
-      "caretPreserveColumn": true,
-      "caretFollowsScrollbar": true
+        "name": "yaml",
+        "id": 6,
+        "leftMargin": 0,
+        "rightMargin": 80,
+        "tabSize": 2,
+        "codepage": 0,
+        "shiftWidth": 4,
+        "showLineNumbers": true,
+        "showSyntaxHighlight": true,
+        "highlightCaretLine": true,
+        "insertMode": true,
+        "tabCharacter": " ",
+        "newlineCharacter": "\n",
+        "crCharacter": "\r",
+        "scrollVerticallyBy": 0,
+        "scrollHorizontallyBy": 0,
+        "scrollVerticalBorder": 5,
+        "caretSearchPlacement": 1,
+        "scrollSupportTrackThumb": true,
+        "caretPreserveColumn": true,
+        "caretFollowsScrollbar": true
     }
-  ]
+    ]
 }
