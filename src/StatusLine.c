@@ -31,32 +31,41 @@
 #include "themes.h"
 #include "xdialog.h"
 #include "mouseutil.h"
+#include "dpisupport.h"
+#include "fontawesome.h"
 
 #define WM_ST_REDRAW		WM_USER+142
 
 #define	MAXSEGMENTS			20
+#define ICON_SIZE			12
+
+struct tagICONS {
+	CHAR_WITH_STYLE ic_char;
+	COLORREF        ic_color;
+	HBITMAP			ic_bitmap;
+};
 
 static char	*	pszStatusMessage;
 static BOOL		bSimpleMode;
 static HWND		hwndStatus;
 static int		_redrawsPosted;
+static struct tagICONS _cachedIcons[MAXSEGMENTS];
 
 /*------------------------------------------------------------
  * st_setparts()
  */
 static void st_setparts(BOOL bUpdateMessageOnly) {
-	static char	szBuf[1024];
+	static				char szBuf[1024];
 	INT					pSegments[MAXSEGMENTS];
 	LPSTR				pszStrArr[MAXSEGMENTS];
 	LPSTR				pszStart = szBuf;
-	int					i;
-	int					offset;
 	int					nSegments = 0;
 
 	if (!hwndStatus) {
 		return;
 	}
 	if (!bSimpleMode) {
+		faicon_loadFontAwesome();
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (!wp) {
 			return;
@@ -68,6 +77,22 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 		SPRINTF_ARGS args = (SPRINTF_ARGS){ .sa_wp = wp, .sa_values = values };
 		char* pszLocale = config_getLocale();
 		while (pSegment) {
+			struct tagICONS* pIcon = &_cachedIcons[nSegments];
+			CHAR_WITH_STYLE c = { 0 };
+			if (pSegment->sls_icon != NULL) {
+				c = faicon_codeForName(pSegment->sls_icon);
+			}
+			COLORREF color = theme_getCurrent()->th_dialogBorder;
+			CHAR_WITH_STYLE cExisting = pIcon->ic_char;
+			if (pIcon->ic_bitmap != NULL && (c.symbol == 0 || c.symbol != cExisting.symbol || color != pIcon->ic_color)) {
+				DeleteObject(pIcon->ic_bitmap);
+				pIcon->ic_bitmap = NULL;
+			}
+			if (c.symbol != 0 && pIcon->ic_bitmap == NULL) {
+				pIcon->ic_char = c;
+				pIcon->ic_color = color;
+				pIcon->ic_bitmap = faicon_createAwesomeIcons(pIcon->ic_color, dpisupport_getSize(ICON_SIZE), &c, 1);
+			}
 			if (pSegment->sls_text == NULL || (pSegment->sls_lang[0] && strcmp(pSegment->sls_lang, pszLocale) != 0)) {
 				pSegment = pSegment->sls_next;
 				continue;
@@ -83,7 +108,7 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 			pSegment = pSegment->sls_next;
 		}
 	}
-	for (i = 0, offset = 0; i < nSegments; i++) {
+	for (int i = 0, offset = 0; i < nSegments; i++) {
 		// This size is irrelevant - we will paint the status bar and determine the segments size dynamically
 		offset += 10;
 		pSegments[i] = offset;
@@ -91,8 +116,10 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 	pSegments[nSegments] = -1;
 	SendMessage(hwndStatus, SB_SETPARTS, nSegments + 1, (LPARAM)pSegments);
 	if (!bUpdateMessageOnly) {
-		for (i = 0; i < nSegments; i++) {
+		for (int i = 0; i < nSegments; i++) {
 			SendMessage(hwndStatus, SB_SETTEXT, i, (LPARAM)pszStrArr[i]);
+			struct tagICONS* pIcon = &_cachedIcons[i];
+			SendMessage(hwndStatus, SB_SETICON, i, (LPARAM) pIcon->ic_bitmap);
 		}
 	}
 	SendMessage(hwndStatus, SB_SETTEXT, nSegments,
@@ -161,7 +188,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		HBRUSH brush = CreateSolidBrush(pTheme->th_dialogBackground);
 		FillRect(hdc, &ps.rcPaint, brush);
 		DeleteObject(brush);
-		SetTextColor(hdc, pTheme->th_dialogForeground);
+		SetTextColor(hdc, pTheme->th_dialogBorder);
 		HPEN hPen = CreatePen(0, 1, pTheme->th_dialogBorder);
 		SetBkMode(hdc, TRANSPARENT);
 		SelectObject(hdc, hPen);
@@ -169,39 +196,56 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
 		RECT rect;
 		GetClientRect(hwnd, &rect);
-		int width = rect.right / 12;
 		int nDelta = dpisupport_getSize(3);
+		int nTotal = dpisupport_getSegmentCount(&rect, 12);
 		for (int i = 0; i < nSegments; i++) {
 			RECT rc = {
 				.top = 0,
 				.bottom = rect.bottom
 			};
-			rc.left = i * rect.right / 12;
+			rc.left = i * rect.right / nTotal;
+			if (rc.left > ps.rcPaint.right) {
+				break;
+			}
 			if (i == nSegments - 1) {
 				rc.right = rect.right;
 			}
 			else {
-				rc.right = rc.left + width;
+				rc.right = (i+1) * rect.right / nTotal;
 			}
-			if (rc.left > ps.rcPaint.right) {
+			if (rc.right < ps.rcPaint.left) {
 				break;
 			}
 			if (i < nSegments - 1) {
-				MoveTo(hdc, rc.right-1, rc.top + 1);
-				LineTo(hdc, rc.right-1, rc.bottom - 1);
+				MoveTo(hdc, rc.right, rc.top + 2);
+				LineTo(hdc, rc.right, rc.bottom - 2);
 			}
 			char szText[1024];
+			szText[0] = 0;
 			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);
-			if (!szText[0] || szText[0] == ' ') {
-				continue;
-			}
 			int nFlags = DT_SINGLELINE | DT_END_ELLIPSIS | DT_VCENTER;
 			char* pszText = szText;
 			if (szText[0] == '\t') {
 				nFlags |= DT_CENTER;
 				pszText++;
-			} else {
+			}
+			else {
 				rc.left += nDelta;
+			}
+			if (!pszText[0] || pszText[0] == ' ') {
+				continue;
+			}
+			HBITMAP hBmp = (HBITMAP)SendMessage(hwndStatus, SB_GETICON, i, (LPARAM)0);
+			if (hBmp != NULL) {
+				HDC hdcMem = CreateCompatibleDC(hdc);
+				HBITMAP oldBitmap = SelectObject(hdcMem, hBmp);
+				int nWidth = dpisupport_getSize(ICON_SIZE);
+				int nPadding = dpisupport_getSize(3);
+				SetStretchBltMode(hdc, COLORONCOLOR);
+				TransparentBlt(hdc, rc.left+ nPadding, (rc.bottom- rc.top - nWidth)/2, nWidth, nWidth, hdcMem, 0, 0, nWidth, nWidth, RGB(0,0,0));
+				SelectObject(hdcMem, oldBitmap);
+				DeleteDC(hdcMem);
+				rc.left += nPadding * 2 + nWidth;
 			}
 			DrawText(hdc, pszText, (int) strlen(pszText), &rc, nFlags);
 		}

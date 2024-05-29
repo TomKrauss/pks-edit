@@ -106,7 +106,10 @@ extern "C" __declspec(dllexport) void paint_roundedRect(HDC hdc, COLORREF cColor
 	graphics.DrawPath(&pen, &gp);
 }
 
-extern "C" __declspec(dllexport) HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons) {
+/*
+ * Paint a list of FontAwesome icons onto an in memory bitmap in a given color and return the bitmap. 
+ */
+extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons) {
     HDC hdcScreen = GetDC(0);
     HDC hdc = CreateCompatibleDC(hdcScreen);
 
@@ -127,7 +130,7 @@ extern "C" __declspec(dllexport) HBITMAP tb_createAwesomeIcons(COLORREF nColorRe
     HBITMAP hBmp = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS,
         (void**)&pvBits, NULL, 0x0);
     auto hBmpOld = hBmp == nullptr ? nullptr : SelectObject(hdc, hBmp);
-    RECT rect;
+	RECT rect;
     rect.top = 0;
     rect.bottom = nSize;
     rect.left = 0;

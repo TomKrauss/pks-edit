@@ -19,7 +19,7 @@
 #include "linkedlist.h"
 #include <git2.h>
 
-//#define GIT_INTEGRATION 1
+#define GIT_INTEGRATION 1
 
 #ifdef GIT_INTEGRATION
 

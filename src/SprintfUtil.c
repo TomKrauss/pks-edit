@@ -111,7 +111,7 @@ void string_formatDate(char *szDbuf, EDTIME *ltime)
 static void printVCStatus(char* pszDest, VC_INFO* pInfo) {
 	VC_STATUS status = gi_getStatus(pInfo);
 	if (status == VCS_NONE) {
-		strcpy(pszDest, "-");
+		strcpy(pszDest, " ");
 		return;
 	}
 	gi_printHash(pInfo, pszDest, 12);

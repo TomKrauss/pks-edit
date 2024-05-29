@@ -34,6 +34,12 @@ extern int dpisupport_getTbIconSize(HWND hwnd);
 extern int dpisupport_getSize(int nBaseValue);
 
 /*
+ * Try to make statusline / function keys and option bar responsive by dynamically reducing
+ * the number of segments displayed depending on the available space given by pRect.
+ */
+extern int dpisupport_getSegmentCount(RECT* pRect, int nMaxSegments);
+
+/*
  * Invoked, when the scaling has probably changed for the main window. Re-initialize the scaling
  * factor and return true if it really has changed.
  */

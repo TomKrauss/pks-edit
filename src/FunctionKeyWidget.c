@@ -34,6 +34,7 @@
 #include "pksmacro.h"
 #include "actionbindings.h"
 #include "actions.h"
+#include "dpisupport.h"
 
 # undef IDD_FKFKLAST
 # undef IDD_FKFLGLAST
@@ -217,25 +218,20 @@ EXPORT int fkey_getKeyboardSize(WORD *w, WORD *h) {
 /*------------------------------------------------------------
  * fkey_resizeSubWindow()
  */
-static int fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButton)
+static void fkey_resizeSubWindow(HWND hwnd, int item, int x, int width, BOOL bOptButton)
 {
 	HWND	hwndItem = GetDlgItem(hwnd,item);
-	RECT r;
 	int	height;
 	int	y;
 
-	if (!hwndItem || !IsWindowVisible(hwndItem)) {
-		return 0;
+	if (!hwndItem) {
+		return;
 	}
-	GetWindowRect(hwndItem,&r);
 
 	height = (bOptButton) ? _fkoptheight : _fkfkheight;
 	y = (bOptButton && (GetConfiguration()->layoutoptions & OL_FKEYS)) ? _fkfkheight : 0;
 
-	ScreenToClient(hwnd, (POINT*)&r);
-	r.left = x;
-	MoveWindow(hwndItem, r.left, y, width, height, TRUE);
-	return x + width;
+	MoveWindow(hwndItem, x, y, width, height, TRUE);
 }
 
 /*------------------------------------------------------------
@@ -258,7 +254,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 	DRAWITEMSTRUCT *dp;
 	KEYCODE 		k;
 	HWND			hwndItem;
-	int				nDelta;
 	int				nButtons;
 
 	switch(message) {
@@ -292,38 +287,37 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		break;
 	case WM_SIZE:
 		GetClientRect(hwnd,&r);
-		if (r.right < 620) {
-			r.right = 620;
-			nButtons = 10;
-		} else {
-			nButtons = MAX_FKEYS;
-		}
-		nDelta = r.right - r.left - 1;
+		r.right = LOWORD(lParam);
+		int nDelta = r.right - r.left;
+		int nMinSize = dpisupport_getSize(150);
+		nButtons = dpisupport_getSegmentCount(&r, MAX_FKEYS);
+		int y;
 		BOOL bFKeys = GetConfiguration()->layoutoptions & OL_FKEYS;
 		if (bFKeys) {
-			for (x = r.left, item = IDD_FKFK1; 
-				item < IDD_FKFK1+nButtons; item++) {
-				x = fkey_resizeSubWindow(hwnd, item, x, (item - IDD_FKFK1+1)*nDelta/nButtons-x, FALSE);
+			for (item = IDD_FKFK1; item < IDD_FKFK1+nButtons; item++) {
+				x = (item - IDD_FKFK1) * nDelta / nButtons;
+				y = (item - IDD_FKFK1+1) * nDelta / nButtons;
+				fkey_resizeSubWindow(hwnd, item, x, y-x, FALSE);
 			}
 		} 
-		BOOL bOptionKeys = GetConfiguration()->layoutoptions & OL_FKEYS;
+		BOOL bOptionKeys = GetConfiguration()->layoutoptions & OL_OPTIONBAR;
 		if (bOptionKeys) {
-			for (x = r.left, item = IDD_FKFLG1;
-				item < IDD_FKFLG1 + nButtons; item++) {
-				x = fkey_resizeSubWindow(hwnd, item, x,
-					(item - IDD_FKFLG1 + 1) * nDelta / nButtons - x, TRUE);
+			for (item = IDD_FKFLG1; item < IDD_FKFLG1 + nButtons; item++) {
+				x = (item - IDD_FKFLG1) * nDelta / nButtons;
+				y = (item - IDD_FKFLG1 + 1) * nDelta / nButtons;
+				fkey_resizeSubWindow(hwnd, item, x, y - x, TRUE);
 			}
 		}
 		for (item = IDD_FKFK1; item <= IDD_FKFKLAST; item++) {
 			hwndItem = GetDlgItem(hwnd, item);
-			ShowWindow(hwndItem, bFKeys != 0);
+			ShowWindow(hwndItem, bFKeys && item < IDD_FKFK1 + nButtons);
 		}
 		for (x = 0, item = IDD_FKFLG1; item <= IDD_FKFLGLAST; item++) {
 			hwndItem = GetDlgItem(hwnd, item);
-			ShowWindow(hwndItem, bOptionKeys != 0);
+			ShowWindow(hwndItem, bOptionKeys && item < IDD_FKFLG1 + nButtons);
 		}
 
-		return TRUE;
+		return FALSE;
 
 	case WM_COMMAND:
 
@@ -357,24 +351,31 @@ static char *szKeys = "DLGFKEYS";
 static void fkey_show(HWND hwndParent) {
 	if ((GetConfiguration()->layoutoptions & (OL_FKEYS|OL_OPTIONBAR)) && hwndFkeys == 0) {
 		HRSRC  hRes = FindResource(ui_getResourceModule(), szKeys, RT_DIALOG);
+		if (hRes == NULL) {
+			return;
+		}
 		DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
+		if (pTemplate == NULL) {
+			return;
+		}
 		hwndFkeys = CreateDialogIndirect(0, pTemplate, hwndParent, NULL);
 		if (!hwndFkeys) {
 			EdTRACE(log_errorArgs(DEBUG_ERR, "Error creating FKEYS %ld. %ld %ld", GetLastError(), hRes, hwndFkeys));
 		}
 		fkey_updateTextOfFunctionKeys(-1);
+		FreeResource(hRes);
 	}
 }
 
 /*
  * May be invoked, if the current language changes.
  */
-void fkey_languageChanged(HWND hwndMain) {
+void fkey_languageChanged(HWND hwnd) {
 	if (hwndFkeys != NULL) {
 		DeleteObject(hwndFkeys);
 		hwndFkeys = NULL;
 	}
-	fkey_show(hwndMain);
+	fkey_show(hwnd);
 }
 
 /*--------------------------------------------------------------------------

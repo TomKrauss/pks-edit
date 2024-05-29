@@ -64,6 +64,22 @@ int dpisupport_getSize(int nBaseValue) {
 }
 
 /*
+ * Try to make statusline / function keys and option bar responsive by dynamically reducing
+ * the number of segments displayed depending on the available space given by pRect.
+ */
+int dpisupport_getSegmentCount(RECT *pRect, int nMaxSegments) {
+	int nMinSize = dpisupport_getSize(140);
+	int nDelta = pRect->right - pRect->left;
+	if (nDelta / nMaxSegments < nMinSize) {
+		nMaxSegments = nDelta / nMinSize;
+		if (nMaxSegments < 1) {
+			nMaxSegments = 1;
+		}
+	}
+	return nMaxSegments;
+}
+
+/*
  * Returns the configured toolbar icon size in pixels.
  */
 int dpisupport_getTbIconSize(HWND hwnd) {

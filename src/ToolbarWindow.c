@@ -52,7 +52,6 @@ HWND    hwndRebar;
  * Draws a text in an antialiased way.
  */
 extern BOOL paint_loadFontAwesome(void* pFontData, DWORD len);
-extern HBITMAP tb_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons);
 
 /*
  * Callback to enable / disable toolbar buttons. 
@@ -123,7 +122,7 @@ static void tb_loadFont(int id) {
 /*
  * Load the font-awesome font.
  */
-void tb_loadFontAwesome() {
+void faicon_loadFontAwesome() {
     static BOOL fontLoaded;
 
     if (fontLoaded) {
@@ -138,7 +137,7 @@ void tb_loadFontAwesome() {
  * Create an image list with images created from font-awesome icons. 
  */
 static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, CHAR_WITH_STYLE icons[], int nIcons) {
-    HBITMAP hBmp = tb_createAwesomeIcons(cColor, nIconSize, icons, nIcons);
+    HBITMAP hBmp = faicon_createAwesomeIcons(cColor, nIconSize, icons, nIcons);
     HIMAGELIST hList = ImageList_Create(nIconSize, nIconSize,
         ILC_COLOR32 | ILC_HIGHQUALITYSCALE, nIcons, 0
     );
@@ -218,7 +217,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
 	if (hwndToolbar) {
 		return hwndToolbar;
 	}
-    tb_loadFontAwesome();
+    faicon_loadFontAwesome();
     memset(&tbabmp, 0, sizeof tbabmp);
     memset(&tbabmp2, 0, sizeof tbabmp2);
     hwndToolbar = CreateWindowEx(0, TOOLBARCLASSNAME, NULL,

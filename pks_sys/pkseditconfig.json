@@ -371,25 +371,27 @@
         "fixCapitals": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
-        "statuslineSegments": [
+      "statuslineSegments": [
         {
-            "text": "%s$f"
+          "language": "de",
+          "text": "Zeile %2d$l Spalte %2d$c"
         },
         {
-            "language": "de",
-            "text": "Zeile %2d$l Spalte %2d$c"
+          "language": "en",
+          "text": "Line %2d$l Column %2d$c"
         },
         {
-            "language": "en",
-            "text": "Line %2d$l Column %2d$c"
+          "text": "\t%s$P",
+          "icon": "fa-font"
         },
         {
-            "text": "\t%s$P %s$&"
+          "text": "\t%s$&"
         },
         {
-            "text": "\t%s$V"
+          "text": "\t%s$V",
+          "icon": "fa-code-compare"
         }
-        ],
+      ],
         "tabCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",

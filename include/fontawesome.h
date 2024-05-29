@@ -826,5 +826,15 @@ extern void faicon_destroy();
  */
 extern const char* faicon_nameForIndex(int nIndex);
 
+/*
+ * Load the font-awesome font.
+ */
+extern void faicon_loadFontAwesome();
+
+/*
+ * Paint a list of FontAwesome icons onto an in memory bitmap in a given color and return the bitmap.
+ */
+extern HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons);
+
 #define FONT_AWESOME_H
 #endif
