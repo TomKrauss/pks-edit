@@ -18,7 +18,6 @@
 #define DLG_OPT_AUTOSAVE                110
 #define IDD_EXPLANATION                 115
 #define IDD_PRESERVE_CASE               135
-#define IDS_UNSUPPORTED_CHARACTERS2     149
 #define IDS_NO_MATCHES_FOUND            149
 #define IDC_CURSOR1                     153
 #define IDC_CURSOR2                     154
@@ -57,6 +56,8 @@
 #define IDS_FONT_AWESOME_REGULAR        233
 #define IDB_BROKEN_IMAGE                235
 #define IDI_LOADING_IMAGE               239
+#define IDR_FONT2                       242
+#define IDS_FONT_AWESOME_BRANDS         242
 #define DLGCURSOROPTIONS                529
 #define DLGFINDINFILES                  535
 #define DLG_OPT_WARNINGS                556
@@ -92,7 +93,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        240
+#define _APS_NEXT_RESOURCE_VALUE        243
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1019
 #define _APS_NEXT_SYMED_VALUE           101

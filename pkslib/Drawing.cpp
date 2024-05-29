@@ -17,14 +17,10 @@
 #include "pch.h"
 #include <objidl.h>
 #include <gdiplus.h>
+#include "../include/fontawesome.h"
 
 using namespace Gdiplus;
 #pragma comment (lib,"Gdiplus.lib")
-
-typedef struct tagCHAR_WITH_STYLE {
-	wchar_t symbol;
-	int regular;
-} CHAR_WITH_STYLE;
 
 static void paint_initGdiPlus() {
 	static GdiplusStartupInput gdiplusStartupInput;
@@ -46,29 +42,44 @@ extern "C" __declspec(dllexport) BOOL paint_loadFontAwesome(void* pFontData, DWO
 	return sRet == Ok;
 }
 
+static WCHAR faFamilyName[LF_FACESIZE];
+static WCHAR faFamilyNameRegular[LF_FACESIZE];
+static WCHAR faFamilyNameBrands[LF_FACESIZE];
+
+static BOOL fontawesome_initFontFamilies() {
+	if (faFamilyName[0]) {
+		return TRUE;
+	}
+	FontFamily families[3];
+	int found = (*awesomeFontCollection).GetFamilyCount();
+	// Currently the free awesome font is not correctly handled as a font family, but the separate font files are loaded
+	// as separate font families.
+	if (found > 2) {
+		(*awesomeFontCollection).GetFamilies(found, families, &found);
+		families[found - 1].GetFamilyName(faFamilyName);
+		families[found - 2].GetFamilyName(faFamilyNameRegular);
+		families[0].GetFamilyName(faFamilyNameBrands);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*
  * Draws a text in an antialiased way. 
  */
 static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
 	paint_initGdiPlus();
+	if (!fontawesome_initFontFamilies()) {
+		return;
+	}
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
-	PointF pointF((float)x, (float)y);
-	FontFamily families[2];
-	int found = (*awesomeFontCollection).GetFamilyCount();
-	WCHAR familyName[LF_FACESIZE] = { 0 };
-	WCHAR familyName2[LF_FACESIZE] = { 0 };
-	// Currently the free awesome font is not correctly handled as a font family, but the two font files are loaded
-	// as two font families.
-	if (found > 0) {
-		(*awesomeFontCollection).GetFamilies(found, families, &found);
-		families[found-1].GetFamilyName(familyName);
-		families[0].GetFamilyName(familyName2);
-	}
-	Gdiplus::Font myFontSolid(familyName, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
-	Gdiplus::Font myFontRegular(familyName2, (float)(nIconSize - 2), FontStyleBold, UnitPixel, awesomeFontCollection);
+	PointF pointF(static_cast<float>(x), static_cast<float>(y));
+	Gdiplus::Font myFontSolid(faFamilyName, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontRegular(faFamilyNameRegular, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontBrands(faFamilyNameBrands, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	int delta = nIconSize / 8;
+	const int delta = nIconSize / 8;
 	x -= delta;
 	for (int i = 0; i < nLen; i++) {
 		pointF.X = x + (float)nIconSize * i;
@@ -78,12 +89,14 @@ static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen
 		HRGN hRegion = region.GetHRGN(&graphics);
 		graphics.SetClip(hRegion);
 		CHAR_WITH_STYLE cs = pszText[i];
-		auto s = graphics.DrawString(&cs.symbol, 1, cs.regular ? &myFontRegular : &myFontSolid, pointF, &brush);
+
+		auto s = graphics.DrawString(&cs.symbol, 1, cs.brand ? &myFontBrands : (cs.regular ? &myFontRegular : &myFontSolid), pointF, &brush);
 		DeleteObject(hRegion);
 		if (s != Ok) {
 			return;
 		}
 	}
+	;
 }
 
 /*

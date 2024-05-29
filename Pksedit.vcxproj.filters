@@ -681,6 +681,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="doc\CHANGELOG.md" />
+    <None Include="rc\font2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">
@@ -753,6 +756,7 @@
     <Font Include="rc\Font Awesome 6 Free-Solid-900.ttf" />
     <Font Include="rc\Font Awesome 6 Free-Regular-400.otf" />
     <Font Include="rc\Font Awesome 6 Free-Solid-900.otf" />
+    <Font Include="rc\Font Awesome 6 Brands-Regular-400.otf" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="pksedit.exe.manifest" />

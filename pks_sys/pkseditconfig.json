@@ -389,7 +389,7 @@
         },
         {
           "text": "\t%s$V",
-          "icon": "fa-code-compare"
+          "icon": "fa-git-b"
         }
       ],
         "tabCharacter": " ",

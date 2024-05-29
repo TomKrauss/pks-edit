@@ -131,6 +131,7 @@ void faicon_loadFontAwesome() {
     fontLoaded = TRUE;
     tb_loadFont(IDS_FONT_AWESOME);
     tb_loadFont(IDS_FONT_AWESOME_REGULAR);
+    tb_loadFont(IDS_FONT_AWESOME_BRANDS);
 }
 
 /*

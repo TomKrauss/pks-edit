@@ -160,7 +160,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-arrows-h",  L'\uf07e' },
 { "fa-bar-chart-o",  L'\uf080' },
 { "fa-bar-chart",  L'\uf080' },
-{ "fa-twitter-square",  L'\uf081' },
+{ "fa-twitter-square-b",  L'\uf081' },
 { "fa-cebook-square",  L'\uf082' },
 { "fa-camera-retro",  L'\uf083' },
 { "fa-key",  L'\uf084' },
@@ -177,17 +177,17 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-external-link",  L'\uf08e' },
 { "fa-sign-in",  L'\uf090' },
 { "fa-trophy",  L'\uf091' },
-{ "fa-github-square",  L'\uf092' },
+{ "fa-github-square-b",  L'\uf092' },
 { "fa-upload",  L'\uf093' },
 { "fa-lemon-o",  L'\uf094' },
 { "fa-phone",  L'\uf095' },
 { "fa-square-o",  L'\uf096' },
 { "fa-bookmark-o",  L'\uf097' },
 { "fa-phone-square",  L'\uf098' },
-{ "fa-twitter",  L'\uf099' },
-{ "fa-cebook-f",  L'\uf09a' },
-{ "fa-cebook",  L'\uf09a' },
-{ "fa-github",  L'\uf09b' },
+{ "fa-twitter-b",  L'\uf099' },
+{ "fa-facebook-f-b",  L'\uf09a' },
+{ "fa-facebook-b",  L'\uf09a' },
+{ "fa-github-b",  L'\uf09b' },
 { "fa-unlock",  L'\uf09c' },
 { "fa-credit-card",  L'\uf09d' },
 { "fa-feed",  L'\uf09e' },
@@ -308,7 +308,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-circle",  L'\uf111' },
 { "fa-mail-reply",  L'\uf112' },
 { "fa-reply",  L'\uf112' },
-{ "fa-github-alt",  L'\uf113' },
+{ "fa-github-alt-b",  L'\uf113' },
 { "fa-folder-o",  L'\uf114' },
 { "fa-folder-open-o",  L'\uf115' },
 { "fa-smile-o",  L'\uf118' },
@@ -522,8 +522,8 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-rebel",  L'\uf1d0' },
 { "fa-ge",  L'\uf1d1' },
 { "fa-empire",  L'\uf1d1' },
-{ "fa-git-square",  L'\uf1d2' },
-{ "fa-git",  L'\uf1d3' },
+{ "fa-git-square-b",  L'\uf1d2' },
+{ "fa-git-b",  L'\uf1d3' },
 { "fa-y-combinator-square",  L'\uf1d4' },
 { "fa-yc-square",  L'\uf1d4' },
 { "fa-hacker-news",  L'\uf1d4' },
@@ -727,7 +727,7 @@ static FA_ICON_NAME _faIcons[] = {
 { "fa-bluetooth",  L'\uf293' },
 { "fa-bluetooth-b",  L'\uf294' },
 { "fa-percent",  L'\uf295' },
-{ "fa-gitlab",  L'\uf296' },
+{ "fa-gitlab-b",  L'\uf296' },
 { "fa-wpbeginner",  L'\uf297' },
 { "fa-wpforms",  L'\uf298' },
 { "fa-envira",  L'\uf299' },
@@ -860,8 +860,10 @@ CHAR_WITH_STYLE faicon_codeForName(const char* pszIconName) {
 	}
 	size_t nLen = strlen(pszIconName);
 	int regular = nLen > 2 && strcmp(pszIconName+nLen-2, "-o") == 0;
+	int brand = nLen > 2 && strcmp(pszIconName + nLen - 2, "-b") == 0;
 	return (CHAR_WITH_STYLE) {
 		.regular = regular,
+		.brand = brand,
 		.symbol = (wchar_t)hashmap_get(_faIconNameMap, pszIconName)
 	};
 }
