@@ -134,36 +134,6 @@ static BRACKET_RULE* grammar_createBracketRule() {
 	return pRule;
 }
 
-static GRAMMAR* grammar_createGrammar() {
-	return calloc(1, sizeof(GRAMMAR));
-}
-
-static TEMPLATE* grammar_createTemplate() {
-	return calloc(1, sizeof(TEMPLATE));
-}
-
-static INDENT_PATTERN* grammar_createIndentPattern() {
-	return calloc(1, sizeof(INDENT_PATTERN));
-}
-
-
-static GRAMMAR_PATTERN* grammar_createGrammarPattern() {
-	return calloc(1, sizeof(GRAMMAR_PATTERN));
-}
-
-static PATTERN_GROUP* grammar_createPatternGroup() {
-	return calloc(1, sizeof(PATTERN_GROUP));
-}
-
-static TAGSOURCE* grammar_createTagSource() {
-	return calloc(1, sizeof(TAGSOURCE));
-}
-
-
-static NAVIGATION_PATTERN* grammar_createNavigationPattern() {
-	return calloc(1, sizeof(NAVIGATION_PATTERN));
-}
-
 static JSON_MAPPING_RULE _tagSourceRules[] = {
 	{	RT_ALLOC_STRING, "filename", offsetof(TAGSOURCE, fn)},
 	{	RT_CHAR_ARRAY, "type", offsetof(TAGSOURCE, type), sizeof(((TAGSOURCE*)NULL)->type)},
@@ -215,11 +185,11 @@ static JSON_MAPPING_RULE _patternGroupRules[] = {
 
 static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR_PATTERN, children),
-			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _patternRules, .ro_nestedSize = sizeof(GRAMMAR_PATTERN)}}},
 	{	RT_CHAR_ARRAY, "name", offsetof(GRAMMAR_PATTERN, name), sizeof(((GRAMMAR_PATTERN*)NULL)->name)},
 	{	RT_ALLOC_STRING, "match", offsetof(GRAMMAR_PATTERN, match)},
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
-			{.r_t_arrayDescriptor = {grammar_createPatternGroup, _patternGroupRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _patternGroupRules, .ro_nestedSize = sizeof(PATTERN_GROUP)}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_FLAG, "keywords-no-identifiers", offsetof(GRAMMAR_PATTERN, keywordsNoIdentifiers)},
 	{	RT_FLAG, "ignore-case", offsetof(GRAMMAR_PATTERN, ignoreCase)},
@@ -248,30 +218,30 @@ static JSON_MAPPING_RULE _grammarRules[] = {
 	{	RT_ALLOC_STRING, "folderEndMarker", offsetof(GRAMMAR, folderEndMarker)},
 	{	RT_CHAR_ARRAY, "wordCharacterClass", offsetof(GRAMMAR, u2lset), sizeof(((GRAMMAR*)NULL)->u2lset)},
 	{	RT_OBJECT_LIST, "increaseIndentPatterns", offsetof(GRAMMAR, increaseIndentPatterns),
-			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _indentPatternRules, .ro_nestedSize = sizeof(INDENT_PATTERN)}}},
 	{	RT_OBJECT_LIST, "decreaseIndentPatterns", offsetof(GRAMMAR, decreaseIndentPatterns),
-			{.r_t_arrayDescriptor = {grammar_createIndentPattern, _indentPatternRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _indentPatternRules, .ro_nestedSize = sizeof(INDENT_PATTERN)}}},
 	{	RT_CHAR_ARRAY, "defaultDisplayMode", offsetof(GRAMMAR, defaultDisplayMode), sizeof(((GRAMMAR*)NULL)->defaultDisplayMode)},
 	{	RT_CHAR_ARRAY, "wysiwygRenderer", offsetof(GRAMMAR, wysiwygRenderer), sizeof(((GRAMMAR*)NULL)->wysiwygRenderer)},
 	{	RT_ALLOC_STRING, "analyzer", offsetof(GRAMMAR, analyzer)},
 	{	RT_ALLOC_STRING, "evaluator", offsetof(GRAMMAR, evaluator)},
 	{	RT_ALLOC_STRING, "formatter", offsetof(GRAMMAR, formatter)},
 	{	RT_OBJECT_LIST, "navigation", offsetof(GRAMMAR, navigation),
-			{.r_t_arrayDescriptor = {grammar_createNavigationPattern, _navigationPatternRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _navigationPatternRules, .ro_nestedSize = sizeof(NAVIGATION_PATTERN)}}},
 	{	RT_OBJECT_LIST, "templates", offsetof(GRAMMAR, templates),
-			{.r_t_arrayDescriptor = {grammar_createTemplate, _templateRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _templateRules, .ro_nestedSize = sizeof(TEMPLATE)}}},
 	{	RT_OBJECT_LIST, "highlightBrackets", offsetof(GRAMMAR, highlightBrackets),
-			{.r_t_arrayDescriptor = {grammar_createBracketRule, _bracketRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _bracketRules, .ro_nestedSize = sizeof(BRACKET_RULE)}}},
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR, patternDefinitions),
-			{.r_t_arrayDescriptor = {grammar_createGrammarPattern, _patternRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _patternRules, .ro_nestedSize = sizeof(GRAMMAR_PATTERN)}}},
 	{	RT_OBJECT_LIST, "tagSources", offsetof(GRAMMAR, tagSources),
-			{.r_t_arrayDescriptor = {grammar_createTagSource, _tagSourceRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _tagSourceRules, .ro_nestedSize = sizeof(TAGSOURCE)}}},
 	{	RT_END}
 };
 
 static JSON_MAPPING_RULE _grammarDefinitionsRules[] = {
 	{	RT_OBJECT_LIST, "grammars", offsetof(GRAMMAR_DEFINITIONS, gd_grammars),
-			{.r_t_arrayDescriptor = {grammar_createGrammar, _grammarRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _grammarRules, .ro_nestedSize = sizeof(GRAMMAR)}}},
 	{	RT_END}
 };
 

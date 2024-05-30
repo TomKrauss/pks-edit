@@ -153,6 +153,8 @@ typedef struct tagSTATUS_LINE_SEGMENT {
 	char						   sls_lang[8];
 	char*						   sls_text;
 	char*						   sls_icon;
+	// Optional color for an icon to use
+	COLORREF					   sls_iconColor;
 } STATUS_LINE_SEGMENT;
 
 typedef struct tagEDIT_CONFIGURATION {

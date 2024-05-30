@@ -369,9 +369,8 @@ void ft_deleteautosave(FTABLE *fp) {
 /*------------------------------------------------------------
  * ft_destroy()
  */
-void ft_destroy(FTABLE *fp)
-{
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx",fp));
+void ft_destroy(FTABLE *fp) {
+	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx (%s)",fp, fp->fname));
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 	free(fp->title);
@@ -712,6 +711,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
 	}
+	EdTRACE(log_errorArgs(DEBUG_TRACE, "ft_openFile (%s)", fn));
 	if (fn && ft_editing(fn) != 0) {
 		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileNameOem(fn));
 		if (ret == IDCANCEL) {
@@ -1139,8 +1139,7 @@ void EditDroppedFiles(HDROP hDrop)
 		error_showErrorById(IDS_TRYING_TO_OPEN_TOO_MANY_FILES, nMax);
 		nTotal = nMax;
 	}
-	for ( i = 0; i < nTotal; i++ )
-	{
+	for ( i = 0; i < nTotal; i++ ) {
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
 		pszFileName = malloc(nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );

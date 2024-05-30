@@ -84,7 +84,6 @@ static HSZ		hszDDEService;
 static HMENU	hDefaultMenu;
 
 static char   szStatusClass[] = "StatusWin";
-char   szAppName[] = "PKS Edit";
 
 int		_runInteractive = TRUE;
 int		_openIconic = FALSE;
@@ -211,7 +210,7 @@ static void checkCommonControlLibraryVersion() {
 		}
 		FreeLibrary(hDll);
 	}
-	EdTRACE(log_errorArgs(DEBUG_ERR, "Common Control Library version is %ld", dwMajorVersion));
+	EdTRACE(log_errorArgs(DEBUG_INFO, "Common Control Library version is %ld", dwMajorVersion));
 }
 
 /*------------------------------------------------------------
@@ -238,8 +237,8 @@ static BOOL InitInstance(LPSTR lpCmdLine) {
 	icex.dwICC = ICC_COOL_CLASSES | ICC_BAR_CLASSES | ICC_PROGRESS_CLASS | ICC_STANDARD_CLASSES | ICC_TAB_CLASSES | ICC_LISTVIEW_CLASSES;
 	InitCommonControlsEx(&icex);
 	string_initDateformats();
-	checkCommonControlLibraryVersion();
 	arguments_getForPhase1(lpCmdLine);
+	checkCommonControlLibraryVersion();
 	bl_restorePasteBuffers();
 	if (GetConfiguration()->themeName[0]) {
 		theme_setCurrent(GetConfiguration()->themeName);

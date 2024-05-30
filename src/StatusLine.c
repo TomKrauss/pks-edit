@@ -37,7 +37,7 @@
 #define WM_ST_REDRAW		WM_USER+142
 
 #define	MAXSEGMENTS			20
-#define ICON_SIZE			12
+#define ICON_SIZE			14
 
 struct tagICONS {
 	CHAR_WITH_STYLE ic_char;
@@ -82,7 +82,7 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 			if (pSegment->sls_icon != NULL) {
 				c = faicon_codeForName(pSegment->sls_icon);
 			}
-			COLORREF color = theme_getCurrent()->th_dialogBorder;
+			COLORREF color = pSegment->sls_iconColor == RGB(0,0,0) ? theme_getCurrent()->th_dialogBorder : pSegment->sls_iconColor;
 			CHAR_WITH_STYLE cExisting = pIcon->ic_char;
 			if (pIcon->ic_bitmap != NULL && (c.symbol == 0 || c.symbol != cExisting.symbol || color != pIcon->ic_color)) {
 				DeleteObject(pIcon->ic_bitmap);
@@ -177,7 +177,6 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	switch (msg) {
 	case WM_ST_REDRAW: {
 		st_setparts((BOOL)wParam);
-		_redrawsPosted = 0;
 		return 0;
 	}
 
@@ -275,6 +274,7 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		DeleteObject(hPen);
 		SelectObject(hdc, hFont);
 		EndPaint(hwnd, &ps);
+		_redrawsPosted = 0;
 		return 0;
 	}
 	case WM_DESTROY:

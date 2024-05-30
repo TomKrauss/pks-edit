@@ -39,8 +39,13 @@ extern int		_openIconic;
  * arguments_parsePhase1()
  */
 static int arguments_parsePhase1(char *arg) {
-	if ((*arg == '-' || *arg == '/') && arg[1] == 'i') {
-		prof_setinifile(arg+2);
+	if (*arg == '-' || *arg == '/') {
+		if (arg[1] == 'i') {
+			prof_setinifile(arg + 2);
+		}
+		if (arg[1] == 'v') {
+			log_setLogLevel(DEBUG_ALL);
+		}
 	}
 	return 1;
 }
@@ -116,6 +121,8 @@ static int arguments_parsePhase2(char *arg) {
 			break;
 		case 't':
 			xref_navigateCrossReference(arg);
+			break;
+		case 'v':
 			break;
 		case 'i':
 			_openIconic = TRUE;

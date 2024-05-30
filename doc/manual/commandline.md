@@ -33,6 +33,7 @@ options apply to a previously opened file.
 
 - `/g`, `/l` may both be followed a line number to jump to the line of the file just opened. Example: to open a file test.c and jump to line 100, specify:
   `pksedit.exe test.c /l100`
+- `/v` run in verbose mode and output all debug messages to a logfile located inthe `PKS_SYS` directory named `PKSEDIT.log` (currently hard-coded).
 - `/c` may both be followed a line number to jump to the column in the current line in the file just opened.
 - `//` may be followed by a pattern to search in the file just opened.
 - `/w` switch to wysiwyg mode in the file just opened

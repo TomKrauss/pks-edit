@@ -155,11 +155,7 @@ static JSON_MAPPING_RULE _copRules[] = {
 	{	RT_END}
 };
 
-static COMPILER_OUTPUT_PATTERN* config_createOutputPattern() {
-	return calloc(1, sizeof(COMPILER_OUTPUT_PATTERN));
-}
-
-static JSON_MAPPING_RULE _editorConfigurationRules[] = {
+static JSON_MAPPING_RULE _editConfigurationRules[] = {
 	{	RT_FLAG, "autosave-to-temp", offsetof(EDITOR_CONFIGURATION, options), O_AUTOSAVE_TO_TEMP},
 	{	RT_FLAG, "autosave-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_AUTOSAVE_FILES_ON_EXIT},
 	{	RT_FLAG, "preserve-history", offsetof(EDITOR_CONFIGURATION, options), O_AUTO_OPEN_HISTORY},
@@ -195,7 +191,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_CHAR_ARRAY, "default-font", offsetof(EDITOR_CONFIGURATION, defaultFontFace), sizeof(((EDITOR_CONFIGURATION*)NULL)->defaultFontFace)},
 	{	RT_CHAR_ARRAY, "search-engine", offsetof(EDITOR_CONFIGURATION, searchEngine), sizeof(((EDITOR_CONFIGURATION*)NULL)->searchEngine)},
 	{	RT_OBJECT_LIST, "compiler-output-patterns", offsetof(EDITOR_CONFIGURATION, outputPatterns),
-			{.r_t_arrayDescriptor = {config_createOutputPattern, _copRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _copRules, .ro_nestedSize = sizeof(COMPILER_OUTPUT_PATTERN)}}},
 	{	RT_END}
 };
 
@@ -205,7 +201,7 @@ typedef struct tag_ALL_CONFIGS {
 } ALL_CONFIGS;
 
 static JSON_MAPPING_RULE _allconfigRules[] = {
-	{	RT_NESTED_OBJECT, "configuration", offsetof(ALL_CONFIGS, ac_editorConfiguration), {.r_t_nestedObjectRules = _editorConfigurationRules}},
+	{	RT_NESTED_OBJECT, "configuration", offsetof(ALL_CONFIGS, ac_editorConfiguration), {.r_t_nestedObjectRules = _editConfigurationRules}},
 	{	RT_NESTED_OBJECT, "print-configuration", offsetof(ALL_CONFIGS, ac_printConfiguration), {.r_t_nestedObjectRules = _prtparamRules}},
 	{	RT_END}
 };

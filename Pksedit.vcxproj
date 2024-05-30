@@ -293,6 +293,8 @@
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <ManifestFile>$(IntDir)$(TargetName)$(TargetExt).intermediate.manifest</ManifestFile>
       <AdditionalLibraryDirectories>$(GitLibDirectory)\lib</AdditionalLibraryDirectories>
+      <AdditionalOptions>
+      </AdditionalOptions>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -312,6 +314,7 @@
     <ClCompile Include="src\Evaluator.c" />
     <ClCompile Include="src\FontAwesome.c" />
     <ClCompile Include="src\GitIntegration.c" />
+    <ClCompile Include="src\Globals.c" />
     <ClCompile Include="src\Grammar.c" />
     <ClCompile Include="src\HashMap.c" />
     <ClCompile Include="src\CodeCompletion.c" />

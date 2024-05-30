@@ -48,23 +48,26 @@ typedef enum {
 
 typedef void* (*FACTORY)();
 
-struct tagARRAY_OBJECT_DESCRIPTOR {
+struct tagOBJECT_DESCRIPTOR {
 	FACTORY						 ro_createInstance;		// Factory creating the nested object
 	struct tagJSON_MAPPING_RULE* ro_nestedRules;		// The rules describing the nested object
+	size_t						 ro_nestedSize;			// If no factory is specified, one may specify the size of the objects contained in the array, which is then calloced.
+	void (*ro_destroy)(void* p);						// An optional destruction method, invoked, when one uses json_destroy to de-allocate a nested JSON data structure.
 };
 
 typedef struct tagJSON_MAPPING_RULE {
-	JSON_RULE_TYPE r_type;		// the type of the rule
-	char* r_name;				// the name of the JSON value
-	size_t r_targetOffset;		// the offset in the target object to which the mapping is performed.
+	JSON_RULE_TYPE r_type;										// the type of the rule
+	char* r_name;												// the name of the JSON value
+	size_t r_targetOffset;										// the offset in the target object to which the mapping is performed.
 	union tagNESTED_JSON_DESCRIPTOR {
-		int		r_t_flag;					// if the rule type is RT_FLAG, this is the bit value (flag) associated with the value read.
-		size_t  r_t_maxChars;				// the maximum number of bytes for RT_CHAR_ARRAY type json values.
-		size_t	r_t_maxElements;			// maximum number of elements that fit into RT_INTEGER_ARRAY type data structures.
-		JSON_STRING_CALLBACK r_t_callback;	// the string callback for type RT_STRING_CALLBACK
-		const char** r_t_enumNames;			// NULL terminated array with the names corresponding to enum values: e.g.: {"small","medium","large",0}
-		struct tagARRAY_OBJECT_DESCRIPTOR r_t_arrayDescriptor;	// in case of type == RT_OBJECT_ARRAY
-		struct tagJSON_MAPPING_RULE* r_t_nestedObjectRules;		// in case of type == RT_NESTED_OBJECT
+		int		r_t_flag;										// if the rule type is RT_FLAG, this is the bit value (flag) associated with the value read.
+		size_t  r_t_maxChars;									// the maximum number of bytes for RT_CHAR_ARRAY type json values.
+		size_t	r_t_maxElements;								// maximum number of elements that fit into RT_INTEGER_ARRAY type data structures.
+		JSON_STRING_CALLBACK r_t_callback;						// the string callback for type RT_STRING_CALLBACK
+		const char** r_t_enumNames;								// NULL terminated array with the names corresponding to enum values: e.g.: {"small","medium","large",0}
+		struct tagOBJECT_DESCRIPTOR r_t_arrayDescriptor;		// currently only used in case of type == RT_OBJECT_ARRAY
+		struct tagJSON_MAPPING_RULE* r_t_nestedObjectRules;		// currently used in case of type == RT_NESTED_OBJECT. On a long term run, this should be identically to above and nested objects
+																// should be allocated and destroyed as well.
 	} r_descriptor;
 } JSON_MAPPING_RULE;
 
@@ -82,6 +85,12 @@ extern COLORREF json_convertColor(char* pszString);
  * Write out an object with a given set of mapping rules in JSON format.
  */
 int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE* pRules);
+
+/*
+ * Generic method to release the memory occupied by an object described by mapping pRules read by the JSON reader.
+ * Does not free the memory pointed to by pMemory itself.
+ */
+void json_destroy(void* pMemory, JSON_MAPPING_RULE* pRules);
 
 #define JSONPARSER_H
 #endif // !JSONPARSER_H

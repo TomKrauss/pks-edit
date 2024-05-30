@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - PKS Edit was integrated with libgit2 and provides now some basic GIT information about the files edited.
+- The new command line argument -v can be used to turn on verbose logging to a log file named `PKS_SYS\pksedit.log`.
 
 ### Improved
 - One may now place config files into a PKS_SYS directory located in `$HOME` and override the installed configuration
@@ -21,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and changing the language works now without restarting PKS Edit.
 - captures are now supported in nested patterns in a grammar leading to improved syntax highlighting support.
 - Statusline Configuration is now more flexible and more intuitive. The individual segments can be configured individually
-  may also contain icons and may tagged with a locale for I18N.
+  may also contain icons (with an optiona color) and may tagged with a locale for I18N.
 
 ### Changed
 - The action `delete-selection` was renamed to `cut-to-clipnoard`.

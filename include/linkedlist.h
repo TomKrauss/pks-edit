@@ -76,6 +76,12 @@ extern void ll_add(void** pointerLinkedList, LINKED_LIST* pElement);
 extern void ll_destroy(void** pointerLinkedList, int (*destroy)(void* elem));
 
 /*--------------------------------------------------------------------------
+ * ll_destroy2()
+ * Similar to ll_destroy, but allows to pass an additional param (pParam) to the element destroy function.
+ */
+extern void ll_destroy2(void** pointerLinkedList, int (*destroy)(void* elem, void* pParam), void* pParam);
+
+/*--------------------------------------------------------------------------
  * ll_delete()
  * delete an element in a linked list.Return 1 if the element was successfully deleted.
  */

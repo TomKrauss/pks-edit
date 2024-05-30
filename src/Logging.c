@@ -12,38 +12,72 @@
 #include <windows.h>
 # pragma hdrstop
 #include <stdarg.h>
+#include <stdio.h>
 #include "winterf.h"
+#include "fileutil.h"
+#include "stringutil.h"
 #include "trace.h"
 #include "documentmodel.h"
 
-static int _debugmask = DEBUG_ALL;
-static int _debugfd = -1;
+static int _debugmask =
+#ifdef _DEBUG
+DEBUG_ALL;
+#else
+0;
+#endif
+
+static FILE* _pksEditLogfile;
 
 /*-----------------------------------------------------------
  * vdebug()
  */
-static void vdebug(int err, LPSTR fmt, va_list ap)
-{
+static void vdebug(int logLevel, LPSTR fmt, va_list ap) {
 	char buf[1024];
+	char bufTotal[1024];
+	char* pszLevel = "TRACE";
+	if (logLevel == DEBUG_ASSERT) {
+		pszLevel = "ASSERT";
+	} else if (logLevel == DEBUG_WARN) {
+		pszLevel = "WARN";
+	} else if (logLevel == DEBUG_INFO) {
+		pszLevel = "INFO";
+	} else if (logLevel == DEBUG_ERR) {
+		pszLevel = "ERROR";
+	}
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
-	strcat(buf, "\r\n");
-	OutputDebugString(buf);
+	wsprintf(bufTotal, "%s:%s:%s\n", szAppName, pszLevel, buf);
+	if (_pksEditLogfile == NULL) {
+		char szLogFilename[MAX_PATH];
+		szLogFilename[0] = 0;
+		string_concatPathAndFilename(szLogFilename, _pksSysFolder, "pksedit.log");
+		_pksEditLogfile = fopen(szLogFilename, "w");
+	}
+	if (_pksEditLogfile) {
+		fwrite(bufTotal, sizeof(bufTotal[0]), strlen(bufTotal), _pksEditLogfile);
+		fflush(_pksEditLogfile);
+	}
+	OutputDebugString(bufTotal);
+}
+
+/*
+ * Can be used to put PKS-Edit in verbose mode, having it printing all debug messages to stderr.
+ */
+EXPORT void log_setLogLevel(int logLevel) {
+	_debugmask = logLevel;
 }
 
 /*-----------------------------------------------------------
  * log_errorArgs()
  */
-EXPORT void log_errorArgs(int dbgmask, char *fmt, ...)
+EXPORT void log_errorArgs(int flags, char *fmt, ...)
 {
-#ifdef _DEBUG
 	va_list ap;
-	if ((_debugmask & dbgmask) == 0)
+	if ((_debugmask & flags) == 0) {
 		return;
-
+	}
 	va_start(ap,fmt);
-	vdebug(dbgmask&DEBUG_ERR,fmt,ap);	
+	vdebug(flags &(DEBUG_ERR|DEBUG_ASSERT|DEBUG_TRACE|DEBUG_WARN|DEBUG_INFO),fmt,ap);
 	va_end(ap);
-#endif
 }
 
 /*

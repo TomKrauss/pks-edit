@@ -320,9 +320,6 @@ static JSON_MAPPING_RULE _keybindRules[] = {
 	{	RT_END }
 };
 
-static LOCAL_ACTION_BINDING* bindings_createActionBinding() {
-	return (LOCAL_ACTION_BINDING*)calloc(1, sizeof(LOCAL_ACTION_BINDING));
-}
 
 static JSON_MAPPING_RULE _mousebindRules[] = {
 	{	RT_CHAR_ARRAY, "context", offsetof(LOCAL_ACTION_BINDING, ab_context), sizeof(((LOCAL_ACTION_BINDING*)NULL)->ab_context)},
@@ -352,7 +349,7 @@ static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_FLAG, "history-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isHistoryMenu), 1},
 	{	RT_FLAG, "macro-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isMacroMenu), 1},
 	{	RT_OBJECT_LIST, "sub-menu", offsetof(LOCAL_ACTION_BINDING, ab_children),
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _menuRules}}
+		{.r_t_arrayDescriptor = {.ro_nestedRules = _menuRules, .ro_nestedSize = sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_END }
 };
@@ -378,19 +375,19 @@ static JSON_MAPPING_RULE _tbbRules[] = {
 
 static JSON_MAPPING_RULE _jsonBindingsRules[] = {
 	{	RT_OBJECT_LIST, "key-bindings", offsetof(JSON_BINDINGS, keys), 
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _keybindRules}}
+		{.r_t_arrayDescriptor = {0, _keybindRules, sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_OBJECT_LIST, "mouse-bindings", offsetof(JSON_BINDINGS, mouse),
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _mousebindRules}}
+		{.r_t_arrayDescriptor = {.ro_nestedRules = _mousebindRules, .ro_nestedSize = sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_OBJECT_LIST, "context-menu", offsetof(JSON_BINDINGS, subMenu),
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _menuRules}}
+		{.r_t_arrayDescriptor = {.ro_nestedRules = _menuRules, .ro_nestedSize = sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_OBJECT_LIST, "menu", offsetof(JSON_BINDINGS, menu),
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _menuRules}}
+		{.r_t_arrayDescriptor = {.ro_nestedRules = _menuRules, .ro_nestedSize = sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_OBJECT_LIST, "toolbar", offsetof(JSON_BINDINGS, toolbarButtonBinding),
-		{.r_t_arrayDescriptor = {bindings_createActionBinding, _tbbRules}}
+		{.r_t_arrayDescriptor = {.ro_nestedRules = _tbbRules, .ro_nestedSize = sizeof(LOCAL_ACTION_BINDING)}}
 	},
 	{	RT_END }
 };

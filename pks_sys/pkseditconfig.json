@@ -389,7 +389,8 @@
         },
         {
           "text": "\t%s$V",
-          "icon": "fa-git-b"
+          "icon": "fa-git-square-b",
+          "iconColor": "orange"
         }
       ],
         "tabCharacter": " ",

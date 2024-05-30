@@ -35,11 +35,10 @@
 
 extern int file_exists(char *s);
 
-// The name if the PKS_SYS variable / configuration folder etc...
-char*	PKS_SYS = "PKS_SYS";
-char	*_pksSysFolder;	// PKS_SYS directory, where the config files are located.
 static char _sysdir[EDMAXPATHLEN];
 char _homePksSysFolder[EDMAXPATHLEN];
+extern char* PKS_SYS;					// The name if the PKS_SYS variable / configuration folder etc...
+extern char* _pksSysFolder;				// PKS_SYS directory, where the config files are located.
 
 /*--------------------------------------------------------------------------
  * Getenv()
@@ -110,7 +109,9 @@ EXPORT BOOL init_initializeVariables(void )
 		}
 	}
 	if (installationDirectory[0] == 0) {
-		_getcwd(installationDirectory,sizeof installationDirectory);
+		if (_getcwd(installationDirectory, sizeof installationDirectory) == NULL) {
+			installationDirectory[0] = 0;
+		}
 	}
 	string_concatPathAndFilename(installationDirectory,installationDirectory,"");
 	if (*_pksSysFolder == 0) {

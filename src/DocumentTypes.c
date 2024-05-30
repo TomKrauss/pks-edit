@@ -82,14 +82,11 @@ static JSON_MAPPING_RULE _statuslineSegmentRules[] = {
 	{	RT_CHAR_ARRAY,	"language", offsetof(STATUS_LINE_SEGMENT, sls_lang), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_lang)},
 	{	RT_ALLOC_STRING,"text", offsetof(STATUS_LINE_SEGMENT, sls_text), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_text)},
 	{	RT_ALLOC_STRING,"icon", offsetof(STATUS_LINE_SEGMENT, sls_icon), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_icon)},
+	{	RT_COLOR,"iconColor", offsetof(STATUS_LINE_SEGMENT, sls_iconColor)},
 	{	RT_END}
 };
 
-static STATUS_LINE_SEGMENT* doctypes_createStatuslineSegment() {
-	return (STATUS_LINE_SEGMENT*)calloc(1, sizeof(STATUS_LINE_SEGMENT));
-}
-
-static JSON_MAPPING_RULE _editorConfigurationRules[] = {
+static JSON_MAPPING_RULE _editConfigurationRules[] = {
 	{	RT_CHAR_ARRAY, "name", offsetof(EDIT_CONFIGURATION, name), sizeof(((EDIT_CONFIGURATION*)NULL)->name)},
 	{	RT_INTEGER, "id", offsetof(EDIT_CONFIGURATION, id)},
 	{	RT_INTEGER, "leftMargin", offsetof(EDIT_CONFIGURATION, lmargin) },
@@ -117,7 +114,7 @@ static JSON_MAPPING_RULE _editorConfigurationRules[] = {
 	{	RT_FLAG, "oemEncoding", offsetof(EDIT_CONFIGURATION, workmode), WM_OEMMODE},
 	{	RT_FLAG, "smartSpaceDelete", offsetof(EDIT_CONFIGURATION, workmode), WM_DELETE_MULTIPLE_SPACES},
 	{	RT_OBJECT_LIST, "statuslineSegments", offsetof(EDIT_CONFIGURATION, statuslineSegments),
-			{.r_t_arrayDescriptor = {doctypes_createStatuslineSegment, _statuslineSegmentRules}}},
+			{.r_t_arrayDescriptor = {0, _statuslineSegmentRules, sizeof(STATUS_LINE_SEGMENT)}}},
 	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
 	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, expandTabsWith)},
 	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
@@ -143,17 +140,13 @@ typedef struct tagDOCTYPE_CONFIGURATION {
 	EDIT_CONFIGURATION* dc_defaultEditorConfiguration;
 } DOCTYPE_CONFIGURATION;
 
-static void* doctypes_create() {
-	return calloc(sizeof(DOCUMENT_TYPE), 1);
-}
-
 static const char* DEFAULT = "default";
 
 static JSON_MAPPING_RULE _doctypeConfigurationRules[] = {
 	{	RT_OBJECT_LIST, "documentTypes", offsetof(DOCTYPE_CONFIGURATION, dc_types),
-			{.r_t_arrayDescriptor = {doctypes_create, _documentTypeRules}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _documentTypeRules, .ro_nestedSize = sizeof(DOCUMENT_TYPE)}}},
 	{	RT_OBJECT_LIST, "editorConfigurations", offsetof(DOCTYPE_CONFIGURATION, dc_editorConfigurations),
-			{.r_t_arrayDescriptor = {doctypes_createDefaultDocumentTypeDescriptor, _editorConfigurationRules}}},
+			{.r_t_arrayDescriptor = {doctypes_createDefaultDocumentTypeDescriptor, _editConfigurationRules}}},
 	{	RT_END}
 };
 
@@ -164,7 +157,7 @@ static BOOL doctypes_destroySegment(STATUS_LINE_SEGMENT* pSegment) {
 	free(pSegment->sls_text);
 	return TRUE;
 }
-
+ 
 /*
  * Copy a document descriptor from a source to a target.
  */
@@ -180,12 +173,16 @@ static void doctypes_copyDescriptor(EDIT_CONFIGURATION* pDest, EDIT_CONFIGURATIO
 	STATUS_LINE_SEGMENT* pSegment = pSource->statuslineSegments;
 	while (pSegment) {
 		STATUS_LINE_SEGMENT* pNew = calloc(sizeof * pNew, 1);
+		if (pNew == NULL) {
+			break;
+		}
 		if (pSegment->sls_icon != NULL) {
 			pNew->sls_icon = _strdup(pSegment->sls_icon);
 		}
 		if (pSegment->sls_text != NULL) {
 			pNew->sls_text = _strdup(pSegment->sls_text);
 		}
+		pNew->sls_iconColor = pSegment->sls_iconColor;
 		strcpy(pNew->sls_lang, pSegment->sls_lang);
 		ll_add(&pDest->statuslineSegments, (LINKED_LIST*)pNew);
 		pSegment = pSegment->sls_next;
@@ -564,17 +561,8 @@ DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp)
 	return llpNew;
 }
 
-/**
- * Cleanup: delete a document descriptor.
- */
-static BOOL doctypes_destroyDocumentType(DOCUMENT_TYPE* dt) {
-	arraylist_destroyStringList(dt->ll_languages);
-	return TRUE;
-}
-
-
 BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration) {
-	ll_destroy(&pConfiguration->statuslineSegments, doctypes_destroySegment);
+	json_destroy(pConfiguration, _editConfigurationRules);
 	return TRUE;
 }
 
@@ -582,8 +570,7 @@ BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration) {
  * Deletes and de-allocates all known document types and editor configurations.
  */
 void doctypes_destroyAllDocumentTypes() {
-	ll_destroy(&config.dc_types, doctypes_destroyDocumentType);
-	ll_destroy(&config.dc_editorConfigurations, doctypes_destroyEditConfiguration);
+	json_destroy(&config, _doctypeConfigurationRules);
 }
 
 /*--------------------------------------------------------------------------

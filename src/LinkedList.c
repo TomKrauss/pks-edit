@@ -38,6 +38,22 @@ void ll_destroy(void **pointerLinkedList, int (*destroy)(void *elem)) {
 }
 
 /*--------------------------------------------------------------------------
+ * ll_destroy2()
+ * Similar to ll_destroy, but allows to pass an additional param (pParam) to the element destroy function.
+ */
+void ll_destroy2(void** pointerLinkedList, int (*destroy)(void* elem, void *pParam), void* pParam) {
+	LINKED_LIST* lp, * lpnext = NULL;
+
+	for (lp = *pointerLinkedList; lp != 0; lp = lpnext) {
+		lpnext = lp->next;
+		if (!destroy || (*destroy)(lp, pParam) == 1) {
+			free(lp);
+		}
+	}
+	*pointerLinkedList = NULL;
+}
+
+/*--------------------------------------------------------------------------
  * ll_delete()
  * delete an element in a linked list. Return 1 if the element was successfully deleted.
  */

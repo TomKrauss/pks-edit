@@ -30,6 +30,7 @@
 #include "stringutil.h"
 #include "documentmodel.h"
 #include "pathname.h"
+#include "trace.h"
 
 #define MAX_TOKEN_SIZE		511
 
@@ -120,7 +121,12 @@ static struct tagCSS_COLOR {
 	{"gray", RGB(128,128,128)},
 	{"yellow", RGB(255,255,0)},
 	{"maroon", RGB(128,0,0)},
-	{"olive", RGB(128,128,0)},
+	{"orange", RGB(230,145,56)},
+	{"silver", RGB(192,192,192)},
+	{"crimson", RGB(220,20,60)},
+	{"brown", RGB(165,42,42)},
+	{"coral", RGB(255,127,80)},
+	{"cyan", RGB(0,255,255)},
 	{"lime", RGB(0,255,0)},
 	{"navy", RGB(0,0,128)},
 	{"aqua", RGB(0,255,255)},
@@ -142,6 +148,7 @@ COLORREF json_convertColor(char* pszString) {
 			return _cssColors[i].cc_color;
 		}
 	}
+	EdTRACE(log_debug1("Cannot convert color %s from config file", pszString));
 	return RGB(0, 0, 0);
 }
 
@@ -149,7 +156,7 @@ COLORREF json_convertColor(char* pszString) {
  * Returns an object array. Returns the index to the token array containing all tokens "after the array definition".
  */
 static int json_getObjectList(char* pszBuf, jsmntok_t* tokens, int firstToken, int numberOfTokens, int bEnd, void** pTargetSlot, 
-		struct tagARRAY_OBJECT_DESCRIPTOR* pArrayDescriptor) {
+		struct tagOBJECT_DESCRIPTOR* pArrayDescriptor) {
 	int i = firstToken;
 
 	while (i < numberOfTokens) {
@@ -157,7 +164,10 @@ static int json_getObjectList(char* pszBuf, jsmntok_t* tokens, int firstToken, i
 			return i;
 		}
 		if (tokens[i].type == JSMN_OBJECT) {
-			void* pNested = pArrayDescriptor->ro_createInstance();
+			void* pNested = pArrayDescriptor->ro_createInstance ? pArrayDescriptor->ro_createInstance() : calloc(1, pArrayDescriptor->ro_nestedSize);
+			if (pNested == NULL) {
+				break;
+			}
 			i = json_processTokens(pArrayDescriptor->ro_nestedRules, pNested, pszBuf, tokens[i].start, tokens[i].end, tokens, i + 1, numberOfTokens);
 			ll_add(pTargetSlot, pNested);
 		}
@@ -469,7 +479,7 @@ static int json_marshalObject(FILE* fp, int indent, BOOL bFirstIndent, void* pSo
 /*
  * Marshal a nested list of objects to the output stream.
  */
-static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, struct tagARRAY_OBJECT_DESCRIPTOR* pArrayDescriptor) {
+static void json_marshalObjectList(FILE* fp, int indent, void* pSourceObject, struct tagOBJECT_DESCRIPTOR* pArrayDescriptor) {
 	int bFirst = 1;
 
 	while (pSourceObject) {
@@ -657,4 +667,75 @@ int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE
 		return 1;
 	}
 	return 0;
+}
+
+static void json_destroyNode(void* pSourceObject, JSON_MAPPING_RULE* pRule);
+
+static int json_destroyObject(void* pSourceObject, JSON_MAPPING_RULE* pRules) {
+	while (pRules->r_type != RT_END) {
+		json_destroyNode(pSourceObject, pRules);
+		pRules++;
+	}
+	return 1;
+}
+
+static int json_destroyObjectIncl(void* pSourceObject, JSON_MAPPING_RULE* pRules) {
+	json_destroyObject(pSourceObject, pRules);
+	free(pSourceObject);
+	return 1;
+}
+
+static void json_destroyNode(void* pSourceObject, JSON_MAPPING_RULE* pRule) {
+	void* pSourceSlot = ((char*)pSourceObject + pRule->r_targetOffset);
+	LINKED_LIST* pList;
+	ARRAY_LIST* pArrayList;
+	HASHMAP* pMap;
+
+	switch (pRule->r_type) {
+	case RT_ALLOC_STRING:
+		pSourceSlot = *((char**)pSourceSlot);
+		if (pSourceSlot) {
+			free(pSourceSlot);
+		}
+		break;
+	case RT_INTEGER_ARRAY:
+	case RT_CHAR_ARRAY:
+	case RT_SHORT:
+	case RT_FLAG:
+	case RT_COLOR:
+	case RT_ENUM: 
+	case RT_CHAR:
+		break;
+	case RT_NESTED_OBJECT:
+		json_destroyObjectIncl(pSourceSlot, pRule->r_descriptor.r_t_nestedObjectRules);
+		break;
+	case RT_SET: 
+		pMap = *(HASHMAP**)pSourceSlot;
+		if (pMap == NULL) {
+			break;
+		}
+		hashmap_destroySet(pMap);
+		break;
+	case RT_STRING_ARRAY:
+		pArrayList = *(ARRAY_LIST**)pSourceSlot;
+		if (pArrayList == NULL) {
+			break;
+		}
+		arraylist_destroyStringList(pArrayList);
+		break;
+	case RT_OBJECT_LIST:
+		pList = *(LINKED_LIST**)pSourceSlot;
+		if (pList == NULL) {
+			break;
+		}
+		ll_destroy2(&pList, json_destroyObject, pRule->r_descriptor.r_t_arrayDescriptor.ro_nestedRules);
+		break;
+	}
+}
+
+/*
+ * Generic method to release the memory occupied by an object described by mapping pRules read by the JSON reader.
+ */
+void json_destroy(void* pMemory, JSON_MAPPING_RULE* pRules) {
+	json_destroyObject(pMemory, pRules);
 }
