@@ -426,19 +426,21 @@ static int json_parseFile(HFILE fd, void* pTargetObject, JSON_MAPPING_RULE* pRul
 /*
  * Parse the given JSON file and fill the target object according to the defined mapping rules. 
  */
-int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
+int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
 	char*	fn;
 	int     fd;
 	int		ret = 0;
 
 	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, 
-				CFSF_SEARCH_ABSOLUTE | CFSF_SEARCH_APP_PKS_SYS| CFSF_SEARCH_CURRENT_DIR| CFSF_SEARCH_PKS_SYS| CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR)) != 0L
+				CFSF_SEARCH_ABSOLUTE | CFSF_SEARCH_APP_PKS_SYS| CFSF_SEARCH_LOCAL_PKS_SYS| CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR)) != 0L
 			&& (fd = file_openFile(fn)) > 0) {
+		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading config file %s", fn));
 		ret = json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
 	}
 	// Allow extending configurations by placing config files into user.home/PKS_SYS
 	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && (fd = file_openFile(fn)) > 0) {
+		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading extension file %s", fn));
 		json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
 	}

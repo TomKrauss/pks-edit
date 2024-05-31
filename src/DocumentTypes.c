@@ -63,7 +63,7 @@ typedef struct tagDOCUMENT_TYPE {
 
 DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp);
 
-FSELINFO _linfsel = { "", "pkseditconfig.json", "*.json" };
+static FSELINFO _editConfigurationFileInfo = { "", "pkseditconfig.json", "*.json" };
 
 #define	LINSPACE	offsetof(EDIT_CONFIGURATION, ts)
 
@@ -538,7 +538,7 @@ int doctypes_saveAllDocumentTypes(EDIT_CONFIGURATION* pChangedConfiguration, cha
 		}
 	}
 	if (pszFilename == NULL) {
-		pszFilename = _linfsel.fname;
+		pszFilename = _editConfigurationFileInfo.fname;
 	}
  	if (!json_marshal(pszFilename, &config, _doctypeConfigurationRules)) {
 		// TODO: I18N
@@ -633,7 +633,7 @@ int doctypes_initAllDocumentTypes(void) {
 
 	memset(&config, 0, sizeof config);
 	int ret = 0;
-	if (json_parse(_linfsel.fname, &config, _doctypeConfigurationRules)) {
+	if (json_parse(_editConfigurationFileInfo.fname, TRUE, &config, _doctypeConfigurationRules)) {
 		for (dp = config.dc_types; dp != NULL; dp = dp->ll_next) {
 			lp = config.dc_editorConfigurations;
 			while (lp != NULL) {
@@ -663,7 +663,7 @@ int doctypes_saveToFile(void) {
 	params.fsp_saveAs = TRUE;
 	params.fsp_optionsAvailable = FALSE;
 
-	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_linfsel, CMD_ADD_DOC_MACROS, &params) == 0) {
+	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_editConfigurationFileInfo, CMD_ADD_DOC_MACROS, &params) == 0) {
 		return 0;
 	}
 

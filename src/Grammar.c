@@ -707,7 +707,7 @@ static int grammar_loadFromFile(const char* pszGrammarName) {
 
 	memset(&definitions, 0, sizeof definitions);
 	sprintf(szFileName, "%s.grammar.json", pszGrammarName);
-	if (json_parse(szFileName, &definitions, _grammarDefinitionsRules)) {
+	if (json_parse(szFileName, TRUE, &definitions, _grammarDefinitionsRules)) {
 		if (definitions.gd_grammars != NULL) {
 			grammar_initialize(definitions.gd_grammars);
 			ll_add(&_grammarDefinitions.gd_grammars, (LINKED_LIST*)definitions.gd_grammars);

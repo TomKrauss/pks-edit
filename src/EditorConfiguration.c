@@ -254,7 +254,7 @@ int config_read(const char* pszfilename) {
 	ALL_CONFIGS config;
 
 	memset(&config, 0, sizeof config);
-	if (json_parse(pszfilename, &config, _allconfigRules)) {
+	if (json_parse(pszfilename, TRUE, &config, _allconfigRules)) {
 		_configuration = config.ac_editorConfiguration;
 		_configuration.autosaveOnExit = config_autosaveConfiguration;
 		_prtparams = config.ac_printConfiguration;

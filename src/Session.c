@@ -278,7 +278,7 @@ static void hist_convertToLines(LINE** lpFirst, ARRAY_LIST* pArray) {
  * Read the current session - all history entries from the session file 'pszFilename'
  */
 EXPORT int hist_readSession(const char* pszFilename) {
-	if (json_parse(pszFilename, &_sessionData, _sessionDataRules)) {
+	if (json_parse(pszFilename, FALSE, &_sessionData, _sessionDataRules)) {
 		hist_applyScreenRatio(&_sessionData.sd_mainWindowPlacement);
 		mainframe_readDocks();
 		LINE* lp = NULL;

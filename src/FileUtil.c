@@ -210,8 +210,8 @@ EXPORT char *file_searchFileInPKSEditLocationFlags(const char *s, CONFIG_FILE_SE
 	if (bAbsolute) {
 		return 0;
 	}
-	if ((flags & CFSF_SEARCH_CURRENT_DIR) && dostat((char*)s)) {
-		return (char*)s;
+	if ((flags & CFSF_SEARCH_LOCAL_PKS_SYS) && pathstat(PKS_SYS, (char*)s)) {
+		return _found;
 	}
 	if ((flags & CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR) && _pksSysOverrideFolder[0] && pathstat(_pksSysOverrideFolder, (char*)s)) {
 		return _found;
@@ -220,9 +220,6 @@ EXPORT char *file_searchFileInPKSEditLocationFlags(const char *s, CONFIG_FILE_SE
 		return _found;
 	}
 	if ((flags & CFSF_SEARCH_APP_PKS_SYS) && pathstat(_pksSysFolder, (char*)s)) {
-		return _found;
-	}
-	if ((flags & CFSF_SEARCH_PKS_SYS) && pathstat(PKS_SYS, (char*)s)) {
 		return _found;
 	}
 	return 0;

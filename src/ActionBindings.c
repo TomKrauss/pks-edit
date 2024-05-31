@@ -492,7 +492,7 @@ static int bindings_loadFromFile(const char* pszFilename) {
 	JSON_BINDINGS definitions;
 
 	memset(&definitions, 0, sizeof definitions);
-	if (json_parse(pszFilename, &definitions, _jsonBindingsRules)) {
+	if (json_parse(pszFilename, TRUE, &definitions, _jsonBindingsRules)) {
 		LOCAL_ACTION_BINDING* pB = definitions.keys;
 		while (pB) {
 			ACTION_BINDINGS* pBindings = bindings_lookupByContext(pB->ab_context);

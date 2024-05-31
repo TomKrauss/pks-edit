@@ -11,6 +11,12 @@ etc.
 If you place the same files into `.pksedit\pks_sys`, they will completely override the default files provided in the PKS Edit
 installation. Note, that in the later case, you should review overridden files, when installing a new version of PKS Edit.
 
+## Configuration File Search PATH
+Configuration files are looked up in the following directories:
+- `.\PKS_SYS`
+- `%user.home\.pksedit\PKS_SYS`
+- `%appinstalldir%\PKS_SYS`
+
 ### Configuring PKS Edit using the UI
 You may set the overall PKS Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 

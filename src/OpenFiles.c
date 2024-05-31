@@ -336,11 +336,9 @@ void ft_saveWindowStates(void ) {
 /* ft_restorePreviouslyOpenedWindows() */
 /*---------------------------------*/
 int ft_restorePreviouslyOpenedWindows(void) {
-	char *	pszFound;
 
-	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY && 
-			(pszFound = file_searchFileInPKSEditLocation(HISTORY_FILE_NAME)) != 0) {
-		return hist_readSession(pszFound);
+	if (GetConfiguration()->options & O_AUTO_OPEN_HISTORY) {
+		return hist_readSession(HISTORY_FILE_NAME);
 	}
 	return 0;
 }

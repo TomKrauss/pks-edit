@@ -77,7 +77,7 @@ typedef struct tagJSON_MAPPING_RULE {
  * be the base file name of a file to be loaded from the PKS Edit system pathes ($appDir/pks_sys, $user.hom/pks_sys).
  * In the later version, the parser may load multiple files allowing to extend settings.
  */
-extern int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules);
+extern int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetObject, JSON_MAPPING_RULE* pRules);
 
 /*
  * Convert a (CSS) color specification from the JSON file.
