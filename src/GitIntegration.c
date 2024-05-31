@@ -17,11 +17,9 @@
 #include "alloc.h"
 #include "gitintegration.h"
 #include "linkedlist.h"
+
+#ifdef GITINTEGRATION
 #include <git2.h>
-
-#define GIT_INTEGRATION 1
-
-#ifdef GIT_INTEGRATION
 
 struct tagVC_INFO {
 	VC_STATUS vci_status;

@@ -89,8 +89,10 @@ point to that directory: The bin directory containing the files should be placed
 
 PKS Edit build needs the environment variable `GITLIBDIRECTORY` to point to the directory where the 
 GIT library can be found (clone https://github.com/libgit2/libgit2 and refer to building it locally).
+In order to build without GIT integration (no libgit2 present), you need to build configuration
+`No Git` in Visual Studio.
 
-In order to edit the or execute the installation script (pksedit.iss), you need to download
-[Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2).
+To edit or execute the installation script (pksedit.iss), you need to download
+[Inno Setup](https://jrsoftware.org/ishelp/index.php) (we use currently the latest version 6.2.2).
 
 Enjoy Tom & Rolf
