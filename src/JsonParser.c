@@ -392,43 +392,57 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 	return i;
 }
 
+/*
+ * Parse a JSON file from the file descriptor according to mapping rules passed as an argument
+ * into the target object pTargetObject.
+ */
+static int json_parseFile(HFILE fd, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
+	int	tokcount = 2048;
+	char* pszBuf;
+	jsmn_parser parser;
+	jsmn_init(&parser);
+	pszBuf = file_readFileAsString(fd);
+	if (pszBuf) {
+		jsmntok_t* tokens = malloc(sizeof(*tokens) * tokcount);
+		int numberOfTokens = 0;
+		size_t maxInputSize = strlen(pszBuf);
+		while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
+			tokcount *= 2;
+			jsmntok_t* pszTempTokens = realloc(tokens, sizeof(*tokens) * tokcount);
+			if (pszTempTokens == NULL) {
+				free(tokens);
+				free(pszBuf);
+				return 0;
+			}
+			tokens = pszTempTokens;
+		}
+		json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
+		free(tokens);
+		free(pszBuf);
+	}
+	return 1;
+}
 
 /*
  * Parse the given JSON file and fill the target object according to the defined mapping rules. 
  */
 int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
 	char*	fn;
-	int		fd;
-	int		tokcount = 1000;
-	char*	pszBuf;
-	jsmn_parser parser;
+	int     fd;
+	int		ret = 0;
 
-	if ((fn = file_searchFileInPKSEditLocation(pszFilename)) != 0L && (fd = Fopen(fn, 0)) > 0) {
-		jsmn_init(&parser);
-		pszBuf = file_readFileAsString(fd);
-		Fclose(fd);
-		if (pszBuf) {
-			jsmntok_t* tokens = malloc(sizeof(*tokens) * tokcount);
-			int numberOfTokens = 0;
-			size_t maxInputSize = strlen(pszBuf);
-			while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
-				tokcount *= 2;
-				jsmntok_t* pszTempTokens = realloc(tokens, sizeof(*tokens) * tokcount);
-				if (pszTempTokens == NULL) {
-					free(tokens);
-					free(pszBuf);
-					return 0;
-				}
-				tokens = pszTempTokens;
-			}
-			json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
-			free(tokens);
-			free(pszBuf);
-		}
-		return 1;
-	} else {
-		return 0;
+	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, 
+				CFSF_SEARCH_ABSOLUTE | CFSF_SEARCH_APP_PKS_SYS| CFSF_SEARCH_CURRENT_DIR| CFSF_SEARCH_PKS_SYS| CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR)) != 0L
+			&& (fd = file_openFile(fn)) > 0) {
+		ret = json_parseFile(fd, pTargetObject, pRules);
+		file_closeFile(&fd);
 	}
+	// Allow extending configurations by placing config files into user.home/PKS_SYS
+	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && (fd = file_openFile(fn)) > 0) {
+		json_parseFile(fd, pTargetObject, pRules);
+		file_closeFile(&fd);
+	}
+	return ret;
 }
 
 /*

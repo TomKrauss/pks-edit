@@ -58,6 +58,15 @@ extern int file_createFile(char* fn);
  */
 extern int file_createFileWithMode(char* fn, int mode);
 
+typedef enum enumCONFIG_FILE_SEARCH_FLAGS {
+	CFSF_SEARCH_CURRENT_DIR = 0x1,
+	CFSF_SEARCH_PKS_SYS_EXTENSION_DIR = 0x2,
+	CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR = 0x20,
+	CFSF_SEARCH_APP_PKS_SYS = 0x4,
+	CFSF_SEARCH_PKS_SYS = 0x8,
+	CFSF_SEARCH_ABSOLUTE = 0x10,
+} CONFIG_FILE_SEARCH_FLAGS;
+
 /*--------------------------------------------------------------------------
  * file_searchFileInPKSEditLocation()
  * Searches a file in a "wellknown" PKS Edit location (PKS_SYS, home etc...) and
@@ -65,6 +74,14 @@ extern int file_createFileWithMode(char* fn, int mode);
  * save the result.
  */
 extern char* file_searchFileInPKSEditLocation(const char* s);
+
+/*--------------------------------------------------------------------------
+ * file_searchFileInPKSEditLocationFlags()
+ * Searches a file in the "wellknown" PKS Edit locations defined by the passed search flags and
+ * returns the result - this is not re-entrant. Before calling again, one must
+ * save the result.
+ */
+extern char* file_searchFileInPKSEditLocationFlags(const char* s, CONFIG_FILE_SEARCH_FLAGS flags);
 
 /*--------------------------------------------------------------------------
  * file_searchFileInDir()
@@ -121,9 +138,15 @@ extern char* file_readFileAsString(int fd);
 extern char* _pksSysFolder;
 
 /*
+ * A folder in the Users home directory, where PKS-Edit config files may be placed to extend the default configuration of PKS Edit.
+ */
+extern char _pksSysExtensionFolder[];
+
+/*
  * A folder in the Users home directory, where PKS-Edit config files may be placed to override the installed files.
  */
-extern char _homePksSysFolder[];
+extern char _pksSysOverrideFolder[];
+
 
 #define FILEUTIL_H
 #endif

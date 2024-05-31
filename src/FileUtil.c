@@ -177,7 +177,9 @@ EXPORT int file_createFile(char *fn)
 static int pathstat(char *path,char *fn)
 {
 	if (path) {
-		string_concatPathAndFilename(_found,path,fn);
+		if (fn != _found) {
+			string_concatPathAndFilename(_found, path, fn);
+		}
 		return (dostat(_found));
 	}
 	return 0;
@@ -194,7 +196,37 @@ EXPORT char* file_searchFileInDirectory(char* s, char* pDir) {
 	return 0;
 }
 
-
+/*--------------------------------------------------------------------------
+ * file_searchFileInPKSEditLocationFlags()
+ * Searches a file in the "wellknown" PKS Edit locations defined by the passed search flags and
+ * returns the result - this is not re-entrant. Before calling again, one must
+ * save the result.
+ */
+EXPORT char *file_searchFileInPKSEditLocationFlags(const char *s, CONFIG_FILE_SEARCH_FLAGS flags) {
+	BOOL bAbsolute = file_isAbsolutePathName(s);
+	if ((flags & CFSF_SEARCH_ABSOLUTE) && bAbsolute && dostat((char*)s)) {
+		return (char*)s;
+	}
+	if (bAbsolute) {
+		return 0;
+	}
+	if ((flags & CFSF_SEARCH_CURRENT_DIR) && dostat((char*)s)) {
+		return (char*)s;
+	}
+	if ((flags & CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR) && _pksSysOverrideFolder[0] && pathstat(_pksSysOverrideFolder, (char*)s)) {
+		return _found;
+	}
+	if ((flags & CFSF_SEARCH_PKS_SYS_EXTENSION_DIR) && _pksSysExtensionFolder[0] && pathstat(_pksSysExtensionFolder, (char*)s)) {
+		return _found;
+	}
+	if ((flags & CFSF_SEARCH_APP_PKS_SYS) && pathstat(_pksSysFolder, (char*)s)) {
+		return _found;
+	}
+	if ((flags & CFSF_SEARCH_PKS_SYS) && pathstat(PKS_SYS, (char*)s)) {
+		return _found;
+	}
+	return 0;
+}
 
 /*--------------------------------------------------------------------------
  * file_searchFileInPKSEditLocation()
@@ -202,21 +234,8 @@ EXPORT char* file_searchFileInDirectory(char* s, char* pDir) {
  * returns the result - this is not re-entrant. Before calling again, one must
  * save the result.
  */
-EXPORT char *file_searchFileInPKSEditLocation(const char *s)
-{
-	if (dostat((char*)s)) {
-		return (char*)s;
-	}
-	if (pathstat(_homePksSysFolder, (char*)s)) {
-		return _found;
-	}
-	if (pathstat(_pksSysFolder, (char*)s)) {
-		return _found;
-	}
-	if (pathstat(PKS_SYS, (char*)s)) {
-		return _found;
-	}
-	return 0;
+EXPORT char* file_searchFileInPKSEditLocation(const char* s) {
+	return file_searchFileInPKSEditLocationFlags(s, 0xFF);
 }
 
 

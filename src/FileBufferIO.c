@@ -169,7 +169,7 @@ void ft_getCodepageName(FTABLE* fp, char* pszName, size_t nMaxNameLen) {
  * close a file handle and report an error if unsuccessful. 
 /*---------------------------------*/
 EXPORT int file_closeFile(int *fd) {
-	int ret;
+	int ret = 0;
 
 	if (*fd > 0 && (ret = Fclose(*fd)) < 0) {
 		error_displayGenericErrorNumber(-ret);

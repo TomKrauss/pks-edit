@@ -15,9 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   allowing to e.g. change the Grammar used etc...
 
 ### Improved
-- One may now place config files into a PKS_SYS directory located in `$HOME` and override the installed configuration
-  files (e.g. `pksactionbindings.json`). Note, that this will for now completely replace the installed version. We will
-  come up with a more flexible mechanism later.
+- One may now place config files into a `.pksedit\config` directory located in `$HOME` and extend the installed configuration
+  files (e.g. `pksactionbindings.json`). This will allow to override or extent key bindings, add new menu entries
+  etc. If you place the same files into `.pksedit\pks_sys`, they will completely override the default files provided in the PKS Edit
+  installation. Note, that in the later case, you should review overridden files, when installing a new version of PKS Edit.
 - Find & replace will now always be initialized with patterns searched in previous PKS Edit sessions. One
   can for instance use find again without opening the find dialog.
 - Some language related inconsistencies were corrected (sometimes the wrong language was used in some places)

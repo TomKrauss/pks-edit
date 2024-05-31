@@ -453,6 +453,38 @@ void bindings_destroy() {
 	ll_destroy((LINKED_LIST**)&_actionBindings, bindings_destroyActionBindings);
 }
 
+static LOCAL_ACTION_BINDING* bindings_findAnchor(LOCAL_ACTION_BINDING* pBinding, char* pszAnchor) {
+	while (pBinding) {
+		if (strcmp(pBinding->ab_anchor, pszAnchor) == 0) {
+			return pBinding;
+		}
+		pBinding = pBinding->ab_next;
+	}
+	return NULL;
+}
+
+/*
+ * Allows us to define the elements for one sub-menu in multiple places (e.g. to provide a user specific
+ * action binding configuration). Will merge all menus with the same anchor into one - currently trivial
+ * implementation.
+ */
+static void bindings_mergeMenuDefinitions(LOCAL_ACTION_BINDING* pB) {
+	while (pB) {
+		LOCAL_ACTION_BINDING* pBAnchor = bindings_findAnchor(_menu, pB->ab_anchor);
+		LOCAL_ACTION_BINDING* pBNext = pB->ab_next;
+		if (pBAnchor != NULL && pBAnchor != pB) {
+			LOCAL_ACTION_BINDING* pBChild = pB->ab_children;
+			if (pBChild) {
+				LOCAL_ACTION_BINDING* pBSave = pBChild->ab_next;
+				ll_add(&pBAnchor->ab_children, (LINKED_LIST*)pBChild);
+				pBChild->ab_next = pBSave;
+			}
+			ll_delete(&_menu, pB);
+		}
+		pB = pBNext;
+	}
+}
+
 /*
  * Load a grammar definition file from the PKS_SYS directory.
  */
@@ -479,6 +511,8 @@ static int bindings_loadFromFile(const char* pszFilename) {
 		_contextMenu = definitions.subMenu;
 		_toolbar = definitions.toolbarButtonBinding;
 		_menu = definitions.menu;
+		pB = _menu;
+		bindings_mergeMenuDefinitions(_menu);
 		ll_destroy(&definitions.keys, NULL);
 		return 1;
 	}

@@ -36,7 +36,8 @@
 extern int file_exists(char *s);
 
 static char _sysdir[EDMAXPATHLEN];
-char _homePksSysFolder[EDMAXPATHLEN];
+char _pksSysExtensionFolder[EDMAXPATHLEN];
+char _pksSysOverrideFolder[EDMAXPATHLEN];
 extern char* PKS_SYS;					// The name if the PKS_SYS variable / configuration folder etc...
 extern char* _pksSysFolder;				// PKS_SYS directory, where the config files are located.
 
@@ -75,8 +76,11 @@ EXPORT BOOL init_initializeVariables(void )
 	EDITOR_CONFIGURATION* pConfig = GetConfiguration();
 
 	_pksSysFolder = _sysdir;
-	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, _homePksSysFolder))) {
-		strcat(_homePksSysFolder, "\\pks_sys");
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, datadir))) {
+		strcpy(_pksSysExtensionFolder, datadir);
+		strcpy(_pksSysOverrideFolder, datadir);
+		strcat(_pksSysExtensionFolder, "\\.pksedit\\config");
+		strcat(_pksSysOverrideFolder, "\\.pksedit\\pks_sys");
 	}
 	tempLen = GetModuleFileName(NULL, installationDirectory, EDMAXPATHLEN);
 	installationDirectory[tempLen] = 0;

@@ -185,6 +185,7 @@ void* ll_append(void** pointerLinkedList, long size) {
 /**
  * Add an element to the end of a linked list. If the linked list does not yet exist,
  * the HEAD pointer is updated to point to the new element.
+ * Warning - the next pointer of the element added is reset to NULL.
  */
 void ll_add(void** pointerLinkedList, LINKED_LIST* pElement) {
 	LINKED_LIST* lp = *pointerLinkedList;

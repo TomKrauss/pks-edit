@@ -73,6 +73,9 @@ typedef struct tagJSON_MAPPING_RULE {
 
 /*
  * Parse the given JSON file and fill the target object according to the defined mapping rules.
+ * The file name may be specified as an absolute path in which case it is used as is, or it might
+ * be the base file name of a file to be loaded from the PKS Edit system pathes ($appDir/pks_sys, $user.hom/pks_sys).
+ * In the later version, the parser may load multiple files allowing to extend settings.
  */
 extern int json_parse(const char* pszFilename, void* pTargetObject, JSON_MAPPING_RULE* pRules);
 
