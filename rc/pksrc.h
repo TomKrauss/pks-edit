@@ -81,6 +81,7 @@
 #define IDD_FIRST_PAGE                  1012
 #define IDD_LAST_PAGE                   1013
 #define IDC_LIST1                       1015
+#define IDD_GROUPBOX                    1019
 #define IDS_REDO                        1246
 #define IDS_TRYING_TO_OPEN_TOO_MANY_FILES 1914
 #define IDS_COMMAND251                  2299
@@ -95,7 +96,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        243
 #define _APS_NEXT_COMMAND_VALUE         40038
-#define _APS_NEXT_CONTROL_VALUE         1019
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

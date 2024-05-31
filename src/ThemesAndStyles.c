@@ -1240,8 +1240,7 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 			 case CDDS_PREPAINT:
 				 return CDRF_NOTIFYITEMDRAW;
 			 case CDDS_ITEMPREPAINT: {
-				 // does not work - for whatever reasons. SetTextColor(nmcd->hdc, theme_getDefault()->th_dialogForeground);
-				 SetTextColor(nmcd->hdc, RGB(255,255,255));
+				 SetTextColor(nmcd->hdc, theme_getCurrent()->th_dialogForeground);
 				 return CDRF_DODEFAULT;
 			 }
 			 }
@@ -1316,11 +1315,11 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 			SetWindowTheme(hwndHeader, L"ItemsView", 0);
 			darkmode_allowForWindow(hwndControl, TRUE);
 			SetWindowTheme(hwndControl, L"Explorer", 0);
-			ListView_SetBkColor(hwndControl, pTheme->th_dialogBackground);
-			ListView_SetTextColor(hwndControl, pTheme->th_dialogForeground);
-			ListView_SetTextBkColor(hwndControl, pTheme->th_dialogBackground);
-			SetWindowSubclass(hwndControl, headerSubclassProc, headerSublassId, 0);
 		}
+		ListView_SetBkColor(hwndControl, pTheme->th_dialogBackground);
+		ListView_SetTextColor(hwndControl, pTheme->th_dialogForeground);
+		ListView_SetTextBkColor(hwndControl, pTheme->th_dialogBackground);
+		SetWindowSubclass(hwndControl, headerSubclassProc, headerSublassId, 0);
 	}
 	return TRUE;
 }

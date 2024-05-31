@@ -43,8 +43,7 @@ extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
  */
 extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
-	char** ppszGrammar,
-	int** pOwn);
+	char** ppszGrammar);
 
 /*--------------------------------------------------------------------------
  * doctypes_createDocumentType()
@@ -61,7 +60,7 @@ extern DOCUMENT_TYPE* doctypes_getPrivateDocumentType(char* name);
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescriptor()
  */
-extern EDIT_CONFIGURATION* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p);
+extern EDIT_CONFIGURATION* doctypes_getDocumentTypeDescriptor(DOCUMENT_TYPE* p, char** pDocumentTypeName);
 
 /*--------------------------------------------------------------------------
  * doctypes_deleteDocumentType()
@@ -79,10 +78,11 @@ extern BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration
 /*--------------------------------------------------------------------------
  * doctypes_assignDocumentTypeDescriptor()
  * assign document type properties / descriptor to file
- * if documentDescriptor == 0, read document descriptor from disc according to filename pattern
- * match.
+ * if editConfiguration is NULL, use a descriptor from disc according to filename pattern match.
+ * If a pszDocumentTypeName is passed, use that as the name of document type to use rather than trying to match the document
+ * type from the file name.
  */
-extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION* documentDescriptor);
+extern int  doctypes_assignDocumentTypeDescriptor(FTABLE* fp, EDIT_CONFIGURATION* pEditConfiguration, char *pszDocumentTypeName);
 
 /*--------------------------------------------------------------------------
  * doctypes_assignDocumentTypeDescriptor()

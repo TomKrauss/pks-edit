@@ -482,6 +482,9 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				DlgInitString(hDlg,item,cbuf,sizeof cbuf-1);
 				break;
 			default:
+				if (!ip) {
+					break;
+				}
 				if (ISFLAGDLGCTL(item)) {
 					CheckDlgButton(hDlg,item,(*ip & dp->dp_size) ? 1 : 0);
 				} else if (ISRADIODLGCTL(item)) {
@@ -721,6 +724,9 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			*(char*)dp->dp_data = cbuf[0];
 			break;
 		default:
+			if (ip == NULL) {
+				break;
+			}
 			if (ISFLAGDLGCTL(item)) {
 				*ip = (IsDlgButtonChecked(hDlg, item)) ?
 					*ip | dp->dp_size : 
@@ -946,6 +952,7 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	case WM_CTLCOLORMSGBOX:
 	case WM_CTLCOLORDLG:
 	case WM_CTLCOLOREDIT:
+	case WM_CTLCOLORSCROLLBAR:
 	case WM_CTLCOLORLISTBOX: {
 		THEME_DATA* pTheme = theme_getCurrent();
 		if (pTheme->th_isWinTheme) {

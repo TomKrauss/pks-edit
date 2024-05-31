@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - PKS Edit was integrated with libgit2 and provides now some basic GIT information about the files edited.
 - The new command line argument -v can be used to turn on verbose logging to a log file named `PKS_SYS\pksedit.log`.
+- Change Document Type... allows now to correctly apply a selected document type to an arbitrary file selected
+  allowing to e.g. change the Grammar used etc...
 
 ### Improved
 - One may now place config files into a PKS_SYS directory located in `$HOME` and override the installed configuration

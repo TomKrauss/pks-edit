@@ -906,7 +906,6 @@ static DIALPARS docTypePars[] =
 	IDD_PATH1,		84,						0,
 	IDD_STRING5,		84,						0,
 	IDD_STRING3,		32,						0,
-	IDD_OPT1,			1,						0,
 	IDD_CALLBACK1,		0,						doctypes_changeType,
 	IDD_CALLBACK2,		0,						doctypes_deleteType,
 	IDD_CALLBACK3,		0,						doctypes_apply,
@@ -934,25 +933,22 @@ static void doctypes_fillParameters(DIALPARS *dp, void *par)
 	char *	pszMatch;
 	char *	pszFname;
 	char*	pszGrammar;
-	int *	pOwn;
 
-	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, 
-& pszFname, & pszGrammar, & pOwn)) {
-return;
+	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, & pszFname, & pszGrammar)) {
+		return;
 	}
 
 	dp->dp_data = pszId;					dp++;
 	dp->dp_data = pszDescription;			dp++;
 	dp->dp_data = pszFname;					dp++;
 	dp->dp_data = pszMatch;					dp++;
-	dp->dp_data = pszGrammar;				dp++;
-	dp->dp_data = pOwn;
+	dp->dp_data = pszGrammar;
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_apply()
  */
-DOCUMENT_TYPE* lastSelectedDocType;
+static DOCUMENT_TYPE* _selectedDocType;
 static void doctypes_apply(void)
 {
 	EDIT_CONFIGURATION* pConfiguration;
@@ -961,14 +957,10 @@ static void doctypes_apply(void)
 	if ((fp = ft_getCurrentDocument()) == 0) {
 		return;
 	}
-	if ((pConfiguration = doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) != 0) {
-		if (!(fp->flags & F_MODIFIED)) {
-			ft_abandonFile(fp, pConfiguration);
-		}
-		else {
-			doctypes_assignDocumentTypeDescriptor(fp, pConfiguration);
-			doctypes_documentTypeChanged(TRUE);
-		}
+	char* pDocTypeName;
+	if ((pConfiguration = doctypes_getDocumentTypeDescriptor(_selectedDocType, &pDocTypeName)) != NULL) {
+		doctypes_assignDocumentTypeDescriptor(fp, NULL, pDocTypeName);
+		doctypes_documentTypeChanged(TRUE);
 	}
 }
 
@@ -977,9 +969,9 @@ static void doctypes_apply(void)
  */
 static void doctypes_newType(HWND hDlg)
 {
-	lastSelectedDocType = doctypes_createDocumentType(lastSelectedDocType);
-	doctypes_fillListbox(hDlg, lastSelectedDocType);
-	doctypes_fillParameters(docTypePars, lastSelectedDocType);
+	_selectedDocType = doctypes_createDocumentType(_selectedDocType);
+	doctypes_fillListbox(hDlg, _selectedDocType);
+	doctypes_fillParameters(docTypePars, _selectedDocType);
 	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
 }
 
@@ -988,10 +980,10 @@ static void doctypes_newType(HWND hDlg)
  */
 static void doctypes_deleteType(HWND hDlg)
 {
-	doctypes_deleteDocumentType(lastSelectedDocType);
-	lastSelectedDocType = 0;
-	doctypes_fillListbox(hDlg, lastSelectedDocType);
-	doctypes_fillParameters(docTypePars, lastSelectedDocType);
+	doctypes_deleteDocumentType(_selectedDocType);
+	_selectedDocType = 0;
+	doctypes_fillListbox(hDlg, _selectedDocType);
+	doctypes_fillParameters(docTypePars, _selectedDocType);
 }
 
 /*--------------------------------------------------------------------------
@@ -1000,7 +992,7 @@ static void doctypes_deleteType(HWND hDlg)
 static void doctypes_changeType(HWND hDlg)
 {
 	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
-	doctypes_fillListbox(hDlg, (void*)lastSelectedDocType);
+	doctypes_fillListbox(hDlg, (void*)_selectedDocType);
 }
 
 /*
@@ -1012,10 +1004,9 @@ static void doctypes_getColumnParameters(NMLVDISPINFO* plvdi) {
 	char* pszMatch;
 	char* pszFname;
 	char* pszGrammar;
-	int* pOwn;
 
 	if (!doctypes_getDocumentTypeDescription((void*)plvdi->item.lParam, &pszId, &pszDescription, &pszMatch,
-		&pszFname, &pszGrammar, &pOwn)) {
+		&pszFname, &pszGrammar)) {
 		return;
 	}
 	switch (plvdi->item.iSubItem)
@@ -1064,6 +1055,7 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) {
 			LPNMLISTVIEW pActivate = (LPNMLISTVIEW)lParam;
 			if (pActivate->uNewState) {
+				_selectedDocType = (void*)pActivate->lParam;
 				doctypes_fillParameters(docTypePars, (void*)pActivate->lParam);
 				DoDlgInitPars(hwnd, docTypePars, NVDOCTYPEPARS);
 			}
@@ -1074,7 +1066,7 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 		break;
 	case WM_INITDIALOG:
 		doctype_initListView(GetDlgItem(hwnd, IDC_DOCTYPES));
-		doctypes_fillListbox(hwnd, lastSelectedDocType);
+		doctypes_fillListbox(hwnd, _selectedDocType);
 
 		break;
 	}
@@ -1089,8 +1081,9 @@ static int doDocumentTypes(int nDlg) {
 	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
 
+	_selectedDocType = pConfig != NULL ? pConfig->documentType : NULL;
 	doctypes_fillParameters(docTypePars, (void*)pConfig);
-	if (DoDialog(nDlg, doctype_dialogProcedure,docTypePars, NULL) == IDCANCEL) {
+	if (DoDialog(nDlg, doctype_dialogProcedure, docTypePars, NULL) == IDCANCEL) {
 		return 0;
 	}
 

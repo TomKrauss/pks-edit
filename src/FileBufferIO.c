@@ -877,7 +877,7 @@ EXPORT int ft_readfileWithOptions(FTABLE *fp, FILE_READ_OPTIONS* pOptions) {
 	fp->lockFd = 0;
 	strcpy(fp->fname, pOptions->fro_fileName);
 
-	if (!pOptions->fro_useDefaultDocDescriptor && !doctypes_assignDocumentTypeDescriptor(fp,(EDIT_CONFIGURATION*)0))
+	if (!pOptions->fro_useDefaultDocDescriptor && !doctypes_assignDocumentTypeDescriptor(fp,(EDIT_CONFIGURATION*)0, NULL))
 		return 0;
 
 	_verbose = 0;

@@ -371,28 +371,32 @@
         "fixCapitals": true,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
-      "statuslineSegments": [
+        "statuslineSegments": [
         {
-          "language": "de",
-          "text": "Zeile %2d$l Spalte %2d$c"
+            "language": "de",
+            "text": "Zeile %2d$l Spalte %2d$c",
+            "iconColor": "#000000"
         },
         {
-          "language": "en",
-          "text": "Line %2d$l Column %2d$c"
+            "language": "en",
+            "text": "Line %2d$l Column %2d$c",
+            "iconColor": "#000000"
         },
         {
-          "text": "\t%s$P",
-          "icon": "fa-font"
+            "text": "\t%s$P",
+            "icon": "fa-font",
+            "iconColor": "#000000"
         },
         {
-          "text": "\t%s$&"
+            "text": "\t%s$&",
+            "iconColor": "#000000"
         },
         {
-          "text": "\t%s$V",
-          "icon": "fa-git-square-b",
-          "iconColor": "orange"
+            "text": "\t%s$V",
+            "icon": "fa-git-square-b",
+            "iconColor": "#e69138"
         }
-      ],
+        ],
         "tabCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",
@@ -417,10 +421,10 @@
         "showWhitespace": true,
         "showLineNumbers": true,
         "showSyntaxHighlight": true,
-        "highlightCaretLine": true,
         "insertMode": true,
         "autoIndent": true,
         "fixCapitals": true,
+        "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "tabCharacter": "\t",
         "newlineCharacter": "\n",
@@ -448,13 +452,16 @@
         "insertMode": true,
         "statuslineSegments": [
         {
-            "text": "%s$f"
+            "text": "%s$f",
+            "iconColor": "#000000"
         },
         {
-            "text": "%6d$O: 0%o$C"
+            "text": "%6d$O: 0%o$C",
+            "iconColor": "#000000"
         },
         {
-            "text": "\t%s$&"
+            "text": "\t%s$&",
+            "iconColor": "#000000"
         }
         ],
         "tabCharacter": " ",
@@ -477,11 +484,14 @@
         "tabSize": 8,
         "codepage": 0,
         "shiftWidth": 4,
+        "showWhitespace": true,
         "showLineNumbers": true,
         "showSyntaxHighlight": true,
-        "highlightCaretLine": true,
         "insertMode": true,
-        "watchLogfile": true,
+        "autoIndent": true,
+        "fixCapitals": true,
+        "expandAbbreviations": true,
+        "smartSpaceDelete": true,
         "tabCharacter": " ",
         "newlineCharacter": "\n",
         "crCharacter": "\r",

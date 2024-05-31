@@ -638,17 +638,15 @@ BEGIN
 END
 
 DLGDOCTYPES DIALOGEX 13, 39, 349, 295
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Documenttypes"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "",IDC_DOCTYPES,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,5,30,325,106
     LTEXT           "Defined &Types:",-1,6,20,60,8
-    GROUPBOX        "Editor Configuration",IDD_CALLBACK3,6,137,324,48,WS_GROUP
+    GROUPBOX        "Editor Configuration",IDD_GROUPBOX,6,137,324,48,WS_GROUP
     LTEXT           "&Name:",126,12,153,32,8,NOT WS_GROUP
     EDITTEXT        IDD_PATH1,48,151,276,12,ES_AUTOHSCROLL
-    CONTROL         "&Private configuration (only current file)",IDD_LOWOPT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,169,309,12
     LTEXT           "Filename &Pattern:",226,6,209,52,8
     EDITTEXT        IDD_STRING5,60,207,270,12
     LTEXT           "&Description:",227,6,227,52,8
@@ -657,7 +655,7 @@ BEGIN
     EDITTEXT        IDD_STRING6,60,189,270,12
     PUSHBUTTON      "&Delete",IDD_CALLBACK2,6,269,44,14,WS_GROUP
     PUSHBUTTON      "Ne&w",IDD_NOINITCALLBACK,68,269,48,14
-    PUSHBUTTON      "&Apply",127,234,6,44,14
+    PUSHBUTTON      "&Apply",IDD_CALLBACK3,234,6,44,14
     DEFPUSHBUTTON   "&Cancel",1,284,6,44,14,WS_GROUP
     PUSHBUTTON      "&Change",IDD_CALLBACK1,134,269,44,14
     LTEXT           "&Syntax:",229,7,244,52,8
@@ -1645,7 +1643,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND176          "Defines document types;Define Document Types..."
+    IDS_COMMAND176          "Apply a document type, define new ones or change one;Change Document Type..."
     IDS_COMMAND177          "Close all but current Window;Close all but current Window"
     IDS_COMMAND178          "Repeats the last editing commands;Repeat last Edit"
     IDS_COMMAND179          "Starts the macro recorder;Record Macro"

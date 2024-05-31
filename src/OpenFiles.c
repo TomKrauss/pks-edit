@@ -57,7 +57,6 @@ extern WINFO* ww_findwinid(int winid);
 extern int 	EdPromptAutosavePath(char *path);
 
 extern char *	_pksSysFolder;
-extern void *	lastSelectedDocType;
 
 static	FTABLE 	*_currentFile;
 static FTABLE 	*_filelist;
@@ -706,7 +705,6 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	const char* pszHint = pOptions->fo_dockName;
 
 	szAsPath[0] = 0;
-	lastSelectedDocType = 0;
 	if (fn) {
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
@@ -767,7 +765,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		lstrcpy(fp->fname, fn);
 	}
 	fp->flags |= nFileCreationFlags;
-	if (doctypes_assignDocumentTypeDescriptor(fp, doctypes_getDocumentTypeDescriptor(lastSelectedDocType)) == 0 ||
+	if (doctypes_assignDocumentTypeDescriptor(fp, NULL, NULL) == 0 ||
          ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, -1) == 0 || 
 	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
 		ft_destroy(fp);
@@ -801,7 +799,7 @@ FTABLE* ft_openBackupfile(FTABLE* fp) {
 	FTABLE* fpBackup = ft_openFileWithoutFileselector(backupFilename, 0l, &(FT_OPEN_OPTIONS) { NULL, fp->codepageInfo.cpi_codepage });
 	if (fpBackup != NULL) {
 		ft_setFlags(fpBackup, fpBackup->flags | F_RDONLY | F_TRANSIENT);
-		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor);
+		doctypes_assignDocumentTypeDescriptor(fpBackup, fp->documentDescriptor, NULL);
 		doctypes_documentTypeChanged(FALSE);
 	}
 	return fpBackup;
@@ -897,7 +895,7 @@ static int ft_abandoned(WINFO* wp, struct tagPOSITION* pPosition) {
 	caret_placeCursorInCurrentFile(wp, pPosition->ln, pPosition->col);
 	return 1;
 }
-int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
+int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *pEditorConfiguration) {
 	long   	ln,col;
 
 	if  (fp == 0) {
@@ -917,7 +915,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *linp) {
 	ft_bufdestroy(fp);
 
 	if (undo_initializeManager(fp) == 0 || 
-	    !doctypes_assignDocumentTypeDescriptor(fp, linp) ||
+	    !doctypes_assignDocumentTypeDescriptor(fp, pEditorConfiguration, NULL) ||
 	    !ft_readfile(fp,fp->documentDescriptor, fp->codepageInfo.cpi_codepage, 0)) {
 		fp->flags = 0;
 		ww_close(wp);
@@ -1039,7 +1037,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		}
 		strcpy(fp->fname, newname);
 		// Document type may have changed as a result of saving under a new name. Recalculate document descriptor.
-		doctypes_assignDocumentTypeDescriptor(fp, 0);
+		doctypes_assignDocumentTypeDescriptor(fp, NULL, NULL);
 		doctypes_documentTypeChanged(FALSE);
 		int fpflags = fp->flags;
 		ft_forAllViews(fp, (int(*)(WINFO*,void*))ww_setwindowtitle, (void*)TRUE);

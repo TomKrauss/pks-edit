@@ -33,6 +33,7 @@
 #include "edctype.h"
 #include "funcdef.h"
 #include "history.h"
+#include "themes.h"
 
 static HMENU _contextMenu;
 static POINT _contextMenuPosition;
@@ -305,6 +306,13 @@ HMENU menu_createMenubar() {
 		menu_determineLabelWithMnemonic(szLabel, pMenu, charsWithMnemonic, TRUE);
 		AppendMenu(hMenuBar, MF_POPUP, (UINT_PTR)hMenu, szLabel);
 		pMenu = pMenu->mid_next;
+	}
+	if (!theme_getCurrent()->th_isDarkMode && !theme_getCurrent()->th_isWinTheme) {
+		MENUINFO mi = { 0 };
+		mi.cbSize = sizeof(mi);
+		mi.fMask = MIM_BACKGROUND | MIM_APPLYTOSUBMENUS;
+		mi.hbrBack = theme_getDialogBackgroundBrush();
+		SetMenuInfo(hMenuBar, &mi);
 	}
 	return hMenuBar;
 }
