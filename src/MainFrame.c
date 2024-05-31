@@ -2482,7 +2482,7 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 			pszHint = szDock;
 		}
 		if (nFound >= 3) {
-			bClone = strcmp("focus", szFocus) == 0;
+			bFocus = strcmp("focus", szFocus) == 0;
 		}
 		if (nFound >= 4) {
 			bClone = strcmp("cloned", szCloned) == 0;

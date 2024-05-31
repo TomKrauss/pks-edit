@@ -9,6 +9,11 @@
 [Tasks]
 Name: fileAssociation; Description: "{cm:AssociateFiles}"; GroupDescription: "{cm:ExtensionsGroup}"
 
+[Dirs]
+Name: "{%USERPROFILE}\.pksedit"
+Name: "{%USERPROFILE}\.pksedit\config"
+Name: "{%USERPROFILE}\.pksedit\pks_sys"
+
 [Setup]
 AppName=PKS Edit
 AppVersion=2.6.0
@@ -45,6 +50,13 @@ Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [CustomMessages]
+en.UninstallUserSettings=Do you want to uninstall user-specific settings?
+de.UninstallUserSettings=Sollen die Benutzer-spezifischen Einstellungen entfernt werden?
+it.UninstallUserSettings=Vuoi disinstallare le impostazioni specifiche dell'utente?
+fr.UninstallUserSettings=Voulez-vous désinstaller les paramètres spécifiques à l'utilisateur ?
+nl.UninstallUserSettings=Wilt u gebruikersspecifieke instellingen verwijderen?
+ru.UninstallUserSettings=Вы хотите удалить пользовательские настройки?
+
 en.MsgOpenWith=Open with %1
 de.MsgOpenWith=Öffnen mit %1
 it.MsgOpenWith=Aperta con
@@ -126,4 +138,18 @@ begin
     Result := 'win.ini'
   else
     Result := ExpandConstant('{app}\pksedit.ini');
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var dir: AnsiString;
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+     dir := ExpandConstant('{%USERPROFILE}\.pksedit');
+     if DirExists(dir) then
+      if MsgBox(ExpandConstant('{cm:UninstallUserSettings}'),
+        mbConfirmation, MB_YESNO) = IDYES
+      then
+        DelTree(dir, TRUE, TRUE, TRUE);
+  end;
 end;

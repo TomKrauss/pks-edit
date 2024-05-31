@@ -62,7 +62,6 @@ static	FTABLE 	*_currentFile;
 static FTABLE 	*_filelist;
 
 #define HISTORY_FILE_NAME "pkssession.json"
-static char		_historyFileName[EDMAXPATHLEN];
 int				_ExSave;
 
 /*--------------------------------------------------------------------------
@@ -208,7 +207,7 @@ static void ft_firePropertyChange(FTABLE* fp, PROPERTY_CHANGE* pChange) {
 #define 	HZ			1000L
 int ft_triggerAutosaveAllFiles(void)
 {	int	    		ret,flags,saved;
-	long     		now,dclicks;
+	long	  		now,dclicks;
 	register FTABLE *fp;
 	char     		spath[EDMAXPATHLEN];
 	static long 	nchkclick;
@@ -324,11 +323,13 @@ void ft_saveWindowStates(void ) {
 			}
 		}
 	}
-	pszFilename = _historyFileName;
-	if (pszFilename[0] == 0) {
-		string_concatPathAndFilename(szBuff, _pksSysFolder, HISTORY_FILE_NAME);
-		pszFilename = szBuff;
+	pszFilename = file_searchFileInPKSEditLocationFlags(HISTORY_FILE_NAME, CFSF_SEARCH_LOCAL_PKS_SYS | CFSF_SEARCH_APP_PKS_SYS | CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR);
+	if (pszFilename == NULL) {
+		string_concatPathAndFilename(szBuff, _pksSysOverrideFolder[0] ? _pksSysOverrideFolder : _pksSysFolder, HISTORY_FILE_NAME);
+	} else {
+		GetFullPathName(pszFilename, sizeof szBuff, szBuff, NULL);
 	}
+	pszFilename = szBuff;
 	hist_saveSession(pszFilename);
 }
 

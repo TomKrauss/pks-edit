@@ -437,12 +437,14 @@
         "caretPreserveColumn": true,
         "caretFollowsScrollbar": true
     },
-    {
+      {
         "name": "binary",
         "id": 3,
         "leftMargin": 0,
         "rightMargin": 80,
         "tabSize": 8,
+        "newlineCharacter": "\\0",
+        "crCharacter": "\\0",
         "codepage": -1,
         "shiftWidth": 4,
         "hexMode": true,
@@ -451,22 +453,20 @@
         "highlightCaretLine": true,
         "insertMode": true,
         "statuslineSegments": [
-        {
+          {
             "text": "%s$f",
             "iconColor": "#000000"
-        },
-        {
+          },
+          {
             "text": "%6d$O: 0%o$C",
             "iconColor": "#000000"
-        },
-        {
+          },
+          {
             "text": "\t%s$&",
             "iconColor": "#000000"
-        }
+          }
         ],
         "tabCharacter": " ",
-        "newlineCharacter": "\n",
-        "crCharacter": "\r",
         "scrollVerticallyBy": 0,
         "scrollHorizontallyBy": 0,
         "scrollVerticalBorder": 5,
@@ -475,7 +475,7 @@
         "caretPreserveColumn": true,
         "caretFollowsScrollbar": true,
         "backupExtension": "bak"
-    },
+      },
     {
         "name": "logfile",
         "id": 4,

@@ -438,8 +438,10 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 		ret = json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
 	}
-	// Allow extending configurations by placing config files into user.home/PKS_SYS
-	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && (fd = file_openFile(fn)) > 0) {
+	// Allow extending configurations by placing config files into user.home/CONFIG
+	if (extensionSupported && 
+		(fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && 
+		(fd = file_openFile(fn)) > 0) {
 		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading extension file %s", fn));
 		json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
@@ -667,6 +669,7 @@ int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE
 		}
 	}
 	if ((fp = fopen(fn, "w")) != NULL) {
+		EdTRACE(log_errorArgs(DEBUG_INFO, "Saving config file %s", fn));
 		fprintf(fp, "{%s", _nl);
 		indent += 4;
 		while (pRules->r_type != RT_END) {

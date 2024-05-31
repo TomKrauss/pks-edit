@@ -909,12 +909,12 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(xref_getSearchListFormat());
 	WINFO* pActivate = NULL;
 	BOOL bActive;
-	BOOL bClone;
 
 	while(lp != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
 			bActive = FALSE;
 			int nDisplayMode = -1;
+			BOOL bClone = FALSE;
 			if (spec.comment[0]) {
 				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment);
 				bActive = hHint.oh_activate;
