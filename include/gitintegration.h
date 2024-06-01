@@ -46,7 +46,7 @@ extern void gi_freeVersionInfo(VC_INFO* pInfo);
 /*
  * Return the current GIT status for a given version info.
  */
-extern VC_STATUS gi_getStatus(VC_INFO* pInfo);
+extern VC_STATUS gi_getStatus(VC_INFO* pInfo, const char* pszFilename);
 
 /*
  * Print the hash of the current ref of the file loaded into pszBuffer with a maximum length of nLen+1. If nLen is 0

@@ -280,13 +280,8 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_DESTROY:
 		free(pszStatusMessage);
 		break;
-	case WM_ERASEBKGND: {
-		THEME_DATA* pTheme = theme_getCurrent();
-		if (pTheme->th_isWinTheme) {
-			return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
-		}
+	case WM_ERASEBKGND: 
 		return 0;
-	}
 	}
 	return CallWindowProc(_wpOrigStatusWndProc, hwnd, msg, wParam, lParam);
 }

@@ -108,8 +108,8 @@ void string_formatDate(char *szDbuf, EDTIME *ltime)
 	}
 }
 
-static void printVCStatus(char* pszDest, VC_INFO* pInfo) {
-	VC_STATUS status = gi_getStatus(pInfo);
+static void printVCStatus(char* pszDest, VC_INFO* pInfo, char* pszFilename) {
+	VC_STATUS status = gi_getStatus(pInfo, pszFilename);
 	if (status == VCS_NONE) {
 		strcpy(pszDest, " ");
 		return;
@@ -167,7 +167,7 @@ static char *string_evaluatePrintfReference(FTABLE *fp, char **fmt, char *fname)
 		return fname;
 
 	case 'V':
-		printVCStatus(fname, fp->vcInfo);
+		printVCStatus(fname, fp->vcInfo, fp->fname);
 		return fname;
 
 	case 'C':

@@ -1408,14 +1408,6 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-/*------------------------------------------------------------
- * ww_onTimerAction()
- * Triggered, when the timer of the frame window "hits".
- */
-static void ww_onTimerAction(void) {
-	st_redraw(FALSE);
-}
-
 /*
  * Add a window with the given window class to our tab control managing the edit windows. 
  */
@@ -1960,7 +1952,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			fkey_keyModifierStateChanged();
 		}
 		ft_triggerAutosaveAllFiles();
-		ww_onTimerAction();
+		if (bActive) {
+			st_redraw(FALSE);
+		}
 		break;
 
 	case WM_WININICHANGE:
