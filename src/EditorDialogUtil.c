@@ -428,7 +428,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 				} else if (item != IDD_FILE_PATTERN) {
 					ht = SEARCH_PATTERNS;
 				}
-				hist_fillComboBox(hDlg, item, ht, item != IDD_FINDS2);
+				hist_fillComboBox(hDlg, item, ht, TRUE);
 				LPSTR pData = (LPSTR)ip;
 				if (pData && *pData) {
 					SetDlgItemText(hDlg, item, pData);
@@ -691,10 +691,11 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 					hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 					hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
 				}
-				if ( idCtrl == IDOK && 
-					item == IDD_REPLS && 
-					!find_initializeReplaceByExpression(dp->dp_data)) {
-					return FALSE;
+				if (idCtrl == IDOK && item == IDD_REPLS) {
+					if (!find_initializeReplaceByExpression(dp->dp_data)) {
+						return FALSE;
+					}
+					hist_saveString(SEARCH_AND_REPLACE, (LPSTR)ip);
 				}
 			}
 			break;
