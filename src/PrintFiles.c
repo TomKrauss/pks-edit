@@ -723,8 +723,9 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 /**
  * Save the config file with the printer layout.
  */
-static void print_saveConfiguration() {
+static BOOL print_saveConfiguration(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
 	config_saveConfiguration(FALSE);
+	return FALSE;
 }
 
 static void prt_decolboxfill(HWND hwnd, int nItem, void* selValue) {
@@ -769,8 +770,8 @@ int prt_decoget(HWND hwnd, int id, void* pDecoType) {
 /*--------------------------------------------------------------------------
  * DlgPrint()
  */
-static DIALPARS* _dPrintLayoutParams;
-static DIALPARS* _getDialogParsForPage(int page) {
+static DIALOG_ITEM_DESCRIPTOR* _dPrintLayoutParams;
+static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int page) {
 	if (page == 1) {
 		return _dPrintLayoutParams;
 	}
@@ -778,36 +779,36 @@ static DIALPARS* _getDialogParsForPage(int page) {
 }
 static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	PRTPARAM* pParams = config_getPrintConfiguration();
-	DIALPARS _dPrintLayout[] = {
-		IDD_ICONLIST,	0,	0,
-		IDD_ICONLIST2,	0,	0,
-		IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&pParams->header.pme_align,
-		IDD_RADIO4,		PRA_RIGHT - PRA_LEFT,& pParams->footer.pme_align,
-		IDD_OPT1,			PRTO_SWAP_HEADER_FOOTER_ALIGNMENT,& pParams->options,
-		IDD_OPT2,			PRTO_LINE_NUMBERS,& pParams->options,
-		IDD_OPT3,			PRTO_HEADERS,& pParams->options,
-		IDD_OPT5,			PRTO_WRAP_LONG_LINES,& pParams->options,
-		IDD_OPT6,			PRTO_SYNTAX_HIGHLIGHT,& pParams->options,
-		IDD_INT1,			0,& pParams->pagelen,
-		IDD_INT2,			0,& pParams->nchars,
-		IDD_INT3,			0,& pParams->lmargin,
-		IDD_INT4,			0,& pParams->rmargin,
-		IDD_INT5,			0,& pParams->header.pme_margin,
-		IDD_INT6,			0,& pParams->footer.pme_margin,
-		IDD_INT7,			0,& pParams->header.pme_lines,
-		IDD_INT8,			0,& pParams->footer.pme_lines,
-		IDD_STRING1,		sizeof pParams->header,	pParams->header.pme_template,
-		IDD_STRING2,		sizeof pParams->footer,	pParams->footer.pme_template,
-		IDD_CALLBACK1,		0,				print_saveConfiguration,
-		IDD_FONTSELECT,		TRUE,			pParams->font.fs_name,
-		IDD_FONTSELECT2,	TRUE,			pParams->header.pme_font.fs_name,
-		IDD_FONTSELECT3,	TRUE,			pParams->footer.pme_font.fs_name,
-		0
+	DIALOG_ITEM_DESCRIPTOR _dPrintLayout[] = {
+		{IDD_ICONLIST,	0,	0},
+		{IDD_ICONLIST2,	0,	0},
+		{IDD_RADIO1,		PRA_RIGHT - PRA_LEFT,	&pParams->header.pme_align},
+		{IDD_RADIO4,		PRA_RIGHT - PRA_LEFT,&pParams->footer.pme_align},
+		{IDD_OPT1,			PRTO_SWAP_HEADER_FOOTER_ALIGNMENT,&pParams->options},
+		{IDD_OPT2,			PRTO_LINE_NUMBERS,&pParams->options},
+		{IDD_OPT3,			PRTO_HEADERS,&pParams->options},
+		{IDD_OPT5,			PRTO_WRAP_LONG_LINES,&pParams->options},
+		{IDD_OPT6,			PRTO_SYNTAX_HIGHLIGHT,&pParams->options},
+		{IDD_INT1,			0,&pParams->pagelen},
+		{IDD_INT2,			0,&pParams->nchars},
+		{IDD_INT3,			0,&pParams->lmargin},
+		{IDD_INT4,			0,&pParams->rmargin},
+		{IDD_INT5,			0,&pParams->header.pme_margin},
+		{IDD_INT6,			0,&pParams->footer.pme_margin},
+		{IDD_INT7,			0,&pParams->header.pme_lines},
+		{IDD_INT8,			0,&pParams->footer.pme_lines},
+		{IDD_STRING1,		sizeof pParams->header,	pParams->header.pme_template},
+		{IDD_STRING2,		sizeof pParams->footer,	pParams->footer.pme_template},
+		{IDD_CALLBACK1,		0, .did_command = print_saveConfiguration},
+		{IDD_FONTSELECT,		TRUE,			pParams->font.fs_name, .did_command = dlg_selectFontCommand},
+		{IDD_FONTSELECT2,	TRUE,			pParams->header.pme_font.fs_name, .did_command = dlg_selectFontCommand},
+		{IDD_FONTSELECT3,	TRUE,			pParams->footer.pme_font.fs_name, .did_command = dlg_selectFontCommand},
+		{0}
 	};
 	_dPrintLayoutParams = _dPrintLayout;
 	PAGE_DECORATION_TYPE* p1 = &pp->header.pme_decoration;
 	PAGE_DECORATION_TYPE* p2 = &pp->footer.pme_decoration;
-	DIALLIST dlist1 = {
+	LIST_HANDLER dlist1 = {
 		(long long*)&p1,
 		prt_decolboxfill,
 		prt_decoget,
@@ -815,10 +816,10 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 		prt_decodraw,
 		0
 	};
-	DIALLIST dlist2 = dlist1;
+	LIST_HANDLER dlist2 = dlist1;
 	dlist2.li_param = (long long*) & p2;
-	_dPrintLayout[0].dp_data = &dlist1;
-	_dPrintLayout[1].dp_data = &dlist2;
+	_dPrintLayout[0].did_listhandler = &dlist1;
+	_dPrintLayout[1].did_listhandler = &dlist2;
 
 	PROPSHEETPAGE psp[2];
 	PROPSHEETHEADER psh;
@@ -838,6 +839,10 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	psp[1].pfnDlgProc = DlgPreviewProc;
 
 	LPPRINTDLGEXA prtDlg = calloc(1, sizeof *prtDlg);
+	if (prtDlg == NULL) {
+		return 0;
+	}
+	prtDlg->lStructSize = sizeof * prtDlg;
 	PRINTPAGERANGE pageRange;
 	HPROPSHEETPAGE pPage1 = CreatePropertySheetPage(&psp[0]);
 	HPROPSHEETPAGE pPage2 = CreatePropertySheetPage(&psp[1]);
@@ -846,7 +851,6 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	pages[1] = pPage2;
 	pageRange.nFromPage = 1;
 	pageRange.nToPage = 5;
-	prtDlg->lStructSize = sizeof *prtDlg;
 	prtDlg->hwndOwner = hwndMain;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
@@ -880,7 +884,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 			_currentPrintScope.printRange.prtr_type = PRTR_PAGES;
 			if (prtDlg->Flags & PD_CURRENTPAGE) {
 				_currentPrintScope.printRange.prtr_type = PRTR_CURRENT_PAGE;
-			} else if (prtDlg->Flags & PD_ALLPAGES) {
+			} else if (prtDlg->Flags == PD_ALLPAGES) {
 				_currentPrintScope.printRange.prtr_type = PRTR_ALL;
 			} else if (prtDlg->Flags & PD_SELECTION) {
 				_currentPrintScope.printRange.prtr_type = PRTR_SELECTION;

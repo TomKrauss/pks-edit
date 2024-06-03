@@ -44,16 +44,15 @@
 
 #define IDD_APPLYNOW 0x3021
 #define ISRADIODLGCTL(i) 	((i) >= IDD_LOWRADIO && (i) <= IDD_HIGHRADIO)
-#define ISFLAGDLGCTL(i) 		(((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) ||\
-						(i) == IDD_3S1 || (i) == IDD_3S2)
+#define ISFLAGDLGCTL(i) 	((i) >= IDD_LOWOPT && (i) <= IDD_HIGHOPT) 
 
 extern int 		_translatekeys;
 
 extern BOOL 	DlgChooseFont(HWND hWnd, char* pszFontName, BOOL bPrinter);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
-static DIALPARS* _dp;
-static DIALPARS* (*_dialogInitParameterCallback)(int pageIndex);
+static DIALOG_ITEM_DESCRIPTOR* _dp;
+static DIALOG_ITEM_DESCRIPTOR* (*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
 static boolean		bPropertySheetMove;
 
@@ -78,7 +77,7 @@ char* dlg_getResourceString(int nId) {
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-void dlg_setXDialogParams(DIALPARS* (*func)(int pageIndex), boolean positionDialogOnInit) {
+void dlg_setXDialogParams(DIALOG_ITEM_DESCRIPTOR* (*func)(int pageIndex), boolean positionDialogOnInit) {
 	_dialogInitParameterCallback = func;
 	bInPropertySheet = TRUE;
 	bPropertySheetMove = positionDialogOnInit;
@@ -140,13 +139,13 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	return hwndTip;
 }
 
-static void applyRadioButtons(int idCtrl, DIALPARS* dp) {
+static void applyRadioButtons(int idCtrl, DIALOG_ITEM_DESCRIPTOR* dp) {
 	int item;
 	if (ISRADIODLGCTL(idCtrl)) {
-		while ((item = dp->dp_item) != 0) {
+		while ((item = dp->did_controlNumber) != 0) {
 			if (ISRADIODLGCTL(item)) {
-				if (idCtrl >= item && idCtrl <= item + dp->dp_size) {
-					*(int*)dp->dp_data = idCtrl - item;
+				if (idCtrl >= item && idCtrl <= item + dp->did_flagOrSize) {
+					*(int*)dp->did_data = idCtrl - item;
 					break;
 				}
 			}
@@ -158,10 +157,11 @@ static void applyRadioButtons(int idCtrl, DIALPARS* dp) {
 /*--------------------------------------------------------------------------
  * DoDialog()
  */
-int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
 	int 		nSave;
 	HWND		hwnd;
 	INT_PTR		ret;
+	DIALOG_ITEM_DESCRIPTOR* dpOld = _dp;
 
 	bInPropertySheet = FALSE;
 	_dp = dp;
@@ -171,7 +171,17 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	nCurrentDialog = nIdDialog;
 
 	HRSRC  hRes = FindResource(ui_getResourceModule(), MAKEINTRESOURCE(nIdDialog), RT_DIALOG);
+	if (hRes == NULL) {
+		log_lastWindowsError("DoDialog");
+		_dp = dpOld;
+		return -1;
+	}
 	DLGTEMPLATE* pTemplate = (DLGTEMPLATE*)LoadResource(ui_getResourceModule(), hRes);
+	if (pTemplate == NULL) {
+		log_lastWindowsError("DoDialog");
+		_dp = dpOld;
+		return -1;
+	}
 	ret = DialogBoxIndirect(0, pTemplate, hwndMain, DlgProc);
 
 	if (ret == -1) {
@@ -181,7 +191,7 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPP
 	if (hwnd) {
 		SetFocus(hwnd);
 	}
-
+	_dp = dpOld;
 	return (int)ret;
 }
 
@@ -326,12 +336,12 @@ static int dlg_setRangeForOperation(HWND hwnd, int *rangetype, int first)
 /*--------------------------------------------------------------------------
  * dlg_getComboBoxText()
  */
-static int dlg_getComboBoxText(HWND hwnd, int id, void *szBuff)
+static int dlg_getComboBoxText(HWND hwnd, int id, void *szBuff) 
 { 	LRESULT	  item;
 
+	*((char*)szBuff) = 0;
 	item = SendDlgItemMessage(hwnd,id,CB_GETCURSEL,0,0);
 	if (item == LB_ERR) {
-		*((char *)szBuff) = 0;
 		return LB_ERR;
 	}
 	SendDlgItemMessage(hwnd,id,CB_GETLBTEXT,item,(LPARAM)szBuff);
@@ -339,20 +349,39 @@ static int dlg_getComboBoxText(HWND hwnd, int id, void *szBuff)
 }
 
 /*--------------------------------------------------------------------------
- * dlg_getListboxText()
+ * dlg_getComboBoxSelectedText()
  */
-int dlg_getListboxText(HWND hwnd, int id, void *pszBuf) { 	
+int dlg_getComboBoxSelectedText(HWND hwnd, int id, char **pszBuf) { 	
 	LRESULT	  item;
 
 	if (!pszBuf) {
 		return 1;
 	}
-	item = SendDlgItemMessage(hwnd,id,LB_GETCURSEL,0,0);
+	char* pszString = *pszBuf;
+	if (!pszString) {
+		return 1;
+	}
+	item = SendDlgItemMessage(hwnd,id, CB_GETCURSEL, 0, 0);
 	if (item == LB_ERR) {
-		*((char *)pszBuf) = 0;
+		*((char *)pszString) = 0;
 		return LB_ERR;
 	}
-	SendDlgItemMessage(hwnd,id,LB_GETTEXT,item,(LPARAM)pszBuf);
+	SendDlgItemMessage(hwnd,id, CB_GETLBTEXT, item, (LPARAM)pszString);
+	return 1;
+}
+
+/*--------------------------------------------------------------------------
+ * dlg_getListBoxSelection()
+ */
+int dlg_getListBoxSelection(HWND hwnd, int id, void** pData) {
+	LRESULT	  item;
+
+	item = SendDlgItemMessage(hwnd, id, LB_GETCURSEL, 0, 0);
+	if (item == LB_ERR) {
+		*pData = 0;
+		return 0;
+	}
+	*pData = (void*) SendDlgItemMessage(hwnd, id, LB_GETITEMDATA, item, (LPARAM)0);
 	return 1;
 }
 
@@ -364,10 +393,12 @@ static int dlg_getRangeForOperation(HWND hwnd)
 	char*	 pszBuf;
 	char	 szCurr[130];
 
+	szCurr[0] = 0;
 	if (dlg_getComboBoxText(hwnd, IDD_RNGE, szCurr) == LB_ERR) {
 		return RNG_FREE;
 	}
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
+		szCurr[0] = 0;
 		pszBuf = dlg_getResourceString(item);
 		if (pszBuf && strcmp(pszBuf,szCurr) == 0)
 			return item-IDS_RNGONCE+RNG_ONCE;
@@ -378,47 +409,30 @@ static int dlg_getRangeForOperation(HWND hwnd)
 /*--------------------------------------------------------------------------
  * DoDldInitPars()
  */
-BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
+BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 {
 	char 	cbuf[2],numbuf[32];
 	int 	item,*ip;
 	BOOL	moved;
-	DIALLIST	*dlp;
 	HISTORY_TYPE ht;
 
 	moved = FALSE;
-	while(--nParams >= 0 && (item = dp->dp_item) != 0) {
-		ip = (int*)dp->dp_data;
+	while(--nParams >= 0 && (item = dp->did_controlNumber) != 0) {
+		ip = (int*)dp->did_data;
+		if (dp->did_initialize) {
+			dp->did_initialize(hDlg, dp);
+			dp++;
+			continue;
+		}
+		LIST_HANDLER* dpi = dp->did_listhandler;
+		if (dpi) {
+			dpi->li_fill(hDlg, item, (void*)dpi->li_param);
+			dp++;
+			continue;
+		}
 		switch(item) {
 			case IDD_POSITIONTCURS:
 				moved = win_positionWindowRelativeToCaret(hDlg);
-				break;
-			case IDD_STRINGLIST1:
-			case IDD_STRINGLIST2:
-			case IDD_STRINGLIST3:
-				dlp = (DIALLIST*)dp->dp_data;
-				(*dlp->li_fill)(hDlg, item, (void*)dlp->li_param);
-				break;
-			case IDD_WINDOWLIST:
-			case IDD_ICONLIST:
-			case IDD_FONTSEL2COLOR:
-				dlp = (DIALLIST*)dp->dp_data;
-				void* pArg = dlp->li_param ? (void*)(intptr_t)*dlp->li_param : 0;
-				(*dlp->li_fill)(hDlg,item, pArg);
-				break;
-			case IDD_CSEL:
-				SendDlgItemMessage(hDlg,item,WM_CHARCHANGE,
-							    *(unsigned char*)dp->dp_data,0L);
-				break;
-			case IDD_WINTITLE2:
-				SetWindowText(hDlg,(LPSTR)ip);
-				break;
-			case IDD_WINTITLE: {
-					char* pszString = dlg_getResourceString((WORD)dp->dp_size);
-					if (pszString) {
-						SetWindowText(hDlg, pszString);
-					}
-				}
 				break;
 			case IDD_FILE_PATTERN:
 				ht = FILE_PATTERNS;
@@ -434,11 +448,6 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 					SetDlgItemText(hDlg, item, pData);
 				}
 				break;
-			case IDD_RO1: case IDD_RO2: case IDD_RO3: 
-			case IDD_RO4: case IDD_RO5: case IDD_RO6: case IDD_RO7: case IDD_RO8:
-			case IDD_RO10:
-				SetDlgItemText(hDlg,item,(LPSTR)ip);
-				break;
 			case IDD_PATH1:
 				hist_fillComboBox(hDlg, item, PATHES, 1);
 				if (!((LPSTR)ip)[0]) {
@@ -448,10 +457,10 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:
 			case IDD_STRING7: 
-				DlgInitString(hDlg,item,(LPSTR)ip,dp->dp_size);
+				DlgInitString(hDlg,item,(LPSTR)ip,dp->did_flagOrSize);
 				break;
 			case IDD_LONG1:
-				wsprintf(numbuf,"%ld",*(long*)dp->dp_data);
+				wsprintf(numbuf,"%ld",*(long*)dp->did_data);
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 			case IDD_INT4: case IDD_INT5: case IDD_INT6:
@@ -464,7 +473,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams)
 donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;
 			case IDD_RNGE:
-				dlg_setRangeForOperation(hDlg,ip,dp->dp_size);
+				dlg_setRangeForOperation(hDlg,ip,dp->did_flagOrSize);
 				break;
 			case IDD_KEYCODE:
 				lpfnOldCInput = SubClassWndProc(1,hDlg,item,
@@ -477,7 +486,7 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 			case IDD_RAWCHAR:
 				lpfnOldCInput = SubClassWndProc(1,hDlg,item,dlg_charInputWindowProc);
 			case IDD_CHAR:
-				cbuf[0] = *(char*)dp->dp_data;
+				cbuf[0] = *(char*)dp->did_data;
 				cbuf[1] = 0;
 				DlgInitString(hDlg,item,cbuf,sizeof cbuf-1);
 				break;
@@ -486,9 +495,9 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 					break;
 				}
 				if (ISFLAGDLGCTL(item)) {
-					CheckDlgButton(hDlg,item,(*ip & dp->dp_size) ? 1 : 0);
+					CheckDlgButton(hDlg,item,(*ip & dp->did_flagOrSize) ? 1 : 0);
 				} else if (ISRADIODLGCTL(item)) {
-					CheckRadioButton(hDlg,item,item+dp->dp_size,*ip+item);
+					CheckRadioButton(hDlg,item,item+dp->did_flagOrSize,*ip+item);
 				}
 		}
 		dp++;
@@ -499,13 +508,13 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 /*--------------------------------------------------------------------------
  * DlgInit()
  */
-static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag) {
+static void DlgInit(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, BOOL initialFlag) {
 	static const int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
 	static const int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
-	DIALPARS *dp2;
+	DIALOG_ITEM_DESCRIPTOR *dp2;
 	int		nPars;
 
-	for (dp2 = dp, nPars = 0; dp2->dp_item; dp2++) {
+	for (dp2 = dp, nPars = 0; dp2->did_controlNumber; dp2++) {
 		nPars++;
 	}
 	for (int i = 0; i < DIM(_intFields); i++) {
@@ -535,45 +544,43 @@ static void DlgInit(HWND hDlg, DIALPARS *dp, BOOL initialFlag) {
 }
 
 /*--------------------------------------------------------------------------
- * Do3State()
- * toggle state of 2 Buttons in one of the following ways:
- * B1, B2, noButton
+ * dlg_handleRadioButtonGroup()
+ * Custom handling of radio buttons: when an item is checked, make sure, that other items
+ * passed in the exclusiveGroup array must be unchecked. Note, that the exclusiveGroup array
+ * must be terminated by a 0 value.
  */
-static void Do3State(HWND hDlg, WORD item, WORD b1, WORD b2)
-{
-	if (item != b1) {
-		if (item != b2)
-			return;
-		b2 = b1;
-		b1 = item;
-	}
-	/* now: b1 is pressed */
-	if (IsDlgButtonChecked(hDlg, b1)) {
-		CheckDlgButton(hDlg, b2, 0);
+void dlg_handleRadioButtonGroup(HWND hDlg, WORD checkedItemControl, ...) {
+	va_list exclusiveGroup;
+	WORD exclusiveItem;
+	va_start(exclusiveGroup, checkedItemControl);
+	while ((exclusiveItem = va_arg(exclusiveGroup, WORD)) != 0) {
+		if (exclusiveItem != checkedItemControl) {
+			CheckDlgButton(hDlg, exclusiveItem, 0);
+		}
 	}
 }
 
 /*--------------------------------------------------------------------------
- * GetItemDialListData()
+ * dlg_itemDescriptorForControl()
  */
-static DIALPARS *GetItemDialListData(DIALPARS *dp, int nItem)
+static DIALOG_ITEM_DESCRIPTOR *dlg_itemDescriptorForControl(DIALOG_ITEM_DESCRIPTOR *dp, int nItem)
 {
-	while(dp->dp_item != 0) {
-		if (dp->dp_item == nItem) {
+	while(dp && dp->did_controlNumber != 0) {
+		if (dp->did_controlNumber == nItem) {
 			return dp;
 		}
 		dp++;
 	}
-	return (DIALPARS*)0;
+	return (DIALOG_ITEM_DESCRIPTOR*)0;
 }
 
 /*--------------------------------------------------------------------------
  * dlg_retrieveParameters()
  */
-void dlg_retrieveParameters(HWND hDlg, DIALPARS *dp, int nMax)
+void dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax)
 {
-	while(--nMax >= 0 && dp->dp_item) {
-		switch(dp->dp_item) {
+	while(--nMax >= 0 && dp->did_controlNumber) {
+		switch(dp->did_controlNumber) {
 
 		case IDD_STRING1:
 		case IDD_STRING2:
@@ -584,8 +591,8 @@ void dlg_retrieveParameters(HWND hDlg, DIALPARS *dp, int nMax)
 		case IDD_STRING7:
 		case IDD_FILE_PATTERN:
 		case IDD_PATH1:
-			GetDlgItemText(hDlg, dp->dp_item, (LPSTR)dp->dp_data, 
-				dp->dp_size);
+			GetDlgItemText(hDlg, dp->did_controlNumber, (LPSTR)dp->did_data, 
+				dp->did_flagOrSize);
 			break;
 
 		}
@@ -607,10 +614,10 @@ static int macro_getReplaceActionForControlId(int idCtrl)
 }
 
 /*--------------------------------------------------------------------------
- * DlgApplyChanges()
+ * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
+ * The list of item descriptors must be 0-terminated.
  */
-static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
-{
+BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR *dp) {
 	char 	cbuf[2],numbuf[32];
 	int  	item,*ip;
 	BOOL	buttonChecked;
@@ -618,28 +625,25 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 	if (!dp) {
 		return idCtrl == IDCANCEL;
 	}
-	while((item = dp->dp_item) != 0) {
-		ip = (int*)dp->dp_data;
+	while((item = dp->did_controlNumber) != 0) {
+		if (dp->did_apply) {
+			if (!dp->did_apply(hDlg, dp)) {
+				return FALSE;
+			}
+			dp++;
+			continue;
+		}
+		LIST_HANDLER* dpi = dp->did_listhandler;
+		if (dpi && dpi->li_get) {
+			dpi->li_get(hDlg, item, &dpi->li_param);
+			dp++;
+			continue;
+		}
+		ip = (int*)dp->did_data;
 		switch(item) {
 		case IDD_RECORDRET:
 			*ip = macro_getReplaceActionForControlId(idCtrl);
 			break;
-		case IDD_CSEL:
-			*(char*)dp->dp_data = (char)(short)(long)
-				SendDlgItemMessage(hDlg,item,CS_QUERYCHAR,0,0L);
-			break;
-		case IDD_NOCHANGEONCANCEL:	
-			if (idCtrl == IDCANCEL) {
-				return TRUE;
-			}
-			break;
-		case IDD_STRINGLIST1:
-		case IDD_STRINGLIST2:
-		case IDD_STRINGLIST3: {
-			DIALLIST* dpi = dp->dp_data;
-			SendDlgItemMessage(hDlg, item, CB_GETLBTEXT, SendDlgItemMessage(hDlg, item, CB_GETCURSEL, 0, 0), (LPARAM)dpi->li_param);
-			break;
-		}
 		case IDD_OPT1:
 		case IDD_OPT2:
 		case IDD_OPT3:
@@ -658,17 +662,11 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_OPT16:
 		case IDD_OPT17:
 		case IDD_OPT18:
-			ip = (int*)dp->dp_data;
-			buttonChecked = IsDlgButtonChecked(hDlg, dp->dp_item);
+			ip = (int*)dp->did_data;
+			buttonChecked = IsDlgButtonChecked(hDlg, dp->did_controlNumber);
 			*ip = buttonChecked ?
-				*ip | dp->dp_size :
-				*ip & ~dp->dp_size;
-			break;
-		case IDD_FONTSEL2COLOR:
-		case IDD_ICONLIST2:
-		case IDD_ICONLIST:
-			(*((DIALLIST*)dp->dp_data)->li_get)(hDlg,item,
-				((DIALLIST*)dp->dp_data)->li_param);
+				*ip | dp->did_flagOrSize :
+				*ip & ~dp->did_flagOrSize;
 			break;
 		case IDD_FINDS:   case IDD_FINDS2: case IDD_REPLS:
 		case IDD_PATH1:
@@ -680,23 +678,20 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_STRING6:
 		case IDD_STRING8:
 		case IDD_FILE_PATTERN:
-			GetDlgItemText(hDlg,item,(LPSTR)ip,
-						dp->dp_size);
-			if (idCtrl != IDCANCEL) {
-				if ((item == IDD_FINDS2 && *(char*)ip) ||
-				    (item == IDD_FINDS)) {
-					if (!regex_compileWithError((LPSTR)ip)) {
-						return FALSE;
-					}
-					hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
-					hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
+			GetDlgItemText(hDlg, item, (LPSTR)ip, dp->did_flagOrSize);
+			if ((item == IDD_FINDS2 && *(char*)ip) ||
+				(item == IDD_FINDS)) {
+				if (!regex_compileWithError((LPSTR)ip)) {
+					return FALSE;
 				}
-				if (idCtrl == IDOK && item == IDD_REPLS) {
-					if (!find_initializeReplaceByExpression(dp->dp_data)) {
-						return FALSE;
-					}
-					hist_saveString(SEARCH_AND_REPLACE, (LPSTR)ip);
+				hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
+				hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
+			}
+			if (idCtrl == IDOK && item == IDD_REPLS) {
+				if (!find_initializeReplaceByExpression(dp->did_data)) {
+					return FALSE;
 				}
+				hist_saveString(SEARCH_AND_REPLACE, (LPSTR)ip);
 			}
 			break;
 		case IDD_INT1: case IDD_INT2: case IDD_INT3: 
@@ -705,7 +700,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 		case IDD_LONG1: 
 			GetDlgItemText(hDlg,item,numbuf,sizeof numbuf-1);
 			if (item == IDD_LONG1) {
-				*((long*)dp->dp_data) = (long)string_convertToLong(numbuf);
+				*((long*)dp->did_data) = (long)string_convertToLong(numbuf);
 			} else {
 				*ip = numbuf[0] == 0 ? -1 : (long)string_convertToLong(numbuf);
 			}
@@ -714,7 +709,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			*ip = dlg_getRangeForOperation(hDlg);
 			break;
 		case IDD_KEYCODE:
-			*(KEYCODE*)dp->dp_data = 
+			*(KEYCODE*)dp->did_data = 
 				(KEYCODE) SendDlgItemMessage(hDlg,item,
 							    CS_QUERYCHAR,0,0L);
 			break;
@@ -722,7 +717,7 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			/* drop through */
 		case IDD_CHAR:
 			GetDlgItemText(hDlg,item,cbuf,sizeof cbuf);
-			*(char*)dp->dp_data = cbuf[0];
+			*(char*)dp->did_data = cbuf[0];
 			break;
 		default:
 			if (ip == NULL) {
@@ -730,8 +725,8 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 			}
 			if (ISFLAGDLGCTL(item)) {
 				*ip = (IsDlgButtonChecked(hDlg, item)) ?
-					*ip | dp->dp_size : 
-					*ip & ~dp->dp_size;
+					*ip | dp->did_flagOrSize : 
+					*ip & ~dp->did_flagOrSize;
 			} else {
 				applyRadioButtons(idCtrl, dp);
 			}
@@ -745,128 +740,73 @@ static BOOL DlgApplyChanges(HWND hDlg, INT idCtrl, DIALPARS *dp)
 /*
  * Utility to retrieve a title text from a dialog component. 
  */
-static char* dlg_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize) {
+char* dlg_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize) {
 	GetWindowText(GetDlgItem(hDlg, idCtrl), szButton, (int)nSize);
 	return (szButton[0] == '&') ? szButton + 1 : szButton;
 }
 
-/*--------------------------------------------------------------------------
- * DlgCommand()
+/*
+ * Used to select a font in a dialog.
  */
-static BOOL DlgCommand(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALPARS *dp)
+BOOL dlg_selectFontCommand(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
+	if (DlgChooseFont(hDlg, (char*)pDescriptor->did_data,
+		(BOOL)pDescriptor->did_flagOrSize) && bInPropertySheet) {
+		PropSheet_Changed(GetParent(hDlg), hDlg);
+	}
+	return FALSE;
+}
+
+
+/*--------------------------------------------------------------------------
+ * dlg_command()
+ */
+static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR *pItemDescriptors)
 {
 	int		idCtrl;
-	char 	fselbuf[256],szBuff[256],szButton[28];
-	int  	nNotify,(*callback)();
-	LONG 	c;
-	DIALPARS *dp2;
-	char* pszTitle;
+	int  	nNotify;
+	DIALOG_CB callback;
+	DIALOG_ITEM_DESCRIPTOR *pDescriptor;
 
 	callback = 0;
 	idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 	nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
-	switch(idCtrl) {
-		case IDD_PATH1SEL:
-			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szBuff, sizeof szBuff);
-			if (fsel_selectFolder(hDlg, pszTitle, _fseltarget)) {
-				SetDlgItemText(hDlg, IDD_PATH1, _fseltarget);
-			}
-			break;
-		case IDD_PATH2SEL:
-			lstrcpy(szBuff,".\\");
-			fselbuf[0] = 0;
-			pszTitle = dlg_getTitleResource(hDlg, idCtrl, szButton, sizeof szButton);
-			FILE_SELECT_PARAMS fsp;
-			// keep cppcheck happy.
-			memset(&fsp, 0, sizeof fsp);
-			fsp.fsp_saveAs = TRUE;
-			fsp.fsp_resultFile = _fseltarget;
-			fsp.fsp_inputFile = szBuff;
-			fsp.fsp_namePatterns = fselbuf;
-			fsp.fsp_title = pszTitle;
-			fsp.fsp_encrypted = FALSE;
-			if (fsel_selectFile(&fsp)) {
-				SetDlgItemText(hDlg, IDD_PATH1, 	_fseltarget);
-			}
-			break;
-		case IDD_FONTSELECT3:
-		case IDD_FONTSELECT2:
-		case IDD_FONTSELECT:
-			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
-				if (DlgChooseFont(hDlg, (char*)dp2->dp_data,
-					(BOOL)dp2->dp_size) && bInPropertySheet) {
-					PropSheet_Changed(GetParent(hDlg), hDlg);
-				}
-			}
-			break;
-		case IDD_3S1: case IDD_3S2:
-			Do3State(hDlg,idCtrl,IDD_3S1,IDD_3S2);
-			break;
-		case IDD_REGEXP: case IDD_SHELLJOKER:
-			Do3State(hDlg,idCtrl,IDD_REGEXP,IDD_SHELLJOKER);
-			break;
-		case IDD_CSEL:
-			if (nNotify == CSN_CHARSELECT) {
-				c = (LONG)LOWORD(lParam);
-				union U_ARG_VALUE values[] = {
-					{c},{c},{c},{c},{0}
-				};
-				mysprintf(szBuff,
-					"DEZ: %03j  OKT: %03i  HEX: 0x%02p  BIN: %08b", &(SPRINTF_ARGS){.sa_values = values});
-				SetDlgItemText(hDlg,IDD_CSELT1,szBuff);
-			}
-			break;
-		case IDD_ICONLIST:
-		case IDD_WINDOWLIST:
-		case IDD_STRINGLIST1:
-		case IDD_STRINGLIST2:
-		case IDD_STRINGLIST3:
-			if (nNotify == LBN_SELCHANGE) {
-				if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0 &&
-					((DIALLIST*)dp2->dp_data)->li_command) {
-					(*((DIALLIST*)dp2->dp_data)->li_command)(
-						hDlg, idCtrl, nNotify,
-						((DIALLIST*)dp2->dp_data)->li_param);
-				}
-			}
-			break;
-		case IDD_STRING1:
-		case IDD_STRING2:
-		case IDD_STRING3:
-			if (nNotify != EN_KILLFOCUS) {
-				break;
-			}
-			for (dp2 = dp; dp2 && dp2->dp_item; dp2++) {
-				if (dp2->dp_item == IDD_ENKILLFOCUS && dp2->dp_size == idCtrl) {
-					dlg_retrieveParameters(hDlg, dp, 10000);
-					callback = (int (*)())dp2->dp_data;
-					goto endd;
-				}
-			}
-			break;
-		case IDD_NOINITCALLBACK:
-			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
-				callback = (int (*)())dp2->dp_data;
-				(*callback)(hDlg,idCtrl);
-			}
+	pDescriptor = dlg_itemDescriptorForControl(pItemDescriptors, idCtrl);
+	if (pDescriptor != NULL) {
+		callback = (DIALOG_CB)pDescriptor->did_data;
+		LIST_HANDLER* pListHandler = pDescriptor->did_listhandler;
+		if (pListHandler != NULL && pListHandler->li_command) {
+			pListHandler->li_command(hDlg, idCtrl, nNotify, pListHandler->li_param);
+			return FALSE;
+		}
+	} else {
+		callback = NULL;
+	}
+	if (pDescriptor && pDescriptor->did_command) {
+		DIALOG_DESCRIPTOR dd = { .dd_items = pItemDescriptors };
+		if (pDescriptor->did_command(hDlg, nNotify, lParam, pDescriptor, &dd)) {
+			EndDialog(hDlg, idCtrl);
 			return TRUE;
-		case IDD_CALLBACK1:	case IDD_CALLBACK2:	case IDD_CALLBACK3:
-		case IDD_RAWCHAR:
-		case IDOK: case IDCANCEL: case IDD_BUT3: case IDD_BUT4: case IDD_BUT5:
-			if (idCtrl != IDCANCEL && !DlgApplyChanges(hDlg, idCtrl, dp)) {
+		}
+		return FALSE;
+	}
+	switch(idCtrl) {
+		case IDD_REGEXP: case IDD_SHELLJOKER:
+			dlg_handleRadioButtonGroup(hDlg,idCtrl,IDD_REGEXP,IDD_SHELLJOKER, 0);
+			break;
+		case IDD_RAWCHAR: case IDOK: case IDD_BUT3: case IDD_BUT4: case IDD_BUT5:
+			if (!dlg_applyChanges(hDlg, idCtrl, pItemDescriptors)) {
 				return FALSE;
 			}
-			if ((dp2 = GetItemDialListData(dp, idCtrl)) != 0) {
-				callback = (int (*)())dp2->dp_data;
-			}
-endd:		if (callback && idCtrl != IDD_RAWCHAR) {
+			// drop through
+		case IDCANCEL:
+			if (callback && idCtrl != IDD_RAWCHAR) {
 				(*callback)(hDlg,idCtrl);
 				return TRUE;
 			}
 			EndDialog(hDlg,idCtrl);
 			return TRUE;
 		default:
-			applyRadioButtons(idCtrl, dp);
+			applyRadioButtons(idCtrl, pItemDescriptors);
 			break;
 	}
 	return FALSE;
@@ -883,19 +823,6 @@ void dlg_help(void)
 		return;
 	}
 	error_showErrorById(IDS_MSGNOHELP);
-}
-
-/*--------------------------------------------------------------------------
- * dlg_getitemdata()
- */
-static void *dlg_getitemdata(DIALPARS *dp, WORD item)
-{
-	while(dp->dp_item) {
-		if (dp->dp_item == item)
-			return dp->dp_data;
-		dp++;
-	}
-	return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -924,7 +851,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 	case PSN_APPLY:
 		if (idx == _currentIndex) {
 			if (_dp != NULL) {
-				DlgApplyChanges(hDlg, IDOK, _dp);
+				dlg_applyChanges(hDlg, IDOK, _dp);
 			}
 			PropSheet_UnChanged(parent, hDlg);
 		}
@@ -985,8 +912,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 	int					nNotify;
 	int					idCtrl;
 	DRAWITEMSTRUCT		*drp;
-	DIALLIST			*dlp;
+	DIALOG_ITEM_DESCRIPTOR* pDescriptor;
 
+	idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 	switch(message) {
 		case WM_NOTIFY:
 			return DlgNotify(hDlg, wParam, lParam);
@@ -1013,43 +941,37 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 
 		case WM_MEASUREITEM:
 			mp = (MEASUREITEMSTRUCT*)lParam;
-			if (!_dp) {
+			pDescriptor = dlg_itemDescriptorForControl(_dp, idCtrl);
+			if (!pDescriptor || !pDescriptor->did_listhandler || !pDescriptor->did_listhandler->li_measure) {
 				break;
 			}
-			if ((dlp = dlg_getitemdata(_dp, mp->CtlID)) == 0 ||
-			    (dlp->li_measure == 0))
-				break;
-			(*dlp->li_measure)(mp);
+			(pDescriptor->did_listhandler->li_measure)(mp);
 			return TRUE;
 
 		case WM_COMPAREITEM:
-			if (!_dp) {
+			pDescriptor = dlg_itemDescriptorForControl(_dp, idCtrl);
+			if (!pDescriptor || !pDescriptor->did_listhandler || !pDescriptor->did_listhandler->li_compare) {
 				break;
 			}
 			cp = (COMPAREITEMSTRUCT*)lParam;
-			if ((dlp = dlg_getitemdata(_dp, cp->CtlID)) == 0 ||
-			    (dlp->li_compare == 0))
-				break;
-			return (*dlp->li_compare)(cp);
+			return pDescriptor->did_listhandler->li_compare(cp);
 
 		case WM_DRAWITEM:
-			if (!_dp) {
+			pDescriptor = dlg_itemDescriptorForControl(_dp, idCtrl);
+			if (!pDescriptor || !pDescriptor->did_listhandler) {
 				break;
 			}
+			LIST_HANDLER* pListHandler = pDescriptor->did_listhandler;
 			drp = (DRAWITEMSTRUCT*)lParam;
-			if ((dlp = dlg_getitemdata(_dp, drp->CtlID)) == 0 ||
-			    (dlp->li_draw == 0))
-				break;
-			return cust_drawComboBoxOwnerDraw(drp, dlp->li_draw, dlp->li_selection, dlg_disableDarkHandling);
+			return cust_drawComboBoxOwnerDraw(drp, pListHandler->li_draw, pListHandler->li_selection, dlg_disableDarkHandling);
 
 		case WM_COMMAND:
 			nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
-			idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 			if ((nNotify == EN_CHANGE || nNotify == CBN_SELCHANGE || ISFLAGDLGCTL(idCtrl) || ISRADIODLGCTL(idCtrl)) &&
 					bInPropertySheet && (LPARAM)GetParent(hDlg) != lParam) {
 				PropSheet_Changed(GetParent(hDlg), hDlg);
 			}
-			if (DlgCommand(hDlg,wParam,lParam,_dp)) {
+			if (dlg_command(hDlg,wParam,lParam,_dp)) {
 				hwndDlg = 0;
 				return TRUE;
 			}
@@ -1064,7 +986,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-int win_callDialogCB(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
+int win_callDialogCB(int nId, PARAMS *pp, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
 { 	int ret = 1;
 
 	if (interpreter_openDialog(pp)) {
@@ -1079,7 +1001,7 @@ int win_callDialogCB(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING
 /*--------------------------------------------------------------------------
  * win_callDialog()
  */
-int win_callDialog(int nId, PARAMS* pp, DIALPARS* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+int win_callDialog(int nId, PARAMS* pp, DIALOG_ITEM_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
 	return win_callDialogCB(nId, pp, dp, pTooltips, dlg_standardDialogProcedure);
 }
 

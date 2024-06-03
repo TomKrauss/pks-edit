@@ -83,7 +83,6 @@
 #define IDD_MACROLIST 900
 #define IDD_MACPRINTINSTRUCTIONS 901
 #define IDD_MACSTART 5
-#define IDD_NOCHANGEONCANCEL -2
 #define IDD_OPT1 100
 #define IDD_OPT10 109
 #define IDD_OPT11 110
@@ -101,7 +100,6 @@
 #define IDD_OPT15 114
 #define IDD_PATH1 45
 #define IDD_PATH1SEL 46
-#define IDD_PATH2SEL 47
 #define IDD_POSITIONTCURS -3
 #define IDD_PREVIEW 700
 #define IDD_RADIO1 200
@@ -133,8 +131,6 @@
 #define IDD_STRING7 78
 #define IDD_STRING8 79
 #define IDD_WINTITLE -1
-#define IDD_WINTITLE2 -4
-#define IDD_ENKILLFOCUS	-7
 #define IDC_SPIN1                       1001
 #define IDC_SPIN2                       1002
 #define IDC_SPIN3                       1003

@@ -53,6 +53,7 @@
 #include "editoperations.h"
 #include "mainframe.h"
 #include "dpisupport.h"
+#include "fileselector.h"
 
 /*
  * Answer TRUE if a replacement had been performed before.
@@ -60,7 +61,6 @@
 extern BOOL find_replacementHadBeenPerformed();
 
 extern int 		align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAGS flags);
-extern int 		dlg_getListboxText(HWND hwnd, int id, void *szBuff);
 extern int 		EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern long long EdCharInsert(WINFO* wp, int c);
@@ -71,6 +71,18 @@ extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected
 extern long		_multiplier;
 
 static RANGE_TYPE _scope = RNG_BLOCK;
+static DOCUMENT_TYPE* _selectedDocType;
+
+static void dlg_initializeWindowTitle(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	char* pszString = dlg_getResourceString((WORD)pDescriptor->did_data);
+	if (pszString) {
+		SetWindowText(hDlg, pszString);
+	}
+}
+
+static void dlg_initializeLabel(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	SetDlgItemText(hDlg, pDescriptor->did_controlNumber, pDescriptor->did_data);
+}
 
 /*------------------------------------------------------------
  * EdExit()
@@ -199,14 +211,14 @@ int DialogCharInput(int promptfield, unsigned char c)
 { 	static unsigned char _c;
 	static ITEMS	_i   =  	{ C_PUSH_CHARACTER_LITERAL, &_c 		};
 	static PARAMS	_bgc = 	{ DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_WINTITLE,		0,			0,
-		IDD_POSITIONTCURS,	0,			0,
-		IDD_RAWCHAR,		sizeof _c,	&_c,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_WINTITLE,		0,			0, .did_initialize = dlg_initializeWindowTitle},
+		{IDD_POSITIONTCURS,	0,			0},
+		{IDD_RAWCHAR,		sizeof _c,	&_c},
+		{0}
 	};
 
-	_d->dp_size = promptfield;
+	_d->did_data = (void*)(LPARAM)promptfield;
 	_c = c;
 	if (!win_callDialog(DLGBOXC,&_bgc,_d, NULL))
 		return -1L;
@@ -310,11 +322,11 @@ void dlg_closeQueryReplace(void)
  */
 int dlg_displayRecordMacroOptions(int *o)
 {	static int opt;
-	static DIALPARS _d[] = {
-		IDD_OPT1,		FORM_SHOW,	&opt,
-		IDD_OPT2,		FORM_INIT,	&opt,
-		IDD_OPT3,		FORM_REDRAW,	&opt,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_OPT1,		FORM_SHOW,	&opt},
+		{IDD_OPT2,		FORM_INIT,	&opt},
+		{IDD_OPT3,		FORM_REDRAW,	&opt},
+		{0}
 	};
 
 	if (!DoDialog(DLGRECORDER,dlg_standardDialogProcedure,_d, NULL))
@@ -337,11 +349,11 @@ int EdAbout(void)
 #endif
 	char _versionInfo[128];
 
-	DIALPARS _d[] = {
-		IDD_RO1,		sizeof _customerMessage, _customerMessage,
-		IDD_STRING1,	sizeof _architecture, _architecture,
-		IDD_STRING2,	sizeof _versionInfo, _versionInfo,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RO1,		sizeof _customerMessage, _customerMessage, .did_initialize = dlg_initializeLabel},
+		{IDD_STRING1,	sizeof _architecture, _architecture},
+		{IDD_STRING2,	sizeof _versionInfo, _versionInfo},
+		{0}
 	};
 	sprintf(_versionInfo, "%s, %s", _pksVersion, __DATE__);
 	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, _d, NULL);
@@ -354,14 +366,20 @@ static long dialogGetNumber(int nDialog)
 {	static long    num;
 	static ITEMS	_i   =  	{ C_PUSH_LONG_LITERAL,  (unsigned char * ) &num };
 	static PARAMS	_np  = 	{ 1, P_MAYOPEN, _i	  };
-	static DIALPARS _d[] = {
-		IDD_LONG1,	sizeof num,		&num,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_LONG1,	sizeof num,		&num},
+		{0}
 	};
 
 	if (!win_callDialog(nDialog,&_np,_d, NULL))
 		return -1L;
 	return num;
+}
+
+static BOOL dlg_alignmentFlagsExclusive(HWND hwndDialog, int nNotify, LPARAM lParam, 
+		DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
+	dlg_handleRadioButtonGroup(hwndDialog, pDescriptor->did_controlNumber, IDD_3S1, IDD_3S2, 0);
+	return FALSE;
 }
 
 /*--------------------------------------------------------------------------
@@ -370,21 +388,21 @@ static long dialogGetNumber(int nDialog)
 int EdAlignText(void)
 {	static int  _alflags;
 	static char _alfiller;
-	static DIALPARS _d[] = {
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		/* attention!!! FINDS must be placed after find options to
 		   make sure correct evalation of options during compile
 	      */
-		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_CHAR,		sizeof _alfiller,	&_alfiller,
-		IDD_RNGE,		RNG_LINE,			&_scope,
-		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT2,		RE_IGNORE_BINARY,& _currentSearchAndReplaceParams.options,
-		IDD_3S1,		AL_FIX,			&_alflags,
-		IDD_3S2,		AL_CPOS,			&_alflags,
-		IDD_OPT1,		AL_END,			&_alflags,
-		0
+		{IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern, &_currentSearchAndReplaceParams.searchPattern},
+		{IDD_CHAR,		sizeof _alfiller,	&_alfiller},
+		{IDD_RNGE,		RNG_LINE,			&_scope},
+		{IDD_REGEXP,	RE_DOREX,			&_currentSearchAndReplaceParams.options},
+		{IDD_SHELLJOKER,RE_SHELLWILD,		&_currentSearchAndReplaceParams.options},
+		{IDD_IGNORECASE,RE_IGNCASE,			&_currentSearchAndReplaceParams.options},
+		{IDD_OPT2,		RE_IGNORE_BINARY,	&_currentSearchAndReplaceParams.options},
+		{IDD_3S1,		AL_FIX,				&_alflags, .did_command = dlg_alignmentFlagsExclusive},
+		{IDD_3S2,		AL_CPOS,			&_alflags, .did_command = dlg_alignmentFlagsExclusive},
+		{IDD_OPT1,		AL_END,				&_alflags},
+		{0}
 	};
 	static ITEMS	_i   =  	{ 
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern	 				},
@@ -412,10 +430,10 @@ int EdAlignText(void)
 int EdFormatText(void)
 {	
 	static FORMATTING_ALIGNMENT alignment = FMT_LEFT;
-	DIALPARS _d[] = {
-		IDD_RNGE,		RNG_LINE ,			&_scope,
-		IDD_RADIO1,	FMT_JUSTIFIED-FMT_LEFT,&alignment,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RNGE,		RNG_LINE ,			&_scope},
+		{IDD_RADIO1,	FMT_JUSTIFIED - FMT_LEFT,&alignment},
+		{0}
 	};
 	ITEMS _i = { 
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &alignment     },
@@ -510,19 +528,19 @@ static int sort_guessSeparators(WINFO* wp, char* pszFieldSeparator, int* pFlags)
 int EdSort(void)
 {	static char key[128],fs[32];
 	int  flags;
-	DIALPARS _d[] = {
-		IDD_RNGE,		RNG_LINE ,		&_scope,
-		IDD_STRING1,	sizeof fs,		&fs,
-		IDD_STRING2,	sizeof key,		&key,
-		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_OPT1,		SO_CLUSTERLINES,	&flags,
-		IDD_OPT2,		SO_CSV_QUOTING,& flags,
-		IDD_OPT3,		SO_BACKSLASH_QUOTING,& flags,
-		IDD_OPT4,		SO_SKIPSEPARATORS,		&flags,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RNGE,		RNG_LINE ,		&_scope},
+		{IDD_STRING1,	sizeof fs,		&fs},
+		{IDD_STRING2,	sizeof key,		&key},
+		{IDD_REGEXP,	RE_DOREX,			&_currentSearchAndReplaceParams.options},
+		{IDD_SHELLJOKER,RE_SHELLWILD,		&_currentSearchAndReplaceParams.options},
+		{IDD_IGNORECASE,RE_IGNCASE,		&_currentSearchAndReplaceParams.options},
+		{IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern, &_currentSearchAndReplaceParams.searchPattern},
+		{IDD_OPT1,		SO_CLUSTERLINES,	&flags},
+		{IDD_OPT2,		SO_CSV_QUOTING,&flags},
+		{IDD_OPT3,		SO_BACKSLASH_QUOTING,&flags},
+		{IDD_OPT4,		SO_SKIPSEPARATORS,		&flags},
+		{0}
 	};
 	ITEMS	_i   = {
 		{ C_PUSH_STRING_LITERAL,_currentSearchAndReplaceParams.searchPattern },
@@ -561,9 +579,9 @@ int EdKeycodeInsert(void)
 	static KEYCODE 	 k;
 	static ITEMS		_i   = { C_PUSH_INTEGER_LITERAL,	(unsigned char *)&k };
 	static PARAMS		_sp  = { DIM(_i), P_MAYOPEN, _i };
-	static DIALPARS 	_d[] = {
-		IDD_KEYCODE,	sizeof k,	&k,
-		0
+	static DIALOG_ITEM_DESCRIPTOR 	_d[] = {
+		{IDD_KEYCODE,	sizeof k,	&k},
+		{0}
 	};
 
 	if (!win_callDialog(DLGKEYCODE,&_sp,_d, NULL))
@@ -650,16 +668,16 @@ int EdMarkGoto(void)
  * expand = 1 : expand TABS to SPACES
  * expand = 0 : comp SPACES to TABS
  */
-static DIALPARS _dconvert[] = {
-	IDD_WINTITLE,	IDS_COMPRESSTABS,	0,
-	IDD_RNGE,		RNG_LINE ,		&_scope,
-	0
+static DIALOG_ITEM_DESCRIPTOR _dconvert[] = {
+	{IDD_WINTITLE,	.did_data = (void*)IDS_COMPRESSTABS, .did_initialize = dlg_initializeWindowTitle},
+	{IDD_RNGE,		RNG_LINE ,		&_scope},
+	{0}
 };
 int EdReplaceTabs(int expand)
 {	static ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
-	_dconvert->dp_size = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
+	_dconvert->did_flagOrSize = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
 
 	if (!win_callDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
@@ -673,13 +691,13 @@ int EdReplaceTabs(int expand)
  */
 int EdPromptAutosavePath(char *path)
 {
-	static DIALPARS _d[] = {
-		IDD_STRING1,	128, 		0,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_STRING1,	128, 		0},
+		{0}
 	};
 
 	lstrcpy(path, config_getPKSEditTempPath());
-	_d[0].dp_data = path;
+	_d[0].did_data = path;
 
 	return DoDialog(DLGNEWASPATH, dlg_standardDialogProcedure,_d, NULL) == IDOK;
 }
@@ -726,47 +744,47 @@ static winlist_drawFileInfo(HDC hdc, RECT* rcp, WINFO* wp, int nItem, int nCtl) 
 /*--------------------------------------------------------------------------
  * infoFillParams()
  */
-static void infoFillParams(DIALPARS *dp, WINFO *wp) {
+static void infoFillParams(DIALOG_ITEM_DESCRIPTOR *dp, WINFO *wp) {
 	static char szCodePage[32];
 	FTABLE* fp = wp->fp;
-	dp->dp_data = string_getBaseFilename(fp->fname);			dp++;
+	dp->did_data = string_getBaseFilename(fp->fname);			dp++;
 
-	string_formatDate(dp->dp_data, &fp->ti_created); 	dp++;
-	string_formatDate(dp->dp_data, &fp->ti_modified); 	dp++;
-	string_formatDate(dp->dp_data, &fp->ti_saved);  	dp++;
-	wsprintf(dp->dp_data,"%ld", ft_size(fp)); 	dp++;
-	wsprintf(dp->dp_data, "%ld", fp->nlines); dp++;
-	wsprintf(dp->dp_data, "%ld", ft_countWords(fp)); dp++;
-	dp->dp_data = szCodePage; dp++;
+	string_formatDate(dp->did_data, &fp->ti_created); 	dp++;
+	string_formatDate(dp->did_data, &fp->ti_modified); 	dp++;
+	string_formatDate(dp->did_data, &fp->ti_saved);  	dp++;
+	wsprintf(dp->did_data,"%ld", ft_size(fp)); 	dp++;
+	wsprintf(dp->did_data, "%ld", fp->nlines); dp++;
+	wsprintf(dp->did_data, "%ld", ft_countWords(fp)); dp++;
+	dp->did_data = szCodePage; dp++;
 	ft_getCodepageName(fp, szCodePage, sizeof szCodePage);
-	dp->dp_data = (char*) grammar_name(fp->documentDescriptor->grammar);
+	dp->did_data = (char*) grammar_name(fp->documentDescriptor->grammar);
 }
 
 /*--------------------------------------------------------------------------
  * winlist_command()
  */
-static DIALPARS infoDialListPars[] = {
-	IDD_RO1,			128,			0,
-	IDD_RO7,			128,			0,
-	IDD_RO2,			128,			0,
-	IDD_RO3,			128,			0,
-	IDD_RO4,			128,			0,
-	IDD_RO5,			128,			0,
-	IDD_RO6,			128,			0,
-	IDD_RO8,			128,			0,
-	IDD_RO10,			128,			0,
-	IDD_WINDOWLIST,		0,			0,
-	IDD_WINTITLE,		0,			0,
-	0
+static DIALOG_ITEM_DESCRIPTOR infoDialListPars[] = {
+	{IDD_RO1,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO7,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO2,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO3,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO4,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO5,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO6,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO8,			.did_initialize = dlg_initializeLabel},
+	{IDD_RO10,			.did_initialize = dlg_initializeLabel},
+	{IDD_WINDOWLIST,	0,				0},
+	{IDD_WINTITLE,		.did_initialize = dlg_initializeWindowTitle},
+	{0}
 };
 static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 {
 	switch(nNotify) {
 	case LBN_SELCHANGE:
 	case LBN_DBLCLK:
-		dlg_getListboxText(hDlg, nItem, pUser);
+		dlg_getListBoxSelection(hDlg, nItem, &pUser);
 		if (nNotify == LBN_SELCHANGE) {
-			infoFillParams(infoDialListPars, *(WINFO **)pUser);
+			infoFillParams(infoDialListPars, (WINFO *)pUser);
 			DoDlgInitPars(hDlg, infoDialListPars, 9);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
@@ -779,11 +797,10 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
  */
 static int showWindowList(int nTitleId)
 {
-	WINFO *wp;
-	DIALLIST dlist = {
-		(long long*)&wp, 
+	LIST_HANDLER dlist = {
+		0, 
 		winlist_lboxfill, 
-		dlg_getListboxText, 
+		dlg_getListBoxSelection, 
 		cust_measureListBoxRowWithIcon,
 		winlist_drawFileInfo,
 		winlist_command 
@@ -791,27 +808,25 @@ static int showWindowList(int nTitleId)
 	char	dmod[40],dsaved[40], dcreated[40], nbytes[20],nlines[20], nwords[20];
 	int		nRet;
 
-	wp = ww_getCurrentEditorWindow();
+	dlist.li_param = ww_getCurrentEditorWindow();
+    infoDialListPars[1].did_data = dmod;  
+	infoDialListPars[2].did_data = dcreated;
+	infoDialListPars[3].did_data = dsaved;
+    infoDialListPars[4].did_data = nbytes;
+    infoDialListPars[5].did_data = nlines;
+	infoDialListPars[6].did_data = nwords;
+	infoDialListPars[9].did_listhandler = &dlist;
+	infoDialListPars[10].did_data = (void*)(LPARAM)nTitleId;
 
-	if (!wp) {
-		return 0;
+	if (dlist.li_param != NULL) {
+		infoFillParams(infoDialListPars, (WINFO*) dlist.li_param);
 	}
-     infoDialListPars[1].dp_data = dmod;  
-	 infoDialListPars[2].dp_data = dcreated;
-	 infoDialListPars[3].dp_data = dsaved;
-     infoDialListPars[4].dp_data = nbytes;
-     infoDialListPars[5].dp_data = nlines;
-	 infoDialListPars[6].dp_data = nwords;
-	 infoDialListPars[9].dp_data = &dlist;
-	infoDialListPars[10].dp_size = nTitleId;
-
-	infoFillParams(infoDialListPars, wp);
 	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);
 	if (nRet == IDCANCEL) {
 		return 0;
 	}
 
-	return ww_selectWindow(wp);
+	return ww_selectWindow((WINFO*)dlist.li_param);
 }
 
 /*--------------------------------------------------------------------------
@@ -836,16 +851,16 @@ static INT_PTR CALLBACK compare_dialogProcedure(HWND hDlg, UINT message, WPARAM 
 	return nRet;
 }
 
-static DIALPARS compareDialListPars[] = {
-	IDD_RO1,			128,		0,
-	IDD_WINDOWLIST,		0,			0,
-	0
+static DIALOG_ITEM_DESCRIPTOR compareDialListPars[] = {
+	{IDD_RO1,		.did_initialize = dlg_initializeLabel},
+	{IDD_WINDOWLIST },
+	{0}
 };
 static void dlg_openCompareCommand(HWND hDlg, int nItem, int nNotify, void* pUser) {
 	switch (nNotify) {
 	case LBN_SELCHANGE:
 	case LBN_DBLCLK:
-		dlg_getListboxText(hDlg, nItem, pUser);
+		dlg_getComboBoxSelectedText(hDlg, nItem, pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			EnableWindow(GetDlgItem(hDlg, IDOK), *(WINFO**)pUser != _compareFile1);
 		} else {
@@ -858,11 +873,10 @@ static void dlg_openCompareCommand(HWND hDlg, int nItem, int nNotify, void* pUse
  * EdFilesCompare()
  */
 int EdFilesCompare(int dir) {
-	WINFO* wp;
-	DIALLIST dlist = {
-		(long long*)&wp,
+	LIST_HANDLER dlist = {
+		0,
 		winlist_lboxfill,
-		dlg_getListboxText,
+		dlg_getListBoxSelection,
 		cust_measureListBoxRowWithIcon,
 		winlist_drawFileInfo,
 		dlg_openCompareCommand
@@ -873,11 +887,12 @@ int EdFilesCompare(int dir) {
 	if (!_compareFile1) {
 		return 0;
 	}
-	wp = _compareFile1->next;
+	dlist.li_param = _compareFile1->next;
 	FTABLE* fp = _compareFile1->fp;
-	compareDialListPars[0].dp_data = fp->fname;
-	compareDialListPars[1].dp_data = &dlist;
+	compareDialListPars[0].did_data = fp->fname;
+	compareDialListPars[1].did_listhandler = &dlist;
 	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, compareDialListPars, NULL);
+	WINFO* wp = (WINFO*) dlist.li_param;
 	if (nRet == IDD_BUT3) {
 		fp = ft_openBackupfile(_compareFile1->fp);
 		if (fp == NULL) {
@@ -894,26 +909,24 @@ int EdFilesCompare(int dir) {
 /*--------------------------------------------------------------------------
  * DocTypecommand()
  */
-static void doctypes_newType(HWND hDlg);
-static void doctypes_deleteType(HWND hDlg);
-static void doctypes_apply(void);
-static void doctypes_changeType(HWND hDlg);
-static void doctypes_fillParameters(DIALPARS *dp, void *par);
-static DIALPARS docTypePars[] = 
+static BOOL doctypes_newType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR *pDialog);
+static BOOL doctypes_deleteType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
+static BOOL doctypes_apply(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
+static BOOL doctypes_changeType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
+static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par);
+static DIALOG_ITEM_DESCRIPTOR docTypePars[] = 
 {
-	IDD_STRING6,		16,						0,
-	IDD_STRING4,		50,						0,
-	IDD_PATH1,		84,						0,
-	IDD_STRING5,		84,						0,
-	IDD_STRING3,		32,						0,
-	IDD_CALLBACK1,		0,						doctypes_changeType,
-	IDD_CALLBACK2,		0,						doctypes_deleteType,
-	IDD_CALLBACK3,		0,						doctypes_apply,
-	IDD_NOINITCALLBACK,	0,						doctypes_newType,
-	0
+	{IDD_STRING6,		16,						0},
+	{IDD_STRING4,		50,						0},
+	{IDD_PATH1,		84,							0},
+	{IDD_STRING5,		84,						0},
+	{IDD_STRING3,		32,						0},
+	{IDD_CALLBACK1,		0,						.did_command = doctypes_changeType},
+	{IDD_CALLBACK2,		0,						.did_command = doctypes_deleteType},
+	{IDD_CALLBACK3,		0,						.did_command = doctypes_apply},
+	{IDD_NOINITCALLBACK,	0,					.did_command = doctypes_newType},
+	{0}
 };
-
-#define	  NVDOCTYPEPARS						5
 
 /*------------------------------------------------------------
  * doctypes_fillListbox()
@@ -924,9 +937,22 @@ static void doctypes_fillListbox(HWND hwnd, void* selValue) {
 }
 
 /*--------------------------------------------------------------------------
+ * doctypes_newType()
+ */
+#define	  NVDOCTYPEPARS						5
+static BOOL doctypes_newType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog)
+{
+	_selectedDocType = doctypes_createDocumentType(_selectedDocType);
+	doctypes_fillListbox(hDlg, _selectedDocType);
+	doctypes_fillParameters(docTypePars, _selectedDocType);
+	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
+	return FALSE;
+}
+
+/*--------------------------------------------------------------------------
  * doctypes_fillParameters()
  */
-static void doctypes_fillParameters(DIALPARS *dp, void *par)
+static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par)
 {
 	char *	pszId;
 	char *	pszDescription;
@@ -938,61 +964,53 @@ static void doctypes_fillParameters(DIALPARS *dp, void *par)
 		return;
 	}
 
-	dp->dp_data = pszId;					dp++;
-	dp->dp_data = pszDescription;			dp++;
-	dp->dp_data = pszFname;					dp++;
-	dp->dp_data = pszMatch;					dp++;
-	dp->dp_data = pszGrammar;
+	dp->did_data = pszId;					dp++;
+	dp->did_data = pszDescription;			dp++;
+	dp->did_data = pszFname;				dp++;
+	dp->did_data = pszMatch;				dp++;
+	dp->did_data = pszGrammar;
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_apply()
  */
-static DOCUMENT_TYPE* _selectedDocType;
-static void doctypes_apply(void)
-{
+static BOOL doctypes_apply(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
 	EDIT_CONFIGURATION* pConfiguration;
 	FTABLE* fp;
 
 	if ((fp = ft_getCurrentDocument()) == 0) {
-		return;
+		return FALSE;
+	}
+	if (!dlg_applyChanges(hDlg, pDescriptor->did_controlNumber, pDialog->dd_items)) {
+		return FALSE;
 	}
 	char* pDocTypeName;
 	if ((pConfiguration = doctypes_getDocumentTypeDescriptor(_selectedDocType, &pDocTypeName)) != NULL) {
 		doctypes_assignDocumentTypeDescriptor(fp, NULL, pDocTypeName);
 		doctypes_documentTypeChanged(TRUE);
 	}
-}
-
-/*--------------------------------------------------------------------------
- * doctypes_newType()
- */
-static void doctypes_newType(HWND hDlg)
-{
-	_selectedDocType = doctypes_createDocumentType(_selectedDocType);
-	doctypes_fillListbox(hDlg, _selectedDocType);
-	doctypes_fillParameters(docTypePars, _selectedDocType);
-	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
+	return FALSE;
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_deleteType()
  */
-static void doctypes_deleteType(HWND hDlg)
+static BOOL doctypes_deleteType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog)
 {
 	doctypes_deleteDocumentType(_selectedDocType);
 	_selectedDocType = 0;
 	doctypes_fillListbox(hDlg, _selectedDocType);
 	doctypes_fillParameters(docTypePars, _selectedDocType);
+	return FALSE;
 }
 
 /*--------------------------------------------------------------------------
  * doctypes_changeType()
  */
-static void doctypes_changeType(HWND hDlg)
-{
+static BOOL doctypes_changeType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
 	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
 	doctypes_fillListbox(hDlg, (void*)_selectedDocType);
+	return FALSE;
 }
 
 /*
@@ -1109,7 +1127,7 @@ int EdRangeShift(int dir)
 {	static ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
-	_dconvert->dp_size = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
+	_dconvert->did_flagOrSize = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
 	if (!win_callDialog(DLGCONVERT,&_tp,_dconvert, NULL))
 		return 0;
 		
@@ -1117,104 +1135,11 @@ int EdRangeShift(int dir)
 }
 
 /*--------------------------------------------------------------------------
- * color_lboxfill()
- */
-static void color_lboxfill(HWND hwnd, int nItem, void* selValue)
-{
-	COLORREF		cColor;
-	HDC			hdc;
-	int			i;
-	int			nPaletteSize = 32;
-	int			nSelIndex;
-
-	hdc = GetDC(hwnd);
-	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT,0,0L);
-	for (i = 0, nSelIndex = 0; i < nPaletteSize; i++) {
-		cColor = GetNearestColor (hdc, PALETTEINDEX (i));
-		if (cColor == (COLORREF)(uintptr_t)selValue) {
-			nSelIndex = i;
-		}
-		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, i);
-	}
-	SendDlgItemMessage(hwnd, nItem, CB_SETCURSEL, nSelIndex, 0L);
-
-	ReleaseDC(hwnd, hdc);	
-}
-
-/*------------------------------------------------------------
- * color_drawitem()
- */
-static void color_drawitem(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl)
-{
-	HPEN		hPen;
-	HPEN		hOldPen;
-	HBRUSH	hBrush;
-	HBRUSH	hOldBrush;
-
-	hPen = GetStockObject(BLACK_PEN);
-	hOldPen = SelectObject(hdc, hPen);
-
-	hBrush = CreateSolidBrush(PALETTEINDEX((intptr_t) par));
-	hOldBrush = SelectObject(hdc, hBrush);
-	Rectangle(hdc, rcp->left + 2, rcp->top + 2, rcp->right - 2, rcp->bottom - 2);
-	SelectObject(hdc, hOldBrush);
-	SelectObject(hdc, hOldPen);
-
-	DeleteObject(hBrush);
-}
-
-/*--------------------------------------------------------------------------
- * color_getitem()
- */
-static int color_getitem(HWND hwnd, int id, char *szBuff)
-{ 	
-	LRESULT	item;
-	HDC		hDC;
-
-	item = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
-	if (item == CB_ERR) {
-		*(long *)szBuff = 0;
-		return CB_ERR;
-	}
-
-	hDC = GetDC(hwnd);
-	*(long *)szBuff = (long) GetNearestColor (hDC, PALETTEINDEX (item));
-	ReleaseDC(hwnd, hDC);	
-	return 1;
-}
-
-/*--------------------------------------------------------------------------
- * color_showselection()
- */
-static void color_showselection(DRAWITEMSTRUCT *dp)
-{
-	HPEN		hPen;
-	HPEN		hOldPen;
-	HBRUSH	hBrush;
-	HBRUSH	hOldBrush;
-	RECT *	rcp;
-
-	rcp = (RECT *)&dp->rcItem;
-
-	hPen = GetStockObject(BLACK_PEN);
-	hOldPen = SelectObject(dp->hDC, hPen);
-
-	hBrush = GetStockObject(NULL_BRUSH);
-	hOldBrush = SelectObject(dp->hDC, hBrush);
-
-	Rectangle(dp->hDC, rcp->left, rcp->top, rcp->right, rcp->bottom);
-	SelectObject(dp->hDC, hOldBrush);
-	SelectObject(dp->hDC, hOldPen);
-
-	SelectObject(dp->hDC, hOldPen);
-}
-
-/*--------------------------------------------------------------------------
  * dlg_configureEditorModes()
  */
-static DIALPARS* _paramsPerPage[4];
+static DIALOG_ITEM_DESCRIPTOR* _paramsPerPage[4];
 
-static DIALPARS* _getDialogParsForPage(int pageIndex) {
+static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];
 }
 
@@ -1241,7 +1166,7 @@ static dlg_updateStatusline(EDIT_CONFIGURATION* linp, char* status) {
 int dlg_configureEditorModes(void) {
 	int scrollmin, mindelta, cursafter, flags;
 	char 	status[256];
-	long 	bgcolor;
+	COLORREF bgcolor = RGB(0,0,0);
 	char 	tabDisplayFillCharacter;
 	int  	dispmode;
 	int	tabsize;
@@ -1250,67 +1175,63 @@ int dlg_configureEditorModes(void) {
 	char 	backupExtension[4];
 	int	opt;
 	int	crypt;
-	DIALPARS _dFileFormat[] = {
-		IDD_STRING1,	sizeof backupExtension,	backupExtension,
-		IDD_INT1,		sizeof nl1,	&nl1,
-		IDD_INT2,		sizeof nl2,	&nl2,
-		IDD_INT3,		sizeof cr,	&cr,
-		IDD_OPT1,		1,			&opt,
-		IDD_OPT2,		2,			&opt,
-		IDD_OPT3,		4,			&opt,
-		IDD_OPT4,		O_CRYPTED,	&crypt,
-		0
+	DIALOG_ITEM_DESCRIPTOR _dFileFormat[] = {
+		{IDD_STRING1,	sizeof backupExtension,	backupExtension},
+		{IDD_INT1,		sizeof nl1,	&nl1},
+		{IDD_INT2,		sizeof nl2,	&nl2},
+		{IDD_INT3,		sizeof cr,	&cr},
+		{IDD_OPT1,		1,			&opt},
+		{IDD_OPT2,		2,			&opt},
+		{IDD_OPT3,		4,			&opt},
+		{IDD_OPT4,		O_CRYPTED,	&crypt},
+		{0}
 	};
-	DIALLIST dlist = {
-		(long long*)&bgcolor, color_lboxfill, color_getitem, 0, color_drawitem,
-		0, 0, color_showselection };
-	DIALPARS _dDisplayMode[] = {
-		IDD_STRING1,	sizeof status,		status,
-		IDD_CHAR,		sizeof tabDisplayFillCharacter,	&tabDisplayFillCharacter,
-		IDD_FONTSEL2COLOR,	0,			&dlist,
-		IDD_INT1,		sizeof tabsize,	&tabsize,
-		IDD_INT2,		sizeof rmargin,	&rmargin,
-		IDD_OPT1,		SHOW_CONTROL_CHARS,		&dispmode,
-		IDD_OPT4,		SHOW_HEX_DISPLAY,			&dispmode,
-		IDD_OPT5,		SHOW_RULER,			&dispmode,
-		IDD_OPT6,		SHOW_WYSIWYG_DISPLAY,		&dispmode,
-		IDD_OPT7,		SHOW_SYNTAX_HIGHLIGHT,& dispmode,
-		IDD_OPT8,		SHOW_HIDE_VSLIDER,	&dispmode,
-		IDD_OPT9,		SHOW_HIDE_HSLIDER,	&dispmode,
-		IDD_OPT10,		SHOW_LINENUMBERS,	&dispmode,
-		IDD_OPT11,		SHOW_CARET_LINE_HIGHLIGHT, &dispmode,
-		0
+	DIALOG_ITEM_DESCRIPTOR _dDisplayMode[] = {
+		{IDD_STRING1,	sizeof status,		status},
+		{IDD_CHAR,		sizeof tabDisplayFillCharacter,	&tabDisplayFillCharacter},
+		{IDD_INT1,		sizeof tabsize,	&tabsize},
+		{IDD_INT2,		sizeof rmargin,	&rmargin},
+		{IDD_OPT1,		SHOW_CONTROL_CHARS,		&dispmode},
+		{IDD_OPT4,		SHOW_HEX_DISPLAY,			&dispmode},
+		{IDD_OPT5,		SHOW_RULER,			&dispmode},
+		{IDD_OPT6,		SHOW_WYSIWYG_DISPLAY,		&dispmode},
+		{IDD_OPT7,		SHOW_SYNTAX_HIGHLIGHT,&dispmode},
+		{IDD_OPT8,		SHOW_HIDE_VSLIDER,	&dispmode},
+		{IDD_OPT9,		SHOW_HIDE_HSLIDER,	&dispmode},
+		{IDD_OPT10,		SHOW_LINENUMBERS,	&dispmode},
+		{IDD_OPT11,		SHOW_CARET_LINE_HIGHLIGHT, &dispmode},
+		{0}
 	};
 	char createActionName[sizeof(((EDIT_CONFIGURATION*)NULL)->saveActionName)];
 	char saveActionName[sizeof (((EDIT_CONFIGURATION*)NULL)->saveActionName)];
 	char tabfill;
 	int  workmode;
 	int fileflag;
-	DIALPARS _dCursorBehavior[] = {
-		IDD_INT3,		sizeof mindelta,	&mindelta,
-		IDD_INT4,		sizeof scrollmin,	&scrollmin,
-		IDD_OPT1,		SC_THUMBTRACK,		&flags,
-		IDD_OPT2,		SC_CURSORCATCH,		&flags,
-		IDD_OPT3,		SHOW_CARET_PRESERVE_COLUMN,& dispmode,
-		IDD_RADIO1,	CP_POSLOW - CP_POSTOP,&cursafter,
-		0
+	DIALOG_ITEM_DESCRIPTOR _dCursorBehavior[] = {
+		{IDD_INT3,		sizeof mindelta,	&mindelta},
+		{IDD_INT4,		sizeof scrollmin,	&scrollmin},
+		{IDD_OPT1,		SC_THUMBTRACK,		&flags},
+		{IDD_OPT2,		SC_CURSORCATCH,		&flags},
+		{IDD_OPT3,		SHOW_CARET_PRESERVE_COLUMN,&dispmode},
+		{IDD_RADIO1,	CP_POSLOW - CP_POSTOP,&cursafter},
+		{0}
 	};
-	DIALPARS _dWorkMode[] = {
-		IDD_STRING2,	sizeof createActionName,	createActionName,
-		IDD_STRING3,	sizeof saveActionName,	saveActionName,
-		IDD_CHAR,		sizeof tabfill,&tabfill,
-		IDD_OPT1,		WM_INSERT,	&workmode,
-		IDD_OPT2,		WM_ABBREV,	&workmode,
-		IDD_OPT3,		WM_AUTOINDENT,	&workmode,
-		IDD_OPT4,		WM_AUTOWRAP,	&workmode,
-		IDD_OPT5,		WM_AUTOFORMAT,	&workmode,
-		IDD_OPT6,		WM_OEMMODE,	&workmode,
-		IDD_OPT7,		F_RDONLY,		&fileflag,
-		IDD_OPT8,		WM_SHOWMATCH,	&workmode,
-		IDD_OPT9,		WM_FIX_CAPITALS,&workmode,
-		IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode,
-		IDD_OPT11,		F_WATCH_LOGFILE,&fileflag,
-		0
+	DIALOG_ITEM_DESCRIPTOR _dWorkMode[] = {
+		{IDD_STRING2,	sizeof createActionName,	createActionName},
+		{IDD_STRING3,	sizeof saveActionName,	saveActionName},
+		{IDD_CHAR,		sizeof tabfill,&tabfill},
+		{IDD_OPT1,		WM_INSERT,	&workmode},
+		{IDD_OPT2,		WM_ABBREV,	&workmode},
+		{IDD_OPT3,		WM_AUTOINDENT,	&workmode},
+		{IDD_OPT4,		WM_AUTOWRAP,	&workmode},
+		{IDD_OPT5,		WM_AUTOFORMAT,	&workmode},
+		{IDD_OPT6,		WM_OEMMODE,	&workmode},
+		{IDD_OPT7,		F_RDONLY,		&fileflag},
+		{IDD_OPT8,		WM_SHOWMATCH,	&workmode},
+		{IDD_OPT9,		WM_FIX_CAPITALS,&workmode},
+		{IDD_OPT10,		WM_DELETE_MULTIPLE_SPACES, &workmode},
+		{IDD_OPT11,		F_WATCH_LOGFILE,&fileflag},
+		{0}
 	};
 	PROPSHEETPAGE psp[4];
 	PROPSHEETHEADER psh;
@@ -1446,27 +1367,27 @@ int EdReplace(void)
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.replaceWith },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &ret },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope },
-		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
+		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   },
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_RNGE,		RNG_ONCE,			&_scope,
-		IDD_REGEXP,		RE_DOREX,			& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,	RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,	RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_PRESERVE_CASE,RE_PRESERVE_CASE, & _currentSearchAndReplaceParams.options,
-		IDD_FINDS,		sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,		& _currentSearchAndReplaceParams.replaceWith,
-		IDD_OPT1,		RE_CONFIRM_REPLACEMENT,	& _currentSearchAndReplaceParams.options,
-		IDD_OPT2,		RE_CONSIDER_MARKED_LINES,	 & _currentSearchAndReplaceParams.options,
-		IDD_RECORDRET,	sizeof ret,		&ret,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RNGE,		RNG_ONCE,			&_scope},
+		{IDD_REGEXP,		RE_DOREX,			&_currentSearchAndReplaceParams.options},
+		{IDD_SHELLJOKER,	RE_SHELLWILD,		&_currentSearchAndReplaceParams.options},
+		{IDD_IGNORECASE,	RE_IGNCASE,		&_currentSearchAndReplaceParams.options},
+		{IDD_PRESERVE_CASE,RE_PRESERVE_CASE, &_currentSearchAndReplaceParams.options},
+		{IDD_FINDS,		sizeof _currentSearchAndReplaceParams.searchPattern, &_currentSearchAndReplaceParams.searchPattern},
+		{IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith, &_currentSearchAndReplaceParams.replaceWith},
+		{IDD_OPT1,		RE_CONFIRM_REPLACEMENT,	&_currentSearchAndReplaceParams.options},
+		{IDD_OPT2,		RE_CONSIDER_MARKED_LINES,	 &_currentSearchAndReplaceParams.options},
+		{IDD_RECORDRET,	sizeof ret,		&ret},
+		{0}
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
-		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
-		IDD_FINDS,	IDS_TT_REGULAR_EXPRESSION,
-		IDD_PRESERVE_CASE,	IDS_TT_PRESERVE_CASE,
-		0
+		{IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION},
+		{IDD_FINDS,	IDS_TT_REGULAR_EXPRESSION},
+		{IDD_PRESERVE_CASE,	IDS_TT_PRESERVE_CASE},
+		{0}
 	};
 	WINFO* wp = ww_getCurrentEditorWindow();
 
@@ -1490,14 +1411,14 @@ int EdFind(void)
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
 	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	DIALPARS _d[] = {
-		IDD_RADIO1,	1,				&_dir,
-		IDD_REGEXP,	RE_DOREX,			& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,RE_SHELLWILD,		& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,RE_IGNCASE,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT1,		RE_WRAPSCAN,		& _currentSearchAndReplaceParams.options,
-		IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	_currentSearchAndReplaceParams.searchPattern,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RADIO1,	1,				&_dir},
+		{IDD_REGEXP,	RE_DOREX,			&_currentSearchAndReplaceParams.options},
+		{IDD_SHELLJOKER,RE_SHELLWILD,		&_currentSearchAndReplaceParams.options},
+		{IDD_IGNORECASE,RE_IGNCASE,		&_currentSearchAndReplaceParams.options},
+		{IDD_OPT1,		RE_WRAPSCAN,		&_currentSearchAndReplaceParams.options},
+		{IDD_FINDS,	sizeof _currentSearchAndReplaceParams.searchPattern,	_currentSearchAndReplaceParams.searchPattern},
+		{0}
 	};
 	DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
@@ -1542,6 +1463,15 @@ static INT_PTR find_inFilesDialogProc(HWND hDlg, UINT wMessage, WPARAM wParam, L
 	return pRes;
 }
 
+static BOOL dlg_selectPath(HWND hwnDialog, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
+	char szBuff[128];
+	char* pszTitle = dlg_getTitleResource(hwnDialog, pDescriptor->did_controlNumber, szBuff, sizeof szBuff);
+	if (fsel_selectFolder(hwnDialog, pszTitle, _fseltarget)) {
+		SetDlgItemText(hwnDialog, IDD_PATH1, _fseltarget);
+	}
+	return FALSE;
+}
+
 /*--------------------------------------------------------------------------
  * EdFindInFileList()
  */
@@ -1553,22 +1483,23 @@ int EdFindInFileList(void)
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
 	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	DIALPARS _d[] = {
-		IDD_REGEXP,	RE_DOREX,					& _currentSearchAndReplaceParams.options,
-		IDD_SHELLJOKER,RE_SHELLWILD,			& _currentSearchAndReplaceParams.options,
-		IDD_IGNORECASE,RE_IGNCASE,				& _currentSearchAndReplaceParams.options,
-		IDD_OPT1,		RE_SEARCH_ONCE,			& _currentSearchAndReplaceParams.options,
-		IDD_OPT2,		RE_IGNORE_BINARY,		& _currentSearchAndReplaceParams.options,
-		IDD_OPT3,		RE_APPEND_TO_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
-		IDD_OPT4,		RE_SEARCH_IN_SEARCH_RESULTS,& _currentSearchAndReplaceParams.options,
-		IDD_OPT5,		RE_CONFIRM_REPLACEMENT,	& _currentSearchAndReplaceParams.options,
-		IDD_PRESERVE_CASE,	RE_PRESERVE_CASE,	& _currentSearchAndReplaceParams.options,
-		IDD_INT1,		sizeof _currentSearchAndReplaceParams.fileScanDepth, & _currentSearchAndReplaceParams.fileScanDepth,
-		IDD_FILE_PATTERN, sizeof _currentSearchAndReplaceParams.filenamePattern, & _currentSearchAndReplaceParams.filenamePattern,
-		IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		& _currentSearchAndReplaceParams.searchPattern,
-		IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,& _currentSearchAndReplaceParams.replaceWith,
-		IDD_PATH1,	sizeof _currentSearchAndReplaceParams.pathlist,	& _currentSearchAndReplaceParams.pathlist,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_PATH1SEL,	.did_command = dlg_selectPath},
+		{IDD_REGEXP,	RE_DOREX,					&_currentSearchAndReplaceParams.options},
+		{IDD_SHELLJOKER,RE_SHELLWILD,			&_currentSearchAndReplaceParams.options},
+		{IDD_IGNORECASE,RE_IGNCASE,				&_currentSearchAndReplaceParams.options},
+		{IDD_OPT1,		RE_SEARCH_ONCE,			&_currentSearchAndReplaceParams.options},
+		{IDD_OPT2,		RE_IGNORE_BINARY,		&_currentSearchAndReplaceParams.options},
+		{IDD_OPT3,		RE_APPEND_TO_SEARCH_RESULTS,&_currentSearchAndReplaceParams.options},
+		{IDD_OPT4,		RE_SEARCH_IN_SEARCH_RESULTS,&_currentSearchAndReplaceParams.options},
+		{IDD_OPT5,		RE_CONFIRM_REPLACEMENT,	&_currentSearchAndReplaceParams.options},
+		{IDD_PRESERVE_CASE,	RE_PRESERVE_CASE,	&_currentSearchAndReplaceParams.options},
+		{IDD_INT1,		sizeof _currentSearchAndReplaceParams.fileScanDepth, &_currentSearchAndReplaceParams.fileScanDepth},
+		{IDD_FILE_PATTERN, sizeof _currentSearchAndReplaceParams.filenamePattern, &_currentSearchAndReplaceParams.filenamePattern},
+		{IDD_FINDS2,	sizeof _currentSearchAndReplaceParams.searchPattern,		&_currentSearchAndReplaceParams.searchPattern},
+		{IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith,&_currentSearchAndReplaceParams.replaceWith},
+		{IDD_PATH1,	sizeof _currentSearchAndReplaceParams.pathlist,	&_currentSearchAndReplaceParams.pathlist},
+		{0}
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
@@ -1611,19 +1542,44 @@ int EdFindAgain(WINFO *wp, int dir)
  * Return the internall index for a given macro keycode and name.
  */
 int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
-{	static DIALPARS  _d[] = {
-		IDD_STRING1,	MAC_NAMELEN,		_currentSearchAndReplaceParams.searchPattern,
-		IDD_KEYCODE,	sizeof(KEYCODE),	0,
-		0
+{	static DIALOG_ITEM_DESCRIPTOR  _d[] = {
+	{IDD_STRING1,	MAC_NAMELEN,		_currentSearchAndReplaceParams.searchPattern},
+	{IDD_KEYCODE,	sizeof(KEYCODE),	0},
+	{0}
 	};
 
-	_d[0].dp_data = name;
-	_d[1].dp_data = scan;
+	_d[0].did_data = name;
+	_d[1].did_data = scan;
 	do {
 		if (DoDialog(DLGMACNAME, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL)
 			return 0;
 	} while (!macro_validateMacroName(name,oldidx, FALSE));
 	return 1;
+}
+
+static void dlg_initializeCharacter(HWND hDialog, DIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	SendDlgItemMessage(hDialog, pDescriptor->did_controlNumber, WM_CHARCHANGE, 
+		*(unsigned char*)pDescriptor->did_data, 0L);
+}
+
+static BOOL dlg_applyCharacter(HWND hDialog, DIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	*(char*)pDescriptor->did_data = (char)(short)(long)
+		SendDlgItemMessage(hDialog, pDescriptor->did_controlNumber, CS_QUERYCHAR, 0, 0L);
+	return TRUE;
+}
+
+static BOOL dlg_displayCharacter(HWND hDialog, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
+	if (nNotify == CSN_CHARSELECT) {
+		LONG c = (LONG)LOWORD(lParam);
+		union U_ARG_VALUE values[] = {
+			{c},{c},{c},{c},{0}
+		};
+		char szBuff[128];
+		mysprintf(szBuff,
+			"DEZ: %03j  OKT: %03i  HEX: 0x%02p  BIN: %08b", &(SPRINTF_ARGS){.sa_values = values});
+		SetDlgItemText(hDialog, IDD_CSELT1, szBuff);
+	}
+	return FALSE;
 }
 
 /*--------------------------------------------------------------------------
@@ -1633,10 +1589,11 @@ long long EdCharControlInsert(void)
 { 	static char c;
 	static ITEMS	 _i   = { C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c	};
 	static PARAMS	 _p  = { 1, P_MAYOPEN, _i };
-	static DIALPARS _d[] = { 
-		IDD_POSITIONTCURS,	0,			0,
-		IDD_CSEL,			sizeof(c),	&c,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = { 
+		{IDD_POSITIONTCURS,	0,			0},
+		{IDD_CSEL,			sizeof(c),	&c, .did_initialize = dlg_initializeCharacter, 
+			.did_apply = dlg_applyCharacter, .did_command = dlg_displayCharacter},
+		{0}
 	};
 
    if (!win_callDialog(DLGCONTROLINS,&_p,_d, NULL)) {
@@ -1724,15 +1681,16 @@ int EdCommandExecute(void)
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &opt }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
-	static DIALPARS _d[] = {
-		IDD_PATH1,	sizeof cmd,		cmd,
-		IDD_STRING1,	sizeof dir,		dir,
-		IDD_STRING2,	sizeof errlist,	errlist,
-		IDD_OPT1,		EX_SYMBOL,		&opt,
-		IDD_OPT2,		EX_WAIT,			&opt,
-		IDD_OPT3,		EX_CD,			&opt,
-		IDD_RADIO1,		4,				&redir,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_PATH1SEL,	.did_command = dlg_selectPath},
+		{IDD_PATH1,	sizeof cmd,			cmd},
+		{IDD_STRING1,	sizeof dir,		dir},
+		{IDD_STRING2,	sizeof errlist,	errlist},
+		{IDD_OPT1,		EX_SYMBOL,		&opt},
+		{IDD_OPT2,		EX_WAIT,		&opt},
+		{IDD_OPT3,		EX_CD,			&opt},
+		{IDD_RADIO1,		4,			&redir},
+		{0}
 	};
 
 	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
@@ -1752,14 +1710,14 @@ int EdCommandExecute(void)
  */
 static int inputPassWord(LPSTR pszPW, LPSTR pszFilename, BOOL bSave) {
 	char szMsg[256];
-	DIALPARS _d[] = {
-		IDD_STRING1,	20,		0,
-		IDD_RO1,		sizeof szMsg,		szMsg,
-		0
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_STRING1,	20,		0},
+		{IDD_RO1,		0,		szMsg, .did_initialize = dlg_initializeLabel},
+		{0}
 	};
 
 	pszPW[0] = 0;
-	_d[0].dp_data = pszPW;
+	_d[0].did_data = pszPW;
 	LPSTR pszFormat = dlg_getResourceString(bSave ? IDS_ENTER_PASSWORD_TO_ENCRYPT : IDS_ENTER_PASSWORD_TO_DECRYPT);
 	sprintf(szMsg, pszFormat, string_abbreviateFileName(pszFilename));
 	return DoDialog(DLGCRYPT, dlg_standardDialogProcedure, _d, NULL) != IDCANCEL;
@@ -1849,17 +1807,17 @@ char* EdPromptAssign(char* prompt, char* init) {
 	static char buf[128];
 	static ITEMS	_i = { C_PUSH_STRING_LITERAL,  (unsigned char*)0 };
 	static PARAMS	_np = { 1, P_MAYOPEN, _i };
-	static DIALPARS _d[] = {
-		IDD_RO1,		128,			0,
-		IDD_STRING1,	128, 		0,
-		0
+	static DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_RO1,		.did_initialize = dlg_initializeLabel},
+		{IDD_STRING1,	128, 		0},
+		{0}
 	};
 
 	if (!prompt) {
 		prompt = " > ";
 	}
-	_d[0].dp_data = prompt;
-	_d[1].dp_data = buf;
+	_d[0].did_data = prompt;
+	_d[1].did_data = buf;
 	_i->p.s = buf;
 	if (init) {
 		lstrcpy(buf, init);

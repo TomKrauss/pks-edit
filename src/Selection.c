@@ -816,13 +816,13 @@ static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPar
  */
 char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	static char selectedTemplate[32];
-	DIALLIST tmplatelist = {
-		NULL, bl_namedBuffersFillListbox, dlg_getListboxText, 0, 0, bl_namedBuffersOnSelectionChange };
-	DIALPARS _d[] = {
-		IDD_POSITIONTCURS,	0,			0,
-		IDD_ICONLIST,		0,			&tmplatelist,
-		IDD_STRING1,		sizeof selectedTemplate,	selectedTemplate,
-		0
+	LIST_HANDLER tmplatelist = {
+		NULL, bl_namedBuffersFillListbox, dlg_getComboBoxSelectedText, 0, 0, bl_namedBuffersOnSelectionChange };
+	DIALOG_ITEM_DESCRIPTOR _d[] = {
+		{IDD_POSITIONTCURS,	0,			0},
+		{IDD_ICONLIST,		0,			.did_listhandler = &tmplatelist},
+		{IDD_STRING1,		sizeof selectedTemplate,	selectedTemplate},
+		{0}
 	};
 
 	bl_namedClipboardDialogAction = bOption;

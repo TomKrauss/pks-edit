@@ -993,12 +993,11 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
  */
 static KEYCODE macro_getCurrentKeycode(void)
 {
-	static KEYCODE k;
-	static DIALPARS _d[] = { IDD_KEYCODE,	sizeof k,	&k, 0 };
+	KEYCODE k;
+	DIALOG_ITEM_DESCRIPTOR _d[] = { {IDD_KEYCODE,	sizeof k,	&k}, {0} };
 
 	k = K_DELETED;
-	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL ||
-		k == 0) {
+	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL || k == 0) {
 		return K_DELETED;
 	}
 	return k;
@@ -1138,7 +1137,8 @@ static INT_PTR CALLBACK DlgMacEditProc(HWND hwnd, UINT message, WPARAM wParam, L
 
 			case IDD_LISTBOX:
 				if (nNotify == LBN_SELCHANGE) {
-					if (dlg_getListboxText(hwnd,IDD_LISTBOX,szName) > 0) {
+					char* pszName = szName;
+					if (dlg_getComboBoxSelectedText(hwnd,IDD_LISTBOX,&pszName) > 0) {
 						macro_newMacroSelected(hwnd);
 					}
 				}

@@ -499,7 +499,7 @@ BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
 	memset(&cf, 0, sizeof cf);
 	memset(&lf, 0, sizeof lf);
 
-	lf.lfHeight = 12;
+	lf.lfHeight = dpisupport_getSize(12);
 	lf.lfWeight = 0;
 	lf.lfWidth = 0;
 	lf.lfItalic = 0;

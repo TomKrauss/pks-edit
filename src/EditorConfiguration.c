@@ -284,29 +284,27 @@ static EDITOR_CONFIGURATION _configuration = {
 	config_autosaveConfiguration
 };
 
-static DIALPARS _dAutoSave[] = {
-	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_INT1,		sizeof _configuration.autosaveSeconds,		&_configuration.autosaveSeconds,
-	IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				& _configuration.options,
-	IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath,
-	IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options,
-	IDD_OPT3,		O_AUTO_OPEN_HISTORY,					& _configuration.options,
-	IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					& _configuration.options,
-	IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			& _configuration.options,
-	IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,				& _configuration.options,
-	IDD_OPT7,		O_SAVE_CLIPBOARD_HISTORY,				& _configuration.options,
-	IDD_OPT8,		O_AUTOSAVE_TO_TEMP,						& _configuration.options,
+static DIALOG_ITEM_DESCRIPTOR _dAutoSave[] = {
+	{IDD_INT1,		sizeof _configuration.autosaveSeconds,		&_configuration.autosaveSeconds},
+	{IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				&_configuration.options},
+	{IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath},
+	{IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options},
+	{IDD_OPT3,		O_AUTO_OPEN_HISTORY,					&_configuration.options},
+	{IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					&_configuration.options},
+	{IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			&_configuration.options},
+	{IDD_OPT6,		O_SAVE_CLIPBOARDS_ON_EXIT,				&_configuration.options},
+	{IDD_OPT7,		O_SAVE_CLIPBOARD_HISTORY,				&_configuration.options},
+	{IDD_OPT8,		O_AUTOSAVE_TO_TEMP,						&_configuration.options},
 	// Terminate with 0
-	0
+	{0}
 };
 
-static DIALPARS _dWarnings[] = {
-	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT2,		O_ERROR_TONE,				&_configuration.options,
-	IDD_OPT3,		O_ERROR_FLASH_WINDOW,		&_configuration.options,
-	IDD_OPT4,		O_SHOW_MESSAGES_IN_SNACKBAR,	& _configuration.options,
+static DIALOG_ITEM_DESCRIPTOR _dWarnings[] = {
+	{IDD_OPT2,		O_ERROR_TONE,				&_configuration.options},
+	{IDD_OPT3,		O_ERROR_FLASH_WINDOW,		&_configuration.options},
+	{IDD_OPT4,		O_SHOW_MESSAGES_IN_SNACKBAR,	&_configuration.options},
 	// Terminate with 0
-	0
+	{0}
 };
 
 static void conf_fillIconSizes(HWND hwnd, int nItem, void* selValue) {
@@ -322,25 +320,24 @@ static void conf_fillIconSizes(HWND hwnd, int nItem, void* selValue) {
 static int conf_getIconSize(HWND hwnd, int id, void* pszTemp) {
 	LRESULT nItem = SendDlgItemMessage(hwnd, id, CB_GETCURSEL, 0, 0);
 	if (nItem >= 0) {
-		**((ICONSIZE**)pszTemp) = (int)nItem;
+		*((ICONSIZE*)pszTemp) = (int)nItem;
 	}
 	return nItem != CB_ERR;
 }
 
-static DIALLIST _iconSizelist = {
+static LIST_HANDLER _iconSizelist = {
 	NULL, conf_fillIconSizes, conf_getIconSize,
 	NULL, NULL, NULL, 0 };
 
-static DIALPARS _dLayout[] = {
-	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT1,		OL_OPTIONBAR,		&_configuration.layoutoptions,
-	IDD_OPT2,		OL_FKEYS,			&_configuration.layoutoptions,
-	IDD_OPT3,		OL_SHOWSTATUS,		&_configuration.layoutoptions,
-	IDD_OPT4,		OL_TOOLBAR,			&_configuration.layoutoptions,
-	IDD_OPT5,		OL_COMPACT_TABS,	&_configuration.layoutoptions,
-	IDD_ICONLIST,	0,					&_iconSizelist,
+static DIALOG_ITEM_DESCRIPTOR _dLayout[] = {
+	{IDD_OPT1,		OL_OPTIONBAR,		&_configuration.layoutoptions},
+	{IDD_OPT2,		OL_FKEYS,			&_configuration.layoutoptions},
+	{IDD_OPT3,		OL_SHOWSTATUS,		&_configuration.layoutoptions},
+	{IDD_OPT4,		OL_TOOLBAR,			&_configuration.layoutoptions},
+	{IDD_OPT5,		OL_COMPACT_TABS,	&_configuration.layoutoptions},
+	{IDD_ICONLIST,	0,					.did_listhandler = &_iconSizelist},
 	// Terminate with 0
-	0
+	{0}
 };
 
 static void conf_fillLocales(HWND hwnd, int nItem, void* selValue) {
@@ -378,37 +375,36 @@ static void conf_fillSearchEngines(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
 }
 
-static DIALLIST _themelist = {
-	NULL, conf_fillThemes, dlg_getListboxText,
+static LIST_HANDLER _themelist = {
+	NULL, conf_fillThemes, dlg_getComboBoxSelectedText,
 	NULL, NULL, NULL, 0 };
 
-static DIALLIST _searchEnginelist = {
-	NULL, conf_fillSearchEngines, dlg_getListboxText,
+static LIST_HANDLER _searchEnginelist = {
+	NULL, conf_fillSearchEngines, dlg_getComboBoxSelectedText,
 	NULL, NULL, NULL, 0 };
 
-static DIALLIST _localeslist = {
-	NULL, conf_fillLocales, dlg_getListboxText,
+static LIST_HANDLER _localeslist = {
+	NULL, conf_fillLocales, dlg_getComboBoxSelectedText,
 	NULL, NULL, NULL, 0 };
 
-static DIALPARS _dMisc[] = {
-	IDD_NOCHANGEONCANCEL,	0,	0,
-	IDD_OPT1,		O_UNDOENABLED,					& _configuration.options,
-	IDD_INT1,		sizeof _configuration.nundo,	&_configuration.nundo,
-	IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,& _configuration.maximumNumberOfOpenWindows,
-	IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		& _configuration.options,
-	IDD_OPT3,		O_FORMFOLLOW,					& _configuration.options,
-	IDD_OPT4,		O_LOCKFILES,					& _configuration.options,
-	IDD_OPT5,		O_REUSE_APPLICATION_INSTANCE,& _configuration.options,
-	IDD_OPT18,		O_SILENTLY_RELOAD_CHANGED_FILES,& _configuration.options,
-	IDD_STRINGLIST3, 0,								& _searchEnginelist,
-	IDD_STRINGLIST2, 0,								&_themelist,
-	IDD_STRINGLIST1, 0,								&_localeslist,
-	IDD_FONTSELECT,	TRUE,							_configuration.defaultFontFace,
+static DIALOG_ITEM_DESCRIPTOR _dMisc[] = {
+	{IDD_OPT1,		O_UNDOENABLED,					&_configuration.options},
+	{IDD_INT1,		sizeof _configuration.nundo,	&_configuration.nundo},
+	{IDD_INT2,		sizeof _configuration.maximumNumberOfOpenWindows,&_configuration.maximumNumberOfOpenWindows},
+	{IDD_OPT2,		O_HIDE_BLOCK_ON_CARET_MOVE,		&_configuration.options},
+	{IDD_OPT3,		O_FORMFOLLOW,					&_configuration.options},
+	{IDD_OPT4,		O_LOCKFILES,					&_configuration.options},
+	{IDD_OPT5,		O_REUSE_APPLICATION_INSTANCE,&_configuration.options},
+	{IDD_OPT18,		O_SILENTLY_RELOAD_CHANGED_FILES,&_configuration.options},
+	{IDD_STRINGLIST3, 0,								.did_listhandler = &_searchEnginelist},
+	{IDD_STRINGLIST2, 0,								.did_listhandler = &_themelist},
+	{IDD_STRINGLIST1, 0,								.did_listhandler = &_localeslist},
+	{IDD_FONTSELECT,	TRUE,	_configuration.defaultFontFace, .did_command = dlg_selectFontCommand},
 	// Terminate with 0
-	0
+	{0}
 };
 
-static DIALPARS* _paramsPerPage[] = {
+static DIALOG_ITEM_DESCRIPTOR* _paramsPerPage[] = {
 	_dAutoSave,
 	_dWarnings,
 	_dLayout,
@@ -492,7 +488,7 @@ int config_tempPathIsDefault() {
 	return 0;
 }
 
-static DIALPARS* _getDialogParsForPage(int pageIndex) {
+static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];
 }
 
@@ -506,7 +502,7 @@ void EdOptionSet(void) {
 	_localeslist.li_param = (long long*)pConfig->language;
 	_searchEnginelist.li_param = (long long*)pConfig->searchEngine;
 	ICONSIZE* p = &pConfig->iconSize;
-	_iconSizelist.li_param = (long long*)&p;
+	_iconSizelist.li_param = (long long*)p;
 	dlg_setXDialogParams(_getDialogParsForPage, TRUE);
 	memset(&psh, 0, sizeof psh);
 	memset(psp, 0, sizeof psp);

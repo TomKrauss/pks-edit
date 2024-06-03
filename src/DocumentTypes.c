@@ -560,9 +560,9 @@ DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp)
 		return 0;
 	}
 	if (llp) {
-		/* do not copy link pointer ! */
-		memmove(&llpNew->ll_name, &llp->ll_name,
-			sizeof * llpNew - sizeof llpNew->ll_next);
+		/* do not copy link pointer and do not share other malloced references as they are freed later for every doc type */
+		memmove(&llpNew->ll_name, &llp->ll_name, sizeof * llpNew - sizeof llpNew->ll_next);
+		llpNew->ll_languages = arraylist_create(3);
 	}
 	llpNew->ll_documentDescriptor = 0;
 	if ((nLen = (int)strlen(llpNew->ll_name)) < sizeof(llpNew->ll_name) - 2) {

@@ -16,39 +16,59 @@
 
 # ifndef XDIALOG_H
 
-typedef struct tagDIALPARS {
-	int		dp_item;
-	int 	dp_size;
-	void	*dp_data;
-} DIALPARS;
+typedef int (*DIALOG_CB)(HWND hDialog, int nItem);
 
-typedef struct tagDIALLIST {
-	long long	*li_param;
-	void		(*li_fill)(HWND hDlg, int item, void *param);
-	int			(*li_get) (HWND hDlg, int item, void *param);
-	void		(*li_measure)(MEASUREITEMSTRUCT *mp);
-	void 		(*li_draw)(HDC hdc, RECT *rcp, void* par, int nItem, int nCtl);
-	void		(*li_command)(HWND hDlg, int nItem, int nNotify, void *p);
-	int			(*li_compare)(COMPAREITEMSTRUCT *cp);
-	void		(*li_selection)(DRAWITEMSTRUCT *dp);
-} DIALLIST;
+typedef struct tagLIST_HANDLER {
+	void*		li_param;
+	void		(*li_fill)(HWND hDlg, int item, void* param);
+	int			(*li_get) (HWND hDlg, int item, void* param);
+	void		(*li_measure)(MEASUREITEMSTRUCT* mp);
+	void 		(*li_draw)(HDC hdc, RECT* rcp, void* par, int nItem, int nCtl);
+	void		(*li_command)(HWND hDlg, int nItem, int nNotify, void* p);
+	int			(*li_compare)(COMPAREITEMSTRUCT* cp);
+	void		(*li_selection)(DRAWITEMSTRUCT* dp);
+} LIST_HANDLER;
+
+typedef struct tagDIALOG_ITEM_DESCRIPTOR {
+	// The id of the control described by this item descriptor.
+	int		did_controlNumber;
+	// If dp_data points to a data area (e.g. a char* pointer in the case of a input field type dialog item), this
+	// is the size of the data available.
+	int 	did_flagOrSize;
+	// "Initialization data" for the item. The data is copied into or from here into the control during initialization or when 
+	// submitting the dialog.
+	void* did_data;
+	// Invoked, when the dialog is initialized
+	void (*did_initialize)(HWND hDialog, struct tagDIALOG_ITEM_DESCRIPTOR* pDescriptor);
+	// Invoked, before the dialog is committed. If NULL, nothing is performed.
+	// If the changes cannot be applied (e.g. the values are invalid), this method should return FALSE.
+	BOOL(*did_apply)(HWND hDialog, struct tagDIALOG_ITEM_DESCRIPTOR* pDescriptor);
+	// Invoked, when the dialog receives a WM_COMMAND message for the described item. If
+	// the values from the command should be applied before the command should use the pDialogDescriptor to do so.
+	BOOL(*did_command)(HWND hDialog, int nNotify, LPARAM lParam, 
+			struct tagDIALOG_ITEM_DESCRIPTOR* pDescriptor, struct tagDIALOG_DESCRIPTOR* pDialogDescriptor);
+	// Special delegate for list controls.
+	LIST_HANDLER* did_listhandler;
+} DIALOG_ITEM_DESCRIPTOR;
+
+typedef struct tagDIALOG_DESCRIPTOR {
+	DIALOG_ITEM_DESCRIPTOR* dd_items;
+} DIALOG_DESCRIPTOR;
 
 typedef struct tagITEM_TOOLTIP_MAPPING {
 	int			m_itemId;
 	int			m_tooltipStringId;
 } DLG_ITEM_TOOLTIP_MAPPING;
 
-typedef DIALPARS *LPDIALPARS;
-
 /*-----------------------------------------------
  * assigns a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-extern void			dlg_setXDialogParams(DIALPARS* (*func)(int pageIndex), boolean propertySheetFlag);
+extern void			dlg_setXDialogParams(DIALOG_ITEM_DESCRIPTOR* (*func)(int pageIndex), boolean propertySheetFlag);
 
-extern BOOL			DoDlgInitPars(HWND hDlg, DIALPARS *dp, int nParams);
-extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
+extern BOOL			DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams);
+extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 /*
@@ -57,26 +77,36 @@ extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 # if defined(_EDFUNCS_H)
-extern int 			win_callDialog(int nId, PARAMS *pp, DIALPARS *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+extern int 			win_callDialog(int nId, PARAMS *pp, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 /*--------------------------------------------------------------------------
  * win_callDialogCB()
  * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-extern int win_callDialogCB(int nId, PARAMS* pp, DIALPARS* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
+extern int win_callDialogCB(int nId, PARAMS* pp, DIALOG_ITEM_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
 # endif
-extern void 		dlg_retrieveParameters(HWND hDlg, DIALPARS *dp, int nMax);
+extern void 		dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax);
 /*--------------------------------------------------------------------------
  * dlg_getListboxText()
  */
-extern int dlg_getListboxText(HWND hwnd, int id, void* szBuff);
+extern int dlg_getComboBoxSelectedText(HWND hwnd, int id, char** szBuff);
+
+/*--------------------------------------------------------------------------
+ * dlg_getListBoxSelection()
+ */
+extern int dlg_getListBoxSelection(HWND hwnd, int id, void** pData);
 
 /*--------------------------------------------------------------------------
  * win_createModelessDialog()
  */
 extern void win_createModelessDialog(HWND* hwnd, LPSTR szName, INT_PTR(CALLBACK* func)(HWND, UINT, WPARAM, LPARAM),
 	DLGPROC* lplpfnDlgProc);
+
+/*
+ * Used to select a font in a dialog.
+ */
+extern BOOL dlg_selectFontCommand(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
 
 /*--------------------------------------------------------------------------
  * dlg_queryReplace()
@@ -92,10 +122,30 @@ extern int dlg_queryReplace(char* search, int slen, char* replace, int dlen);
 extern int dlg_displayRecordMacroOptions(int* o);
 
 /*--------------------------------------------------------------------------
+ * dlg_handleRadioButtonGroup()
+ * Custom handling of radio buttons: when an item is checked, make sure, that other items
+ * passed in the exclusiveGroup array must be unchecked. Note, that the exclusiveGroup array
+ * must be terminated by a 0 value.
+ */
+extern void dlg_handleRadioButtonGroup(HWND hDlg, WORD checkedItemControl, ...);
+
+/*
+ * Utility to retrieve a title text from a dialog component.
+ */
+extern char* dlg_getTitleResource(HWND hDlg, int idCtrl, char* szButton, size_t nSize);
+
+/*--------------------------------------------------------------------------
  * dlg_help()
  * Shows the help system.
  */
 extern void dlg_help(void);
+
+/*--------------------------------------------------------------------------
+ * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
+ * The list of item descriptors must be 0-terminated.
+ */
+extern BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR* dp);
+
 
 /*--------------------------------------------------------------------------
  * dlg_closeQueryReplace()

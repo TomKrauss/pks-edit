@@ -266,7 +266,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "K&ommando:",99,8,12,36,10
     EDITTEXT        IDD_PATH1,48,10,136,12
-    PUSHBUTTON      "D&urchsuchen..",IDD_PATH2SEL,186,8,54,16
+    PUSHBUTTON      "D&urchsuchen..",IDD_PATH1SEL,186,8,54,16
     LTEXT           "P&fad:",111,8,28,36,8
     EDITTEXT        IDD_STRING1,48,26,136,12
     GROUPBOX        "Umleitungen",112,4,48,72,60
