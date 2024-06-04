@@ -398,7 +398,6 @@ static int dlg_getRangeForOperation(HWND hwnd)
 		return RNG_FREE;
 	}
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
-		szCurr[0] = 0;
 		pszBuf = dlg_getResourceString(item);
 		if (pszBuf && strcmp(pszBuf,szCurr) == 0)
 			return item-IDS_RNGONCE+RNG_ONCE;

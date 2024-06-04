@@ -556,6 +556,8 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 		lplast = wp->blend->m_linePointer;
 	} else if (nRange == RNG_GLOBAL) {
 		lp = fp->firstl;
+	} else {
+		return 0;
 	}
 	bl_hideSelection(wp, FALSE);
 	PASTE paste;
@@ -578,7 +580,7 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 		lp = lp->next;
 	}
 	int ret = 1;
-	if (lp != lplast) {
+	if (lp && lp != lplast) {
 		LINE* lpTarget = lp->prev;
 		bl_delete(wp, lp, lplast, 0, lplast->len, 0, 0);
 		lpTarget = lpTarget ? lpTarget->next : fp->firstl;

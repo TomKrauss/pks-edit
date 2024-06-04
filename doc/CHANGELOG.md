@@ -38,7 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Editor Tabs were displaying filenames containing Umlauts incorrectly.
 - markdown rendering: space handling at end of line corrected.
 - Print File did crash (while print current window worked) - this is fixed.
-	- 
+- A possible crash in Format File was fixed, when a range of global had been specified.
+
 ## [2.5.0] - 2024-05-25
 
 ### Added

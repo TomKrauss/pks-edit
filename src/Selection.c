@@ -385,7 +385,7 @@ EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, FILE_READ_OPTIONS *pOptions) {
 	LINE *ll;
 	FTABLE rf;
 
-	rf.firstl = 0;
+	memset(&rf, 0, sizeof rf);
 	pb->pln = 0;
 	if (ft_readfileWithOptions(&rf, pOptions)) {
 		ll = rf.lastl->prev;
@@ -398,7 +398,8 @@ EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, FILE_READ_OPTIONS *pOptions) {
 		}
 		pb->pln = rf.firstl;
 		pb->nlines = rf.nlines;
-		free(rf.documentDescriptor);
+		rf.firstl = NULL;
+		ft_destroy(&rf);
 		return 1;
 	}
 	return 0;

@@ -1810,6 +1810,8 @@ BEGIN
     IDS_APPLY               "Übernehmen"
     IDS_CANCEL              "Abbruch"
     IDS_OPTIONS             "Einstellungen"
+    IDS_LINE_NUMBER_DOES_NOT_EXIST 
+                            "Die angegebene Zeilennummer existiert nicht in der aktuellen Datei."
 END
 
 #endif    // Deutsch (Deutschland) resources

@@ -1746,6 +1746,8 @@ BEGIN
     IDS_APPLY               "Apply"
     IDS_CANCEL              "Cancel"
     IDS_OPTIONS             "Options"
+    IDS_LINE_NUMBER_DOES_NOT_EXIST 
+                            "The current file does not contain that many lines."
 END
 
 #endif    // Englisch (USA) resources

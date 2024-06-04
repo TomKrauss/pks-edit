@@ -1038,11 +1038,11 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 	WINFO			winfo;
 	WINFO*			wp;
 	FTABLE*			fp = NULL;
-	FTABLE			_ft;
+	FTABLE			ftable;
 	PRTPARAM		*pp = config_getPrintConfiguration();
 
 	memset(&winfo,0,sizeof winfo);
-	memset(&_ft,0,sizeof _ft);
+	memset(&ftable,0,sizeof ftable);
 	_currentPrintScope.firstColumn = 0;
 	_currentPrintScope.lastColumn = 1024;
 	wp = 0;
@@ -1054,7 +1054,7 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 	}
 
 	if (what == PRT_FILE || fp == NULL) {
-		fp = &_ft;
+		fp = &ftable;
 		if (fname) {
 			lstrcpy(fp->fname, fname);
 		}

@@ -362,7 +362,7 @@ int EdAbout(void)
 /*--------------------------------------------------------------------------
  * dialogGetNumber()
  */
-static long dialogGetNumber(int nDialog)
+static long dialogGetNumber(int nDialog, int nInitialNumber)
 {	static long    num;
 	static ITEMS	_i   =  	{ C_PUSH_LONG_LITERAL,  (unsigned char * ) &num };
 	static PARAMS	_np  = 	{ 1, P_MAYOPEN, _i	  };
@@ -371,6 +371,7 @@ static long dialogGetNumber(int nDialog)
 		{0}
 	};
 
+	num = nInitialNumber;
 	if (!win_callDialog(nDialog,&_np,_d, NULL))
 		return -1L;
 	return num;
@@ -597,7 +598,7 @@ int EdKeycodeInsert(void)
 extern long _multiplier;
 int EdSetMultiplier(void)
 {
-	if ((_multiplier = dialogGetNumber(DLGMULTI)) > 0L) 
+	if ((_multiplier = dialogGetNumber(DLGMULTI, 2)) > 0L) 
 		return 1;
 	_multiplier = 1;
 	return 0;
@@ -623,11 +624,10 @@ int EdGotoLine(void) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	if ((ln = dialogGetNumber(DLGGOTOLINE)) > 0L) {
-		if (ln > fp->nlines) {
-			// TODO:::
-		}
-		else {
+	if ((ln = dialogGetNumber(DLGGOTOLINE, wp->caret.ln)) > 0L) {
+		if (ln <= 0 ||ln > fp->nlines) {
+			error_showErrorById(IDS_LINE_NUMBER_DOES_NOT_EXIST);
+		} else {
 			return caret_placeCursorMakeVisibleAndSaveLocation(wp, ln - 1L, 0L);
 		}
 	}
