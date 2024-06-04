@@ -1374,7 +1374,7 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 				if (pwp->cy < r.bottom || pwp->cx < r.right) {
 					break;
 				}
-				r.bottom = pControl->tc_tabstripRect.bottom;
+				r.bottom = pControl->tc_tabstripRect.bottom+1;
 				InvalidateRect(hwnd, &r, FALSE);
 				break;
 			} else {
@@ -1394,7 +1394,7 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 			pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 			tabcontrol_makeActiveTabVisible(hwnd, pControl);
 			tabcontrol_resizeActiveTabContents(hwnd, pControl);
-			r.bottom = pControl->tc_tabstripRect.bottom;
+			r.bottom = pControl->tc_tabstripRect.bottom+1;
 			InvalidateRect(hwnd, &r, FALSE);
 		}
 		return TRUE;
