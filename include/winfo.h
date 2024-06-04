@@ -674,6 +674,11 @@ extern void ww_registerRenderer(const char* pszName, RENDERER* pRenderer);
  */
 extern void ww_destroyAll();
 
+/*
+ * Destroy internally allocated data structures for a WINFO object.
+ */
+extern void ww_destroyData(WINFO* wp);
+
 /*------------------------------------------------------------
  * sl_size()
  * Update the internal sizeds of the WINFO structure (maxrows etc...).

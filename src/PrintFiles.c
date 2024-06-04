@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <CommCtrl.h>
 #include <windowsx.h>
+#include <ocidl.h>
 
 #include "trace.h"
 #include "caretmovement.h"
@@ -717,7 +718,7 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 	if (newPage != _currentPrintScope.printRange.prtr_fromPage) {
 		prt_enablePreviewButtons(hDlg, numberOfPreviewPages, newPage);
 	}
-	return FALSE;
+	return dlg_defaultWndProc(hDlg, message, wParam, lParam);
 }
 
 /**
@@ -766,6 +767,129 @@ int prt_decoget(HWND hwnd, int id, void* pDecoType) {
 	**((PAGE_DECORATION_TYPE**) pDecoType) = (PAGE_DECORATION_TYPE)nIdx;
 	return 1;
 }
+
+static ULONG _printDialogRef;
+
+static HRESULT WINAPI callback_QueryInterface(IPrintDialogCallback* iface,
+	REFIID riid, void** ppv) {
+	return E_NOINTERFACE;
+}
+
+static ULONG WINAPI callback_AddRef(IPrintDialogCallback* iface) {
+	_printDialogRef++;
+	return _printDialogRef;
+}
+
+static ULONG WINAPI callback_Release(IPrintDialogCallback* iface) {
+	_printDialogRef--;
+	return _printDialogRef;
+}
+
+static HRESULT WINAPI callback_InitDone(IPrintDialogCallback* iface) {
+	return S_OK;
+}
+
+static HRESULT WINAPI callback_SelectionChange(IPrintDialogCallback* iface) {
+	return S_OK;
+}
+
+static HRESULT WINAPI callback_HandleMessage(IPrintDialogCallback* iface,
+	HWND hdlg, UINT msg, WPARAM wp, LPARAM lp, LRESULT* res) {
+	if (msg == WM_INITDIALOG) {
+		while (IsWindow(GetParent(hdlg))) {
+			hdlg = GetParent(hdlg);
+			if (MAKEINTATOM(GetClassLong(hdlg, GCW_ATOM)) == WC_DIALOG) {
+				break;
+			}
+		}
+	}
+	*res = dlg_defaultWndProc(hdlg, msg, wp, lp);
+	//*res = PD_RESULT_PRINT;
+	return S_OK;
+}
+
+static const IPrintDialogCallbackVtbl callback_Vtbl = {
+	callback_QueryInterface,
+	callback_AddRef,
+	callback_Release,
+	callback_InitDone,
+	callback_SelectionChange,
+	callback_HandleMessage
+};
+
+static IPrintDialogCallback callback = { (IPrintDialogCallbackVtbl*) & callback_Vtbl};
+
+static ULONG _unknownRef;
+
+static IUnknown* _clientSite;
+
+static HRESULT WINAPI callback2_QueryInterface(IObjectWithSite* iface,
+	REFIID riid, void** ppv) {
+	return E_NOINTERFACE;
+}
+
+static ULONG WINAPI callback2_AddRef(IObjectWithSite* iface) {
+	_printDialogRef++;
+	return _printDialogRef;
+}
+
+static ULONG WINAPI callback2_Release(IObjectWithSite* iface) {
+	_printDialogRef--;
+	return _printDialogRef;
+}
+
+static HRESULT WINAPI callback2_SetSite(IObjectWithSite* iface, IUnknown* pClientSite) {
+	_clientSite = pClientSite;
+	return S_OK;
+}
+
+static HRESULT WINAPI callback2_GetSite(IObjectWithSite* iface, REFIID riid, void** pClientSite) {
+	*pClientSite= _clientSite;
+	return S_OK;
+}
+
+static const IObjectWithSiteVtbl callback2_Vtbl = {
+	callback2_QueryInterface,
+	callback2_AddRef,
+	callback2_Release,
+	callback2_SetSite,
+	callback2_GetSite
+};
+
+static IObjectWithSite callback2 = { (IObjectWithSiteVtbl*)&callback2_Vtbl };
+
+static HRESULT WINAPI unknown_QueryInterface(IUnknown* iface, REFIID riid, void** ppv) {
+	if (IsEqualGUID(riid, &IID_IPrintDialogCallback)) {
+		*ppv = &callback;
+		return S_OK;
+	}
+
+	if (IsEqualGUID(riid, &IID_IObjectWithSite)) {
+		*ppv = &callback2;
+		return S_OK;
+	}
+
+	*ppv = NULL;
+	return E_NOINTERFACE;
+}
+
+static ULONG WINAPI unknown_AddRef(IUnknown* iface) {
+	_unknownRef++;
+	return _unknownRef;
+}
+
+static ULONG WINAPI unknown_Release(IUnknown* iface) {
+	_unknownRef--;
+	return _unknownRef;
+}
+
+static const IUnknownVtbl unknown_Vtbl = {
+	unknown_QueryInterface,
+	unknown_AddRef,
+	unknown_Release
+};
+
+static IUnknown unknown = { (IUnknownVtbl*) & unknown_Vtbl};
 
 /*--------------------------------------------------------------------------
  * DlgPrint()
@@ -838,7 +962,7 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	psp[1].pszTemplate = MAKEINTRESOURCE(DLGPREVIEW);
 	psp[1].pfnDlgProc = DlgPreviewProc;
 
-	LPPRINTDLGEXA prtDlg = calloc(1, sizeof *prtDlg);
+	LPPRINTDLGEX prtDlg = calloc(1, sizeof *prtDlg);
 	if (prtDlg == NULL) {
 		return 0;
 	}
@@ -849,8 +973,6 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	HPROPSHEETPAGE pages[2];
 	pages[0] = pPage1;
 	pages[1] = pPage2;
-	pageRange.nFromPage = 1;
-	pageRange.nToPage = 5;
 	prtDlg->hwndOwner = hwndMain;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
@@ -867,16 +989,11 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 	prtDlg->nMaxPageRanges = 1;
 	prtDlg->nStartPage = START_PAGE_GENERAL;
 	prtDlg->nPropertyPages = 2;
-	prtDlg->lpCallback = NULL;
+	// Currently not working as expected
+	//prtDlg->lpCallback = &unknown;
 	dlg_disableDarkHandling = TRUE;
 	int nRet = PrintDlgEx(prtDlg);
 	dlg_disableDarkHandling = FALSE;
-	if (prtDlg->hDevNames) {
-		GlobalFree(prtDlg->hDevNames);
-	}
-	if (prtDlg->hDevMode) {
-		GlobalFree(prtDlg->hDevMode);
-	}
 	if (nRet == S_OK) {
 		if (prtDlg->dwResultAction != PD_RESULT_CANCEL) {
 			_currentPrintScope.printRange.prtr_fromPage = prtDlg->lpPageRanges[0].nFromPage;
@@ -941,15 +1058,20 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 		if (fname) {
 			lstrcpy(fp->fname, fname);
 		}
-		if (!fsel_selectFileWithTitle(CMD_PRINT_FILE, fp->fname, FALSE)) {
+		FILE_SELECT_PARAMS fsp = {
+			.fsp_multiSelect = FALSE,
+			.fsp_saveAs = FALSE
+		};
+		if (!fsel_selectFileWithTitle(CMD_PRINT_FILE, fp->fname, &fsp)) {
 			return 0;
 		}
 		FILE_READ_OPTIONS fro;
 		memset(&fro, 0, sizeof fro);
 		fro.fro_fileName = fp->fname;
 		fro.fro_useDefaultDocDescriptor = 0;
-		if (ft_readfileWithOptions(fp, &fro) == 0)
-	 		return 0;
+		if (ft_readfileWithOptions(fp, &fro) == 0) {
+			return 0;
+		}
 		bFileRead = TRUE;
 		ft_connectViewWithFT(fp, &winfo);
 		ww_applyDisplayProperties(&winfo);
@@ -1006,10 +1128,11 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 		docinfo.lpszDatatype = "Text";
 		progress_startMonitor(IDS_ABRTPRINT, 1000);
 		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
-		RENDER_CONTEXT rc;
-		rc.rc_hdc = hdcPrn;
+		RENDER_CONTEXT rc = {
+			.rc_hdc = hdcPrn,
+			.rc_printing = TRUE
+		};
 		rc.rc_wp = _currentPrintScope.wp;
-		rc.rc_printing = TRUE;
 		rc.rc_theme = theme_getDefault();
 		if ((PREVIEWING() || (errEscape = StartDoc(hdcPrn, &docinfo)) > 0) &&
 			(errEscape = print_file(&rc, FALSE)) >= 0) {
@@ -1021,12 +1144,14 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 		}
 		progress_closeMonitor(0);
 		DeleteDC(hdcPrn);
-		if (errEscape)
-			goto byebye;
-		ret = 1;
+		if (!errEscape) {
+			ret = 1;
+		}
 	}
 byebye:
 	if (bFileRead) {
+		ww_destroyData(&winfo);
+		ft_disconnectViewFromFT(fp, &winfo);
 		ft_bufdestroy(fp);
 	}
 	return ret;

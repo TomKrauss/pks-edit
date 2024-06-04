@@ -818,6 +818,12 @@ extern WINFO* ft_getPrimaryView(FTABLE* fp);
  */
 extern void ft_connectViewWithFT(FTABLE* fp, WINFO* wp);
 
+/*
+ * Disconnect a view from a file.
+ */
+extern void ft_disconnectViewFromFT(FTABLE* fp, WINFO* wp);
+
+
 /**
  * Checks, whether the given window is a view of the file
  */

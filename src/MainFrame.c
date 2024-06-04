@@ -1363,38 +1363,39 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 		return FALSE;
 
 	case WM_WINDOWPOSCHANGING: {
+		RECT r;
 		LPWINDOWPOS pwp = (LPWINDOWPOS)lParam;
+		pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+		GetWindowRect(hwnd, &r);
 		if (!(pwp->flags & SWP_NOREDRAW)) {
-			RECT r;
-			GetWindowRect(hwnd, &r);
 			MapWindowPoints(HWND_DESKTOP, GetParent(hwnd), (LPPOINT)&r, 2);
-			if (r.top == pwp->y && r.left == pwp->x) {
+			if (r.top == pwp->y) {
 				GetClientRect(hwnd, &r);
 				if (pwp->cy < r.bottom || pwp->cx < r.right) {
 					break;
 				}
-				if (pwp->cy != r.bottom - r.top) {
-					int bottom = r.bottom;
-					r.bottom = r.top + pwp->cy;
-					r.top = bottom - 5;
-				}
-				if (pwp->cx != r.right - r.left) {
-					r.right = pwp->cx;
-					r.left = pwp->x;
-				}
+				r.bottom = pControl->tc_tabstripRect.bottom;
 				InvalidateRect(hwnd, &r, FALSE);
 				break;
+			} else {
+				GetWindowRect(hwnd, &r);
+				r.top = pwp->cy;
+				r.bottom += 10;
+				InvalidateRect(hwnd, &r, FALSE);
 			}
-			InvalidateRect(hwnd, NULL, FALSE);
 		}
 		break;
 	}
 	case WM_WINDOWPOSCHANGED: {
 		LPWINDOWPOS pwp = (LPWINDOWPOS)lParam;
 		if (!(pwp->flags & SWP_NOSIZE)) {
+			RECT r;
+			GetClientRect(hwnd, &r);
 			pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
 			tabcontrol_makeActiveTabVisible(hwnd, pControl);
 			tabcontrol_resizeActiveTabContents(hwnd, pControl);
+			r.bottom = pControl->tc_tabstripRect.bottom;
+			InvalidateRect(hwnd, &r, FALSE);
 		}
 		return TRUE;
 	}

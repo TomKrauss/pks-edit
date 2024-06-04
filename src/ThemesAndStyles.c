@@ -27,7 +27,7 @@
 #include "jsonparser.h"
 #include "editorconfiguration.h"
 #include "dpisupport.h"
-
+#include "xdialog.h"
 #include "themes.h"
 #include "winfo.h"
 #include "winterf.h"
@@ -473,14 +473,14 @@ static UINT_PTR CALLBACK ChooseFontHookProc(HWND hDlg, UINT msg, WPARAM wParam,
 	switch(msg) {
 
 	case WM_INITDIALOG:
+
 		win_moveWindowToDefaultPosition(hDlg);
 		EnableWindow(GetDlgItem(hDlg, IDD_FONTSTRIKEOUT), FALSE);
 		EnableWindow(GetDlgItem(hDlg, IDD_FONTUNDERLINE), FALSE);
-     	return TRUE;
 
 	}
 
-	return FALSE;
+	return dlg_defaultWndProc(hDlg, msg, wParam, lParam);
 }
 
 /*--------------------------------------------------------------------------

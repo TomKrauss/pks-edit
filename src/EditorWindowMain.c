@@ -717,6 +717,20 @@ static int ww_recycleWindow() {
 }
 
 /*
+ * Disconnect a view from a file.
+ */
+void ft_disconnectViewFromFT(FTABLE* fp, WINFO* wp) {
+	ARRAY_LIST* pViews;
+	if ((pViews = fp->views) != NULL) {
+		arraylist_remove(pViews, wp);
+		if (arraylist_size(pViews) == 0) {
+			arraylist_destroy(fp->views);
+			fp->views = NULL;
+		}
+	}
+}
+
+/*
  * Connect a view with a file - set the model and add the view as a dependent. 
  */
 void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
@@ -895,18 +909,10 @@ void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
-/*-----------------------------------------------------------
- * ww_destroy()
+/*
+ * Destroy internally allocated data structures for a WINFO object.
  */
-void ww_destroy(WINFO *wp) {	
-	int   nId;
-
-	if (wp == NULL) {
-		return;
-	}
-	if (wp->fp != NULL) {
-		ww_windowClosed(wp);
-	}
+void ww_destroyData(WINFO* wp) {
 	if (wp->comparisonLink != NULL) {
 		ww_releaseComparisonLink(wp, FALSE);
 	}
@@ -919,6 +925,21 @@ void ww_destroy(WINFO *wp) {
 	wp->blstart = 0;
 	wp->blend = 0;
 	wp->fp = NULL;
+}
+
+/*-----------------------------------------------------------
+ * ww_destroy()
+ */
+void ww_destroy(WINFO *wp) {	
+	int   nId;
+
+	if (wp == NULL) {
+		return;
+	}
+	if (wp->fp != NULL) {
+		ww_windowClosed(wp);
+	}
+	ww_destroyData(wp);
 	interpreter_setContextWindow(0);
 	nId = wp->win_id;
 	SetWindowLongPtr(wp->ww_handle, GWL_WWPTR, 0);

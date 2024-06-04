@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - captures are now supported in nested patterns in a grammar leading to improved syntax highlighting support.
 - Statusline Configuration is now more flexible and more intuitive. The individual segments can be configured individually
   may also contain icons (with an optiona color) and may tagged with a locale for I18N.
+- Repaint during resize of mainframe areas has been removed and does not cause flicker any more.
 
 ### Changed
 - The action `delete-selection` was renamed to `cut-to-clipnoard`.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the dialog title area and othr places.
 - Editor Tabs were displaying filenames containing Umlauts incorrectly.
 - markdown rendering: space handling at end of line corrected.
+- Print File did crash (while print current window worked) - this is fixed.
 	- 
 ## [2.5.0] - 2024-05-25
 
