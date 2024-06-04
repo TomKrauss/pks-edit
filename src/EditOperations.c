@@ -45,10 +45,8 @@
  * EXTERNALS
  */
 
-extern LINE *	caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col,int dir);
-extern LINE *	caret_advanceCharacter(LINE *lp,long *ln,long *col,int dir,unsigned char match);
 extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
-extern LINE 	*(*advmatchfunc)();
+extern LINE 	*(*advmatchfunc)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, char character);
 extern int 	ln_countLeadingSpaces(LINE *l);
 extern int 	string_isSpace(unsigned char c);
 extern int 	string_countSpacesIn(unsigned char *s, int pos);
@@ -728,8 +726,9 @@ join_next_words:
 	}
 
 	lp1 = wp->caret.linePointer;
-	if (lp1->prev)
+	if (lp1 && lp1->prev) {
 		lp1 = lp1->prev;
+	}
 
 	ln_removeFlag(lp1, lp, LNMODIFIED);
 

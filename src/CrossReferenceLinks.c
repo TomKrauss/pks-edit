@@ -1260,6 +1260,7 @@ int EdFindOnInternet(WINFO* wp) {
 	}
 	int nOffs = (int)(pszParam - pszCommand);
 	strncpy(command, pszCommand, nOffs);
+	command[nOffs] = 0;
 	xref_urlEncode(command + nOffs, buf);
 	strcat(command, pszParam + 2);
 	return xref_shellExecute(command);

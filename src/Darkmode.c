@@ -249,6 +249,7 @@ void darkmode_flushMenuThemes() {
 BOOL darkmode_isSelectedByDefault() {
 	char buffer[4];
 	DWORD cbData[4];
+	cbData[0] = 0;
 	LRESULT res = RegGetValueW(
 		HKEY_CURRENT_USER,
 		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
@@ -276,7 +277,15 @@ BOOL darkmode_isSelectedByDefault() {
  */
 static HMODULE hUxtheme;
 void darkmode_initialize() {
-	fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers"));
+	HANDLE ntDLLmoduleHandle = GetModuleHandleW(L"ntdll.dll");
+	if (ntDLLmoduleHandle == NULL) {
+		return;
+	}
+	HANDLE userModuleHandle = GetModuleHandleW(L"user32.dll");
+	if (userModuleHandle == NULL) {
+		return;
+	}
+	fnRtlGetNtVersionNumbers RtlGetNtVersionNumbers = (fnRtlGetNtVersionNumbers)(GetProcAddress(ntDLLmoduleHandle, "RtlGetNtVersionNumbers"));
 	if (RtlGetNtVersionNumbers)
 	{
 		DWORD major, minor;
@@ -303,7 +312,7 @@ void darkmode_initialize() {
 				_FlushMenuThemes = (fnFlushMenuThemes)(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(136)));
 				_IsDarkModeAllowedForWindow = (fnIsDarkModeAllowedForWindow)(GetProcAddress(hUxtheme, MAKEINTRESOURCEA(137)));
 
-				_SetWindowCompositionAttribute = (fnSetWindowCompositionAttribute)(GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute"));
+				_SetWindowCompositionAttribute = (fnSetWindowCompositionAttribute)(GetProcAddress(userModuleHandle, "SetWindowCompositionAttribute"));
 
 				if (_OpenNcThemeData &&
 					_RefreshImmersiveColorPolicyState &&

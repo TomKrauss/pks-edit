@@ -301,6 +301,8 @@ char *block;
 	unsigned long work[2]; 		/* Working data storage */
 	long tmp;
 
+	work[0] = 0;
+	work[1] = 0;
 	permute(block,iperm,(char *)work);	/* Initial Permutation */
 #ifdef LITTLE_ENDIAN
 	work[0] = byteswap(work[0]);

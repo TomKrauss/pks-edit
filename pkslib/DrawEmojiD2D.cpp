@@ -41,7 +41,7 @@ struct DWriteSupport {
         HRESULT hr;
         d2d_factory = create_d2dFactory();
         if (!d2d_factory) {
-            return static_cast<HRESULT>(FAILED(-1));
+            return MAKE_HRESULT(1, FACILITY_GRAPHICS, -1);
         }
         if (!renderTarget) {
             D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, 

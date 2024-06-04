@@ -69,7 +69,7 @@ static void Test-FileIO() {
 	string s;
 	string homeDir = PathCreateFromSegments(GetVariable("pks_sys"), "..");
 	string manualDir = PathCreateFromSegments(GetVariable("pks_sys"), "..", MANUAL_DIRECTORY);
-	string fn = PathCreateFromSegments(homeDir, "Actions.c");
+	string fn = PathCreateFromSegments(homeDir, "src", "Actions.c");
 
 	AssertTrue(FileTest(fn), fn + " should exist");
 	AssertFalse(FileTest(fn, "-d"), fn + " not be a directory");

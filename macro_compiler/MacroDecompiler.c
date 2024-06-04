@@ -821,6 +821,9 @@ static CONTROL_FLOW_MARK_INDEX* decompile_analyseControlFlowMarks(unsigned char*
 	CONTROL_FLOW_MARK_INDEX* pResult = calloc(nMax, sizeof * pResult);
 	int nFound = 0;
 
+	if (pResult == NULL) {
+		return NULL;
+	}
 	while (pBytecode < pBytecodeEnd) {
 		if (*pBytecode == C_GOTO) {
 			COM_GOTO* pGoto = (COM_GOTO*)pBytecode;

@@ -116,7 +116,11 @@ size_t arraylist_size(ARRAY_LIST* pList) {
  * Resize an array list so nNewCapacity elements will fit into it.
  */
 static void arraylist_resize(ARRAY_LIST* pList, size_t nNewCapacity) {
-	pList->li_buffer = realloc(pList->li_buffer, nNewCapacity * sizeof (void*));
+	void* pNew = realloc(pList->li_buffer, nNewCapacity * sizeof(void*));
+	if (pNew == NULL) {
+		return;
+	}
+	pList->li_buffer = pNew;
 	pList->li_capacity = nNewCapacity;
 }
 

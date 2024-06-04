@@ -2471,6 +2471,9 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 		char szActive[10];
 		char szCloned[10];
 		char szFocus[10];
+		szActive[0] = 0;
+		szCloned[0] = 0;
+		szFocus[0] = 0;
 		int nFound = sscanf(pszHint, "%11s %9s %9s %9s %x", szDock, szActive, szFocus, szCloned, (unsigned int*) & nDisplayMode);
 		if (nFound >= 2) {
 			bActive = strcmp("active", szActive) == 0;

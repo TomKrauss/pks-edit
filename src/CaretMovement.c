@@ -899,7 +899,7 @@ static LINE *caret_nextWord(LINE *lp,long *ln,long *col,
 /*--------------------------------------------------------------------------
  * caret_advanceWordOnly()
  */
-EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,DIRECTION_OPTION dir)
+EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,DIRECTION_OPTION dir, unsigned char unused)
 {
 	return caret_nextWord(lp,ln,col,char_isNospace,dir,0);
 }
@@ -907,7 +907,7 @@ EXPORT LINE *caret_advanceWordOnly(LINE *lp,long *ln,long *col,DIRECTION_OPTION 
 /*--------------------------------------------------------------------------
  * caret_gotoIdentifierSkipSpace()
  */
-EXPORT LINE *caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir)
+EXPORT LINE *caret_gotoIdentifierSkipSpace(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir, unsigned char unused)
 {
 	return caret_nextWord(lp,ln,col, char_isIdentifier,dir,1);
 }
@@ -931,7 +931,7 @@ long long EdChapterGotoEnd(WINFO* wp, DIRECTION_OPTION dir)
 /*--------------------------------------------------------------------------
  * caret_gotoIdentifierEnd()
  */
-EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir)
+EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir, unsigned char unused)
 {
 	return caret_nextWord(lp,ln,col,char_isIdentifier,dir,0);
 }
@@ -940,7 +940,7 @@ EXPORT LINE *caret_gotoIdentifierEnd(LINE *lp,long *ln,long *col, DIRECTION_OPTI
  * caret_advanceCharacter()
  * cursor advance to char
  */
-static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir,unsigned char match)
+static LINE *caret_advanceCharacter(LINE *lp,long *ln,long *col, DIRECTION_OPTION dir, unsigned char match)
 {	register long l;
 	register int c;
 
@@ -985,7 +985,7 @@ EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
 /*--------------------------------------------------------------------------
  * caret_setMatchFunction()
  */
-LINE * (*advmatchfunc)();
+LINE * (*advmatchfunc)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char character);
 EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
 	advmatchfunc = caret_gotoIdentifierSkipSpace;

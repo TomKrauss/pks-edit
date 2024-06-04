@@ -225,7 +225,7 @@ EXPORT BOOL undo_initializeManager(FTABLE *fp)
 	int nUndoSupported = undo_numberOfUndoSteps();
 
 	undo_destroyManager(fp);
-	int tempSize = sizeof(*pUndoStack)+((nUndoSupported-10)*sizeof pUndoStack->commands[0]);
+	int tempSize = sizeof(*pUndoStack)+(((size_t)nUndoSupported-10)*sizeof pUndoStack->commands[0]);
 	if ((pUndoStack = malloc(tempSize)) == 0) {
 		return FALSE;
 	}

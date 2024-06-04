@@ -282,6 +282,7 @@ static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANAL
 	int state = 0;
 	int nParamIndex = 0;
 	int bInIdent = 0;
+	szFunction[0] = 0;
 	for (int i = 0; i < nElements; i++) {
 		if (nOffset >= wp->caret.offset) {
 			break;

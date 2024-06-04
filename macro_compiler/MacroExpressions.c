@@ -97,7 +97,9 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 	if (tTargetType == VT_FLOAT) {
 		if (nValue.pkv_type == VT_STRING) {
 			double d;
-			sscanf(memory_accessString(nValue), "%lf", &d);
+			if (sscanf(memory_accessString(nValue), "%lf", &d) < 1) {
+				d = 0;
+			}
 			return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.doubleValue = d };
 		}
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.doubleValue = (double)nValue.pkv_data.longValue };
@@ -171,6 +173,7 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		v1 = interpreter_popStackValue(pContext);
 	} else {
 		v1 = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = v1.pkv_data.longValue != 0};
+		v2 = v1;
 	}
 	if (v1.pkv_type != VT_STRING && !CT_IS_LOGICAL(op)) {
 		if (v1.pkv_type == v2.pkv_type && types_isHandleType(v1.pkv_type)) {
@@ -249,6 +252,7 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 	buf = calloc(1, l1*nMult+5);
 	if (!buf) {
 		interpreter_raiseError("out of memory");
+		return;
 	}
 	char* d = buf;
 	for (int i = 0; i < l1; i++) {

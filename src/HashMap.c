@@ -93,6 +93,9 @@ static void hashmap_allocateTable(HASHMAP* pTable, int nCapacity) {
  */
 HASHMAP* hashmap_create(int nCapacity, HASH_CODE hashCode, HASH_COMPARE compareFunction) {
 	HASHMAP* pResult = calloc(1, sizeof * pResult);
+	if (pResult == NULL) {
+		return NULL;
+	}
 	pResult->ht_hashCode = hashCode;
 	pResult->ht_compare = compareFunction;
 	if (!hashCode) {

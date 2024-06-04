@@ -219,6 +219,9 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 		}
 	}
 	SYMBOL* sym = calloc(1, sizeof * sym);
+	if (sym == NULL) {
+		return 0;
+	}
 	*sym = vValue;
 	hashmap_put(pFound->ic_table, key, (intptr_t)sym);
 	return 1;	

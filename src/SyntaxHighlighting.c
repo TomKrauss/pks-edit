@@ -153,7 +153,11 @@ static unsigned char* highlight_usingGrammar(HIGHLIGHTER* pHighlighter, WINFO* w
 		if (pHighlighter->h_styles) {
 			if (lp->len >= pHighlighter->h_styleCapacity - 10) {
 				pHighlighter->h_styleCapacity = lp->len+30;
-				pHighlighter->h_styles = realloc(pHighlighter->h_styles, pHighlighter->h_styleCapacity);
+				void* pNew = realloc(pHighlighter->h_styles, pHighlighter->h_styleCapacity);
+				if (pNew == NULL) {
+					return pHighlighter->h_styles;
+				}
+				pHighlighter->h_styles = pNew;
 			}
 		} else {
 			pHighlighter->h_styleCapacity = lp->len+30;

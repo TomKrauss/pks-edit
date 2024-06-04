@@ -141,8 +141,12 @@ static BOOL areFilenamesDifferent(const char* fileName1, const char* fileName2) 
 	char tempFn1[EDMAXPATHLEN];
 	char tempFn2[EDMAXPATHLEN];
 
-	GetLongPathName(fileName1, tempFn1, sizeof tempFn1);
-	GetLongPathName(fileName2, tempFn2, sizeof tempFn2);
+	if (GetLongPathName(fileName1, tempFn1, sizeof tempFn1) == FALSE) {
+		strcpy(tempFn1, fileName1);
+	}
+	if (GetLongPathName(fileName2, tempFn2, sizeof tempFn2) == FALSE) {
+		strcpy(tempFn2, fileName2);
+	}
 	return lstrcmpi(tempFn1, tempFn2);
 }
 

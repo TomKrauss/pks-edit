@@ -4069,6 +4069,9 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
  */
 static void* mdr_allocData(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pResult = calloc(1, sizeof(MARKDOWN_RENDERER_DATA));
+	if (pResult == NULL) {
+		return NULL;
+	}
 	pResult->md_hwndTooltip = cust_createToolTooltip(wp->ww_handle);
 	return pResult;
 }

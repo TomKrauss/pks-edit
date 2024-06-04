@@ -98,8 +98,11 @@ static int _codepages[] = {
 
 
 static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
+    if (pFilters == NULL) {
+        return;
+    }
     for (int i = 0; i < nCount; i++) {
-        free((void*) (pFilters[i].pszName));
+        free((void*) pFilters[i].pszName);
         free((void*) pFilters[i].pszSpec);
     }
     free(pFilters);
@@ -107,7 +110,7 @@ static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
 
 static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCurrent, UINT*pNumberOfTypes, UINT* pSelected) {
     UINT nCount = 0;
-    UINT nSize = 10;
+    UINT nSize = 32;
     COMDLG_FILTERSPEC* pSpec = reinterpret_cast<COMDLG_FILTERSPEC*>(calloc(sizeof(COMDLG_FILTERSPEC), nSize));
     if (pSpec == NULL) {
         return NULL;
@@ -125,7 +128,7 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
         }
         pszFileTypes += strlen(pszFileTypes) + 1;
         if (nCount >= nSize) {
-            nSize += 10;
+            nSize += 32;
             COMDLG_FILTERSPEC* pSpec2 = reinterpret_cast<COMDLG_FILTERSPEC*>(realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC)));
             if (pSpec2 == NULL) {
                 break;

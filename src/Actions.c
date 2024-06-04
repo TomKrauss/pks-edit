@@ -121,6 +121,9 @@ void action_registerAction(int commandId, int nType, ACTION_BINDING binding, BOO
 		}
 	}
 	ACTION* pNew = calloc(1, sizeof *pNew);
+	if (pNew == NULL) {
+		return;
+	}
 	arraylist_add(_allActions, pNew);
 	pNew->ac_commandId = commandId;
 	pNew->ac_commandType = nType;

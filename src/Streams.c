@@ -302,6 +302,9 @@ static STREAM_OFFSET linestream_positionToLineStart(INPUT_STREAM* pStream, int n
  */
 INPUT_STREAM* streams_createLineInputStream(LINE* pLine, int nOffset) {
 	INPUT_STREAM* pResult = calloc(1, sizeof * pResult);
+	if (pResult == NULL) {
+		return NULL;
+	}
 	LINE_DATA(pResult).is_currentLine = pLine;
 	LINE_DATA(pResult).is_offset = nOffset;
 	pResult->is_skip = linestream_skip;

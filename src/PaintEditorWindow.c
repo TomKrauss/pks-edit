@@ -396,6 +396,8 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 				visLen = 1;
 			} else if (wp->renderer->r_renderLine) {
 				visLen = wp->renderer->r_renderLine(pCtx, 0, y, lp, ln);
+			} else {
+				visLen = 0;
 			}
 			if (ln >= minMarkedLine && ln <= maxMarkedLine) {
 				paintSelection(hdc, wp, lp, y, visLen);

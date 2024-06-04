@@ -68,6 +68,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	if (!cmdline) {
 		return 0;
 	}
+	outfile[0] = 0;
 	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 	hStdin = GetStdHandle(STD_INPUT_HANDLE);
 	BOOL bConsumer = flags & (EX_RDCONV | EX_RDIN);
