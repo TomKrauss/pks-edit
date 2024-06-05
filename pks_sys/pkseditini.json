@@ -24,7 +24,7 @@
         "autosave-time": 10,
         "maximum-open-windows": 15,
         "theme": "system default",
-        "include-path": "include;inc",
+        "include-path": "..\\include;include",
         "language": "English",
         "default-font": "Consolas",
         "search-engine": "Google",

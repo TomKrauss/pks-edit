@@ -1748,6 +1748,7 @@ BEGIN
     IDS_OPTIONS             "Options"
     IDS_LINE_NUMBER_DOES_NOT_EXIST 
                             "The current file does not contain that many lines."
+    IDS_FILE_NOT_FOUND      "!File %s not found."
 END
 
 #endif    // Englisch (USA) resources

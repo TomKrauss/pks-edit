@@ -1812,6 +1812,7 @@ BEGIN
     IDS_OPTIONS             "Einstellungen"
     IDS_LINE_NUMBER_DOES_NOT_EXIST 
                             "Die angegebene Zeilennummer existiert nicht in der aktuellen Datei."
+    IDS_FILE_NOT_FOUND      "!Die Datei %s wurde nicht gefunden."
 END
 
 #endif    // Deutsch (Deutschland) resources

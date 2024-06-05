@@ -548,14 +548,14 @@ static void xref_getColumnParameters(NMLVDISPINFO* plvdi) {
 /*
  * Returns the selected element of a list view.
  */
-static TAG_REFERENCE* xreflistview_getSelection(HWND hwndList) {
-	int idx = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED);
+static TAG_REFERENCE* xreflistview_getSelection(HWND hwnd) {
+	int idx = ListView_GetNextItem(hwnd, -1, LVNI_SELECTED);
 	if (idx >= 0) {
 		LVITEM item;
 		memset(&item, 0, sizeof item);
 		item.iItem = idx;
 		item.mask = LVIF_PARAM;
-		if (ListView_GetItem(hwndList, &item)) {
+		if (ListView_GetItem(hwnd, &item)) {
 			return (TAG_REFERENCE*)item.lParam;
 		}
 	}
@@ -569,25 +569,24 @@ static TAG_REFERENCE* _selectedReference;
 static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
 	int					nNotify;
 	int					idCtrl;
-	HWND				hwndList;
+	HWND				hwndListView;
 
 	switch (message) {
 	case WM_INITDIALOG:
-		hwndList = GetDlgItem(hDlg, IDD_ICONLIST);
+		hwndListView = GetDlgItem(hDlg, IDD_ICONLIST);
 		win_moveWindowToDefaultPosition(GetParent(hDlg));
-		xref_initTagListView(hwndList);
+		xref_initTagListView(hwndListView);
 		// This will trigger an EN_CHANGE filling the tag list.
 		SetDlgItemText(hDlg, IDD_STRING1, (char*)lParam);
-		_selectedReference = xreflistview_getSelection(hwndList);
+		_selectedReference = xreflistview_getSelection(hwndListView);
 		PostMessage(hDlg, WM_NEXTDLGCTL, (WPARAM)GetDlgItem(hDlg, IDD_STRING1), TRUE);
 		break;
 
-	case WM_DESTROY: {
-			HWND hwndList = GetDlgItem(hDlg, IDD_ICONLIST);
-			HIMAGELIST hSmall = ListView_GetImageList(hwndList, LVSIL_SMALL);
-			if (hSmall) {
-				ImageList_Destroy(hSmall);
-			}
+	case WM_DESTROY: 
+		hwndListView = GetDlgItem(hDlg, IDD_ICONLIST);
+		HIMAGELIST hSmall = ListView_GetImageList(hwndListView, LVSIL_SMALL);
+		if (hSmall) {
+			ImageList_Destroy(hSmall);
 		}
 		return FALSE;
 
@@ -725,7 +724,7 @@ static char *xref_saveCrossReferenceWord(WINFO* wp, unsigned char *d,unsigned ch
 		strcpy(d,_tagword);
 		return _tagword;
 	}
-	return xref_findIdentifierCloseToCaret(wp, &wp->caret, d,dend,NULL, NULL, 1);
+	return xref_findIdentifierCloseToCaret(wp, &wp->caret, d,dend,NULL, NULL, FI_COMPLETE_WORD);
 }
 
 /*------------------*/
@@ -804,7 +803,10 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 					strcpy(buffer, tp->filename);
 				}
 				fm_savepos(MTE_AUTO_LAST_SEARCH);
-				xref_openFile(buffer, tp->ln, NULL);
+				if (!xref_openFile(buffer, tp->ln, NULL)) {
+					error_showErrorById(IDS_FILE_NOT_FOUND, buffer);
+					break;
+				}
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
 					if (pPattern = find_regexCompile(&pattern, buffer, tp->searchCommand, (int)RE_DOREX)) {

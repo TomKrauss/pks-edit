@@ -52,8 +52,9 @@
 #define IDS_CANCEL                      210
 #define IDS_CANCEL2                     211
 #define IDS_OPTIONS                     211
-#define IDS_OPTIONS2                    212
 #define IDS_LINE_NUMBER_DOES_NOT_EXIST  212
+#define IDS_LINE_NUMBER_DOES_NOT_EXIST2 213
+#define IDS_FILE_NOT_FOUND              213
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
 #define IDB_BROKEN_IMAGE                235
