@@ -17,11 +17,11 @@
 #define	LITTLE_ENDIAN		1
 
 # ifdef	LITTLE_ENDIAN
-unsigned long byteswap();
+static unsigned long byteswap(unsigned long x);
 # endif
 
-static void	permute(),round();
-static void	spinit(), perminit();
+static void	permute(char* inblock, char perm[16][16][8], char* outblock), round(int num, long* block);
+static void	spinit(), perminit(char perm[16][16][8], const char p[64]);
 
 /* Tables defined in the Data Encryption Standard documents */
 
@@ -186,9 +186,7 @@ static int desmode;
  * mode == 2: DEA without permutations and with 128-byte key (completely
  *            independent subkeys for each round)
  */
-static desinit(mode)
-int mode;
-{
+static desinit(int mode) {
 	if(sp != NULL){
 		/* Already initialized */
 		return 0;
@@ -245,8 +243,7 @@ static void desdone()
 	kn = NULL;
 }
 /* Set key (initialize key schedule array) */
-void setkey(key)
-char *key;			/* 64 bits (will use only 56) */
+void setkey(char *key) /* 64 bits (will use only 56) */
 {
 	char pc1m[56];		/* regex_addCharacterToCharacterClass to modify pc1 into */
 	char pcr[56];		/* regex_addCharacterToCharacterClass to rotate pc1 into */
@@ -294,9 +291,7 @@ char *key;			/* 64 bits (will use only 56) */
 	}
 }
 /* In-regex_addCharacterToCharacterClass encryption of 64-bit block */
-static void endes(block)
-char *block;
-{
+static void endes(char* block) {
 	register int i;
 	unsigned long work[2]; 		/* Working data storage */
 	long tmp;
@@ -325,9 +320,7 @@ char *block;
 	permute((char *)work,fperm,block);	/* Inverse initial permutation */
 }
 /* In-regex_addCharacterToCharacterClass decryption of 64-bit block */
-static void dedes(block)
-char *block;
-{
+static void dedes(char * block) {
 	register int i;
 	unsigned long work[2];	/* Working data storage */
 	long tmp;
@@ -356,11 +349,11 @@ char *block;
 	permute((char *)work,fperm,block);	/* Inverse initial permutation */
 }
 
-/* Permute inblock with perm */
-static
-void permute(inblock,perm,outblock)
-char *inblock, *outblock;		/* result into outblock,64 bits */
-char perm[16][16][8];			/* 2K bytes defining perm. */
+/* Permute inblock with perm 
+ * result into outblock,64 bits
+ * 2K bytes defining perm.
+ */
+static void permute(char* inblock, char perm[16][16][8], char* outblock)
 {
 	register int i,j;
 	register char *ib, *ob;		/* ptr to input or output block */
@@ -388,12 +381,9 @@ char perm[16][16][8];			/* 2K bytes defining perm. */
 }
 
 /* Do one DES cipher round */
-static
-void round(num,block)
-int num;				/* i.e. the num-th one	 */
-unsigned long *block;
+static void round(int num, long* block) /* i.e. the num-th one	 */
 {
-	long f();
+	long f(long l1, unsigned char l2[]);
 
 	/* The rounds are numbered from 0 to 15. On even rounds
 	 * the right half is fed to f() and the result exclusive-ORs
@@ -446,9 +436,9 @@ unsigned char subkey[8];	/* 48-bit key for this round */
 }
 /* initialize a perm array */
 static void 
-perminit(perm,p)
-char perm[16][16][8];			/* 64-bit, either init or final */
-const char p[64];
+perminit(char perm[16][16][8],			/* 64-bit, either init or final */
+const char p[64])
+
 {
 	register int l, j, k;
 	int i,m;
@@ -473,13 +463,12 @@ const char p[64];
 }
 
 /* Initialize the lookup table for the combined S and P boxes */
-static void
-spinit()
-{
+static void spinit() {
 	char pbox[32];
 	int p,i,s,j,rowcol;
 	long val;
 
+	memset(pbox, 0, sizeof pbox);
 	/* Compute pbox, the inverse of p32i.
 	 * This is easier to work with
 	 */
@@ -513,10 +502,7 @@ spinit()
 }
 #ifdef	LITTLE_ENDIAN
 /* Byte swap a long */
-static
-unsigned long
-byteswap(x)
-unsigned long x;
+static unsigned long byteswap(unsigned long x)
 {
 	register char *cp,tmp;
 

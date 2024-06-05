@@ -274,9 +274,9 @@ long long edit_toggleComment(WINFO* wp) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
 		size_t nOffset = pszFirst ? pszFirst - lpFirst->lbuf : lpFirst->len;
 		if (addCommentFlag < 0) {
-			nOffset -= (nLen * addCommentFlag);
+			nOffset -= ((size_t)nLen * addCommentFlag);
 		}
-		size_t nOffset2 = nOffset + (nLen * addCommentFlag);
+		size_t nOffset2 = nOffset + ((size_t)nLen * addCommentFlag);
 		if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)nOffset2)) == 0) {
 			break;
 		}
@@ -733,7 +733,7 @@ join_next_words:
 	ln_removeFlag(lp1, lp, LNMODIFIED);
 
 	long nlines = wp->renderer->r_calculateMaxLine(wp);
-	if (caretLine >= nlines) {
+	if (caretLine >= nlines && lp1) {
 		caretLine = nlines - 1;
 		caretColumn = lp1->len;
 	}
@@ -1369,6 +1369,9 @@ long long edit_insertString(WINFO* wp, const char* pszString) {
 	memset(&buffer, 0, sizeof buffer);
 	size_t nSize = strlen(pszString);
 	char* pszCopy = calloc(1, nSize + 2);
+	if (pszCopy == NULL) {
+		return 0;
+	}
 	strcpy(pszCopy, pszString);
 	// Need a trailing newline for convertTextToPasteBuffer....
 	pszCopy[nSize++] = '\n';

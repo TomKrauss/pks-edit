@@ -641,7 +641,9 @@ BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR *dp) {
 		ip = (int*)dp->did_data;
 		switch(item) {
 		case IDD_RECORDRET:
-			*ip = macro_getReplaceActionForControlId(idCtrl);
+			if (ip) {
+				*ip = macro_getReplaceActionForControlId(idCtrl);
+			}
 			break;
 		case IDD_OPT1:
 		case IDD_OPT2:
@@ -662,6 +664,9 @@ BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR *dp) {
 		case IDD_OPT17:
 		case IDD_OPT18:
 			ip = (int*)dp->did_data;
+			if (!ip) {
+				break;
+			}
 			buttonChecked = IsDlgButtonChecked(hDlg, dp->did_controlNumber);
 			*ip = buttonChecked ?
 				*ip | dp->did_flagOrSize :

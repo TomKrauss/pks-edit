@@ -648,10 +648,17 @@ static int ft_flushBufferAndCrypt(int fd, int size, int rest, int cont, CODE_PAG
 	long codepage = pCodepageInfo->cpi_codepage;
 	if (codepage != -1 && codepage != CP_ACP) {
 		wchar_t* pwszMultiByteDest = malloc(size * 2);
+		if (pwszMultiByteDest == NULL) {
+			return 0;
+		}
 		int nConv = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, _linebuf, size, pwszMultiByteDest, size);
 		char cDefault = '?';
 		int nNeeded = WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, NULL, 0, &cDefault, NULL);
 		char* pszDest = malloc(nNeeded);
+		if (pszDest == NULL) {
+			free(pwszMultiByteDest);
+			return 0;
+		}
 		WideCharToMultiByte(codepage, 0, pwszMultiByteDest, nConv, pszDest, nNeeded, &cDefault, NULL);
 		int nRet = ft_flushBuffer(fd, pszDest, nNeeded, 0);
 		free(pwszMultiByteDest);

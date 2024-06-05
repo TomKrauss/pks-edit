@@ -600,7 +600,7 @@ BEGIN
     EDITTEXT        IDD_INT3,175,33,12,12,ES_AUTOHSCROLL
     CONTROL         "Separator &2",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,45,60,12
     EDITTEXT        IDD_INT2,175,44,12,12,ES_AUTOHSCROLL
-    CONTROL         "&Encrypted",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,65,60,12
+    CONTROL         "&Password Protected",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,65,158,12
     CONTROL         "&Filesuffix Backups:",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,8,108,64,8
     EDITTEXT        IDD_STRING1,76,104,94,12
 END
@@ -1354,7 +1354,7 @@ BEGIN
     IDS_MSGREBSLERR         "'\\' is illegal at end of line"
     IDS_MSGREBRUNDEF        "Capturing group not defined"
     IDS_MSGREPIPEERR        "'|' may not be used outside capturing groups"
-    IDS_MSGWRONGPW          "Wrong encryption password"
+    IDS_MSGWRONGPW          "Wrong password for opening file"
     IDS_MSGDIFFERENTPW      "The two versions of the password do not match"
     IDS_MSGINVALIDHIDEOP    "Illegal operation on hidden lines"
     IDS_MSGUPDATEMACNAME    "Do you want to use the specified name and comment"

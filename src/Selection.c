@@ -715,7 +715,7 @@ static void bl_templateSelected(HWND hdlg) {
  * bl_namedBuffersOnSelectionChange()
  */
 static char* bl_defaultClipboardName = "#default";
-static void bl_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, void* unused) {
+static void bl_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, void* pData) {
 	char* pszTemplateContents;
 
 	if (nNotify != LBN_SELCHANGE) {
@@ -728,6 +728,7 @@ static void bl_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, 
 		SendDlgItemMessage(hDlg, IDD_RO1, EM_SETREADONLY, (WPARAM)TRUE, 0L);
 		SetWindowText(GetDlgItem(hDlg, IDD_RO1), pszTemplateContents);
 		SetWindowText(GetDlgItem(hDlg, IDD_STRING1), pl->pl_id);
+		strcpy(pData, pl->pl_id);
 	}
 	bl_templateSelected(hDlg);
 }
@@ -735,7 +736,7 @@ static void bl_namedBuffersOnSelectionChange(HWND hDlg, int nItem, int nNotify, 
 /*------------------------------------------------------------
  * bl_namedBuffersFillListbox()
  */
-static void bl_namedBuffersFillListbox(HWND hwnd, int nItem, void* unused) {
+static void bl_namedBuffersFillListbox(HWND hwnd, int nItem, void* szText) {
 	PASTELIST* pl;
 	char* pszSelect;
 
@@ -744,14 +745,15 @@ static void bl_namedBuffersFillListbox(HWND hwnd, int nItem, void* unused) {
 	if (!pl) {
 		return;
 	}
-	char szText[32];
-	GetWindowText(GetDlgItem(hwnd, IDD_STRING1), szText, sizeof szText);
 	pszSelect = szText;
 	if (!pszSelect[0]) {
-		pszSelect = bl_defaultClipboardName;
+		pszSelect = NULL;
 	}
 	BOOL bOnlyNamed = SendDlgItemMessage(hwnd, IDD_OPT1, BM_GETCHECK, 0, 0) == BST_CHECKED;
 	while (pl) {
+		if (!pszSelect) {
+			pszSelect = pl->pl_id;
+		}
 		if (!bOnlyNamed || pl->pl_type == PLT_NAMED_BUFFER) {
 			char* pszName = pl->pl_id;
 			if (pszName[0] == 0) {
@@ -765,7 +767,7 @@ static void bl_namedBuffersFillListbox(HWND hwnd, int nItem, void* unused) {
 	if (pszSelect) {
 		SendDlgItemMessage(hwnd, nItem, LB_SELECTSTRING, -1, (LPARAM)pszSelect);
 	}
-	bl_namedBuffersOnSelectionChange(hwnd, nItem, LBN_SELCHANGE, (void*)0);
+	bl_namedBuffersOnSelectionChange(hwnd, nItem, LBN_SELCHANGE, szText);
 }
 
 /*
@@ -818,7 +820,7 @@ static INT_PTR bl_namedClipboardDialogProc(HWND hdlg, UINT wMessage, WPARAM wPar
 char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	static char selectedTemplate[32];
 	LIST_HANDLER tmplatelist = {
-		NULL, bl_namedBuffersFillListbox, dlg_getComboBoxSelectedText, 0, 0, bl_namedBuffersOnSelectionChange };
+		selectedTemplate, bl_namedBuffersFillListbox, dlg_getComboBoxSelectedText, 0, 0, bl_namedBuffersOnSelectionChange };
 	DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_POSITIONTCURS,	0,			0},
 		{IDD_ICONLIST,		0,			.did_listhandler = &tmplatelist},

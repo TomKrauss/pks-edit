@@ -251,7 +251,7 @@ IFileDialogCustomize* file_customizeDialog(IFileDialog *pfd, FILE_SELECT_PARAMS*
         pfdc->EndVisualGroup();
         if (pParams->fsp_saveAs) {
             pfdc->StartVisualGroup(CONTROL_GROUP_ENCODING, L"Options:");
-            pfdc->AddCheckButton(CONTROL_ENCRYPT, L"Encrypted", pParams->fsp_encrypted);
+            pfdc->AddCheckButton(CONTROL_ENCRYPT, L"Password Protected", pParams->fsp_encrypted);
             pfdc->EndVisualGroup();
         }
     }
@@ -261,8 +261,10 @@ IFileDialogCustomize* file_customizeDialog(IFileDialog *pfd, FILE_SELECT_PARAMS*
 static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SELECT_PARAMS* pParams, UINT* pCount) {
     UINT nSelected;
     COMDLG_FILTERSPEC* pFileTypes = file_openBuildFilters(pParams->fsp_filters, pParams->fsp_namePatterns, pCount, &nSelected);
-    pFileDialog->SetFileTypes(*pCount, pFileTypes);
-    pFileDialog->SetFileTypeIndex(nSelected);
+    if (pFileTypes) {
+        pFileDialog->SetFileTypes(*pCount, pFileTypes);
+        pFileDialog->SetFileTypeIndex(nSelected);
+    }
     WCHAR wText[256];
     MultiByteToWideChar(CP_ACP, 0, pParams->fsp_title, -1, wText, sizeof wText / sizeof(wText[0]));
     pFileDialog->SetTitle(wText);
@@ -332,7 +334,9 @@ extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS*
             }
             ret = 1;
         }
-        file_open_free_filters(pFileTypes, count);
+        if (pFileTypes) {
+            file_open_free_filters(pFileTypes, count);
+        }
         pFileDialog->Release();
         pfdc->Release();
     }

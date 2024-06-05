@@ -210,6 +210,9 @@ PKS_VALUE macroc_pathCreateFromSegments(EXECUTION_CONTEXT* pContext, PKS_VALUE* 
 	int i = 0;
 	const char* pszDir = macroc_accessString(pValues[0], 0);
 	char* pszResult = malloc(EDMAXPATHLEN);
+	if (pszResult == NULL) {
+		return memory_createObject(pContext, VT_BOOL, 0, FALSE);
+	}
 	while (i < nArgs - 1) {
 		const char* pszNext = macroc_accessString(pValues[i+1], i+1);
 		string_concatPathAndFilename(_linebuf, pszDir, pszNext);
@@ -476,7 +479,7 @@ char* edit_getLineText(WINFO* wp, long nLine) {
 	if (!lp) {
 		return 0;
 	}
-	memcpy(_linebuf, lp->lbuf, lp->len + 1);
+	memcpy(_linebuf, lp->lbuf, (size_t)lp->len + 1);
 	_linebuf[lp->len] = 0;
 	return _linebuf;
 }
