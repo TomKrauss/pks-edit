@@ -378,7 +378,7 @@ void ft_destroy(FTABLE *fp) {
 	free(fp->title);
 	fp->title = 0;
 
-	ll_delete(&_filelist,fp);
+	ll_delete((void**) & _filelist, fp);
 
 	if (!_filelist || P_EQ(fp, ft_getCurrentDocument())) {
 		_currentFile = NULL;
@@ -391,11 +391,11 @@ void ft_destroy(FTABLE *fp) {
 FTABLE *ft_new(void)
 {	FTABLE *fp;
 
-	if ((fp = ll_insert(&_filelist,sizeof *fp)) == 0)
+	if ((fp = ll_insert((void**)&_filelist,sizeof *fp)) == 0)
 		return 0;
 
 	if (undo_initializeManager(fp) == 0) {
-		ll_delete(&_filelist,fp);
+		ll_delete((void**)&_filelist,fp);
 		return 0;
 	}
 	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_new File 0x%lx",fp));
@@ -708,6 +708,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	const char* pszHint = pOptions->fo_dockName;
 
 	szAsPath[0] = 0;
+	szResultFn[0] = 0;
 	if (fn) {
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
@@ -1076,8 +1077,9 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 void ft_setFlags(FTABLE *fp, int newFlags) {
 	int oldFlags = fp->flags;
 	if (oldFlags != newFlags) {
-		PROPERTY_CHANGE change;
-		change.prop_type = FT_FLAGS;
+		PROPERTY_CHANGE change = {
+			.prop_type = FT_FLAGS
+		};
 		change.prop_oldValue.v_simpleValue = oldFlags;
 		change.prop_newValue.v_simpleValue = newFlags;
 		fp->flags = newFlags;
@@ -1142,7 +1144,7 @@ void EditDroppedFiles(HDROP hDrop)
 	}
 	for ( i = 0; i < nTotal; i++ ) {
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
-		pszFileName = malloc(nFileLength + 1);
+		pszFileName = malloc((size_t)nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );
 		long long nSuccess = EdEditFile(OPEN_NOFN, pszFileName);
 		free(pszFileName);

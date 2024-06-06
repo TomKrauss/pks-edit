@@ -22,7 +22,7 @@ union PROPERTY_CHANGE_VALUE {
 	char* v_string;
 };
 
-typedef enum enumPROPERTY_CHANGE_TYPE { FT_FLAGS, FT_NAME } PROPERTY_CHANGE_TYPE;
+typedef enum { FT_FLAGS, FT_NAME } PROPERTY_CHANGE_TYPE;
 
 typedef struct tagPROPERTY_CHANGE {
 	void* prop_sender;								// the object in which the property has changed (the FTABLE or the like)

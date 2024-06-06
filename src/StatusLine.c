@@ -114,7 +114,7 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 		pSegments[i] = offset;
 	}
 	pSegments[nSegments] = -1;
-	SendMessage(hwndStatus, SB_SETPARTS, nSegments + 1, (LPARAM)pSegments);
+	SendMessage(hwndStatus, SB_SETPARTS, (WPARAM)nSegments + 1, (LPARAM)pSegments);
 	if (!bUpdateMessageOnly) {
 		for (int i = 0; i < nSegments; i++) {
 			SendMessage(hwndStatus, SB_SETTEXT, i, (LPARAM)pszStrArr[i]);
@@ -262,10 +262,10 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				for (int i = 0; i < nDelta + 1 - y; i++) {
 					RECT rc = {
 					.left = rect.right - i * nDelta - nDelta,
-					.top = rect.bottom - y * nDelta - 1,
-					.bottom = rc.top + nPix,
-					.right = rc.left + nPix
+					.top = rect.bottom - y * nDelta - 1
 					};
+					rc.bottom = rc.top + nPix;
+					rc.right = rc.left + nPix;
 					FillRect(hdc, &rc, brush);
 				}
 			}

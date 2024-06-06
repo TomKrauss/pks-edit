@@ -279,7 +279,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 			pTag->tagname = _strdup(extCommand);
 			hashmap_put(_allTags.tt_map, pTag->tagname, (intptr_t)pTag);
 		}
-		pReference = ll_insert(&pTag->tagReferences, sizeof * pReference);
+		pReference = ll_insert((void**) & pTag->tagReferences, sizeof * pReference);
 		pReference->pTag = pTag;
 		char* filename = calloc(1, EDMAXPATHLEN);
 		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);
@@ -307,6 +307,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 				}
 				*pszDest++ = c;
 			}
+			*pszDest = 0;
 			pReference->ln = -1;
 			pReference->searchCommand = _strdup(extCommandCopy);
 		} else {
@@ -382,7 +383,7 @@ static int xref_filter(intptr_t key) {
 
 static HWND hwndList;
 static void xref_addMessageItems(intptr_t k, intptr_t v) {
-	LVITEM lvI;
+	LVITEM lvI = { 0 };
 	lvI.stateMask = 0;
 	TAG* tp = (TAG*)v;
 	TAG_REFERENCE* pRef = tp ? tp->tagReferences : NULL;
@@ -439,9 +440,8 @@ static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
 }
 
 static ANALYZER_CALLBACK _addCallback;
-static int xref_processTag(intptr_t pszText, intptr_t pszVal) {
+static void xref_processTag(intptr_t pszText, intptr_t pszVal) {
 	_addCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = (const char*)pszText, .acp_object = (void*)pszVal });
-	return 1;
 }
 
 /*
@@ -490,7 +490,6 @@ static int taglist_compareItem(COMPAREITEMSTRUCT* cip) {
 }
 
 static void xref_initTagListView(HWND hwndListView) {
-	LVCOLUMN lvc;
 
 	ListView_SetExtendedListViewStyleEx(hwndListView, LVS_EX_FULLROWSELECT| LVS_SHOWSELALWAYS, LVS_EX_FULLROWSELECT| LVS_SHOWSELALWAYS);
 	HIMAGELIST hSmall;
@@ -500,11 +499,13 @@ static void xref_initTagListView(HWND hwndListView) {
 	ImageList_AddIcon(hSmall, LoadIcon(hInst, "NEXT"));
 	ImageList_AddIcon(hSmall, LoadIcon(hInst, "PREVIOUS"));
 	ListView_SetImageList(hwndListView, hSmall, LVSIL_SMALL);
-	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	lvc.iSubItem = 0;
-	lvc.pszText = "Type";
+	LVCOLUMN lvc = { 
+		.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+		.iSubItem = 0,
+		.pszText = "Type",
+		.fmt = LVCFMT_CENTER 
+	};
 	lvc.cx = dpisupport_getSize(50);
-	lvc.fmt = LVCFMT_CENTER;
 	ListView_InsertColumn(hwndListView, 0, &lvc);
 
 	lvc.pszText = "Term";
@@ -809,7 +810,7 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 				}
 				if (tp->searchCommand && ft_getCurrentDocument()) {
 					RE_PATTERN* pPattern;
-					if (pPattern = find_regexCompile(&pattern, buffer, tp->searchCommand, (int)RE_DOREX)) {
+					if ((pPattern = find_regexCompile(&pattern, buffer, tp->searchCommand, (int)RE_DOREX)) != NULL) {
 						find_expressionInCurrentFile(wp, 1, tp->searchCommand, pPattern, RE_WRAPSCAN);
 					}
 				}
@@ -954,7 +955,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 /*
  * Highlight a match in a file opened as a result of a navigation.
  */
-static xref_highlightMatch(long ln, int col, int len) {
+static void xref_highlightMatch(long ln, int col, int len) {
 	WINFO* wpFound = ww_getCurrentEditorWindow();
 	caret_placeCursorInCurrentFile(wpFound, ln, col);
 	bl_hideSelection(wpFound, 1);
@@ -995,13 +996,6 @@ int xref_navigateSearchErrorList(int dir) {
 			lp = lp->prev;
 		}
 		break;
-	case LIST_NEXT:
-		lp = fp->lpReadPointer;
-		if (lp) {
-			lp = lp->next;
-		}
-		bGoForward = TRUE;
-		break;
 	case LIST_CURR:
 		lp = wp->caret.linePointer;
 		bGoForward = TRUE;
@@ -1012,6 +1006,13 @@ int xref_navigateSearchErrorList(int dir) {
 		break;
 	case LIST_END:
 		lp = fp->lastl;
+		break;
+	default:
+		lp = fp->lpReadPointer;
+		if (lp) {
+			lp = lp->next;
+		}
+		bGoForward = TRUE;
 		break;
 	}
 	if (bGoForward) {
@@ -1130,14 +1131,14 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	while (pPattern) {
 		memset(&options, 0, sizeof options);
 		options.flags = RE_DOREX;
-		options.patternBuf = patternBuf;
-		options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
+		options.patternBuf = (char*) patternBuf;
+		options.endOfPatternBuf = (char*) & patternBuf[sizeof patternBuf];
 		options.expression = pPattern->pattern;
 		if (regex_compile(&options, &pattern)) {
 			char* pszStart = lp->lbuf;
 			char* pszCursor = &lp->lbuf[wp->caret.col];
 			char* pszEnd = &lp->lbuf[lp->len];
-			while (regex_match(&pattern, pszStart, pszEnd, &match)) {
+			while (regex_match(&pattern, (unsigned char*)pszStart, (unsigned char*)pszEnd, &match)) {
 				if (match.loc1 <= pszCursor && match.loc2 >= pszCursor &&
 						regex_getCapturingGroup(&match, pPattern->filenameCapture - 1, szFileBuffer, (int)nFileBufferSize) == SUCCESS) {
 					pResult->ni_displayMode = -1;
@@ -1158,8 +1159,8 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
  * return 0 in that case.
  */
 static int xref_shellExecute(char* pszCommand) {
-	HINSTANCE hInst = ShellExecute(hwndMain, "open", pszCommand, "", ".", SW_SHOWNORMAL);
-	if ((intptr_t)hInst < 0 || (intptr_t)hInst > 32) {
+	HINSTANCE hInstance = ShellExecute(hwndMain, "open", pszCommand, "", ".", SW_SHOWNORMAL);
+	if ((intptr_t)hInstance < 0 || (intptr_t)hInstance > 32) {
 		return 1;
 	}
 	error_displayErrorInToastWindow("Cannot open %.512s", pszCommand);
@@ -1175,7 +1176,6 @@ int EdFindFileCursor(WINFO* wp)
 	char	currentFilePath[512];
 	char	filename[128];
 	NAVIGATION_INFO_PARSE_RESULT result;
-	extern char *file_searchFileInPath();
 
 	if (wp == NULL) {
 		return 0;

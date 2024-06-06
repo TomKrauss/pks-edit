@@ -82,8 +82,6 @@ extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned 
 extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbAnalyzer);
 #endif
 
-extern int EdFindWordCursor(dir);
-
 extern int xref_openSearchList(char* fn, int cmpflg);
 
 extern int EdSearchListRead(void);

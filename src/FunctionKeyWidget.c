@@ -152,7 +152,7 @@ static HWND fkey_createTip(HWND hDlg, int toolID) {
 	toolInfo.uFlags = TTF_SUBCLASS | TTF_IDISHWND;
 	toolInfo.uId = (INT_PTR)GetDlgItem(hDlg, toolID);
 	toolInfo.lpszText = LPSTR_TEXTCALLBACK;
-	toolInfo.lParam = toolID - IDD_FKFK1;
+	toolInfo.lParam = (LPARAM)toolID - IDD_FKFK1;
 	SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, 350);
 	theme_enableDarkMode(hwndTip);
@@ -289,7 +289,6 @@ static WINFUNC FkeysWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 		GetClientRect(hwnd,&r);
 		r.right = LOWORD(lParam);
 		int nDelta = r.right - r.left;
-		int nMinSize = dpisupport_getSize(150);
 		nButtons = dpisupport_getSegmentCount(&r, MAX_FKEYS);
 		int y;
 		BOOL bFKeys = GetConfiguration()->layoutoptions & OL_FKEYS;
@@ -399,7 +398,7 @@ int fkey_register(void)
 int fkey_initKeyboardWidget(HWND hwndPapa)
 {
 	fkey_show(hwndPapa);
-	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,1,-1});
+	action_commandEnablementChanged((ACTION_CHANGE_TYPE) {0,0,.act_optionsChanged = 1,.act_commandId = -1});
 	return hwndFkeys ? 1 : 0;
 }
 

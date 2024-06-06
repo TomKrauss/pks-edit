@@ -2041,8 +2041,8 @@ repaintUI:
 	case WM_NCHITTEST: {
 		RECT* pRect = mainframe_findSplitterRect(lParam);
 		if (pRect != NULL) {
-			return pRect->right - pRect->left > pRect->bottom - pRect->top ?
-				HTBOTTOM : HTRIGHT;
+			return (LRESULT)(pRect->right - pRect->left > pRect->bottom - pRect->top ?
+				HTBOTTOM : HTRIGHT);
 		}
 		break;
 	}

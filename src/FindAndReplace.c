@@ -58,7 +58,7 @@ SEARCH_AND_REPLACE_PARAMETER _currentSearchAndReplaceParams = {
 	"",
 	"",
 	-1,
-	0
+	{0}
 };
 
 /*
@@ -487,10 +487,11 @@ char ft_getSpaceFillCharacter(WINFO* wp) {
  * the result to a destination buffer. Return the result size of the destination buffer or -1
  * on failure.
  */
-int ft_expandTabsWithSpaces(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long *nt)
-{	unsigned char *d    = pszDest,
-			    *dend = &pszDest[nDestLen],c;
-	const char *s  = pszSource, *send = &pszSource[nSourceLen];
+int ft_expandTabsWithSpaces(WINFO* wp, char* pszDest, size_t nDestLen, const char* pszSource, size_t nSourceLen, long* nt) {
+	unsigned char* d = (unsigned char*)pszDest;
+	unsigned char* dend = (unsigned char*)&pszDest[nDestLen];
+	unsigned char c;
+	const unsigned char *s  = (unsigned char*) pszSource, *send = (unsigned char*) & pszSource[nSourceLen];
 	int col;
 
 	char chSpace = ft_getSpaceFillCharacter(wp);
@@ -504,8 +505,9 @@ int ft_expandTabsWithSpaces(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 			memset(d,chSpace, col);
 			(*nt)++;
 			d += col;
-		} else
+		} else {
 			*d++ = c;
+		}
 	}
 	return (int)(d-_linebuf);
 }
@@ -519,7 +521,6 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 	char* pszDestStart = pszDest;
 	const char* pszEnd = &s[nSourceLen];
 	const char* pszDestEnd = &pszSource[nDestLen-1];
-	const char* pszFound;
 	int   col;
 	int   nextTabStop;
 
@@ -528,7 +529,6 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 	char chSpace = ft_getSpaceFillCharacter(wp);
 	while (s < pszEnd && pszDest < pszDestEnd) {
 		nextTabStop = indent_calculateNextTabStop(col, &wp->indentation);
-		pszFound = NULL;
 		char c = *s++;
 		if (c == '\t') {
 			col = nextTabStop;
@@ -1013,7 +1013,7 @@ int find_setTextSelection(WINFO *wp, RANGE_TYPE rngetype, MARK **markstart, MARK
 			lpe = wp->caret.linePointer;
 			ofe = wp->caret.offset;
 			/* drop through */
-		case RNG_GLOBAL:
+		default:
 			ofs = 0;
 			lps = fp->firstl;
 	}

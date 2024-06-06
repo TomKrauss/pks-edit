@@ -191,20 +191,23 @@ static THEME_DATA defaultTheme = {
 };
 
 static JSON_MAPPING_RULE _edTextStyleRules[] = {
-	{	RT_CHAR_ARRAY, "styleName", offsetof(EDTEXTSTYLE, styleName), sizeof(((EDTEXTSTYLE*)NULL)->styleName)},
-	{	RT_CHAR_ARRAY, "faceName", offsetof(EDTEXTSTYLE, faceName), sizeof(((EDTEXTSTYLE*)NULL)->faceName)},
+	{	RT_CHAR_ARRAY, "styleName", offsetof(EDTEXTSTYLE, styleName), {sizeof(((EDTEXTSTYLE*)NULL)->styleName)}},
+	{	RT_CHAR_ARRAY, "faceName", offsetof(EDTEXTSTYLE, faceName), {sizeof(((EDTEXTSTYLE*)NULL)->faceName)}},
 	{	RT_INTEGER, "size", offsetof(EDTEXTSTYLE, size)},
 	{	RT_COLOR, "backgroundColor", offsetof(EDTEXTSTYLE, bgcolor)},
 	{	RT_COLOR, "foregroundColor", offsetof(EDTEXTSTYLE, fgcolor)},
-	{	RT_FLAG, "italic", offsetof(EDTEXTSTYLE, style.italic), 1},
-	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline), 1},
-	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout), 1},
+	{	RT_FLAG, "italic", offsetof(EDTEXTSTYLE, style.italic), {1}},
+	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline), {1}},
+	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout), {1}},
 	{	RT_INTEGER, "weight", offsetof(EDTEXTSTYLE, style.weight)},
 	{	RT_END}
 };
 
-static EDTEXTSTYLE* theme_createStyle() {
+static void* theme_createStyle() {
 	EDTEXTSTYLE* pStyle = calloc(sizeof(EDTEXTSTYLE), 1);
+	if (pStyle == NULL) {
+		return NULL;
+	}
 	memcpy(pStyle, &defaultTextStyle, sizeof defaultTextStyle);
 	pStyle->faceName[0] = 0;
 	pStyle->size = 0;
@@ -212,7 +215,7 @@ static EDTEXTSTYLE* theme_createStyle() {
 }
 
 static JSON_MAPPING_RULE _edThemeRules[] = {
-	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), sizeof(((THEME_DATA*)NULL)->th_name)},
+	{	RT_CHAR_ARRAY, "name", offsetof(THEME_DATA, th_name), .r_descriptor = {sizeof(((THEME_DATA*)NULL)->th_name)}},
 	{	RT_INTEGER, "darkMode", offsetof(THEME_DATA, th_isDarkMode)},
 	{	RT_COLOR, "backgroundColor", offsetof(THEME_DATA, th_defaultBackgroundColor)},
 	{	RT_COLOR, "caretLineColor", offsetof(THEME_DATA, th_caretLineColor)},
@@ -238,10 +241,10 @@ static JSON_MAPPING_RULE _edThemeRules[] = {
 	{	RT_COLOR, "dialogActiveTab", offsetof(THEME_DATA, th_dialogActiveTab)},
 	{	RT_COLOR, "rulerForegroundColor", offsetof(THEME_DATA, th_rulerForegroundColor)},
 	{	RT_COLOR, "rulerBackgroundColor", offsetof(THEME_DATA, th_rulerBackgroundColor)},
-	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), sizeof(((THEME_DATA*)NULL)->th_fontName)},
+	{	RT_CHAR_ARRAY, "dialogFont", offsetof(THEME_DATA, th_fontName), {sizeof(((THEME_DATA*)NULL)->th_fontName)}},
 	{	RT_INTEGER, "dialogFontSize", offsetof(THEME_DATA, th_fontSize)},
 	{	RT_INTEGER, "mainframeMargin", offsetof(THEME_DATA, th_mainframeMargin)},
-	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), sizeof(((THEME_DATA*)NULL)->th_smallFontName)},
+	{	RT_CHAR_ARRAY, "smallFixedFont", offsetof(THEME_DATA, th_smallFontName), {sizeof(((THEME_DATA*)NULL)->th_smallFontName)}},
 	{	RT_INTEGER, "smallFixedFontSize", offsetof(THEME_DATA, th_smallFontSize)},
 	{	RT_OBJECT_LIST, "textStyles", offsetof(THEME_DATA, th_styles),
 			{.r_t_arrayDescriptor = {theme_createStyle, _edTextStyleRules}}},
@@ -253,7 +256,7 @@ typedef struct tagTHEME_CONFIGURATION {
 	THEME_DATA* th_currentTheme;
 } THEME_CONFIGURATION;
 
-static THEME_DATA* theme_createTheme() {
+static void* theme_createTheme() {
 	THEME_DATA* pTheme = calloc(sizeof(THEME_DATA), 1);
 	if (defaultTheme.th_dialogBackground == -1) {
 		defaultTheme.th_dialogBackground = GetSysColor(COLOR_3DFACE);
@@ -267,7 +270,9 @@ static THEME_DATA* theme_createTheme() {
 		defaultTheme.th_dialogMenuHighlight = GetSysColor(COLOR_3DHILIGHT);
 		defaultTheme.th_dialogErrorText = GetSysColor(COLOR_CAPTIONTEXT);
 	}
-	memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
+	if (pTheme != NULL) {
+		memcpy(pTheme, &defaultTheme, sizeof defaultTheme);
+	}
 	return pTheme;
 }
 
@@ -544,11 +549,11 @@ BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
 static THEME_DATA* theme_getByName(unsigned char* pThemeName) {
 	theme_initThemes();
 	THEME_DATA* pTheme = themeConfiguration.th_themes;
-	if (strcmp(SYSTEM_DEFAULT_THEME, pThemeName) == 0) {
-		pThemeName = darkmode_isSelectedByDefault() ? "dark" : DEFAULT;
+	if (strcmp(SYSTEM_DEFAULT_THEME, (char*) pThemeName) == 0) {
+		pThemeName = (unsigned char*)(darkmode_isSelectedByDefault() ? "dark" : DEFAULT);
 	}
 	while(pTheme != NULL) {
-		if (strcmp(pTheme->th_name, pThemeName) == 0) {
+		if (strcmp((char*) pTheme->th_name, (char*) pThemeName) == 0) {
 			return pTheme;
 		}
 		pTheme = pTheme->th_next;
@@ -587,13 +592,13 @@ THEME_DATA* theme_getDefault() {
  */
 THEME_DATA* theme_getCurrent() {
 	if (themeConfiguration.th_currentTheme == NULL) {
-		theme_setCurrent("default");
+		theme_setCurrent((unsigned char*)"default");
 	}
 	return themeConfiguration.th_currentTheme;
 }
 
 static int theme_destroyTheme(THEME_DATA* pTheme) {
-	ll_destroy(&pTheme->th_styles, NULL);
+	ll_destroy((void*) & pTheme->th_styles, NULL);
 	return 1;
 }
 
@@ -601,7 +606,7 @@ static int theme_destroyTheme(THEME_DATA* pTheme) {
  * Destroy all theme data loaded. 
  */
 void theme_destroyAllThemeData() {
-	ll_destroy(&themeConfiguration.th_themes, theme_destroyTheme);
+	ll_destroy((void**) & themeConfiguration.th_themes, theme_destroyTheme);
 	themeConfiguration.th_currentTheme = &defaultTheme;
 }
 
@@ -1172,6 +1177,9 @@ static LRESULT CALLBACK comboBoxSubclassProc(
 				SetBkColor(hdc, pTheme->th_defaultBackgroundColor);
 				size_t bufferLen = (size_t)SendMessage(hWnd, CB_GETLBTEXTLEN, index, 0);
 				char* buffer = malloc(bufferLen + 1);
+				if (buffer == NULL) {
+					break;
+				}
 				SendMessage(hWnd, CB_GETLBTEXT, index, (LPARAM)buffer);
 
 				RECT textRc = rc;

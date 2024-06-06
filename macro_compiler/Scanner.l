@@ -588,10 +588,3 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 <INITIAL>=		return T_ASSIGN;
 <INITIAL>.		return yytext[0];
 %%
-
-
-
-
-
-
-
