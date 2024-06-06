@@ -102,8 +102,11 @@ static void file_open_free_filters(COMDLG_FILTERSPEC* pFilters, int nCount) {
         return;
     }
     for (int i = 0; i < nCount; i++) {
-        free((void*) pFilters[i].pszName);
-        free((void*) pFilters[i].pszSpec);
+        COMDLG_FILTERSPEC* p = &pFilters[i];
+        // Suppress wrong warning about uninitialized memory.
+        #pragma warning( disable : 6001)
+        free((void*) p->pszName);
+        free((void*) p->pszSpec);
     }
     free(pFilters);
 }
@@ -128,6 +131,7 @@ static COMDLG_FILTERSPEC* file_openBuildFilters(char* pszFileTypes, char* pszCur
         }
         pszFileTypes += strlen(pszFileTypes) + 1;
         if (nCount >= nSize) {
+            int nOld = nSize;
             nSize += 32;
             COMDLG_FILTERSPEC* pSpec2 = reinterpret_cast<COMDLG_FILTERSPEC*>(realloc(pSpec, nSize * sizeof(COMDLG_FILTERSPEC)));
             if (pSpec2 == NULL) {
@@ -302,7 +306,7 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
 
 extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS* pParams) {
     int ret = 0;
-    IFileDialog* pFileDialog;
+    IFileDialog* pFileDialog = NULL;
 
     // Create the FileOpenDialog object.
     HRESULT hr = CoCreateInstance(pParams->fsp_saveAs ? CLSID_FileSaveDialog : CLSID_FileOpenDialog, NULL, CLSCTX_ALL,

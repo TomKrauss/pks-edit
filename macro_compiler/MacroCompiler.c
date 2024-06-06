@@ -109,7 +109,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp), int bWysi
 		fflush(fp);
 		fclose(fp);
 		if (ft_activateWindowOfFileNamed(tmpfn)) {
-			EdFileAbandon(ww_getCurrentEditorWindow());
+			EdRereadFileFromDisk(ww_getCurrentEditorWindow());
 		}
 		else {
 			FTABLE* fpTable = ft_openFileWithoutFileselector(tmpfn,-1L, &(FT_OPEN_OPTIONS) { 0, CP_ACP });

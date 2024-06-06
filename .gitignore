@@ -28,3 +28,5 @@
 /test/big_sorting_sample.txt
 /rc/RCa05364
 /pks_sys/pksedit.log
+/pksedit/x64/Debug/pksedit.tlog
+/pksedit/x64

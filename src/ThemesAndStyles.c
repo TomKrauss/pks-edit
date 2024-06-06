@@ -1075,6 +1075,7 @@ static LRESULT CALLBACK tabSubclassProc(
 				SetBkMode(hdc, TRANSPARENT);
 
 				TCHAR label[MAX_PATH];
+				label[0] = 0;
 				TCITEM tci = { 0 };
 				tci.mask = TCIF_TEXT;
 				tci.pszText = label;
@@ -1293,8 +1294,7 @@ static BOOL theme_prepareControlsForDarkMode(HWND hwndControl, LONG lParam) {
 	} else if (strcmp(WC_COMBOBOX, szClassname) == 0) {
 		int style = (int)GetWindowLongPtr(hwndControl, GWL_STYLE);
 		if ((style & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST || (style & CBS_DROPDOWN) == CBS_DROPDOWN) {
-			COMBOBOXINFO cbi;
-			cbi.cbSize = sizeof(COMBOBOXINFO);
+			COMBOBOXINFO cbi = { .cbSize = sizeof(COMBOBOXINFO) };
 			BOOL result = GetComboBoxInfo(hwndControl, &cbi);
 			if (result == TRUE && cbi.hwndList) {
 				//dark scrollbar for listbox of combobox

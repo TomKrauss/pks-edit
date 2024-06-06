@@ -249,6 +249,8 @@ void darkmode_flushMenuThemes() {
 BOOL darkmode_isSelectedByDefault() {
 	char buffer[4];
 	DWORD cbData[4];
+	memset(buffer, 0, sizeof buffer);
+	memset(cbData, 0, sizeof cbData);
 	cbData[0] = 0;
 	LRESULT res = RegGetValueW(
 		HKEY_CURRENT_USER,

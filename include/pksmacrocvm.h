@@ -90,7 +90,7 @@ typedef struct tagPKS_VALUE {
 	GENERIC_DATA	pkv_data;						// the data of this value.
 } PKS_VALUE;
 
-typedef (*T_FINALIZER)(PKS_VALUE v);
+typedef void (*T_FINALIZER)(PKS_VALUE v);
 typedef void* (*T_CONVERT_HANDLE)(void* pPointer);
 
 typedef struct tagTYPE_CALLBACKS {

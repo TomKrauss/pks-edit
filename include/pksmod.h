@@ -69,7 +69,7 @@ typedef struct edx {
 	void 	(*xref_openSearchList)(char *fn,int cmpflg);
 	char 	*(*mkpname)(char *path,char *fn);
 	int		(*selnfile)(char *name);
-	int		(*EdFileAbandon)(int reopen);
+	int		(*EdRereadFileFromDisk)(int reopen);
 
 	char 	*fseltarget;
 

@@ -1307,8 +1307,8 @@ BEGIN
     IDS_MSGNOTIMER          "Es ist kein Systemzeitgeber mehr verfügbar.\nAbhilfe: Schliessen einer Uhr."
     IDS_MSGNOPRINTER        "!Kein Printer installiert"
     IDS_MSGOVERWRITE        "Die Datei %s existiert bereits.\nSoll Sie überschrieben werden?"
-    IDS_MSGQUERYNEWFILE     "Soll %s als neue Datei angelegt werden"
-    IDS_MSGABANDON          "Sollen die Änderungen im Text ignoriert werden"
+    IDS_MSGQUERYNEWFILE     "Soll %s als neue Datei angelegt werden?"
+    IDS_MSGDISCARD_ALL_CHANGES "Sollen alle Änderungen im Text ignoriert werden?"
     IDS_MSGNOBRACKETS       "Kein Klammernpaar"
 END
 
@@ -1694,7 +1694,7 @@ BEGIN
     IDS_COMMAND164          "Löscht eine Zeile;Zeile löschen"
     IDS_COMMAND165          "Hängt die aktuelle Zeile an den Papierkorb an;Zeile >> Papierkorb"
     IDS_COMMAND166          "Löscht die Zeile, Cursor folgt;Zeile löschen |"
-    IDS_COMMAND167          "Liest die aktuelle Datei neu;Neu lesen"
+    IDS_COMMAND167          "Liest die aktuelle Datei neu und verwirft alle Änderungen;Neu lesen"
     IDS_COMMAND168          "Sichert und schließt das Bearbeitungsfenster;Sichern & Schließen"
     IDS_COMMAND169          "Fügt eine Zeile ein, Cursor bleibt;Zeile einfügen"
     IDS_COMMAND170          "PKS-MacroC API Documentation erzeugen;PKS-MacroC Api Dokumentation"

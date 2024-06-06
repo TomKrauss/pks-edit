@@ -55,7 +55,7 @@
 #define IDS_MSGNOPRINTER                75
 #define IDS_MSGOVERWRITE                76
 #define IDS_MSGQUERYNEWFILE             77
-#define IDS_MSGABANDON                  78
+#define IDS_MSGDISCARD_ALL_CHANGES                  78
 #define IDS_MSGNOBRACKETS               79
 #define IDS_MSGUNDEFWINREG              80
 #define IDS_MSGNOLASTPOS                81

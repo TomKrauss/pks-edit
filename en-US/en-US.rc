@@ -153,7 +153,7 @@ END
 DLGBOXC DIALOGEX 91, 60, 141, 24
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION
 EXSTYLE WS_EX_TOOLWINDOW
-CAPTION "Goto Mark"
+CAPTION "Go to Mark"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Mark Letter:",IDD_LOWOPT,16,8,60,8,NOT WS_GROUP
@@ -411,7 +411,7 @@ END
 
 DLGGOTOLINE DIALOG 42, 85, 166, 48
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Goto line"
+CAPTION "Go to line"
 FONT 8, "MS Shell Dlg"
 BEGIN
     EDITTEXT        IDD_LONG1,56,10,48,12,ES_LOWERCASE
@@ -1184,9 +1184,9 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_DELUNTILC           "Delete up to Character:"
-    IDS_MARKGOTO            "Jump to mark:"
-    IDS_MARKSET             "Set mark:"
+    IDS_DELUNTILC           "Delete text up to this Character:"
+    IDS_MARKGOTO            "Go to text marker:"
+    IDS_MARKSET             "Set text marker:"
     IDS_MACROESCAPE         "Execute Keyboard Macro:"
     IDS_GETBLOCK            "Name of Clipboard:"
     IDS_COMPRESSTABS        "Replace Spaces with Tabs"
@@ -1247,15 +1247,15 @@ BEGIN
     IDS_MSGNOTIMER          "No timer available"
     IDS_MSGNOPRINTER        "!No printer installed"
     IDS_MSGOVERWRITE        "The file %s already exists.\nDo you want to override it?"
-    IDS_MSGQUERYNEWFILE     "Create new file named %s"
-    IDS_MSGABANDON          "Do you want to ignore the changes"
+    IDS_MSGQUERYNEWFILE     "Create new file named %s?"
+    IDS_MSGDISCARD_ALL_CHANGES "Do you want to discard all changes?"
     IDS_MSGNOBRACKETS       "No matching bracket"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGUNDEFWINREG      "This window register is not used"
-    IDS_MSGNOLASTPOS        "No last goto position"
+    IDS_MSGNOLASTPOS        "No last position to go to"
     IDS_MSGOLDMACS          "!The macro file format is unsupported"
     IDS_MSGBADMACFORMAT     "!A format error was found in the macro file"
     IDS_MSGSAVESEQ          "Do you want to save the newly defined macros"
@@ -1456,20 +1456,20 @@ BEGIN
     IDS_COMMAND26           "Searches multiple files;Find in Files..."
     IDS_COMMAND27           "Navigate to cross reference;Find Tag..."
     IDS_COMMAND28           "Set a mark;Set Text Mark..."
-    IDS_COMMAND29           "Goto a previously remembered mark;Goto Text Mark..."
-    IDS_COMMAND30           "Goto line number ....;Goto Line..."
-    IDS_COMMAND31           "Goto last navigation position;Last Position"
+    IDS_COMMAND29           "Go to a previously remembered mark;Go to Text Mark..."
+    IDS_COMMAND30           "Go to line number ....;Go to Line..."
+    IDS_COMMAND31           "Go to last navigation position;Go to Last Position"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND32           "Goto last position of insertion;Last Insertion Position"
+    IDS_COMMAND32           "Go to last position with changes;Go to last Position with Changes"
     IDS_COMMAND33           "Defines the start of the text selection;Start Selection"
     IDS_COMMAND34           "Defines the end of the text selection;End Selection"
     IDS_COMMAND35           "Selects the complete text;Select All"
     IDS_COMMAND36           "Hides the text selection;Hide Selection"
-    IDS_COMMAND37           "Goto begin of text selection;Goto Selection Start"
-    IDS_COMMAND38           "Goto end of text selection;Goto Selection End"
+    IDS_COMMAND37           "Go to begin of text selection;Go to Selection Start"
+    IDS_COMMAND38           "Go to end of text selection;Go to Selection End"
     IDS_COMMAND39           "Copy selection to clipboard;Copy to Clipboard"
     IDS_COMMAND40           "Appends a named buffer to another buffer...;Copy a named Clipboard to other Clipboard.."
     IDS_COMMAND41           "Append the selection to a named buffer;Copy Selection to named Clipboard"
@@ -1504,18 +1504,18 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND64           "Shifts the text selection to left;Shift Left"
-    IDS_COMMAND65           "Sort a text range;Sort Text..."
-    IDS_COMMAND66           "Goto next difference of a comparison;Compare"
+    IDS_COMMAND65           "Sort a range of lines of the current file;Sort Text..."
+    IDS_COMMAND66           "Compare files with...;Compare..."
     IDS_COMMAND67           "Print the current window;Print Current Window..."
-    IDS_COMMAND68           "Print the selection;Print Selection"
+    IDS_COMMAND68           "Print the selection;Print Selection..."
     IDS_COMMAND69           "Print a file to select;Print File..."
-    IDS_COMMAND70           "Run an external application / start command;Start Command"
-    IDS_COMMAND71           "Read a tag file;Read Tag File"
+    IDS_COMMAND70           "Run an external application / start command;Start Command..."
+    IDS_COMMAND71           "Read a tag file;Read Tag File..."
     IDS_COMMAND72           "Use old search result list;Use Search Results"
     IDS_COMMAND73           "Read compiler output file;Read Compiler Output File"
     IDS_COMMAND74           "Save all current Document Settings;Save Document Settings..."
     IDS_COMMAND75           "Start stop macro recorder;Record Macro"
-    IDS_COMMAND76           "Edit ans start marcros and bind;Edit Macros"
+    IDS_COMMAND76           "Edit ans start marcros and bind;Edit Macros..."
     IDS_COMMAND77           "Save macros to file;Save Macros..."
     IDS_COMMAND78           "Read macros from file;Read Macros..."
     IDS_COMMAND79           "Save all settings;Save Settings..."
@@ -1535,15 +1535,15 @@ BEGIN
     IDS_COMMAND89           "Layout the icons on the desktop;Layout icons"
     IDS_COMMAND90           "Pin Window"
     IDS_COMMAND91           "Layout editor windows side by side;Tile Wwindows"
-    IDS_COMMAND92           "Show help;Help"
+    IDS_COMMAND92           "Display the PKS Edit Manual;Help"
     IDS_COMMAND93           "Introduces the user interface of PKS Edit;Help Overview"
-    IDS_COMMAND94           "Show help for using the keyboard in PKS Edit;Help Keys"
+    IDS_COMMAND94           "Show help for using the key binding in PKS Edit;Help for Key Bindings"
     IDS_COMMAND95           "Displays the Release Notes;Help Release Notes"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND96           "Show help;Help Table of Contents"
+    IDS_COMMAND96           "Display the table of contents of the manual;Manual Table of Contents"
     IDS_COMMAND97           "Show copyright dialog with version info;About PKS Edit"
     IDS_COMMAND98           "Insert a special character from the keyboard;Insert Keycode..."
     IDS_COMMAND99           "Evaluate current line or selection;Evaluate Code"
@@ -1575,10 +1575,10 @@ BEGIN
     IDS_COMMAND121          "Shift one column to the left;Shift left"
     IDS_COMMAND122          "Shift one column to the right;Shift Right"
     IDS_COMMAND123          "Repeat the last replacement;Replace Again"
-    IDS_COMMAND124          "Goto the next compiler error;Find Error"
-    IDS_COMMAND125          "Goto the last compiler error;Find last Error"
-    IDS_COMMAND126          "Goto the previous compiler error;Find last Error Backwards"
-    IDS_COMMAND127          "Goto the first compiler error;Goto first Error"
+    IDS_COMMAND124          "Go to the next compiler error;Find Error"
+    IDS_COMMAND125          "Go to the last compiler error;Find last Error"
+    IDS_COMMAND126          "Go to the previous compiler error;Find last Error Backwards"
+    IDS_COMMAND127          "Go to the first compiler error;Go to first Error"
 END
 
 STRINGTABLE
@@ -1623,20 +1623,20 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND160          "Move caret to last space;Caret last space"
-    IDS_COMMAND161          "Goto the start of the file;Goto start"
-    IDS_COMMAND162          "Goto the end of the file;Goto end"
+    IDS_COMMAND160          "Move caret to last space;Caret to last space"
+    IDS_COMMAND161          "Go to the start of the file;Go to start of file"
+    IDS_COMMAND162          "Go to the end of the file;Go to end of file"
     IDS_COMMAND163          "Inserts a new line, caret follows;Insert line"
     IDS_COMMAND164          "Delete a line;Delete line"
     IDS_COMMAND165          "Appends the current line to a named trash can;Line >> trashcan"
     IDS_COMMAND166          "Delete the line caret follows;Delete line |"
-    IDS_COMMAND167          "Re-read the current file to undo all changes;Abandon File"
+    IDS_COMMAND167          "Read the current file from the disk and discard all changes;Reload from Disk"
     IDS_COMMAND168          "Saves and closes the current editor window;Save & close"
     IDS_COMMAND169          "Inserts a line, caret stays;Insert line"
     IDS_COMMAND170          "Create the PKS-MacroC API documentation;MacroC API Documentation"
-    IDS_COMMAND171          "Clear all text buffers;Clear all buffers"
+    IDS_COMMAND171          "Clear all text buffers;Clear all text buffers"
     IDS_COMMAND172          "Delete all marked lines;Delete marked lines"
-    IDS_COMMAND173          "Set multiplier for next command;Multiplier"
+    IDS_COMMAND173          "Set multiplier for next command;Set Command Multiplier"
     IDS_COMMAND174          "Start escape macro;Escape macro"
     IDS_COMMAND175          "Resets the function keys;Function keys  <-"
 END
@@ -1651,7 +1651,7 @@ BEGIN
     IDS_COMMAND181          "Inverts the line markers;Invert Line Markers"
     IDS_COMMAND182          "Iconize PKS Edit;PKS Edit as icon"
     IDS_COMMAND183          "Iconize the current editing window;Minimize current Window"
-    IDS_COMMAND184          "Goto last difference in a comparison;Goto last Difference"
+    IDS_COMMAND184          "Go to last difference in a comparison;Go to last Difference"
     IDS_COMMAND185          "Scroll one line up, caret stays;Scroll Up by One"
     IDS_COMMAND186          "Scroll one line down, caret stays;Scroll Down by One"
     IDS_COMMAND187          "Scroll one page up, caret stays;Scroll Page Up"
@@ -1725,8 +1725,8 @@ STRINGTABLE
 BEGIN
     IDS_COMMAND240          "Decrement the text zoom factor;Decrease Zoomfactor"
     IDS_COMMAND241          "Toggle comment;Toggle Comment"
-    IDS_COMMAND242          "Goto next navigation position;Goto Next Auto-Position"
-    IDS_COMMAND243          "Goto next position of insertion;Goto Next Auto-Position for Insertion"
+    IDS_COMMAND242          "Go to next navigation position;Go to Next Position"
+    IDS_COMMAND243          "Go to next position with changes;Go to Next Position With Changes"
     IDS_COMMAND244          "Convert to Linux line endings (\n);Convert to Linux EOL"
     IDS_COMMAND245          "Convert to Windows line endings (\r\n);Convert to Windows EOL"
     IDS_COMMAND246          "Convert to upper case spelling;Convert to Uppercase"

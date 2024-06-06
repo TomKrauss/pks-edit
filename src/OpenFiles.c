@@ -153,9 +153,9 @@ static BOOL areFilenamesDifferent(const char* fileName1, const char* fileName2) 
 void ft_checkForChangedFiles(BOOL bActive) {
 	FTABLE *	fp;
 	EDTIME		lCurrentTime;
-	BOOL bAbandoned = FALSE;
+	BOOL bChangesDiscarded = FALSE;
 
-	for (fp = _filelist; fp && !bAbandoned; fp = fp->next) {
+	for (fp = _filelist; fp && !bChangesDiscarded; fp = fp->next) {
 		if (!file_getFileAttributes(fp->fname, 0, &lCurrentTime, NULL)) {
 			// File was deleted on disk - for now ignore. There are valid cases for this anyways: temporary macro files etc....
 			continue;
@@ -167,10 +167,10 @@ void ft_checkForChangedFiles(BOOL bActive) {
 				BOOL bLogMode = fp->flags & F_WATCH_LOGFILE;
 				if (bLogMode) {
 					if (fp->fileSize < APPEND_THRESHOLD_SIZE || !ft_appendFileChanges(wp)) {
-						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+						ft_rereadFileAndDiscardChanges(fp, (EDIT_CONFIGURATION*)0);
 						fp->flags |= F_WATCH_LOGFILE;
 						// may make the list of files invalid.
-						bAbandoned = TRUE;
+						bChangesDiscarded = TRUE;
 					}
 					// This is a hack to avoid expensive recalculation of maximum line len for big files
 					// when files change frequently - e.g. the PKS Edit search list.
@@ -186,9 +186,9 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					BOOL bSilentReload = GetConfiguration()->options & O_SILENTLY_RELOAD_CHANGED_FILES;
 					if ((bSilentReload && !ft_isFileModified(fp)) ||
 						error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
-						ft_abandonFile(fp, (EDIT_CONFIGURATION*)0);
+						ft_rereadFileAndDiscardChanges(fp, (EDIT_CONFIGURATION*)0);
 						// may make the list of files invalid.
-						bAbandoned = TRUE;
+						bChangesDiscarded = TRUE;
 					}
 				}
 			}
@@ -887,18 +887,18 @@ long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 }
 
 /*------------------------------------------------------------
- * ft_abandonFile()
+ * ft_rereadFileAndDiscardChanges()
  * Discard changes in a file and re-read.
  */
 struct tagPOSITION {
 	long ln;
 	long col;
 };
-static int ft_abandoned(WINFO* wp, struct tagPOSITION* pPosition) {
+static int ft_changesDiscarded(WINFO* wp, struct tagPOSITION* pPosition) {
 	caret_placeCursorInCurrentFile(wp, pPosition->ln, pPosition->col);
 	return 1;
 }
-int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *pEditorConfiguration) {
+int ft_rereadFileAndDiscardChanges(FTABLE *fp, EDIT_CONFIGURATION *pEditorConfiguration) {
 	long   	ln,col;
 
 	if  (fp == 0) {
@@ -907,7 +907,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *pEditorConfiguration) {
 	WINFO* wp = WIPOI(fp);
 
 	if (fp->flags & F_MODIFIED) {
-		if (error_displayYesNoConfirmation(IDS_MSGABANDON) == IDNO)
+		if (error_displayYesNoConfirmation(IDS_MSGDISCARD_ALL_CHANGES) == IDNO)
 			return 1;
 	}
 
@@ -934,7 +934,7 @@ int ft_abandonFile(FTABLE *fp, EDIT_CONFIGURATION *pEditorConfiguration) {
 		ln = fp->nlines-1;
 	}
 
-	ft_forAllViews(fp, ft_abandoned, &(struct tagPOSITION){ln, col});
+	ft_forAllViews(fp, ft_changesDiscarded, &(struct tagPOSITION){ln, col});
 
 	doctypes_documentTypeChanged(FALSE);
 	render_repaintAllForFile(fp);
@@ -969,11 +969,11 @@ int ft_isReadonly(FTABLE* fp) {
 }
 
 /*--------------------------------------------------------------------------
- * EdFileAbandon()
+ * EdRereadFileFromDisk()
  * Cancel all changes in the specified editor..
  */
-long long EdFileAbandon(WINFO* wp) {
-	return ft_abandonFile(wp->fp, (EDIT_CONFIGURATION *)0);
+long long EdRereadFileFromDisk(WINFO* wp) {
+	return ft_rereadFileAndDiscardChanges(wp->fp, (EDIT_CONFIGURATION *)0);
 }
 
 /**

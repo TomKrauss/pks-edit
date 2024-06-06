@@ -1097,7 +1097,7 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			}
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {
-				EdFileAbandon(WIPOI(fp));
+				EdRereadFileFromDisk(WIPOI(fp));
 				// TODO: make this configurable - currently only used by PKSMacroC compiler.
 				fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
 			}

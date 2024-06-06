@@ -288,7 +288,7 @@ extern int function_getNumberOfStaticallyDefinedFunctions();
 #define CMD_DELETE_LINE_STAY	164 
 #define CMD_DELETE_LINE_APPEND	165 
 #define CMD_DELETE_LINE_FOLLOW	166 
-#define CMD_ABANDON_FILE	167 
+#define CMD_REREAD_FILE	167 
 #define CMD_SAVE_AND_CLOSE	168 
 #define CMD_INSERT_LINE_STAY	169 
 #define CMD_EDIT_DOC_MACROS	170 

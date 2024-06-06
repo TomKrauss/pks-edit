@@ -1594,9 +1594,10 @@ static void draw_lineNumbers(WINFO* wp) {
 		if (yPos > ps.rcPaint.bottom+wp->cheight) {
 			break;
 		}
-		RECT textRect;
-		textRect.top = yPos;
-		textRect.bottom = yPos + wp->cheight;
+		RECT textRect = {
+			.top = yPos,
+			.bottom = yPos + wp->cheight
+		};
 		if (wp->comparisonLink != NULL && lp && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
 			HBRUSH bgBrush2;
 			char* pszText;
@@ -1625,10 +1626,11 @@ static void draw_lineNumbers(WINFO* wp) {
 		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 		if (lp) {
 			if (lp->lflg & LNMODIFIED) {
-				RECT r;
+				RECT r = {
+					.top = yPos
+				};
 				r.left = rect.right - dpisupport_getSize(LINE_ANNOTATION_WIDTH + LINE_ANNOATION_PADDING);
 				r.right = rect.right - dpisupport_getSize(2);
-				r.top = yPos;
 				r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
 				HBRUSH hBrush = hAnnotationBrush;
 				if (lp->lflg & LNUNDO_AFTER_SAVE) {

@@ -67,18 +67,19 @@ static void tb_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_T
  * Register a toolbar action binding. 
  */
 static void tb_registerBinding(int nCommand, int nType, TBBUTTON *pButton) {
-    char szComment[MAC_COMMENTLEN];
+    char szComment[MAC_COMMENTLEN+32];
     char szKtext[128];
     MACROREF command = (MACROREF){ .index = nCommand, .typ = nType};
     ACTION_BINDING binding = { .ab_propertyChanged = tb_propertyChanged, .ab_hwnd = hwndToolbar, .ab_item = nCommand, .ab_type = nType };
     action_registerAction(nCommand, nType, binding, FALSE);
     command_getTooltipAndLabel(command, szComment, szKtext);
-    if (szKtext[0]) {
-        pButton->iString = (intptr_t)_strdup(szKtext);
-    }
-    else if (nType == CMD_MACRO) {
-        MACRO* mp = macro_getByIndex(nCommand);
-        macro_getLabelFor(mp, szComment, sizeof szComment);
+    if (szComment[0]) {
+        KEYCODE k;
+        if ((k = bindings_findBoundKey(NULL, command)) != K_DELETED) {
+            strcat(szComment, " (");
+            strcat(szComment, bindings_keycodeToString(k));
+            strcat(szComment, ")");
+        }
         pButton->iString = (intptr_t)_strdup(szComment);
     }
 }
@@ -236,6 +237,9 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     int nButtons = ll_size((LINKED_LIST*)pButtons);
     tbb = calloc(nButtons, sizeof * tbb);
     CHAR_WITH_STYLE* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
+    if (pwImageCodes == NULL) {
+        return NULL;
+    }
     int nImageIndex = 0;
     int iIndexExtra = 0;
     for (int nButton = 0; pButtons; nButton++) {

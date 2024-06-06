@@ -332,10 +332,10 @@ extern FTABLE* ft_getCurrentDocument();
 void ft_cutMarkedLines(WINFO* wp, BOOL bDelete);
 
 /*------------------------------------------------------------
- * ft_abandonFile()
+ * ft_rereadFileAndDiscardChanges()
  * Discard changes in a file and re-read.
  */
-extern int ft_abandonFile(FTABLE* fp, EDIT_CONFIGURATION* linp);
+extern int ft_rereadFileAndDiscardChanges(FTABLE* fp, EDIT_CONFIGURATION* linp);
 
 /*------------------------------------------------------------
  * The current active file (window of active file) has changed.
@@ -727,10 +727,10 @@ typedef enum {
 extern long long EdSaveFile(SAVE_WINDOW_FLAGS flags);
 
 /*--------------------------------------------------------------------------
- * EdFileAbandon()
+ * EdRereadFileFromDisk()
  * Cancel all changes in he current file.
  */
-extern long long EdFileAbandon(WINFO* wp);
+extern long long EdRereadFileFromDisk(WINFO* wp);
 
 /* Flags for ínserting a new line into the text */
 typedef enum {

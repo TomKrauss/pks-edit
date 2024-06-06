@@ -796,6 +796,23 @@ static void macro_updateMacroList(HWND hwnd)
 	macro_listEndFilling(hwndList,nCurr);
 }
 
+static void command_copyMacroComment(char* pszDest, const char* pszSource, size_t nMaxLen) {
+	char* pszEnd = pszDest + nMaxLen - 1;
+	char* pszLastNoSpace = NULL;
+
+	while (*pszSource == ' ') {
+		pszSource++;
+	}
+	while (*pszSource && pszDest < pszEnd) {
+		char c = *pszSource++;
+		if (c == '\n' || c == '\r') {
+			continue;
+		}
+		*pszDest++ = c;
+	}
+	*pszDest = 0;
+}
+
 /*------------------------------------------------------------
  * command_getTooltipAndLabel()
  * Returns the label and tooltip for a given command described by command.
@@ -816,8 +833,7 @@ char *command_getTooltipAndLabel(MACROREF command, char* szTooltip, char* szLabe
 			if (mp == 0) {
 				return "";
 			}
-			strncpy(szTooltip, MAC_COMMENT(mp), MAC_COMMENTLEN);
-			szTooltip[MAC_COMMENTLEN-1] = 0;
+			command_copyMacroComment(szTooltip, MAC_COMMENT(mp), MAC_COMMENTLEN);
 			return szTooltip;
 		}
 		default:
@@ -871,11 +887,7 @@ void macro_showHelpForMenu(int dMenuId)
 	st_switchtomenumode(dMenuId != -1);
 	if (dMenuId != -1 && (mp = macro_translateMenuCommand(dMenuId)) != 0) {
 		command_getTooltipAndLabel(*mp, szBuf, NULL);
-		char *pszText = szBuf;
-		while (*pszText && *pszText == ' ') {
-			pszText++;
-		}
-		st_setStatusLineMessage(pszText);
+		st_setStatusLineMessage(szBuf);
 	} else {
 		st_setStatusLineMessage((char *)0);
 	}

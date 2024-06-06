@@ -61,7 +61,7 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 	d = &_linebuf[cfirst];
 	memmove(lp->lbuf,d,size);
 	if (freeflg) {
-		memmove(d,&_linebuf[clast],col-cfirst);
+		memmove(d,&_linebuf[clast],(size_t) col-cfirst);
 		col -= size;
 		if ((lps = ln_modify(fp,lps,len,col)) == (LINE *) 0) 
 			return 0;
@@ -134,13 +134,13 @@ LINE *ln_pasteLine(WINFO *wp, LINE *lpd, LINE *lps, int col, int bExpandTabs) {
 
 	if (col > oldsize) {
 		memmove(lpd->lbuf,_linebuf,oldsize);
-		memset(&lpd->lbuf[oldsize],' ', col - oldsize);
+		memset(&lpd->lbuf[oldsize],' ', (size_t) col - oldsize);
 		memmove(&lpd->lbuf[col],lps->lbuf,lps->len);
 	}
 	else {
 		memmove(lpd->lbuf,_linebuf,col);
 		memmove(&lpd->lbuf[col],lps->lbuf,lps->len);
-		memmove(&lpd->lbuf[col+lps->len],&_linebuf[col],oldsize-col);
+		memmove(&lpd->lbuf[col+lps->len],&_linebuf[col], (size_t)oldsize-col);
 	}
 
 	return lpd;

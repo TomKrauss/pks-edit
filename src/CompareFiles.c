@@ -131,7 +131,9 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
 			lps1 = lps1->next;
 			lps2 = lps2->next;
 		}
-		lp1 = lp1->next;
+		if (lp1) {
+			lp1 = lp1->next;
+		}
 		lp2 = lp2->next;
 	}
 	while (lp1 && lp1 != fp1->lastl) {

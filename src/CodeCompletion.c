@@ -364,10 +364,11 @@ static void codecomplete_paint(HWND hwnd) {
 		for (int i = 0; up; i++) {
 			if (i >= pCC->ccp_topRow) {
 				if (i == nSelectedIndex) {
-					RECT rect;
-					rect.left = 0;
-					rect.right = paint.rcPaint.right;
-					rect.top = y;
+					RECT rect = {
+						.right = paint.rcPaint.right,
+						.left = 0,
+						.top = y
+					};
 					rect.bottom = y + textmetric.tmHeight + nDelta;
 					HBRUSH hBrushFill = CreateSolidBrush(pTheme->th_dialogHighlight);
 					FillRect(paint.hdc, &rect, hBrushFill);
@@ -586,9 +587,10 @@ static void codecomplete_action(HWND hwnd) {
 		if (cap->ca_type == CA_TEMPLATE) {
 			template_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replacedTextLength, TRUE);
 		} else {
-			UCLIST uclTemp;
-			uclTemp.action = UA_ABBREV;
-			uclTemp.p.uc_template = cap->ca_param.text;
+			UCLIST uclTemp = {
+				.action = UA_ABBREV,
+				.p.uc_template = cap->ca_param.text
+			};
 			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replacedTextLength, cap->ca_replaceWord);
 		}
 	}
@@ -840,7 +842,7 @@ int codecomplete_registerWindowClass() {
  * Calculate the place of the code completion window relative to the caret of the given window. 
  */
 static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nHeight) {
-	RECT rect;
+	RECT rect = { 0 };
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 	pPoint->y = wp->cy + wp->cheight + 5;
 	pPoint->x = wp->cx - wp->cwidth - 5;

@@ -662,11 +662,11 @@
     },
     {
       "key": "Alt+Ctrl+LEFT",
-      "command": "@cursor-to-space"
+      "command": "@goto-last-pos"
     },
     {
       "key": "Alt+Ctrl+RIGHT",
-      "command": "@cursor-back-to-space"
+      "command": "@goto-next-pos"
     },
     {
       "key": "Alt+Ctrl+UP",
@@ -691,6 +691,10 @@
     {
       "key": "Alt+Ctrl+N",
       "command": "@errorlist-end"
+    },
+    {
+      "key": "Ctrl+P",
+      "command": "@print-window"
     },
     {
       "key": "Alt+Ctrl+P",
