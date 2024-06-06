@@ -6,7 +6,12 @@ The form
 at is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.6.0] - 2024-05-25
+## [2.7.0] - 2024-06-06
+
+### Fixed
+- fixed missing update of line number area, when lines are modified.
+
+## [2.6.0] - 2024-06-06
 
 ### Added
 - PKS Edit was integrated with libgit2 and provides now some basic GIT information about the files edited.

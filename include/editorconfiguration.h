@@ -32,7 +32,7 @@ typedef enum {
 	O_ERROR_TONE = 0x2,
 	// flash window, rather playing an error sound
 	O_ERROR_FLASH_WINDOW  = 0x4,
-	// lock opened files 
+	// lock opened files
 	O_LOCKFILES = 0x8,
 	// Restore previously opened files
 	O_AUTO_OPEN_HISTORY = 0x10,
@@ -53,7 +53,7 @@ typedef enum {
 	O_HIDE_BLOCK_ON_CARET_MOVE = 0x1000,
 	// undo enabled
 	O_UNDOENABLED = 0x2000,
-	// save and restore named clipboards when 
+	// save and restore named clipboards when
 	O_SAVE_CLIPBOARDS_ON_EXIT = 0x4000,
 	// whether a history of the clipboard contents is automatically maintained
 	O_SAVE_CLIPBOARD_HISTORY = 0x8000,
@@ -105,7 +105,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char themeName[32];
 	char language[32];
 	char defaultFontFace[32];
-	char searchEngine[32];						// selected search engine for searching a string on the internet. 
+	char searchEngine[32];						// selected search engine for searching a string on the internet.
 	char soundName[32];							// sound name for playing sounds.
 	COMPILER_OUTPUT_PATTERN* outputPatterns;	// Pre-defined compiler output patterns
 	void (*autosaveOnExit)();

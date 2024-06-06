@@ -534,11 +534,18 @@ EXPORT void render_repaintAllForFile(FTABLE *fp) {
 }
 
 /*
- * Repaint the line numbers in the given view. 
+ * Repaint the line numbers in the given view. If a rectangle is provided, the top and bottom
+ * values of the rectangle are used to restrict the area to update.
  */
-int render_repaintLineNumbers(WINFO* wp, void* pUnused) {
+int render_repaintLineNumbers(WINFO* wp, RECT* pRect) {
 	if (wp->lineNumbers_handle) {
-		InvalidateRect(wp->lineNumbers_handle, NULL, 0);
+		if (pRect != NULL) {
+			RECT rect = { 0 };
+			GetClientRect(wp->lineNumbers_handle, &rect);
+			pRect->left = rect.left;
+			pRect->right = rect.right;
+		}
+		InvalidateRect(wp->lineNumbers_handle, pRect, 0);
 	}
 	return 1;
 }
@@ -590,6 +597,9 @@ int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCo
 	r.top += wp->cheight * (nFirstLine - wp->minln);
 	r.bottom = r.top + (nLastLine-nFirstLine+1)*wp->cheight;
 	render_invalidateRect(wp, &r);
+	if (wp->lineNumbers_handle) {
+		render_repaintLineNumbers(wp, &r);
+	}
 	return 1;
 }
 
