@@ -114,13 +114,21 @@ typedef struct tagRENDER_CONTEXT {
 
 typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, HBRUSH hBrushBg, int y);
+
+typedef struct tagCARET_MOVEMENT_SPEC {
+    // the caret was moved on the screen in X direction by the given amount
+    long cms_deltaX;
+    // the caret was moved on the screen in Y direction by the given amount
+    long cms_deltaY;
+} CARET_MOVEMENT_SPEC;
+
 /*
  * Input parameters are a pointer to view, to the line (in screen coordinates) to move to,
  * the line buffer offset, a pointer to the screen column. If 'updateVirtualOffset' is 1,
  * the virtual column on the screen should be updated. 'xDelta' is a hint defining, whether
- * the caret was moved horizontally to left or right or not.
+ * the caret was moved horizontally or vertically. It may be NULL
  */
-typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta);
+typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, CARET_MOVEMENT_SPEC* xDelta);
 
 /*
  * Callback implemented by renderers to answer, whether a special "display mode" (SHOW...) flag is supported by this renderer.
@@ -184,6 +192,9 @@ typedef int (*RENDERER_REPAINT)(WINFO* wp, int nFirstLine, int nLastLine, int nF
 
 typedef LRESULT (*RENDERER_WINDOW_PROC)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+// Can be implemented by a renderer for a most flexible overriding of a caret movement.
+// Returns FALSE on failure to move with the given specification.
+typedef BOOL (*CARET_MOVEMENT_PROC)(WINFO* wp, CARET_MOVEMENT_SPEC* pSpec);
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
@@ -210,6 +221,7 @@ typedef struct tagRENDERER {
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
     const RENDERER_WINDOW_PROC r_wndProc;                         // Custom window procedure used by this renderer.
     const RENDERER_PRINT_FRAGMENT r_printFragment;                // May be implemented by renderers to support printing.
+    const CARET_MOVEMENT_PROC r_moveCaret;                        // May be implemented for flexible caret movement
 } RENDERER;
 
 /*--------------------------------------------------------------------------

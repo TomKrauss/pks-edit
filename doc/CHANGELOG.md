@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.0] - 2024-06-06
 
+### Improved
+- The caret movement (by line / by column) in HEX mode works now as expected.
+
 ### Fixed
 - fixed missing update of line number area, when lines are modified.
 

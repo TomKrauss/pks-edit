@@ -46,12 +46,12 @@
  */
 
 extern void 	caret_setMatchFunction(int control, int ids_name, int *c);
-extern LINE 	*(*advmatchfunc)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, char character);
-extern int 	ln_countLeadingSpaces(LINE *l);
-extern int 	string_isSpace(unsigned char c);
-extern int 	string_countSpacesIn(unsigned char *s, int pos);
+extern LINE 	*(*caret_findMatchingPosition)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, char character);
+extern int 		ln_countLeadingSpaces(LINE *l);
+extern int 		string_isSpace(unsigned char c);
+extern int 		string_countSpacesIn(unsigned char *s, int pos);
 extern void 	wt_insline(FTABLE *fp, int caretLine, int nlines);
-extern int 	template_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
+extern int 		template_expandAbbreviation(WINFO *fp, LINE *lp,int offs);
 extern void 	render_updateCaret(WINFO *wp);
 
 extern long 	_multiplier;
@@ -996,11 +996,11 @@ static int edit_deleteChar(WINFO* wp, CARET* pCaret, int control, int nMatchChar
 	case -MOT_SINGLE: o1 = edit_findPreviousOffsetForDeletion(wp, lp, o1); break;
 	case -MOT_TOEND:  o1 = 0; break;
 	case -MOT_WORD: case -MOT_UNTILC: case -MOT_SPACE:
-		if ((lp1 = (*advmatchfunc)(lp, &ln, &o1, -1, nMatchChar)) == 0)
+		if ((lp1 = (*caret_findMatchingPosition)(lp, &ln, &o1, -1, nMatchChar)) == 0)
 			return 0;
 		break;
 	case MOT_WORD:  case MOT_UNTILC:  case MOT_SPACE:
-		if ((lp = (*advmatchfunc)(lp, &ln, &o2, 1, nMatchChar)) == 0)
+		if ((lp = (*caret_findMatchingPosition)(lp, &ln, &o2, 1, nMatchChar)) == 0)
 			return 0;
 		break;
 	}

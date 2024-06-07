@@ -377,7 +377,8 @@ EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updat
  * the virtual column on the screen should be updated. 'xDelta' is a hint defining, whether
  * the caret was moved horizontally to left or right or not.
  */
-EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *col, int updateVirtualOffset, int xDelta) {
+EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *col, int updateVirtualOffset, 
+		CARET_MOVEMENT_SPEC* xDelta) {
 	LINE *		lp;
 	int 		i;
 	int			o;
@@ -423,7 +424,10 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
  */
 EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol, int xDelta) {
 	PLACE_CARET_FUNCTION pFunc = wp->renderer->r_placeCaret;
-	if (!pFunc || !pFunc(wp, &ln, col, &screenCol, 1, xDelta)) {
+	CARET_MOVEMENT_SPEC cmsSpec = {
+		.cms_deltaX = xDelta
+	};
+	if (!pFunc || !pFunc(wp, &ln, col, &screenCol, 1, &cmsSpec)) {
 		return 0;
 	}
 	wt_curpos(wp, ln, screenCol);
@@ -522,19 +526,29 @@ EXPORT int caret_placeCursorMakeVisibleAndSaveLocation(WINFO* wp, long ln,long c
 			caret_placeCursorAndSavePosition(wp, ln,col);
 }
 
+/*
+ * Save the caret position before "long moves" we want to reverse later with go
+ * to previous position.
+ */
+static int caret_savePositionBeforeMove(WINFO* wp, long ln, long col) {
+	if (wp == NULL)
+		return 0;
+	if (ln != wp->caret.ln || col != wp->caret.offset) {
+		caret_saveLastPosition();
+
+	}
+	return 1;
+}
+
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndSavePosition()
  * Places the cursor in the current document in a given row and column and save the current
  * position.
  */
-int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col)
-{
-	if (wp == NULL)
+int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col) {
+	if (!caret_savePositionBeforeMove(wp, ln, col)) {
 		return 0;
-	if (ln == wp->caret.ln && col == wp->caret.offset)
-		return 1;
-
-	caret_saveLastPosition();
+	}
 	return caret_placeCursorInCurrentFile(wp, ln, col);
 }
 
@@ -621,7 +635,7 @@ static int caret_gotoParagraphStart(LINE *lp)
  * advance one section (depending on func)
  */
 static void caret_advanceSectionUsing(WINFO* wp, long *ln, DIRECTION_OPTION dir,int start,
-					int (*func1)(),int (*func2)())
+					int (*func1)(LINE* lp),int (*func2)(LINE* lp))
 					/* caret_gotoParagraphStart,caret_gotoParagraphEnd for advancing paragraphs */
 					/* equaltabed(line) for advancing sections */
 {	register LINE *lp;
@@ -656,7 +670,7 @@ nextblk:	;
  * caret_advanceParagraph()
  * Advance the cursor starting from a line by one paragraph.
  */
-EXPORT long caret_advanceParagraph(WINFO* wp, long ln, DIRECTION_OPTION dir,int start)
+long caret_advanceParagraph(WINFO* wp, long ln, DIRECTION_OPTION dir,int start)
 {
 	caret_advanceSectionUsing(wp, &ln,dir,start,caret_gotoParagraphStart,caret_gotoParagraphEnd);
 	if (!start) ln--;
@@ -666,7 +680,7 @@ EXPORT long caret_advanceParagraph(WINFO* wp, long ln, DIRECTION_OPTION dir,int 
 /*--------------------------------------------------------------------------
  * caret_advanceParagraphFromCurrentLine()
  */
-EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, DIRECTION_OPTION dir,int start)
+int caret_advanceParagraphFromCurrentLine(WINFO* wp, DIRECTION_OPTION dir,int start)
 {	long ln;
 
 	ln = caret_advanceParagraph(wp, wp->caret.ln,dir,start);
@@ -677,7 +691,7 @@ EXPORT int caret_advanceParagraphFromCurrentLine(WINFO* wp, DIRECTION_OPTION dir
  * caret_advanceSection()
  * Advances the cursor by one "section".
  */
-EXPORT int caret_advanceSection(WINFO* wp, DIRECTION_OPTION dir,int start)
+static int caret_advanceSection(WINFO* wp, DIRECTION_OPTION dir,int start)
 {	long ln;
 
 	caret_saveLastPosition();
@@ -788,8 +802,7 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
  * general cursor advancing in
  * vertical direction
  */
-long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPTTION mtype)
-{
+long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPTTION mtype) {
 	BOOL	bXtnd;
 	int		nRet;
 	long 	col;
@@ -821,15 +834,18 @@ long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPT
 			break;
 		case MOT_FILE: {
 			long nlines = wp->renderer->r_calculateMaxLine(wp);
-			if (!caret_placeCursorAndSavePosition(wp, (dir > 0) ? nlines - 1L : 0L, 0L)) {
+			ln = (dir > 0) ? nlines - 1L : 0L;
+			col = 0;
+			if (!caret_savePositionBeforeMove(wp, ln, col)) {
 				goto err;
 			}
-			nRet = 1;
-			goto err;
+			break;
 		}
 	}
-
-	if (wp->renderer->r_placeCaret(wp,&ln,col,&col,0,0)) {
+	CARET_MOVEMENT_SPEC xDelta = {
+		.cms_deltaY = ln - wp->caret.ln
+	};
+	if (wp->renderer->r_placeCaret(wp,&ln,col,&col,0,&xDelta)) {
 		nRet = 1;
 		wt_curpos(wp,ln,col);
 	}
@@ -985,17 +1001,17 @@ EXPORT int caret_getPreviousColumnInLine(WINFO* wp, LINE *lp, int col) {
 /*--------------------------------------------------------------------------
  * caret_setMatchFunction()
  */
-LINE * (*advmatchfunc)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char character);
+LINE * (*caret_findMatchingPosition)(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char character);
 EXPORT void caret_setMatchFunction(int mtype, int ids_name, int *c)
 {
-	advmatchfunc = caret_gotoIdentifierSkipSpace;
+	caret_findMatchingPosition = caret_gotoIdentifierSkipSpace;
 	switch (abs(mtype)) {
 		case MOT_UNTILC:
 			*c = EdPromptForCharacter(ids_name);
-			advmatchfunc = caret_advanceCharacter;
+			caret_findMatchingPosition = caret_advanceCharacter;
 			break;
 		case MOT_SPACE:
-			advmatchfunc = caret_gotoIdentifierEnd;
+			caret_findMatchingPosition = caret_gotoIdentifierEnd;
 			break;
 	}
 }
@@ -1037,7 +1053,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 		case MOT_UNTILC:  case -MOT_UNTILC:
 		case MOT_SPACE:   case -MOT_SPACE:
 			caret_setMatchFunction(moving, IDS_CURSUNTILC, &matchc);
-			if ((lp = (*advmatchfunc)(lp, &ln, &col,
+			if ((lp = (*caret_findMatchingPosition)(lp, &ln, &col,
 				(moving > 0) ? 1 : -1, matchc)) == 0) {
 				goto err;
 			}

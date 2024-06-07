@@ -4106,7 +4106,7 @@ static void mdr_scroll(WINFO* wp, int dx, int dy) {
 	RedrawWindow(wp->ww_handle, NULL, NULL, RDW_ERASE|RDW_INVALIDATE);
 }
 
-static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, int xDelta) {
+static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, CARET_MOVEMENT_SPEC* xDelta) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
 		return 0;

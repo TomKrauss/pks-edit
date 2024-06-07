@@ -389,7 +389,7 @@ static void hex_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 	int nNewCol = pData->nCaretColumn * 3 * wp->cwidth;
 	int nOldY = *pCY;
 	EdTRACE(log_errorArgs(DEBUG_TRACE, "Setting caret x to %d (cwidth==%d)", *pCX, wp->cwidth));
-	*pCY = pData->nCaretLine * wp->cheight;
+	*pCY = (pData->nCaretLine - wp->minln) * wp->cheight;
 	if (nNewCol != *pCX) {
 		*pCX = nNewCol;
 		if (*pCY == nOldY) {
@@ -401,18 +401,43 @@ static void hex_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 /*
  * Caret movement in hex edit mode. 
  */
-static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta) {
-	if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, xDelta)) {
-		return 0;
-	}
-	if (wp->caret.offset > wp->caret.linePointer->len) {
-		// TODO: handle insertion at end of file.
-		wp->caret.offset = wp->caret.linePointer->len;
-	}
+static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, CARET_MOVEMENT_SPEC* pMovementSpec) {
 	long nLine;
 	long nCol;
-	hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
 	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (pMovementSpec) {
+		FTABLE* fp = FTPOI(wp);
+		nLine = pData->nCaretLine;
+		nCol = pData->nCaretColumn;
+		nLine += pMovementSpec->cms_deltaY;
+		nCol += pMovementSpec->cms_deltaX;
+		while (nCol < 0) {
+			nCol += HEX_BYTES_PER_LINE;
+			nLine--;
+		}
+		while (nCol >= HEX_BYTES_PER_LINE) {
+			nCol -= HEX_BYTES_PER_LINE;
+			nLine++;
+		}
+		if (nLine < 0) {
+			nLine = 0;
+		}
+		*screenCol = 0;
+		INTERNAL_BUFFER_POS position;
+		hex_screenOffsetToBuffer(wp, nLine, nCol, &position);
+		wp->caret.linePointer = position.ibp_lp;
+		wp->caret.offset = position.ibp_lineOffset;
+		caret_moveToLine(wp, ln_cnt(fp->firstl, position.ibp_lp));
+	} else {
+		if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, pMovementSpec)) {
+			return 0;
+		}
+		if (wp->caret.offset > wp->caret.linePointer->len) {
+			// TODO: handle insertion at end of file.
+			wp->caret.offset = wp->caret.linePointer->len;
+		}
+		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
+	}
 	if (pData->nCaretLine != nLine) {
 		hex_repaintScreenLine(wp, pData->nCaretLine);
 	}

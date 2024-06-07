@@ -18,6 +18,8 @@
 
 #include "documentmodel.h"
 
+typedef struct tagCARET_MOVEMENT_SPEC CARET_MOVEMENT_SPEC;
+
  /* Describes options for moving the caret */
 typedef enum {
     // Move a single character left right or a single line up down
@@ -141,12 +143,12 @@ extern int caret_isBeforeOther(LINE* lpFirst, int col1, const LINE* fpcl, int co
  * caret_advanceParagraph()
  * Advance the cursor starting from a line by one paragraph.
  */
-extern long caret_advanceParagraph(WINFO* wp, long ln, int dir, int start);
+extern long caret_advanceParagraph(WINFO* wp, long ln, DIRECTION_OPTION dir, int start);
 
 /*--------------------------------------------------------------------------
  * caret_advanceParagraphFromCurrentLine()
  */
-extern int caret_advanceParagraphFromCurrentLine(WINFO* wp, int dir, int start);
+extern int caret_advanceParagraphFromCurrentLine(WINFO* wp, DIRECTION_OPTION dir, int start);
 
 /*
  * Calculate an offset of character buffer positions to the corresponding number
@@ -246,19 +248,14 @@ extern int caret_placeCursorAndMakevisibleWithSpace(WINFO* wp, long ln, long col
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndValidate()
  */
-extern int caret_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, int xDelta);
+extern int caret_placeCursorAndValidate(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, 
+    CARET_MOVEMENT_SPEC* xDelta);
 
 /*--------------------------------------------------------------------------
  * caret_advancePage()
  * cursor advance one screen
  */
 extern int caret_advancePage(WINFO* wp, long* ln, int dir);
-
-/*--------------------------------------------------------------------------
- * caret_advanceSection()
- * Advances the cursor by one "section".
- */
-extern int caret_advanceSection(WINFO* wp, int dir, int start);
 
 /*--------------------------------------------------------------------------
  * caret_moveUpOrDown()
@@ -285,9 +282,9 @@ extern int caret_saveLastPosition(void);
  */
 extern int caret_positionCloseToMouseWithConfirmation(WINFO* wp, long bAsk);
 
-extern LINE* caret_gotoIdentifierEnd(LINE* lp, long* ln, long* col, int dir, unsigned char unused);
-extern LINE* caret_gotoIdentifierSkipSpace(LINE* lp, long* ln, long* col, int dir, unsigned char unused);
-extern LINE* caret_advanceWordOnly(LINE* lp, long* ln, long* col, int dir, unsigned char unused);
+extern LINE* caret_gotoIdentifierEnd(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char unused);
+extern LINE* caret_gotoIdentifierSkipSpace(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char unused);
+extern LINE* caret_advanceWordOnly(LINE* lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char unused);
 
 #define CARETMOVEMENT_H
 #endif
