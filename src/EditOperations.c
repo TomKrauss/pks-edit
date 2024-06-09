@@ -431,7 +431,7 @@ static int edit_breakline(WINFO* wp, CARET* pCaret, int soft)
 /*
  * Split one line at the given caret position.
  */
-static int edit_splitLine(WINFO* wp, CARET* pCaret, RETURN_ACTION_FLAGS flags) {
+static int edit_performSplitLine(WINFO* wp, CARET* pCaret, RETURN_ACTION_FLAGS flags) {
 	int control;
 	FTABLE* fp;
 	LINE* lp;
@@ -527,7 +527,7 @@ static void edit_wrapAround(WINFO *wp, CARET* pCaret) {
 	if (edit_findWrappingPosition(wp, pCaret->linePointer, pCaret->offset,&nextword,ww_getRightMargin(wp)) > 0) {
 		delta = wp->caret.offset-nextword;
 		edit_placeCursor(wp, pCaret, pCaret->ln,(long)nextword);
-		edit_splitLine(wp, pCaret, 0);
+		edit_performSplitLine(wp, pCaret, 0);
 		if (delta < 0)
 			delta += wp->caret.offset;
 		if (delta < 0)
@@ -1070,7 +1070,7 @@ long long EdCharInsert(WINFO* wp, int c)
 	while (pCaret) {
 		int nRet;
 		if (c == lnp->nl || c == lnp->cr || (c == 10 && lnp->nl < 0)) {
-			nRet = edit_splitLine(wp, pCaret, c == lnp->nl ? RET_SOFT : 0);
+			nRet = edit_performSplitLine(wp, pCaret, c == lnp->nl ? RET_SOFT : 0);
 		} else if (c == 8) {
 			nRet = edit_deleteChar(wp, pCaret, -1, 0, bPostProcess);
 		} else if (c == 127) {
@@ -1203,15 +1203,15 @@ long long edit_performLineFlagOperation(WINFO* wp, MARKED_LINE_OPERATION op) {
 }
 
 /*--------------------------------------------------------------------------
- * EdLineSplit()
+ * edit_splitLine()
  * do cr+lf-Actions
  */
-long long EdLineSplit(WINFO* wp, RETURN_ACTION_FLAGS flags) {
+long long edit_splitLine(WINFO* wp, RETURN_ACTION_FLAGS flags) {
 	int nRet = 1;
 
 	CARET* pCaret = &wp->caret;
 	while (pCaret) {
-		nRet = nRet && edit_splitLine(wp, pCaret, flags);
+		nRet = nRet && edit_performSplitLine(wp, pCaret, flags);
 		pCaret = pCaret->next;
 	}
 	FTABLE* fp = wp->fp;
@@ -1221,9 +1221,9 @@ long long EdLineSplit(WINFO* wp, RETURN_ACTION_FLAGS flags) {
 }
 
 /*--------------------------------------------------------------------------
- * EdHideLines()
+ * edit_hideSelectedLines()
  */
-int EdHideLines(WINFO* wp) {	
+int edit_hideSelectedLines(WINFO* wp) {	
 	FTABLE *	fp;
 	LINE *	lp1;
 	LINE *	lp2;
@@ -1246,9 +1246,9 @@ int EdHideLines(WINFO* wp) {
 }
 
 /*--------------------------------------------------------------------------
- * EdUnHideLine()
+ * edit_makeHiddenLineVisible()
  */
-int EdUnHideLine(WINFO* wp)
+int edit_makeHiddenLineVisible(WINFO* wp)
 {
 	FTABLE *	fp;
 
@@ -1264,9 +1264,9 @@ int EdUnHideLine(WINFO* wp)
 }
 
 /*--------------------------------------------------------------------------
- * EdMouseSelectLines()
+ * edit_selectLinesWithMouse()
  */
-void EdMouseSelectLines(WINFO* wp, int flg)
+void edit_selectLinesWithMouse(WINFO* wp, int flg)
 {	
 	LINE *lp = wp->caret.linePointer;
 	int  oflg;
@@ -1281,9 +1281,9 @@ void EdMouseSelectLines(WINFO* wp, int flg)
 }
 
 /*--------------------------------------------------------------------------
- * EdExpandAbbreviation()
+ * edit_expandAbbreviation()
  */
-int EdExpandAbbreviation(WINFO* wp) {
+int edit_expandAbbreviation(WINFO* wp) {
 	if (wp) {
 		return
 			template_expandAbbreviation(wp->fp,wp->caret.linePointer,wp->caret.offset);

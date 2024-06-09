@@ -740,10 +740,10 @@ typedef enum {
 } RETURN_ACTION_FLAGS;
 
 /*--------------------------------------------------------------------------
- * EdLineSplit()
+ * edit_splitLine()
  * do cr+lf-Actions
  */
-extern long long  EdLineSplit(WINFO* wp, RETURN_ACTION_FLAGS flags);
+extern long long  edit_splitLine(WINFO* wp, RETURN_ACTION_FLAGS flags);
 
 /*--------------------------------------------------------------------------
  * ln_insertIndent()

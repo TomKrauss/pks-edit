@@ -115,11 +115,20 @@ typedef struct tagRENDER_CONTEXT {
 typedef int (*RENDER_LINE_FUNCTION)(RENDER_CONTEXT* pRC, int x, int y, LINE* lp, long lineNo);
 typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, HBRUSH hBrushBg, int y);
 
+typedef enum CARET_RELATIVE_MOVEMENT_TYPE {
+    CRMT_SINGLE,
+    CRMT_END,
+    CRMT_START
+} CARET_RELATIVE_MOVEMENT_TYPE;
+
 typedef struct tagCARET_MOVEMENT_SPEC {
     // the caret was moved on the screen in X direction by the given amount
     long cms_deltaX;
     // the caret was moved on the screen in Y direction by the given amount
     long cms_deltaY;
+    // further hint about the caret move requested.
+    CARET_RELATIVE_MOVEMENT_TYPE cms_movementX;
+    CARET_RELATIVE_MOVEMENT_TYPE cms_movementY;
 } CARET_MOVEMENT_SPEC;
 
 /*
@@ -192,9 +201,15 @@ typedef int (*RENDERER_REPAINT)(WINFO* wp, int nFirstLine, int nLastLine, int nF
 
 typedef LRESULT (*RENDERER_WINDOW_PROC)(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-// Can be implemented by a renderer for a most flexible overriding of a caret movement.
-// Returns FALSE on failure to move with the given specification.
-typedef BOOL (*CARET_MOVEMENT_PROC)(WINFO* wp, CARET_MOVEMENT_SPEC* pSpec);
+typedef struct tagLINE_ANNOTATION {
+    // The text to display in the line.
+    char la_text[20];
+    // The flag of the logical line dislayed in the row on the screen. See LNMODIFIED, ... flags
+    int  la_lineFlag;
+} LINE_ANNOTATION;
+
+// Return a line annotation to display for a particular line visible on the screen.
+typedef void (*LINE_ANNOTATION_PROC)(WINFO* wp, long nScreenLine, LINE_ANNOTATION* pAnnotation);
 
 typedef struct tagRENDERER {
     const RENDER_LINE_FUNCTION r_renderLine;
@@ -221,7 +236,8 @@ typedef struct tagRENDERER {
     const RENDERER_NAVIGATE_ANCHOR r_navigateAnchor;              // Optional callback to navigate to an "anchor" specification
     const RENDERER_WINDOW_PROC r_wndProc;                         // Custom window procedure used by this renderer.
     const RENDERER_PRINT_FRAGMENT r_printFragment;                // May be implemented by renderers to support printing.
-    const CARET_MOVEMENT_PROC r_moveCaret;                        // May be implemented for flexible caret movement
+    const LINE_ANNOTATION_PROC r_getLineAnnotation;               // May be used to calculate 
+                                                                  // a custom line annotation to be displayed in the line area.
 } RENDERER;
 
 /*--------------------------------------------------------------------------

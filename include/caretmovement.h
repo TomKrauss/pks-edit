@@ -198,7 +198,7 @@ extern int caret_placeCursorAndSavePosition(WINFO* wp, long ln, long col);
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.
  */
-extern int caret_placeCursorForFile(WINFO* wp, long ln, long col, long screencol, int xDelta);
+extern int caret_placeCursorForFile(WINFO* wp, long ln, long col, long screencol, CARET_MOVEMENT_SPEC* pSpec);
 
 /*--------------------------------------------------------------------------
  * caret_placeCursorAndMakevisibleWithSpace()

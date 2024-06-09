@@ -38,6 +38,12 @@ typedef struct tagHEX_RENDERER_DATA {
 	int     nCaretColumn;
 } HEX_RENDERER_DATA;
 
+/*
+ * Move the caret in "HEX editing coordinates" - nLine and nCol relative to the hex-representation lines visible
+ * on the screen.
+ */
+static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol);
+
 /*-----------------------------------------
  * Render an arbitrary string with a given length at a position using a font-style.
  */
@@ -58,21 +64,23 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, const char* pszBytes, in
 	for (int i = 0; i < HEX_BYTES_PER_LINE; i++) {
 		unsigned char b;
 		if (i >= nBytes) {
-			b = 0;
+			szRender[nAscOffs++] = ' ';
+			szRender[nHexOffs++] = ' ';
+			szRender[nHexOffs++] = ' ';
 		} else {
 			b = pszBytes[i];
-		}
-		if (b == 0) {
-			szRender[nAscOffs++] = ' ';
-			szRender[nHexOffs++] = '0';
-			szRender[nHexOffs++] = '0';
-		}
-		else {
-			szRender[nAscOffs++] = b < 32 ? '·' : b;
-			int lo = b / 16;
-			int hi = b % 16;
-			szRender[nHexOffs++] = (lo > 9) ? ('A' + lo - 10) : '0' + lo;
-			szRender[nHexOffs++] = (hi > 9) ? ('A' + hi - 10) : '0' + hi;
+			if (b == 0) {
+				szRender[nAscOffs++] = ' ';
+				szRender[nHexOffs++] = '0';
+				szRender[nHexOffs++] = '0';
+			}
+			else {
+				szRender[nAscOffs++] = b < 32 ? '·' : b;
+				int lo = b / 16;
+				int hi = b % 16;
+				szRender[nHexOffs++] = (lo > 9) ? ('A' + lo - 10) : '0' + lo;
+				szRender[nHexOffs++] = (hi > 9) ? ('A' + hi - 10) : '0' + hi;
+			}
 		}
 		szRender[nHexOffs++] = ' ';
 	}
@@ -358,13 +366,16 @@ static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 			if (LINE_HAS_LINE_END(lp)) {
 				if (LINE_HAS_CR(lp)) {
 					i++;
+					if (i >= pPosition->ibp_logicalColumnInLine) {
+						break;
+					}
 				}
 			} else {
 				i--;
 			}
 			nLineOffset = 0;
 			lp = lp->next;
-			if (!lp) {
+			if (!lp || !lp->next) {
 				return 0;
 			}
 			continue;
@@ -398,61 +409,6 @@ static void hex_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 	}
 }
 
-/*
- * Caret movement in hex edit mode. 
- */
-static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, CARET_MOVEMENT_SPEC* pMovementSpec) {
-	long nLine;
-	long nCol;
-	HEX_RENDERER_DATA* pData = wp->r_data;
-	if (pMovementSpec) {
-		FTABLE* fp = FTPOI(wp);
-		nLine = pData->nCaretLine;
-		nCol = pData->nCaretColumn;
-		nLine += pMovementSpec->cms_deltaY;
-		nCol += pMovementSpec->cms_deltaX;
-		while (nCol < 0) {
-			nCol += HEX_BYTES_PER_LINE;
-			nLine--;
-		}
-		while (nCol >= HEX_BYTES_PER_LINE) {
-			nCol -= HEX_BYTES_PER_LINE;
-			nLine++;
-		}
-		if (nLine < 0) {
-			nLine = 0;
-		}
-		*screenCol = 0;
-		INTERNAL_BUFFER_POS position;
-		hex_screenOffsetToBuffer(wp, nLine, nCol, &position);
-		wp->caret.linePointer = position.ibp_lp;
-		wp->caret.offset = position.ibp_lineOffset;
-		caret_moveToLine(wp, ln_cnt(fp->firstl, position.ibp_lp));
-	} else {
-		if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, pMovementSpec)) {
-			return 0;
-		}
-		if (wp->caret.offset > wp->caret.linePointer->len) {
-			// TODO: handle insertion at end of file.
-			wp->caret.offset = wp->caret.linePointer->len;
-		}
-		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
-	}
-	if (pData->nCaretLine != nLine) {
-		hex_repaintScreenLine(wp, pData->nCaretLine);
-	}
-	pData->nCaretLine = nLine;
-	pData->nCaretColumn = nCol;
-	return 1;
-}
-
-/*
- * Caret movement in hex edit mode.
- */
-static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
-	return hex_placeCaret(wp, ln, *col, col, updateVirtualOffset, 0);
-}
-
 static long hex_calculateNLines(WINFO* wp) {
 	FTABLE* fp = wp->fp;
 	long nBytes = fp->nbytes;
@@ -466,6 +422,94 @@ static long hex_calculateNLines(WINFO* wp) {
 		fp->nbytes = nBytes;
 	}
 	return (nBytes + HEX_BYTES_PER_LINE - 1) / HEX_BYTES_PER_LINE;
+}
+
+/*
+ * Move the caret in "HEX editing coordinates" - nLine and nCol relative to the hex-representation lines visible
+ * on the screen.
+ */
+static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	FTABLE* fp = FTPOI(wp);
+	while (nCol < 0) {
+		nCol += HEX_BYTES_PER_LINE;
+		nLine--;
+	}
+	while (nCol >= HEX_BYTES_PER_LINE) {
+		nCol -= HEX_BYTES_PER_LINE;
+		nLine++;
+	}
+	if (nLine < 0) {
+		nLine = 0;
+	}
+	long nMax = hex_calculateNLines(wp);
+	if (nLine >= nMax) {
+		return;
+	}
+	INTERNAL_BUFFER_POS position;
+	if (!hex_screenOffsetToBuffer(wp, nLine, nCol*3, &position)) {
+		return;
+	}
+	wp->caret.linePointer = position.ibp_lp;
+	wp->caret.offset = position.ibp_lineOffset;
+	long nOld = pData->nCaretLine;
+	caret_moveToLine(wp, ln_cnt(fp->firstl, position.ibp_lp));
+	pData->nCaretLine = nLine;
+	pData->nCaretColumn = nCol;
+	if (nOld != nLine) {
+		hex_repaintScreenLine(wp, nOld);
+	}
+}
+
+static void hex_getLineAnnotation(WINFO* wp, long nLine, LINE_ANNOTATION* pAnnotation) {
+	wsprintf(pAnnotation->la_text, "%08x", nLine * HEX_BYTES_PER_LINE);
+	pAnnotation->la_lineFlag = 0;
+}
+
+/*
+ * Caret movement in hex edit mode. 
+ */
+static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int updateVirtualOffset, CARET_MOVEMENT_SPEC* pMovementSpec) {
+	long nLine;
+	long nCol;
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (pMovementSpec) {
+		nLine = pData->nCaretLine;
+		nCol = pData->nCaretColumn;
+		nLine += pMovementSpec->cms_deltaY;
+		if (pMovementSpec->cms_movementX == CRMT_START) {
+			nCol = 0;
+		} else if (pMovementSpec->cms_movementX == CRMT_END) {
+			nCol = HEX_BYTES_PER_LINE - 1;
+		} else {
+			nCol += pMovementSpec->cms_deltaX;
+		}
+		*screenCol = 0;
+		hex_moveCaretToHexCaretPosition(wp, nLine, nCol);
+	} else {
+		if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, pMovementSpec)) {
+			return 0;
+		}
+		if (wp->caret.offset > wp->caret.linePointer->len) {
+			// TODO: handle insertion at end of file.
+			wp->caret.offset = wp->caret.linePointer->len;
+		}
+		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
+		if (pData->nCaretLine != nLine) {
+			hex_repaintScreenLine(wp, pData->nCaretLine);
+		}
+		pData->nCaretLine = nLine;
+		pData->nCaretColumn = nCol;
+	}
+	return 1;
+}
+
+/*
+ * Caret movement in hex edit mode.
+ */
+static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
+	hex_moveCaretToHexCaretPosition(wp, *ln, *col);
+	return 1;
 }
 
 static long hex_calculateMaxScreenColumn(WINFO* wp) {
@@ -554,14 +598,15 @@ PRINT_FRAGMENT_RESULT hex_print(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam,
 }
 
 static int hex_adjustScrollBounds(WINFO* wp) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	long nLine = pData->nCaretLine;
+	long nCol = pData->nCaretColumn;
+	wp->caret.ln = nLine;
 	int ret = render_adjustScrollBounds(wp);
 	if (ret) {
 		return 1;
 	}
-	long nLine;
-	long nCol;
 	int dx = 0;
-	hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
 	int dy = render_calculateScrollDelta(nLine, wp->mincursln, wp->maxcursln, wp->vscroll);
 	if (dy) {
 		if (sl_scrollwinrange(wp, &dy, &dx))
@@ -570,6 +615,32 @@ static int hex_adjustScrollBounds(WINFO* wp) {
 	}
 	return 0;
 }
+
+/*---------------------------------*
+ * hex_calculateOffsetFromScreen()
+ * Calculate the offset in the file (line and column) given the X and Y coordinates
+ * on which a mouse was clicked. No validation regarding the validity of the column
+ * is performed at that point in time.
+ */
+static void hex_calculateOffsetFromScreen(WINFO* wp, int x, int y, long* line, long* column) {
+	int nCol = (x + wp->cwidth / 2)  / wp->cwidth + wp->mincol;
+	if (IS_IN_HEX_NUMBER_AREA(nCol)) {
+		nCol = nCol / 3;
+	} else {
+		nCol = nCol - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
+	}
+	*column = nCol;
+	*line = y / wp->cheight + wp->minln;
+	if (*line < 0) {
+		*line = 0;
+	} else {
+		long nlines = hex_calculateNLines(wp);
+		if (*line >= nlines) {
+			*line = nlines - 1;
+		}
+	}
+}
+
 
 static RENDERER _hexRenderer = {
 	render_singleLineOnDevice,
@@ -586,11 +657,12 @@ static RENDERER _hexRenderer = {
 	hex_adjustScrollBounds,
 	.r_updateCaretUI = hex_updateCaretUI,
 	hex_rendererSupportsMode,
-	caret_calculateOffsetFromScreen,
+	hex_calculateOffsetFromScreen,
 	TRUE,
 	hex_modelChanged,
 	.r_repaint= hex_repaint,
 	.r_printFragment = hex_print,
+	.r_getLineAnnotation = hex_getLineAnnotation
 };
 
 /*

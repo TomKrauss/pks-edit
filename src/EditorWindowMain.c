@@ -136,7 +136,17 @@ static int ruler_getLeft(WINFO* wp) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	int nWidth = fp->nlines > 99999 ? (lineNumberWindowWidth * 5 / 4) : lineNumberWindowWidth;
+	LINE_ANNOTATION_PROC pProc = wp->renderer->r_getLineAnnotation;
+	int nWidth = lineNumberWindowWidth;
+	if (pProc != NULL && wp->renderer->r_calculateMaxLine) {
+		LINE_ANNOTATION pAnnotation = { 0 };
+		pProc(wp, wp->renderer->r_calculateMaxLine(wp), &pAnnotation);
+		nWidth = nWidth * (int) strlen(pAnnotation.la_text) / 6;
+	} else {
+		if (fp->nlines > 99999) {
+			lineNumberWindowWidth = lineNumberWindowWidth * 5 / 4;
+		}
+	}
 	if (wp->comparisonLink != NULL) {
 		nWidth += COMPARISON_ANNOTATION_WIDTH;
 	}
@@ -1571,7 +1581,9 @@ static void draw_lineNumbers(WINFO* wp) {
 	SetTextColor(hdc, pTheme->th_rulerForegroundColor);
 	SetBkMode(hdc, TRANSPARENT);
 	int padding = 3;
-	char text[20];
+	LINE_ANNOTATION lineAnnotation = {
+		0 
+	};
 	long nMax = wp->renderer->r_calculateMaxLine(wp);
 	if (maxln > nMax-1) {
 		maxln = nMax-1;
@@ -1584,6 +1596,8 @@ static void draw_lineNumbers(WINFO* wp) {
 		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
 	}
 	nRightPadding = dpisupport_getSize(nRightPadding);
+	LINE_ANNOTATION_PROC pGetLineAnnotation = wp->renderer->r_getLineAnnotation;
+
 	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
 			if (lp) {
@@ -1621,11 +1635,16 @@ static void draw_lineNumbers(WINFO* wp) {
 		}
 		textRect.left = rect.left + padding;
 		textRect.right = rect.right - nRightPadding;
-		sprintf(text, "%d:", row + 1);
-		textLen = strlen(text);
-		DrawText(hdc, text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
+		if (pGetLineAnnotation) {
+			pGetLineAnnotation(wp, row, &lineAnnotation);
+		} else {
+			sprintf(lineAnnotation.la_text, "%d:", row + 1);
+		}
+		textLen = strlen(lineAnnotation.la_text);
+		DrawText(hdc, lineAnnotation.la_text, (int)textLen, &textRect, DT_RIGHT|DT_END_ELLIPSIS);
 		if (lp) {
-			if (lp->lflg & LNMODIFIED) {
+			int flag = pGetLineAnnotation ? lineAnnotation.la_lineFlag : lp->lflg;
+			if (flag & LNMODIFIED) {
 				RECT r = {
 					.top = yPos
 				};
@@ -1633,10 +1652,10 @@ static void draw_lineNumbers(WINFO* wp) {
 				r.right = rect.right - dpisupport_getSize(2);
 				r.bottom = min(ps.rcPaint.bottom, yPos + wp->cheight);
 				HBRUSH hBrush = hAnnotationBrush;
-				if (lp->lflg & LNUNDO_AFTER_SAVE) {
+				if (flag & LNUNDO_AFTER_SAVE) {
 					hBrush = hUndoAfterSavedBrush;
 				}
-				else if (lp->lflg & LNSAVED) {
+				else if (flag & LNSAVED) {
 					hBrush = hSavedBrush;
 				}
 				FillRect(hdc, &r, hBrush);

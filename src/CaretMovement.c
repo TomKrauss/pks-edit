@@ -422,12 +422,14 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
  * caret_placeCursorForFile()
  * cursor absolut positioning for the given file.
  */
-EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol, int xDelta) {
+EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol, CARET_MOVEMENT_SPEC* pSpec) {
+	CARET_MOVEMENT_SPEC spec = { 0 };
+
+	if (pSpec == NULL) {
+		pSpec = &spec;
+	}
 	PLACE_CARET_FUNCTION pFunc = wp->renderer->r_placeCaret;
-	CARET_MOVEMENT_SPEC cmsSpec = {
-		.cms_deltaX = xDelta
-	};
-	if (!pFunc || !pFunc(wp, &ln, col, &screenCol, 1, &cmsSpec)) {
+	if (!pFunc || !pFunc(wp, &ln, col, &screenCol, 1, pSpec)) {
 		return 0;
 	}
 	wt_curpos(wp, ln, screenCol);
@@ -1047,7 +1049,9 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 	caret_hideSelectionOnMove(wp);
 
 	moving = direction * (motionFlags & (~MOT_EXTEND_SELECTION));
-
+	int nDelta = moving;
+	int nCol = col;
+	CARET_RELATIVE_MOVEMENT_TYPE crmType = CRMT_SINGLE;
 	switch(moving) {
 		case MOT_WORD:    case -MOT_WORD:
 		case MOT_UNTILC:  case -MOT_UNTILC:
@@ -1057,6 +1061,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 				(moving > 0) ? 1 : -1, matchc)) == 0) {
 				goto err;
 			}
+			nDelta = col - nCol;
 			break;
 		case  MOT_SINGLE:
 			maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
@@ -1075,6 +1080,8 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 			break;
 		case  MOT_TOEND:
 			col = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
+			nDelta = col - nCol;
+			crmType = CRMT_END;
 			break;
 		case -MOT_SINGLE:
 			if (!screencol) {
@@ -1092,9 +1099,15 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 		case -MOT_TOEND:
 			col = 0L;
 			screencol = 0;
+			nDelta = col - nCol;
+			crmType = CRMT_START;
 			break;
 	}
-	nRet = caret_placeCursorForFile(wp, ln, col, screencol, moving);
+	CARET_MOVEMENT_SPEC spec = {
+		.cms_deltaX = nDelta,
+		.cms_movementX = crmType
+	};
+	nRet = caret_placeCursorForFile(wp, ln, col, screencol, &spec);
 	// The following code really makes sense only, if we are not considering the complete identifier under the cursor - should be possibly made configurable
 	// codecomplete_updateCompletionList(wp, FALSE);
 
