@@ -1,0 +1,114 @@
+{
+  "grammars": [
+    {
+      "scopeName": "tf",
+      "description": "Terraform scripting language",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" }
+      ],
+      "templates": [
+        {
+          "match": "{",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n${indent} * ${cursor}\n${indent} */",
+          "auto-insert": true
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "#.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "([a-zA-Z_0-9.]+) *(=) *(.*)",
+          "style": "literal",
+          "name": "assignment",
+          "captures": [
+            {
+              "name": "identifier"
+            },
+            {
+              "name": "task"
+            },
+            {
+              "name": "assigning_expression"
+            }
+          ]
+        },
+        {
+          "name": "identifier",
+          "style": "identifier"
+        },
+        {
+          "name": "assigning_expression",
+          "style": "classname"
+        },
+        {
+          "name": "task",
+          "style": "task"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "terraform",
+            "cloud",
+            "backend",
+            "workspaces",
+            "required_providers",
+            "network_interface",
+            "resource",
+            "for_each",
+            "variable",
+            "module",
+            "locals",
+            "output",
+            "new",
+            "provider",
+            "data",
+            "lifecycle",
+            "postcondition",
+            "precondition"
+          ],
+          "style": "keyword",
+          "name": "keyword.tf"
+        },
+        {
+          "match": "[-+&|<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

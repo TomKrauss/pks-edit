@@ -8,8 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.7.0] - 2024-06-06
 
+### Added
+- A Grammar for Terraform Scripts has been added.
+
 ### Improved
-- The caret movement (by line / by column) in HEX mode works now as expected.
+- HEX editing has been improved. Caret movement works now as expected. Still some remaining open issues
+  regarding modification of the underlying data.
 
 ### Fixed
 - fixed missing update of line number area, when lines are modified.
