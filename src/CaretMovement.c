@@ -480,7 +480,8 @@ long long caret_removeSecondaryCarets() {
  */
 EXPORT int caret_placeCursorInCurrentFile(WINFO* wp, long ln,long col) {
 	long screenCol = col == wp->caret.offset ? wp->caret.col : col;
-	return caret_placeCursorForFile(wp,ln,col,screenCol,0);
+	CARET_MOVEMENT_SPEC spec = { .cms_absolute = 1 };
+	return caret_placeCursorForFile(wp, ln, col, screenCol, &spec);
 }
 
 /*--------------------------------------------------------------------------
@@ -819,6 +820,7 @@ long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPT
 
 	col = wp->caret.offset;
 	ln = wp->caret.ln;
+	CARET_RELATIVE_MOVEMENT_TYPE crmType = CRMT_SINGLE;
 	switch(mtype & (~MOT_EXTEND_SELECTION)) {
 		case MOT_SINGLE:
 			ln += (dir * _multiplier);
@@ -830,6 +832,7 @@ long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPT
 			if (!caret_advancePage(wp, &ln,dir)) {
 				goto err;
 			}
+			crmType = dir > 0 ? CRMT_SECTION_DOWN : CRMT_SECTION_UP;
 			break;
 		case MOT_CENTER:
 			ln = (wp->maxln+wp->minln) / 2;
@@ -841,11 +844,13 @@ long long caret_moveUpOrDown(WINFO* wp, DIRECTION_OPTION dir, CARET_MOVEMENT_OPT
 			if (!caret_savePositionBeforeMove(wp, ln, col)) {
 				goto err;
 			}
+			crmType = dir > 0 ? CRMT_END : CRMT_START;
 			break;
 		}
 	}
 	CARET_MOVEMENT_SPEC xDelta = {
-		.cms_deltaY = ln - wp->caret.ln
+		.cms_deltaY = ln - wp->caret.ln,
+		.cms_movementY = crmType
 	};
 	if (wp->renderer->r_placeCaret(wp,&ln,col,&col,0,&xDelta)) {
 		nRet = 1;
@@ -1066,6 +1071,9 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 		case  MOT_SINGLE:
 			maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);
 			if (col >= maxcol) {
+				if (lp == NULL) {
+					goto err;
+				}
 				lp = lp->next;
 				if (lp->next == 0) {
 					goto err;
@@ -1084,7 +1092,7 @@ EXPORT int caret_moveLeftRight(WINFO* wp, DIRECTION_OPTION direction, CARET_MOVE
 			crmType = CRMT_END;
 			break;
 		case -MOT_SINGLE:
-			if (!screencol) {
+			if (col <= 0) {
 				if ((lp = lp->prev) == 0)
 					goto err;
 				maxcol = wp->renderer->r_calculateMaxColumn(wp, ln, lp);

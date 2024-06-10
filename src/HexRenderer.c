@@ -100,17 +100,8 @@ static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOf
 	LINE* lp;
 	long nStartOffset;
 
-	if (pData->pByteOffsetCache) {
-		lp = pData->pByteOffsetCache;
-		nStartOffset = pData->nCachedByteOffset;
-		while (nStartOffset > nOffset && lp->prev) {
-			lp = lp->prev;
-			nStartOffset -= ln_nBytes(lp);
-		}
-	} else {
-		lp = fp->firstl;
-		nStartOffset = 0;
-	}
+	lp = fp->firstl;
+	nStartOffset = 0;
 	while (lp) {
 		long nBytes = ln_nBytes(lp);
 		if (nStartOffset + nBytes > nOffset) {
@@ -331,58 +322,38 @@ void render_hexMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 static void hex_bufferOffsetToScreen(WINFO* wp, CARET* pBufferCaret, long* pLine, long* pCol) {
 	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
-	long nLine = 0;
 	long nTotalOffset = 0;
 	while (lp && lp != fp->lastl) {
 		if (lp == wp->caret.linePointer) {
 			nTotalOffset += wp->caret.offset;
-			nLine += nTotalOffset / HEX_BYTES_PER_LINE;
-			*pLine = nLine;
+			*pLine = nTotalOffset / HEX_BYTES_PER_LINE;
 			*pCol = nTotalOffset % HEX_BYTES_PER_LINE;
 			return;
 		}
 		nTotalOffset += ln_nBytes(lp);
-		nLine += nTotalOffset / HEX_BYTES_PER_LINE;
-		nTotalOffset %= HEX_BYTES_PER_LINE;
 		lp = lp->next;
 	}
 }
 
 static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
-	long nOffset;
-	if (hex_getLinePointerFor(wp, ln, &pPosition->ibp_lp, &nOffset, &pPosition->ibp_lineOffset) <= 0) {
-		return 0;
-	}
+	FTABLE* fp = FTPOI(wp);
 	if (IS_IN_HEX_NUMBER_AREA(col)) {
 		pPosition->ibp_logicalColumnInLine = col / 3;
 	} else {
 		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
 	}
-	pPosition->ibp_byteOffset = nOffset + pPosition->ibp_logicalColumnInLine;
-	long nLineOffset = pPosition->ibp_lineOffset;
-	LINE* lp = pPosition->ibp_lp;
-	for (long i = 0; i < pPosition->ibp_logicalColumnInLine; i++) {
-		if (nLineOffset >= lp->len) {
-			if (LINE_HAS_LINE_END(lp)) {
-				if (LINE_HAS_CR(lp)) {
-					i++;
-					if (i >= pPosition->ibp_logicalColumnInLine) {
-						break;
-					}
-				}
-			} else {
-				i--;
-			}
-			nLineOffset = 0;
-			lp = lp->next;
-			if (!lp || !lp->next) {
-				return 0;
-			}
-			continue;
+	long nTotal = ln * HEX_BYTES_PER_LINE + pPosition->ibp_logicalColumnInLine;
+	long nCurrentTotal = 0;
+	LINE* lp = fp->firstl;
+	while (lp && lp != fp->lastl) {
+		long nBytes = ln_nBytes(lp);
+		if (nCurrentTotal + nBytes > nTotal) {
+			pPosition->ibp_lineOffset = nTotal-nCurrentTotal;
+			break;
 		}
-		nLineOffset++;
+		nCurrentTotal += nBytes;
+		lp = lp->next;
 	}
-	pPosition->ibp_lineOffset = nLineOffset;
 	pPosition->ibp_lp = lp;
 	return 1;
 }
@@ -440,7 +411,7 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 		nLine++;
 	}
 	if (nLine < 0) {
-		nLine = 0;
+		return;
 	}
 	long nMax = hex_calculateNLines(wp);
 	if (nLine >= nMax) {
@@ -452,11 +423,15 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 	}
 	wp->caret.linePointer = position.ibp_lp;
 	wp->caret.offset = position.ibp_lineOffset;
+	if (wp->caret.offset > position.ibp_lp->len) {
+		wp->caret.offset = position.ibp_lp->len;
+	}
+	wp->caret.ln = ln_cnt(fp->firstl, position.ibp_lp)-1;
 	long nOld = pData->nCaretLine;
-	caret_moveToLine(wp, ln_cnt(fp->firstl, position.ibp_lp));
 	pData->nCaretLine = nLine;
 	pData->nCaretColumn = nCol;
 	if (nOld != nLine) {
+		hex_repaintScreenLine(wp, nLine);
 		hex_repaintScreenLine(wp, nOld);
 	}
 }
@@ -473,34 +448,48 @@ static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int
 	long nLine;
 	long nCol;
 	HEX_RENDERER_DATA* pData = wp->r_data;
-	if (pMovementSpec) {
+	if (!pMovementSpec || pMovementSpec->cms_absolute) {
+		FTABLE* fp = FTPOI(wp);
+		wp->caret.offset = offset;
+		wp->caret.ln = *ln;
+		wp->caret.linePointer = ln_goto(fp, *ln);
+		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
+	} else {
 		nLine = pData->nCaretLine;
 		nCol = pData->nCaretColumn;
-		nLine += pMovementSpec->cms_deltaY;
+		if (pMovementSpec->cms_movementY == CRMT_START) {
+			nLine = 0;
+		} else if (pMovementSpec->cms_movementY == CRMT_END) {
+			nLine = hex_calculateNLines(wp) - 1;
+		} else if (pMovementSpec->cms_movementY == CRMT_SECTION_DOWN) {
+			nLine += wp->maxln-wp->minln;
+			long nMax = hex_calculateNLines(wp) - 1;
+			if (nLine > nMax) {
+				nLine = nMax;
+			}
+		} else if (pMovementSpec->cms_movementY == CRMT_SECTION_UP) {
+			nLine -= wp->maxln - wp->minln;
+			if (nLine < 0) {
+				nLine = 0;
+			}
+		} else {
+			nLine += pMovementSpec->cms_deltaY;
+		}
 		if (pMovementSpec->cms_movementX == CRMT_START) {
 			nCol = 0;
-		} else if (pMovementSpec->cms_movementX == CRMT_END) {
+		}
+		else if (pMovementSpec->cms_movementX == CRMT_END) {
 			nCol = HEX_BYTES_PER_LINE - 1;
-		} else {
+		}
+		else {
 			nCol += pMovementSpec->cms_deltaX;
 		}
-		*screenCol = 0;
-		hex_moveCaretToHexCaretPosition(wp, nLine, nCol);
-	} else {
-		if (!caret_placeCursorAndValidate(wp, ln, offset, screenCol, updateVirtualOffset, pMovementSpec)) {
-			return 0;
-		}
-		if (wp->caret.offset > wp->caret.linePointer->len) {
-			// TODO: handle insertion at end of file.
-			wp->caret.offset = wp->caret.linePointer->len;
-		}
-		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
-		if (pData->nCaretLine != nLine) {
-			hex_repaintScreenLine(wp, pData->nCaretLine);
-		}
-		pData->nCaretLine = nLine;
-		pData->nCaretColumn = nCol;
 	}
+	hex_moveCaretToHexCaretPosition(wp, nLine, nCol);
+	// screen column not used in context of hex renderer
+	*screenCol = 0;
+	wp->caret.col = 0;
+	*ln = wp->caret.ln;
 	return 1;
 }
 
@@ -509,6 +498,7 @@ static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int
  */
 static int hex_placeCursorAndValidate(WINFO* wp, long* ln, long* col, int updateVirtualOffset) {
 	hex_moveCaretToHexCaretPosition(wp, *ln, *col);
+	*ln = wp->caret.ln;
 	return 1;
 }
 
@@ -601,8 +591,10 @@ static int hex_adjustScrollBounds(WINFO* wp) {
 	HEX_RENDERER_DATA* pData = wp->r_data;
 	long nLine = pData->nCaretLine;
 	long nCol = pData->nCaretColumn;
+	long nPrevious = wp->caret.ln;
 	wp->caret.ln = nLine;
 	int ret = render_adjustScrollBounds(wp);
+	wp->caret.ln = nPrevious;
 	if (ret) {
 		return 1;
 	}

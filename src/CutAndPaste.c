@@ -57,9 +57,6 @@ EXPORT int bl_hideSelection(WINFO* wp, int removeLineSelectionFlag) {
 	mps = wp->blstart;
 	mpe = wp->blend;
 
-	if (removeLineSelectionFlag) {
-		caret_placeCursorInCurrentFile(wp, wp->caret.ln,(long)wp->caret.offset);
-	}
 	if (mps && mpe) {
 		render_repaintLineRangeWindow(wp, mps->m_linePointer, mpe->m_linePointer);
 		if (removeLineSelectionFlag) {

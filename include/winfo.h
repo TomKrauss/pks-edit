@@ -118,7 +118,10 @@ typedef void (*RENDER_PAGE_FUNCTION)(RENDER_CONTEXT* pRC, RECT* pBoundingRect, H
 typedef enum CARET_RELATIVE_MOVEMENT_TYPE {
     CRMT_SINGLE,
     CRMT_END,
-    CRMT_START
+    CRMT_START,
+    // word or page
+    CRMT_SECTION_DOWN,
+    CRMT_SECTION_UP
 } CARET_RELATIVE_MOVEMENT_TYPE;
 
 typedef struct tagCARET_MOVEMENT_SPEC {
@@ -127,8 +130,10 @@ typedef struct tagCARET_MOVEMENT_SPEC {
     // the caret was moved on the screen in Y direction by the given amount
     long cms_deltaY;
     // further hint about the caret move requested.
-    CARET_RELATIVE_MOVEMENT_TYPE cms_movementX;
-    CARET_RELATIVE_MOVEMENT_TYPE cms_movementY;
+    CARET_RELATIVE_MOVEMENT_TYPE cms_movementX : 4;
+    CARET_RELATIVE_MOVEMENT_TYPE cms_movementY : 4;
+    // The caret was moved to an absolute position (e.g. after searching).
+    BOOL cms_absolute : 4;
 } CARET_MOVEMENT_SPEC;
 
 /*
