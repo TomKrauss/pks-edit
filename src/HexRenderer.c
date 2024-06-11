@@ -88,6 +88,17 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, const char* pszBytes, in
 	TextOut(pCtx->rc_hdc, -(wp->mincol * wp->cwidth), y, szRender, nAscOffs);
 }
 
+static void hex_findLine(WINFO* wp, long nOffset, LINE** pLinePointer, long* pStartOffset) {
+	FTABLE* fp = FTPOI(wp);
+	*pLinePointer = fp->firstl;
+	*pStartOffset = 0;
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (pData->pByteOffsetCache && nOffset > pData->nCachedByteOffset) {
+		*pLinePointer = pData->pByteOffsetCache;
+		*pStartOffset = pData->nCachedByteOffset;
+	}
+}
+
 /*
  * Get the line pointer for a wanted logical hex line to render. If the
  * method returns > 0, the Line pointer points to the corresponding line
@@ -100,11 +111,12 @@ static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOf
 	LINE* lp;
 	long nStartOffset;
 
-	lp = fp->firstl;
-	nStartOffset = 0;
+	hex_findLine(wp, nOffset, &lp, &nStartOffset);
 	while (lp) {
 		long nBytes = ln_nBytes(lp);
 		if (nStartOffset + nBytes > nOffset) {
+			pData->nCachedByteOffset = nStartOffset;
+			pData->pByteOffsetCache = lp;
 			*pLineOffset = nOffset- nStartOffset;
 			break;
 		}
@@ -130,8 +142,6 @@ static int hex_getBytes(LINE* lp, int nStartOffset, char* pszBuffer, WINFO* wp, 
 	HEX_RENDERER_DATA* pData = wp->r_data;
 	FTABLE* fp = wp->fp;
 
-	pData->pByteOffsetCache = lp;
-	pData->nCachedByteOffset = nStartOffset;
 	int nCount = 0;
 	int lnOffset = nOffset - nStartOffset;
 	while (nCount < HEX_BYTES_PER_LINE) {
@@ -323,6 +333,11 @@ static void hex_bufferOffsetToScreen(WINFO* wp, CARET* pBufferCaret, long* pLine
 	FTABLE* fp = wp->fp;
 	LINE* lp = fp->firstl;
 	long nTotalOffset = 0;
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	if (pData->pByteOffsetCache == wp->caret.linePointer) {
+		nTotalOffset = pData->nCachedByteOffset;
+		lp = pData->pByteOffsetCache;
+	}
 	while (lp && lp != fp->lastl) {
 		if (lp == wp->caret.linePointer) {
 			nTotalOffset += wp->caret.offset;
@@ -344,7 +359,8 @@ static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFE
 	}
 	long nTotal = ln * HEX_BYTES_PER_LINE + pPosition->ibp_logicalColumnInLine;
 	long nCurrentTotal = 0;
-	LINE* lp = fp->firstl;
+	LINE* lp;
+	hex_findLine(wp, nTotal, &lp, &nCurrentTotal);
 	while (lp && lp != fp->lastl) {
 		long nBytes = ln_nBytes(lp);
 		if (nCurrentTotal + nBytes > nTotal) {
@@ -421,12 +437,14 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 	if (!hex_screenOffsetToBuffer(wp, nLine, nCol*3, &position)) {
 		return;
 	}
-	wp->caret.linePointer = position.ibp_lp;
+	if (wp->caret.linePointer != position.ibp_lp) {
+		wp->caret.linePointer = position.ibp_lp;
+		wp->caret.ln = ln_cnt(fp->firstl, position.ibp_lp) - 1;
+	}
 	wp->caret.offset = position.ibp_lineOffset;
 	if (wp->caret.offset > position.ibp_lp->len) {
 		wp->caret.offset = position.ibp_lp->len;
 	}
-	wp->caret.ln = ln_cnt(fp->firstl, position.ibp_lp)-1;
 	long nOld = pData->nCaretLine;
 	pData->nCaretLine = nLine;
 	pData->nCaretColumn = nCol;
