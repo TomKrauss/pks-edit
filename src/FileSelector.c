@@ -50,7 +50,7 @@ extern int	nCurrentDialog;
  * Show an open file selector with a title and a pointer to hold the selected result.
  * If a file was selected successfully 1 is returned.
  */
-extern int file_open_vista_version(FILE_SELECT_PARAMS* pParams);
+extern int file_open_vista_version(HWND hwnd, FILE_SELECT_PARAMS* pParams);
 
 char _fseltarget[EDMAXPATHLEN];
 
@@ -230,15 +230,21 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	doctypes_getSelectableDocumentFileTypes(pFSParams->fsp_filters, nMax);
 
 	pszExt = malloc(EDMAXPATHLEN);
+	if (pszExt == NULL) {
+		return FALSE;
+	}
 	pszFileName = malloc(EDMAXPATHLEN);
 	pszPath = malloc(EDMAXPATHLEN);
+	if (pszPath == NULL) {
+		return FALSE;
+	}
 
 	// remember where we started
 	string_splitFilename(szFileNameIn, pszPath, pszFileName);
 	strcpy(pszExt, pFSParams->fsp_namePatterns);
 	//fsel_changeDirectory(pszPath);
 
-	ret = file_open_vista_version(pFSParams);
+	ret = file_open_vista_version(hwndMain, pFSParams);
 
 	free(pFSParams->fsp_filters);
 	free(pszFileName);

@@ -304,7 +304,7 @@ static COMDLG_FILTERSPEC* file_openInitialize(IFileDialog* pFileDialog, FILE_SEL
     return pFileTypes;
 }
 
-extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS* pParams) {
+extern "C" __declspec(dllexport) int file_open_vista_version(HWND hwndMain, FILE_SELECT_PARAMS* pParams) {
     int ret = 0;
     IFileDialog* pFileDialog = NULL;
 
@@ -315,7 +315,7 @@ extern "C" __declspec(dllexport) int file_open_vista_version(FILE_SELECT_PARAMS*
         IFileDialogCustomize* pfdc = file_customizeDialog(pFileDialog, pParams);
         UINT count;
         COMDLG_FILTERSPEC* pFileTypes = file_openInitialize(pFileDialog, pParams, &count);
-        hr = pFileDialog->Show(NULL);
+        hr = pFileDialog->Show(hwndMain);
         // Get the file name from the dialog box.
         if (SUCCEEDED(hr)) {
             if (pParams->fsp_multiSelect && !pParams->fsp_saveAs) {

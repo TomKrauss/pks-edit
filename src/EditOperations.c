@@ -868,7 +868,7 @@ static int edit_postProcessEdit(WINFO *wp, CARET* pCaret, BOOL bAfterInsert) {
 		return 1;
 	}
 
-	if (workmode & WM_ABBREV) {
+	if (bAfterInsert && (workmode & WM_ABBREV)) {
 		template_expandAbbreviation(wp, pCaret->linePointer, pCaret->offset);
 	}
 	if (workmode & WM_SHOWMATCH) {
@@ -1073,8 +1073,10 @@ long long EdCharInsert(WINFO* wp, int c)
 			nRet = edit_performSplitLine(wp, pCaret, c == lnp->nl ? RET_SOFT : 0);
 		} else if (c == 8) {
 			nRet = edit_deleteChar(wp, pCaret, -1, 0, bPostProcess);
+			bPostProcess = FALSE;
 		} else if (c == 127) {
 			nRet = edit_deleteChar(wp, pCaret, 1, 0, bPostProcess);
+			bPostProcess = FALSE;
 		} else {
 			bNormalChar = TRUE;
 			if (c & 0x100) {

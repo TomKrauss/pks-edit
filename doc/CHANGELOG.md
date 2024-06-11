@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - fixed missing update of line number area, when lines are modified.
+- The Open File dialog is now correctly opened as child of the PKS Edit main window.
+- Pressing backspace does not trigger template expansion any more.
 
 ## [2.6.0] - 2024-06-06
 
