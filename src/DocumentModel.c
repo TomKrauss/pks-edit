@@ -618,14 +618,14 @@ LINE *ln_relative(LINE *cl, long l)
 	return((cl && cl->next) ? cl : 0);
 }
 
-/*---------------------------------*/
-/* ln_cnt()					*/
-/* Anzahl Zeilen in einer Liste	*/
-/* zaehlen					*/
-/*---------------------------------*/
+/*
+ * ln_cnt()
+ * Count the number of lines between lps and lpe. If lps == lpe, the count is 1
+ */
 long ln_cnt(LINE* lps, LINE* lpe) {
 	return ll_indexOf((LINKED_LIST*)lps, (LINKED_LIST*)lpe) + 1;
 }
+
 /*----------------------------*/
 /* ln_replace()			*/
 /*----------------------------*/

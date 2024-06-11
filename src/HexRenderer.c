@@ -93,9 +93,26 @@ static void hex_findLine(WINFO* wp, long nOffset, LINE** pLinePointer, long* pSt
 	*pLinePointer = fp->firstl;
 	*pStartOffset = 0;
 	HEX_RENDERER_DATA* pData = wp->r_data;
-	if (pData->pByteOffsetCache && nOffset > pData->nCachedByteOffset) {
-		*pLinePointer = pData->pByteOffsetCache;
-		*pStartOffset = pData->nCachedByteOffset;
+	LINE* lp = pData->pByteOffsetCache;
+	if (lp) {
+		if (nOffset > pData->nCachedByteOffset) {
+			*pLinePointer = lp;
+			*pStartOffset = pData->nCachedByteOffset;
+		} else if (nOffset > pData->nCachedByteOffset / 2) {
+			while (lp) {
+				lp = lp->prev;
+				if (!lp) {
+					break;
+				}
+				pData->nCachedByteOffset -= ln_nBytes(lp);
+				if (nOffset > pData->nCachedByteOffset) {
+					break;
+				}
+			}
+			pData->pByteOffsetCache = lp;
+			*pLinePointer = lp;
+			*pStartOffset = pData->nCachedByteOffset;
+		}
 	}
 }
 
@@ -438,8 +455,12 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 		return;
 	}
 	if (wp->caret.linePointer != position.ibp_lp) {
+		if (nLine > pData->nCaretLine) {
+			wp->caret.ln += ln_cnt(wp->caret.linePointer, position.ibp_lp) - 1;
+		} else {
+			wp->caret.ln -= ln_cnt(position.ibp_lp, wp->caret.linePointer) - 1;
+		}
 		wp->caret.linePointer = position.ibp_lp;
-		wp->caret.ln = ln_cnt(fp->firstl, position.ibp_lp) - 1;
 	}
 	wp->caret.offset = position.ibp_lineOffset;
 	if (wp->caret.offset > position.ibp_lp->len) {

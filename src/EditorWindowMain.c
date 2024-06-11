@@ -144,7 +144,7 @@ static int ruler_getLeft(WINFO* wp) {
 		nWidth = nWidth * (int) strlen(pAnnotation.la_text) / 6;
 	} else {
 		if (fp->nlines > 99999) {
-			lineNumberWindowWidth = lineNumberWindowWidth * 5 / 4;
+			nWidth = nWidth * 5 / 4;
 		}
 	}
 	if (wp->comparisonLink != NULL) {
@@ -1588,15 +1588,15 @@ static void draw_lineNumbers(WINFO* wp) {
 	if (maxln > nMax-1) {
 		maxln = nMax-1;
 	}
-	// TODO: the assumption, that line pointers correspond to line numbers painted
-	// is currently true only for non-hex renderers.
-	LINE* lp = ww_getMinLine(wp, wp->minln);
 	int nRightPadding = LINE_ANNOTATION_WIDTH + (2 * LINE_ANNOATION_PADDING);
 	if (wp->comparisonLink != NULL) {
 		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
 	}
 	nRightPadding = dpisupport_getSize(nRightPadding);
 	LINE_ANNOTATION_PROC pGetLineAnnotation = wp->renderer->r_getLineAnnotation;
+	// TODO: the assumption, that line pointers correspond to line numbers painted
+	// is currently true only for non-hex renderers.
+	LINE* lp = pGetLineAnnotation ? NULL : ww_getMinLine(wp, wp->minln);
 
 	for (yPos = rect.top, row = wp->minln; row <= maxln && yPos < rect.top+rect.bottom; row++, yPos += wp->cheight) {
 		if (yPos + wp->cheight < ps.rcPaint.top) {
