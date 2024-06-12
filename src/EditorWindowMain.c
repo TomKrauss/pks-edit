@@ -514,17 +514,16 @@ static long ww_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
 	return lp->len;
 }
 
-static int ww_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
-	if (wp->caret.ln == ln && wp->caret.col == col) {
-		pPosition->ibp_lineOffset = wp->caret.offset;
-		pPosition->ibp_logicalColumnInLine = wp->caret.offset;
-		pPosition->ibp_lp = wp->caret.linePointer;
-		// for now: just guessing - as this is expensive to calculate and called frequently.
-		// will be filled correctly by other renderers, where this information is more relevant.
-		pPosition->ibp_byteOffset = ln * 20 + col;
-		return 1;
-	}
-	return 0;
+static int ww_screenOffsetToBuffer(WINFO* wp, INTERNAL_BUFFER_POS* pPosition) {
+	long ln = wp->caret.ln;
+	long col = wp->caret.col;
+	pPosition->ibp_lineOffset = wp->caret.offset;
+	pPosition->ibp_logicalColumnInLine = wp->caret.offset;
+	pPosition->ibp_lp = wp->caret.linePointer;
+	// for now: just guessing - as this is expensive to calculate and called frequently.
+	// will be filled correctly by other renderers, where this information is more relevant.
+	pPosition->ibp_byteOffset = ln * 20 + col;
+	return 1;
 }
 
 static void ww_modelChanged(WINFO* wp, MODEL_CHANGE* pChange) {

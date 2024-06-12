@@ -348,9 +348,9 @@
     },
     {
       "name": "binary",
-      "description": "Binary Files (*.pdb,*.obj,*.class)",
+      "description": "Binary Files (*.exe,*.dll,*.pdb,*.obj,*.class)",
       "editorConfiguration": "binary",
-      "filenamePatterns": "*.pdb;*.obj;*.class"
+      "filenamePatterns": "*.exe;*.dll;*.pdb;*.obj;*.class"
     },
     {
       "name": "ps1",
@@ -382,14 +382,16 @@
         "statuslineSegments": [
         {
             "language": "de",
-            "text": "Zeile %2d$l Spalte %2d$c",
+            "text": "Zeile %2d$l Spalte %2d$c Offset %2d$o",
+            "width": 2,
             "iconColor": "#000000"
         },
-        {
+          {
             "language": "en",
-            "text": "Line %2d$l Column %2d$c",
+            "text": "Line %2d$l Column %2d$c Offset %2d$o",
+            "width": 2,
             "iconColor": "#000000"
-        },
+          },
         {
             "text": "\t%s$P",
             "icon": "fa-font",
@@ -449,7 +451,7 @@
         "name": "binary",
         "id": 3,
         "leftMargin": 0,
-        "rightMargin": 80,
+        "rightMargin": 128,
         "tabSize": 8,
         "codepage": -1,
         "shiftWidth": 4,
@@ -460,16 +462,13 @@
         "insertMode": true,
         "statuslineSegments": [
           {
-            "text": "%s$f",
-            "iconColor": "#000000"
+            "text": "%s$f"
           },
           {
-            "text": "%6d$O: 0%o$C",
-            "iconColor": "#000000"
+            "text": "\t%09d$O: %04o$C"
           },
           {
-            "text": "\t%s$&",
-            "iconColor": "#000000"
+            "text": "\t%s$&"
           }
         ],
         "tabCharacter": " ",

@@ -54,21 +54,22 @@ static struct tagICONS _cachedIcons[MAXSEGMENTS];
 /*------------------------------------------------------------
  * st_setparts()
  */
-static void st_setparts(BOOL bUpdateMessageOnly) {
+static int st_setparts(BOOL bUpdateMessageOnly, int pSegments[MAXSEGMENTS]) {
 	static				char szBuf[1024];
-	INT					pSegments[MAXSEGMENTS];
 	LPSTR				pszStrArr[MAXSEGMENTS];
 	LPSTR				pszStart = szBuf;
 	int					nSegments = 0;
 
 	if (!hwndStatus) {
-		return;
+		return 0;
 	}
+	memset(pSegments, 0, sizeof pSegments);
+	memset(pszStrArr, 0, sizeof pszStrArr);
 	if (!bSimpleMode) {
 		faicon_loadFontAwesome();
 		WINFO* wp = ww_getCurrentEditorWindow();
 		if (!wp) {
-			return;
+			return 1;
 		}
 		STATUS_LINE_SEGMENT* pSegment = wp->statuslineSegments;
 		union U_ARG_VALUE values[] = {
@@ -99,6 +100,7 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 			}
 			int len = mysprintf(pszStart, pSegment->sls_text, &args);
 			pszStrArr[nSegments] = pszStart;
+			pSegments[nSegments] = pSegment->sls_width ? pSegment->sls_width : 1;
 			pszStart += len;
 			*pszStart++ = 0;
 			nSegments++;
@@ -108,13 +110,7 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 			pSegment = pSegment->sls_next;
 		}
 	}
-	for (int i = 0, offset = 0; i < nSegments; i++) {
-		// This size is irrelevant - we will paint the status bar and determine the segments size dynamically
-		offset += 10;
-		pSegments[i] = offset;
-	}
-	pSegments[nSegments] = -1;
-	SendMessage(hwndStatus, SB_SETPARTS, (WPARAM)nSegments + 1, (LPARAM)pSegments);
+	pSegments[nSegments++] = -1;
 	if (!bUpdateMessageOnly) {
 		for (int i = 0; i < nSegments; i++) {
 			SendMessage(hwndStatus, SB_SETTEXT, i, (LPARAM)pszStrArr[i]);
@@ -122,8 +118,11 @@ static void st_setparts(BOOL bUpdateMessageOnly) {
 			SendMessage(hwndStatus, SB_SETICON, i, (LPARAM) pIcon->ic_bitmap);
 		}
 	}
-	SendMessage(hwndStatus, SB_SETTEXT, nSegments,
-			(LPARAM)(pszStatusMessage ? pszStatusMessage : ""));
+	SendMessage(hwndStatus, SB_SETPARTS, nSegments, (LPARAM) pSegments);
+	if (pszStatusMessage && nSegments == 1) {
+		SendMessage(hwndStatus, SB_SETTEXT, 0, (LPARAM)pszStatusMessage);
+	}
+	return nSegments;
 }
 
 
@@ -173,10 +172,12 @@ void status_wh(WORD *width, WORD *height)
  */
 static WNDPROC _wpOrigStatusWndProc;
 LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	static int segments;
+	static int segmentSizes[MAXSEGMENTS];
 
 	switch (msg) {
 	case WM_ST_REDRAW: {
-		st_setparts((BOOL)wParam);
+		segments = st_setparts((BOOL)wParam, segmentSizes);
 		return 0;
 	}
 
@@ -192,30 +193,36 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		SetBkMode(hdc, TRANSPARENT);
 		SelectObject(hdc, hPen);
 		HFONT hFont = SelectObject(hdc, cust_getSmallEditorFont(hwnd));
-		int nSegments = (int) SendMessage(hwndStatus, SB_GETPARTS, 0, 0);
+		int nSegments = segments;
+		if (nSegments <= 0) {
+			break;
+		}
 		RECT rect;
 		GetClientRect(hwnd, &rect);
 		int nDelta = dpisupport_getSize(3);
 		int nTotal = dpisupport_getSegmentCount(&rect, 12);
+		int nSegmentOffset = 0;
 		for (int i = 0; i < nSegments; i++) {
+			INT nFactor = segmentSizes[i];
 			RECT rc = {
 				.top = 0,
 				.bottom = rect.bottom
 			};
-			rc.left = i * rect.right / nTotal;
+			rc.left = nSegmentOffset * rect.right / nTotal;
 			if (rc.left > ps.rcPaint.right) {
 				break;
 			}
-			if (i == nSegments - 1) {
+			if (nSegmentOffset >= nTotal - 1 || nFactor < 0) {
 				rc.right = rect.right;
 			}
 			else {
-				rc.right = (i+1) * rect.right / nTotal;
+				rc.right = (nSegmentOffset + nFactor) * rect.right / nTotal;
+				nSegmentOffset += nFactor;
 			}
 			if (rc.right < ps.rcPaint.left) {
 				break;
 			}
-			if (i < nSegments - 1) {
+			if (nSegmentOffset < nTotal - 1) {
 				MoveTo(hdc, rc.right, rc.top + 2);
 				LineTo(hdc, rc.right, rc.bottom - 2);
 			}

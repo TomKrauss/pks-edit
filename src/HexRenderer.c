@@ -367,28 +367,33 @@ static void hex_bufferOffsetToScreen(WINFO* wp, CARET* pBufferCaret, long* pLine
 	}
 }
 
-static int hex_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
-	FTABLE* fp = FTPOI(wp);
-	if (IS_IN_HEX_NUMBER_AREA(col)) {
-		pPosition->ibp_logicalColumnInLine = col / 3;
-	} else {
-		pPosition->ibp_logicalColumnInLine = col - (HEX_MAX_COL - HEX_BYTES_PER_LINE);
-	}
+static int hex_screenOffsetToBufferPos(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
+	pPosition->ibp_logicalColumnInLine = col;
+	pPosition->ibp_lineOffset = 0;
 	long nTotal = ln * HEX_BYTES_PER_LINE + pPosition->ibp_logicalColumnInLine;
 	long nCurrentTotal = 0;
 	LINE* lp;
 	hex_findLine(wp, nTotal, &lp, &nCurrentTotal);
+	FTABLE* fp = FTPOI(wp);
+	int found = 0;
 	while (lp && lp != fp->lastl) {
 		long nBytes = ln_nBytes(lp);
 		if (nCurrentTotal + nBytes > nTotal) {
 			pPosition->ibp_lineOffset = nTotal-nCurrentTotal;
+			found = 1;
 			break;
 		}
 		nCurrentTotal += nBytes;
 		lp = lp->next;
 	}
+	pPosition->ibp_byteOffset = nTotal;
 	pPosition->ibp_lp = lp;
-	return 1;
+	return found;
+}
+
+static int hex_screenOffsetToBuffer(WINFO* wp, INTERNAL_BUFFER_POS* pPosition) {
+	HEX_RENDERER_DATA* pData = wp->r_data;
+	return hex_screenOffsetToBufferPos(wp, pData->nCaretLine, pData->nCaretColumn, pPosition);
 }
 
 static void hex_repaintScreenLine(WINFO* wp, long nLine) {
@@ -451,7 +456,7 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 		return;
 	}
 	INTERNAL_BUFFER_POS position;
-	if (!hex_screenOffsetToBuffer(wp, nLine, nCol*3, &position)) {
+	if (!hex_screenOffsetToBufferPos(wp, nLine, nCol, &position)) {
 		return;
 	}
 	if (wp->caret.linePointer != position.ibp_lp) {
@@ -498,8 +503,10 @@ static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int
 		nCol = pData->nCaretColumn;
 		if (pMovementSpec->cms_movementY == CRMT_START) {
 			nLine = 0;
+			nCol = 0;
 		} else if (pMovementSpec->cms_movementY == CRMT_END) {
 			nLine = hex_calculateNLines(wp) - 1;
+			nCol = 0;
 		} else if (pMovementSpec->cms_movementY == CRMT_SECTION_DOWN) {
 			nLine += wp->maxln-wp->minln;
 			long nMax = hex_calculateNLines(wp) - 1;

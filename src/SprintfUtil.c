@@ -234,13 +234,13 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 	switch(*format) {
 
 	case 'O':
-		if (wp && pFunction && pFunction(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && pFunction && pFunction(wp, &pos)) {
 			return pos.ibp_byteOffset;
 		}
 		return 0;
 
 	case 'C': {
-		if (wp && pFunction && pFunction(wp, wp->caret.ln, wp->caret.col, &pos)) {
+		if (wp && pFunction && pFunction(wp, &pos)) {
 			LINE* lp = pos.ibp_lp;
 			int nOffs = pos.ibp_lineOffset;
 			if (nOffs >= lp->len) {
@@ -262,6 +262,9 @@ static long sprintf_getValueFromWindow(WINFO *wp, char **fmt) {
 
 	case 'c':
 		return wp ? wp->caret.col + 1L : 0;
+
+	case 'o':
+		return wp ? wp->caret.offset + 1L : 0;
 
 	case 'w':
 		return wp ? wp->win_id : 0;

@@ -882,7 +882,7 @@ unsigned char* ln_createFromBuffer(FTABLE* fp, EDIT_CONFIGURATION* documentDescr
 
 	nl = 0;
 	if (rightMargin <= 0) {
-		rightMargin = 80;
+		rightMargin = 128;
 	}
 	while (p < pend) {
 		long size = (long)(pend - p);

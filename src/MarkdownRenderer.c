@@ -4092,9 +4092,9 @@ static long mdr_calculateMaxColumn(WINFO* wp, long ln, LINE* lp) {
 }
 
 /*
- * Hit testing not yet implemented.
+ * Hex offset printing not implemented.
  */
-static int mdr_screenOffsetToBuffer(WINFO* wp, long ln, long col, INTERNAL_BUFFER_POS* pPosition) {
+static int mdr_screenOffsetToBuffer(WINFO* wp, INTERNAL_BUFFER_POS* pPosition) {
 	// not implemented
 	return 0;
 }

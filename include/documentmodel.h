@@ -151,6 +151,8 @@ typedef struct tagGRAMMAR GRAMMAR;
 typedef struct tagSTATUS_LINE_SEGMENT {
 	struct tagSTATUS_LINE_SEGMENT* sls_next;
 	char						   sls_lang[8];
+	// Logical width of this segment (1,2,3,...)
+	int							   sls_width;
 	char*						   sls_text;
 	char*						   sls_icon;
 	// Optional color for an icon to use

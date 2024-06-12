@@ -80,6 +80,7 @@ static JSON_MAPPING_RULE _documentTypeRules[] = {
 
 static JSON_MAPPING_RULE _statuslineSegmentRules[] = {
 	{	RT_CHAR_ARRAY,	"language", offsetof(STATUS_LINE_SEGMENT, sls_lang), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_lang)},
+	{	RT_INTEGER, "width", offsetof(STATUS_LINE_SEGMENT, sls_width), 0},
 	{	RT_ALLOC_STRING,"text", offsetof(STATUS_LINE_SEGMENT, sls_text), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_text)},
 	{	RT_ALLOC_STRING,"icon", offsetof(STATUS_LINE_SEGMENT, sls_icon), sizeof(((STATUS_LINE_SEGMENT*)NULL)->sls_icon)},
 	{	RT_COLOR,"iconColor", offsetof(STATUS_LINE_SEGMENT, sls_iconColor)},
@@ -176,14 +177,13 @@ static void doctypes_copyDescriptor(EDIT_CONFIGURATION* pDest, EDIT_CONFIGURATIO
 		if (pNew == NULL) {
 			break;
 		}
+		memcpy(pNew, pSegment, sizeof * pSegment);
 		if (pSegment->sls_icon != NULL) {
 			pNew->sls_icon = _strdup(pSegment->sls_icon);
 		}
 		if (pSegment->sls_text != NULL) {
 			pNew->sls_text = _strdup(pSegment->sls_text);
 		}
-		pNew->sls_iconColor = pSegment->sls_iconColor;
-		strcpy(pNew->sls_lang, pSegment->sls_lang);
 		ll_add(&pDest->statuslineSegments, (LINKED_LIST*)pNew);
 		pSegment = pSegment->sls_next;
 	}

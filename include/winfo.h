@@ -172,7 +172,7 @@ typedef struct tagINTERNAL_BUFFER_POS {
  * Calculate the logical offset into the "current" line displayed on the screen in character positions.
  * If the screen position can be successfully converted, 1 is returned, if not, 0 is returned.
  */
-typedef int (*SCREEN_OFFSET_TO_BUFFER_FUNCTION)(WINFO* wp, long screenLn, long screenCol, INTERNAL_BUFFER_POS* pPosition);
+typedef int (*SCREEN_OFFSET_TO_BUFFER_FUNCTION)(WINFO* wp, INTERNAL_BUFFER_POS* pPosition);
 
 typedef void* (*RENDERER_CREATE)(WINFO* wp);
 
