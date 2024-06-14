@@ -150,7 +150,7 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
 		error_showErrorById(IDS_MSGNOMOREDIFFS);
 		return 0;
 	}
-	ww_connectWithComparisonLink(wp1, wp2);
+	ww_linkWindows(wp1, wp2, TRUE);
 	if (lpFirstDifferent != NULL) {
 		long l1 = ln_cnt(fp1->firstl, lpFirstDifferent) - 1;
 		caret_placeCursorAndMakevisibleWithSpace(wp1, l1, 0L);
@@ -166,8 +166,8 @@ static long compare_diffFiles(WINFO* wp1, WINFO* wp2) {
  */
 EXPORT long long compare_clear() {
 	WINFO* wp = ww_getCurrentEditorWindow();
-	if (wp != NULL && wp->comparisonLink) {
-		ww_releaseComparisonLink(wp, TRUE);
+	if (wp != NULL && wp->linkedWindow) {
+		ww_releaseWindowLink(wp, TRUE);
 		return TRUE;
 	}
 	return FALSE;
@@ -202,11 +202,11 @@ EXPORT long long compare_navigate(int aDirection) {
 	if (wp == NULL) {
 		return 0;
 	}
-	COMPARISON_LINK* pLink = wp->comparisonLink;
+	LINKED_WINDOW* pLink = wp->linkedWindow;
 	if (pLink == NULL) {
 		return 0;
 	}
-	WINFO* wpOther = pLink->cl_wpLeft == wp ? pLink->cl_wpRight : pLink->cl_wpLeft;
+	WINFO* wpOther = pLink->lw_wpLeft == wp ? pLink->lw_wpRight : pLink->lw_wpLeft;
 	LINE* lp1 = wp->caret.linePointer;
 	LINE* lp2 = wpOther->caret.linePointer;
 	if (!lp1 || !lp2) {

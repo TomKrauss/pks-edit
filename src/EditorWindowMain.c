@@ -132,7 +132,7 @@ static int ww_createOrDestroyChildWindowOfEditor(
 }
 
 static int ruler_getLeft(WINFO* wp) {
-	if ((wp->dispmode & SHOW_LINENUMBERS) == 0 && wp->comparisonLink == NULL) {
+	if ((wp->dispmode & SHOW_LINENUMBERS) == 0 && wp->linkedWindow == NULL) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
@@ -147,7 +147,7 @@ static int ruler_getLeft(WINFO* wp) {
 			nWidth = nWidth * 5 / 4;
 		}
 	}
-	if (wp->comparisonLink != NULL) {
+	if (wp->linkedWindow != NULL) {
 		nWidth += COMPARISON_ANNOTATION_WIDTH;
 	}
 	return dpisupport_getSize(nWidth);
@@ -194,7 +194,7 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
-	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOW_LINENUMBERS) || wp->comparisonLink != NULL));
+	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOW_LINENUMBERS) || wp->linkedWindow != NULL));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {
@@ -866,53 +866,58 @@ WINFO* ft_getPrimaryView(FTABLE* fp) {
 	return arraylist_get(pList, 0);
 }
 
-static void ww_detachFromComparison(WINFO* wp) {
-	FTABLE* fp = wp->fp;
-	LINE* lp = fp->firstl;
-	ln_removeFlag(lp, NULL, LN_COMPARE_DIFFERENT);
-	wp->comparisonLink = NULL;
+static void ww_detachWindowLink(WINFO* wp, BOOL bForComparison) {
+	wp->linkedWindow = NULL;
 	SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
-	render_repaintAllForFile(fp);
+	FTABLE* fp = wp->fp;
+	if (bForComparison) {
+		LINE* lp = fp->firstl;
+		ln_removeFlag(lp, NULL, LN_COMPARE_DIFFERENT);
+		render_repaintAllForFile(fp);
+	}
 }
 
 /*
  * One window of two windows being compared with each other is closed. Perform the proper cleanup. 
  */
-void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource) {
-	COMPARISON_LINK* cpl = wp->comparisonLink;
-	if (cpl == NULL) {
+void ww_releaseWindowLink(WINFO* wp, BOOL bDetachSource) {
+	LINKED_WINDOW* pLink = wp->linkedWindow;
+	if (pLink == NULL) {
 		return;
 	}
-	if (bDetachSource || wp != cpl->cl_wpLeft) {
-		ww_detachFromComparison(cpl->cl_wpLeft);
+	if (bDetachSource || wp != pLink->lw_wpLeft) {
+		ww_detachWindowLink(pLink->lw_wpLeft, pLink->lw_usedForComparison);
 	}
-	if (bDetachSource || wp != cpl->cl_wpRight) {
-		ww_detachFromComparison(cpl->cl_wpRight);
+	if (bDetachSource || wp != pLink->lw_wpRight) {
+		ww_detachWindowLink(pLink->lw_wpRight, pLink->lw_usedForComparison);
 	}
-	free(cpl);
+	free(pLink);
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
 
 /*
- * Connect two windows with a comparison link. This is used to allow for synchronized scrolling
+ * Connect two windows so they are activated together and their caret movement is synchroinized. 
+ * This is used to allow for synchronized scrolling
  * etc to provide a consistent view on the differences of two files.
+ * If bForComparison is true, the linking is performed for sake of comparing two files.
  */
-void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
-	if (wp1->comparisonLink) {
-		if (wp1->comparisonLink->cl_wpLeft == wp1 && wp1->comparisonLink->cl_wpRight == wp2) {
+void ww_linkWindows(WINFO* wp1, WINFO* wp2, BOOL bForComparison) {
+	if (wp1->linkedWindow) {
+		if (wp1->linkedWindow->lw_wpLeft == wp1 && wp1->linkedWindow->lw_wpRight == wp2) {
 			return;
 		}
-		ww_releaseComparisonLink(wp1, FALSE);
+		ww_releaseWindowLink(wp1, FALSE);
 	}
-	if (wp2->comparisonLink) {
-		ww_releaseComparisonLink(wp2, FALSE);
+	if (wp2->linkedWindow) {
+		ww_releaseWindowLink(wp2, FALSE);
 	}
-	COMPARISON_LINK* pLink = calloc(1, sizeof * pLink);
-	pLink->cl_wpLeft = wp1;
-	pLink->cl_wpRight = wp2;
-	pLink->cl_synchronizeCaret = TRUE;
-	wp1->comparisonLink = pLink;
-	wp2->comparisonLink = pLink;
+	LINKED_WINDOW* pLink = calloc(1, sizeof * pLink);
+	pLink->lw_wpLeft = wp1;
+	pLink->lw_wpRight = wp2;
+	pLink->lw_synchronizeCaret = TRUE;
+	pLink->lw_usedForComparison = bForComparison;
+	wp1->linkedWindow = pLink;
+	wp2->linkedWindow = pLink;
 	SendMessage(wp1->edwin_handle, WM_EDWINREORG, 0, 0L);
 	SendMessage(wp2->edwin_handle, WM_EDWINREORG, 0, 0L);
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
@@ -922,8 +927,8 @@ void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2) {
  * Destroy internally allocated data structures for a WINFO object.
  */
 void ww_destroyData(WINFO* wp) {
-	if (wp->comparisonLink != NULL) {
-		ww_releaseComparisonLink(wp, FALSE);
+	if (wp->linkedWindow != NULL) {
+		ww_releaseWindowLink(wp, FALSE);
 	}
 	if (wp->highlighter) {
 		highlight_destroy(wp->highlighter);
@@ -1588,7 +1593,7 @@ static void draw_lineNumbers(WINFO* wp) {
 		maxln = nMax-1;
 	}
 	int nRightPadding = LINE_ANNOTATION_WIDTH + (2 * LINE_ANNOATION_PADDING);
-	if (wp->comparisonLink != NULL) {
+	if (wp->linkedWindow != NULL) {
 		nRightPadding += COMPARISON_ANNOTATION_WIDTH;
 	}
 	nRightPadding = dpisupport_getSize(nRightPadding);
@@ -1611,7 +1616,7 @@ static void draw_lineNumbers(WINFO* wp) {
 			.top = yPos,
 			.bottom = yPos + wp->cheight
 		};
-		if (wp->comparisonLink != NULL && lp && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
+		if (wp->linkedWindow != NULL && lp && (lp->lflg & LN_COMPARE_DIFFERENT) != 0) {
 			HBRUSH bgBrush2;
 			char* pszText;
 			if (lp->lflg & LN_COMPARE_MODIFIED) {

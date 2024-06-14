@@ -82,9 +82,11 @@ typedef struct tagFSTYLE {
 #define SC_THUMBTRACK		0x1
 #define SC_CURSORCATCH		0x2
 
-#define CP_POSTOP			0x0 		/* pos cursor on window after */
-#define CP_POSMID			0x1 		/* long pos jumps */
-#define CP_POSLOW			0x2 		/* " */
+typedef enum CURSOR_AFTER_SEARCH_POLICY {
+    CP_POSTOP = 0,          // position cursor on top of window after searches
+    CP_POSMID = 0x1,        // position cursor in the middle of the window after searches
+    CP_POSLOW = 0x2         // position cursor at the bottom of the window after searches
+} CURSOR_SEARCH_PLACEMENT;
 
 typedef struct tagPROPERTY_CHANGE PROPERTY_CHANGE;
 
@@ -270,13 +272,15 @@ extern int indent_calculateNextTabStop(int col, INDENTATION* l);
 extern void indent_toggleTabStop(INDENTATION* indentation, int col);
 
 /*
- * Used to "synchronize" two files to be compared with each other.
+ * Used to "synchronize" two files with each other -> they are activated together
+ * and caret movement may be synchronized.
  */
-typedef struct tagCOMPARISON_LINK {
-    struct tagWINFO* cl_wpLeft;
-    struct tagWINFO* cl_wpRight;
-    BOOL cl_synchronizeCaret;
-} COMPARISON_LINK;
+typedef struct tagLINKED_WINDOW {
+    struct tagWINFO* lw_wpLeft;
+    struct tagWINFO* lw_wpRight;
+    BOOL lw_synchronizeCaret;
+    BOOL lw_usedForComparison;          // If the link exists to compare two windows, this flag is TRUE
+} LINKED_WINDOW;
 
 /*--------------------------------------------------------------------------
  * ww_tabsChanged()
@@ -288,14 +292,18 @@ int ww_tabsChanged(WINFO* wp, EDIT_CONFIGURATION* lp);
 typedef struct tagWINFO {
 	struct tagWINFO *next;
 	int		win_id;
-    HWND    edwin_handle,ww_handle,ru_handle,st_handle,lineNumbers_handle,codecomplete_handle;
+    HWND    edwin_handle;
+    HWND    ww_handle;              // Window handle of editor window
+    HWND    ru_handle;              // Window handle of ruler
+    HWND    lineNumbers_handle;     // Window handle of the line-number and annotation display area
+    HWND    codecomplete_handle;    // Window handle of an associated code-completion window
 
     int     dispmode;				// Display options: see  enum DISPLAY_WINDOW_FLAGS.
-    int     charset;                // a special charset to use or 0 for now particular charset.
-    int     workmode;
+    int     charset;                // a special charset to use or 0 to use the default character set.
+    int     workmode;               // Flags regarding the input of data (match brackets, expand abbreviations, etc...)
     BOOL	bXtndBlock;			    // we are currently in selection extension mode
     int		scrollflags;
-    int		cursaftersearch;
+    CURSOR_SEARCH_PLACEMENT	cursaftersearch;
     int		tabDisplayFillCharacter;// Tab fill char
 
     CARET caret; 		            // the caret - to be moved to the view
@@ -325,9 +333,10 @@ typedef struct tagWINFO {
      void	*	fp;
      float      zoomMagnifier;      // The current magnification multiplier (> 1 -> font is bigger than system font, 1 -> font is same size, < 1 -> font is smaller).
      float      zoomFactor;         // The result text font size zoom factor by multipliying the zoomMagnifier with the dpi-factor
-     COMPARISON_LINK* comparisonLink;
+     LINKED_WINDOW* linkedWindow;   // If there is a link between this window and another one 
+                                    // (carets are synchronized or they should be activated together), this data-structure describes the link
      void* r_data;                  // optionally used by the renderer for internal book keeping
-     char actionContext[32];        // allows us to have window specific key-, mouse- and other action bindings.
+     char actionContext[32];        // allows us to have window specific key-, mouse- and other action bindings
 } WINFO;
 
 /*------------------------------------------------------------
@@ -690,12 +699,12 @@ extern void ww_setZoom(WINFO* wp, float newFactor);
  * Connect two windows with a comparison link. This is used to allow for synchronized scrolling
  * etc to provide a consistent view on the differences of two files.
  */
-extern void ww_connectWithComparisonLink(WINFO* wp1, WINFO* wp2);
+extern void ww_linkWindows(WINFO* wp1, WINFO* wp2, BOOL bForComparison);
 
 /*
  * One window of two windows being compared with each other is closed. Perform the proper cleanup.
  */
-extern void ww_releaseComparisonLink(WINFO* wp, BOOL bDetachSource);
+extern void ww_releaseWindowLink(WINFO* wp, BOOL bDetachSource);
 
 /*
  * Register a renderer.

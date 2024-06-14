@@ -460,6 +460,10 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 		return;
 	}
 	if (wp->caret.linePointer != position.ibp_lp) {
+		if (wp->caret.linePointer == NULL) {
+			wp->caret.linePointer = fp->firstl;
+			wp->caret.ln = 0;
+		}
 		if (nLine > pData->nCaretLine) {
 			wp->caret.ln += ln_cnt(wp->caret.linePointer, position.ibp_lp) - 1;
 		} else {

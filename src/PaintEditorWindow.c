@@ -752,9 +752,9 @@ long long ww_zoomWindow(WINFO* wp, int anIncreaseFactor) {
 		zoomFactor = 2.5f;
 	}
 	ww_setZoom(wp, zoomFactor);
-	COMPARISON_LINK* cpl = wp->comparisonLink;
+	LINKED_WINDOW* cpl = wp->linkedWindow;
 	if (cpl) {
-		ww_setZoom(wp == cpl->cl_wpLeft ? cpl->cl_wpRight : cpl->cl_wpLeft, zoomFactor);
+		ww_setZoom(wp == cpl->lw_wpLeft ? cpl->lw_wpRight : cpl->lw_wpLeft, zoomFactor);
 	}
 	return 1;
 }

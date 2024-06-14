@@ -179,7 +179,7 @@ typedef struct tagEDIT_CONFIGURATION {
 	unsigned char	createActionName[24];	// action (command / macro) to execute on document creation
 	unsigned char	saveActionName[24];		// action to execute before saving
 	int				scrollflags;			// thumbtrack.. 
-	int				cursaftersearch;		// CP_POSTOP, CP_POSLOW, ...
+	int				cursaftersearch;		// CURSOR_SEARCH_PLACEMENT: CP_POSTOP, CP_POSLOW, ...
 	int				hscroll;				// scroll n columns
 	int				vscroll;				// scroll n Lines
 	int				scroll_dy;				// scroll on dist dy to screen

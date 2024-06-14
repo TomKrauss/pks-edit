@@ -596,7 +596,7 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(lo
 		}
 		return 0;
 	}
-	if (nf_flags & EW_COMPARISON_MODE && (wp == NULL || wp->comparisonLink == NULL)) {
+	if (nf_flags & EW_COMPARISON_MODE && (wp == NULL || wp->linkedWindow == NULL)) {
 		return 0;
 	}
 	if (nf_flags & EW_CUSTOM_ENABLEMENT && !nf_checkEnabled(pParam)) {

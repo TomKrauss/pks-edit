@@ -303,14 +303,14 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}
-	COMPARISON_LINK* pLink = wp->comparisonLink;
-	if (pLink != NULL && pLink->cl_synchronizeCaret) {
-		pLink->cl_synchronizeCaret = FALSE;
+	LINKED_WINDOW* pLink = wp->linkedWindow;
+	if (pLink != NULL && pLink->lw_synchronizeCaret) {
+		pLink->lw_synchronizeCaret = FALSE;
 		int nRight = LN_COMPARE_ADDED;
 		int nLeft = LN_COMPARE_DELETED;
-		WINFO* wpOther = pLink->cl_wpLeft;
+		WINFO* wpOther = pLink->lw_wpLeft;
 		if (wpOther == wp) {
-			wpOther = pLink->cl_wpRight;
+			wpOther = pLink->lw_wpRight;
 			nLeft = LN_COMPARE_ADDED;
 			nRight = LN_COMPARE_DELETED;
 		}
@@ -324,10 +324,10 @@ void caret_moveToLine(WINFO* wp, long ln) {
 			nNewMin = 0;
 		}
 		nNewMin -= wpOther->minln;
-		if (nNewMin != 0 && wp == pLink->cl_wpLeft) {
+		if (nNewMin != 0 && wp == pLink->lw_wpLeft) {
 			wi_scrollTop(wpOther, nNewMin);
 		}
-		pLink->cl_synchronizeCaret = TRUE;
+		pLink->lw_synchronizeCaret = TRUE;
 	}
 }
 
