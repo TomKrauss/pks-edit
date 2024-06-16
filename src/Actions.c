@@ -54,6 +54,7 @@ void action_commandEnablementChanged(ACTION_CHANGE_TYPE type) {
 	while (pIterator.i_buffer < pIterator.i_bufferEnd) {
 		ACTION* pAction = *pIterator.i_buffer;
 		if (type.act_commandId >= 0 && pAction->ac_commandId != type.act_commandId) {
+			pIterator.i_buffer++;
 			continue;
 		}
 		if (type.act_commandEnablement) {

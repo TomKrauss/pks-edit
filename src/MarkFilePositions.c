@@ -192,7 +192,7 @@ long long fm_gotoNextPosition(MARK_TYPE_ENUM type) {
  * fm_canGotoNext()
  * Is a goto next for the given mark type supported?
  */
-int fm_canGotoNext(long long llParam) {
+int fm_canGotoNext(intptr_t* pStack) {
 	MARK* mp = fm_getSavedMark(_autoMarks.ml_lastType, -1, FALSE);
 	return (mp != 0);
 }
@@ -201,7 +201,8 @@ int fm_canGotoNext(long long llParam) {
  * fm_canGotoLast()
  * Is a goto last for the given mark type supported?
  */
-int fm_canGotoLast(long long llParam) {
+int fm_canGotoLast(intptr_t* pStack) {
+	long long llParam = (long long)*pStack;
 	MARK* mp = fm_getSavedMark((MARK_TYPE_ENUM) llParam, 1, FALSE);
 	return (mp != 0);
 }

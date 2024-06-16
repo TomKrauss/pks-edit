@@ -575,9 +575,12 @@ static void hex_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	pData->pByteOffsetCache = NULL;
 }
 
-static int hex_rendererSupportsMode(int aMode) {
-	if (aMode == SHOW_RULER) {
+static int hex_rendererSupportsMode(EDIT_MODE aMode) {
+	if (aMode.em_displayMode && aMode.em_flag == SHOW_RULER) {
 		return 0;
+	}
+	if (!aMode.em_displayMode) {
+		return (aMode.em_flag & (WM_AUTOFORMAT | WM_AUTOINDENT | WM_ABBREV | WM_AUTOWRAP | WM_SHOWMATCH | WM_COLUMN_SELECTION)) == 0;
 	}
 	return 1;
 }

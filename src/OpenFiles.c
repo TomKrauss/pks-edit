@@ -524,7 +524,9 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 	}
 	if (nOldWindows == 1) {
 		RENDERER_SUPPORTS_MODE pFunc = wp->renderer->r_supportsMode;
-		if (pFunc && pFunc(SHOW_WYSIWYG_DISPLAY)) {
+		if (pFunc && pFunc((EDIT_MODE) {
+			.em_displayMode = TRUE, .em_flag = SHOW_WYSIWYG_DISPLAY
+		})) {
 			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
 		}
 	} else if (nOldWindows == 0) {

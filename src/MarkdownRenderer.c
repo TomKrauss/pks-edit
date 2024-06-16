@@ -683,7 +683,7 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 	MARGINS mTableMargins = mdr_getScaledMargins(pParams->rfp_zoomFactor, &_tableMargins);
 	while (pRow) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
-		RECT usedBounds;
+		RECT usedBounds = { 0 };
 		RECT flowBounds;
 		int nMaxHeight = 10;
 		int nColumn = 0;
@@ -3016,7 +3016,7 @@ static void mdr_appendRefLinkDefinition(MD_REFERENCE_DEFINITION** pHead, char* p
 static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
 	// maximim length of Emoji: 20
 	char szDef[20];
-	size_t nLen;
+	size_t nLen = 0;
 	szDef[0] = ':';
 	for (int i = 1; i < sizeof(szDef)-1; i++) {
 		szDef[i] = pStream->is_peekc(pStream, i);
@@ -3548,11 +3548,13 @@ static RENDER_VIEW_PART* mdr_getViewPartForLine(RENDER_VIEW_PART* pFirstPart, co
 	return 0;
 }
 
-static int mdr_supportsMode(int aMode) {
-	if (aMode == SHOW_CARET_LINE_HIGHLIGHT || aMode == SHOW_LINENUMBERS || aMode == SHOW_RULER) {
-		return 0;
+static int mdr_supportsMode(EDIT_MODE aMode) {
+	int flag = aMode.em_flag;
+	if (!aMode.em_displayMode) {
+		return FALSE;
 	}
-	return 1;
+	return (flag & (SHOW_CARET_LINE_HIGHLIGHT | SHOW_LINENUMBERS | SHOW_RULER | 
+		SHOW_SYNTAX_HIGHLIGHT | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
 }
 
 static int mdr_slSize(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {

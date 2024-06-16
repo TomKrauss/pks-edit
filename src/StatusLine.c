@@ -222,10 +222,6 @@ LRESULT CALLBACK st_myStatusWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			if (rc.right < ps.rcPaint.left) {
 				break;
 			}
-			if (nSegmentOffset < nTotal - 1) {
-				MoveTo(hdc, rc.right, rc.top + 2);
-				LineTo(hdc, rc.right, rc.bottom - 2);
-			}
 			char szText[1024];
 			szText[0] = 0;
 			SendMessage(hwndStatus, SB_GETTEXT, i, (LPARAM)szText);

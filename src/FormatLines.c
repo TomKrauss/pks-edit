@@ -520,7 +520,7 @@ static FORMATTER* format_getFormatter(WINFO* wp) {
 /*
  * Can be used to determine whether formatting text is supported for the current file.
  */
-int ft_supportsFormatting(long long pUnused) {
+int ft_supportsFormatting(intptr_t* pUnused) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (!wp) {
 		return 0;

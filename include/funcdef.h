@@ -64,7 +64,7 @@ typedef struct tagNATIVE_FUNCTION {
 	char nf_paramCount;					// Cache for storing the parameter count.
 	int	 nf_flags;						// see EW_... flags above
 	const char* nf_name;				// the name as it can be used inside the PKS Edit macro language to execute this function.
-	int (*nf_checkEnabled)(long long pParam);	// Optional enablement function allowing to check, whether the execute function can currently be invoked.
+	int (*nf_checkEnabled)(intptr_t* pParam);	// Optional enablement function allowing to check, whether the execute function can currently be invoked.
 	signed char* nf_paramTypes;			// Signature description of the function. Contains a string encoded using the constants defined above (PAR_...)
 	const char* nf_description;			// Optional help text used during code completion.
 	const char* nf_parameters;			// Optional comma seperated list of parameters passed (type + name). Used for documentary purpose.

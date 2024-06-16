@@ -147,10 +147,19 @@ typedef struct tagCARET_MOVEMENT_SPEC {
 typedef int (*PLACE_CARET_FUNCTION)(WINFO* wp, long* ln, long offset, long* col, int updateVirtualOffset, CARET_MOVEMENT_SPEC* xDelta);
 
 /*
- * Callback implemented by renderers to answer, whether a special "display mode" (SHOW...) flag is supported by this renderer.
+ * The edit mode to test.
+ */
+typedef struct tagEDIT_MODE {
+    // Should em_flag be interpreted as a SHOW... flag (displayMode == true) or as a WM (editorMode) flag)
+    BOOL em_displayMode : 1;
+    int  em_flag;
+} EDIT_MODE;
+
+/*
+ * Callback implemented by renderers to answer, whether a special flag is supported by this renderer.
  * This will allow renderers to hide the line number area or the ruler area.
  */
-typedef int (*RENDERER_SUPPORTS_MODE)(int nMode);
+typedef int (*RENDERER_SUPPORTS_MODE)(EDIT_MODE nMode);
 
 typedef long (*CALCULATE_MAX_LINE_FUNCTION)(WINFO* wp);
 
@@ -431,6 +440,11 @@ extern int ww_selectWindow(WINFO* wp);
  * The display / workmode of a window has changed - update appropriately.
  */
 extern void ww_modeChanged(WINFO* wp);
+
+/*
+ * Returns true, if the given Window supports the SHOW... mode passed as an argument.
+ */
+extern BOOL ww_supportsDisplayMode(WINFO* wp, EDIT_MODE mode);
 
 /*
  * Force a window to use a new display mode.

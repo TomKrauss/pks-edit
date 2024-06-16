@@ -179,8 +179,25 @@ static void op_changeFlag(WINFO* wp, struct optiontab *op, int dofunc)
 			}
 		}
 	}
-	if (op->flgkeynr > 0 && hwndFkeys > 0) {
-		SendDlgItemMessage(hwndFkeys,op->flgkeynr,BM_SETCHECK,state,0L);
+	if (op->flgkeynr > 0 && hwndFkeys) {
+		if (op->op_type == OP_DISPLAY_MODE || op->op_type == OP_EDIT_MODE) {
+			BOOL bEnabled = wp != NULL;
+			// If the option is currently selected - keep it enabled.
+			if (bEnabled) {
+				bEnabled = ww_supportsDisplayMode(wp, (EDIT_MODE) { 
+					.em_displayMode = (op->op_type == OP_DISPLAY_MODE), 
+					.em_flag = op->flag });
+			}
+			HWND hwndItem = GetDlgItem(hwndFkeys, op->flgkeynr);
+			if (bEnabled != IsWindowEnabled(hwndItem)) {
+				EnableWindow(hwndItem, bEnabled);
+				InvalidateRect(hwndItem, NULL, FALSE);
+			}
+			if (!bEnabled) {
+				state = FALSE;
+			}
+		}
+		SendDlgItemMessage(hwndFkeys, op->flgkeynr, BM_SETCHECK, state, 0L);
 	}
 
 	if (op->func && dofunc) {
@@ -211,7 +228,13 @@ static int op_toggleOption(WINFO* wp, struct optiontab *op)
 {    int *flg;
 
 	if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
-		if ((*flg & op->flag) == 0 && !wp->renderer->r_supportsMode(op->flag)) {
+		BOOL displayMode = op->flag & OPT_DMODE;
+		int flag = op->flag & ~(OPT_DMODE | OPT_WMODE);
+		EDIT_MODE mode = {
+			.em_displayMode = displayMode,
+			.em_flag = flag
+		};
+		if ((*flg & op->flag) == 0 && !wp->renderer->r_supportsMode(mode)) {
 			return 0;
 		}
 		*flg ^= op->flag;
@@ -314,7 +337,6 @@ static void op_propertyChanged(ACTION_BINDING* pBinding, PROPERTY_CHANGE_TYPE ty
 			if (!newValue) {
 				op_changeFlag(wp, op, 0);
 			}
-			EnableWindow(hwnd, newValue);
 		}
 	}
 }
@@ -331,6 +353,8 @@ EXPORT void op_updateall(void)
 	for (op = _optiontab; op->flgkeynr >= 0; op++) {
      	op_changeFlag(wp, op,0);
 	}
+	// This ensures, that we are informed, when the enablement / availability of the possibility to
+	// change an editor flag needs to be recalculated.
 	if (!actionListenerRegistered) {
 		actionListenerRegistered = TRUE;
 		action_registerAction(CMD_TOGGLE_COLUMN_SELECTION, CMD_CMDSEQ, (ACTION_BINDING) { op_propertyChanged , 0L, 0}, TRUE);

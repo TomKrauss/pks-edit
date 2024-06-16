@@ -66,7 +66,7 @@ static void fk_propertyChanged(ACTION_BINDING* pActionBinding, PROPERTY_CHANGE_T
 }
 
 /*
- * Register a toolbar action binding.
+ * Register a function key action binding.
  */
 static void fk_registerBinding(int nIdx, int nCommand, int nType) {
 	ACTION_BINDING binding = { .ab_propertyChanged = fk_propertyChanged, .ab_hwnd = hwndFkeys, .ab_item = nIdx};

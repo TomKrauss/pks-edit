@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 - HEX editing has been improved. Caret movement works now as expected. Still some remaining open issues
   regarding modification of the underlying data.
+- PKS Edit correctly enables now menu items and option buttons depending on whether a display or edit mode
+  is supported.
 
 ### Fixed
 - fixed missing update of line number area, when lines are modified.

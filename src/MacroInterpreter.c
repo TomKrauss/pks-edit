@@ -566,7 +566,7 @@ void interpreter_setContextWindow(WINFO* wp) {
  * Returns FALSE; if the function described by the function pointer cannot
  * be executed.
  */
-static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(long long p), long long pParam, int warn) {
+static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(intptr_t* p), intptr_t* stack, int warn) {
 	if (!nf_flags) {
 		return 1;
 	}
@@ -577,7 +577,7 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(lo
 	if (nf_flags & EW_NEEDSCURRF && fp == 0) {
 		return 0;
 	}
-	if ((nf_flags & EW_MODIFY) && (ft_isReadonly(fp) || !wp->renderer->r_canEdit)) {
+	if ((nf_flags & EW_MODIFY) && fp != NULL && (ft_isReadonly(fp) || !wp->renderer->r_canEdit)) {
 		if (warn) {
 			ft_checkReadonlyWithError(fp);
 		}
@@ -599,7 +599,7 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(lo
 	if (nf_flags & EW_COMPARISON_MODE && (wp == NULL || wp->linkedWindow == NULL)) {
 		return 0;
 	}
-	if (nf_flags & EW_CUSTOM_ENABLEMENT && !nf_checkEnabled(pParam)) {
+	if (nf_flags & EW_CUSTOM_ENABLEMENT && !nf_checkEnabled(stack)) {
 		return 0;
 	}
 	return 1;
@@ -610,7 +610,18 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(lo
  */
 int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn) {
 	NATIVE_FUNCTION *	fup = &_functionTable[num];
-	return interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, pParam, warn);
+	intptr_t stack[4];
+	PARAMETER_TYPE_DESCRIPTOR pd1;
+	stack[0] = pParam;
+	int nCount = function_getParameterCount(fup);
+	if (nCount > 1) {
+		pd1 = function_getParameterTypeDescriptor(fup, 1);
+		if (pd1.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
+			stack[0] = (intptr_t)ww_getCurrentEditorWindow();
+			stack[1] = pParam;
+		}
+	}
+	return interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, stack, warn);
 }
 
 /*
@@ -618,7 +629,8 @@ int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn) {
  */
 int interpreter_canExecuteMacro(int nMacroNum, int warn) {
 	MACRO* mp = macro_getByIndex(nMacroNum);
-	return mp && interpreter_isFunctionEnabled(mp->mc_actionFlags, 0, 0, warn);
+	intptr_t dummy = 0;
+	return mp && interpreter_isFunctionEnabled(mp->mc_actionFlags, 0, &dummy, warn);
 }
 
 /*
@@ -664,7 +676,7 @@ long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
 	long long 	ret = 0;
 	int			i;
 
-	if (!interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, (long long)*stack, 1)) {
+	if (!interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, stack, 1)) {
 		return 0;
 	}
 

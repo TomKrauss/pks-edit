@@ -154,7 +154,9 @@ static int ruler_getLeft(WINFO* wp) {
 }
 
 static int ww_useDisplayMode(WINFO* wp, int aFlag) {
-	return ((wp->dispmode & aFlag) && wp->renderer->r_supportsMode(aFlag));
+	return ((wp->dispmode & aFlag) && wp->renderer->r_supportsMode((EDIT_MODE) {
+		.em_displayMode = TRUE, .em_flag = aFlag
+	}));
 }
 
 /*-----------------------------------------------------------
@@ -551,7 +553,7 @@ static int ww_calculateLongestLine(WINFO* wp) {
 }
 
 
-static int ascii_rendererSupportsMode(int aMode) {
+static int ascii_rendererSupportsMode(EDIT_MODE aMode) {
 	return 1;
 }
 
@@ -589,6 +591,31 @@ static void ww_destroyRendererData(WINFO* wp) {
 		}
 		wp->r_data = NULL;
 	}
+}
+
+/*
+ * Returns true, if the given Window supports the SHOW... mode passed as an argument.
+ */
+BOOL ww_supportsDisplayMode(WINFO* wp, EDIT_MODE mode) {
+	if (wp == NULL) {
+		return FALSE;
+	}
+	FTABLE* fp = wp->fp;
+	if (mode.em_displayMode) {
+		if (mode.em_flag == SHOW_SYNTAX_HIGHLIGHT) {
+			if (fp->documentDescriptor->grammar == NULL) {
+				return FALSE;
+			}
+		}
+		if (mode.em_flag == SHOW_WYSIWYG_DISPLAY) {
+			const char* pRenderer = grammar_wysiwygRenderer(fp->documentDescriptor->grammar);
+			if (pRenderer) {
+				return (RENDERER*)hashmap_get(_renderers, pRenderer) != NULL;
+			}
+			return FALSE;
+		}
+	}
+	return wp->renderer->r_supportsMode == NULL || wp->renderer->r_supportsMode(mode);
 }
 
 /*
@@ -649,6 +676,7 @@ void ww_modeChanged(WINFO* wp) {
 		wt_setCaretVisibility(wp, 0);
 		wt_setCaretVisibility(wp, 1);
 		caret_placeCursorForFile(wp, wp->caret.ln, wp->caret.offset, wp->caret.col, 0);
+		action_commandEnablementChanged((ACTION_CHANGE_TYPE) { .act_optionsChanged = TRUE });
 	}
 
 	wp->scroll_dx = 4;

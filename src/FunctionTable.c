@@ -90,6 +90,18 @@ static WINFO* ww_openFile(const char* pszFilename, int nOptions) {
     return WIPOI(fp);
 }
 
+static int func_supportsEditorMode(intptr_t* pStack) {
+    long long mode = pStack[1];
+    WINFO* wp = ww_getCurrentEditorWindow();
+    if (wp == NULL) {
+        return FALSE;
+    }
+    int dd = HIWORD(mode);
+    BOOL displayMode = dd == OP_DISPLAY_MODE;
+    mode = LOWORD(mode);
+    return ww_supportsDisplayMode(wp, (EDIT_MODE) { .em_displayMode = displayMode, .em_flag = (int)mode });
+}
+
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
 NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*0*/   EdRereadFileFromDisk , -1,EW_NEEDSCURRF,                                                         "RereadFile",                NULL,  "iW"                                           },
@@ -170,7 +182,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF,                                              "SetEditorSettings",                NULL, "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS,                                        "FindOnInternet",             NULL,  "iWbFORM_siii"                                  },
-{/*78*/  (long long (*)())EdOptionToggle, -1, EW_NEEDSCURRF,                                       "ToggleEditorOption",             NULL,  "iWeWM_"                                      },
+{/*78*/  (long long (*)())EdOptionToggle, -1, EW_NEEDSCURRF|EW_CUSTOM_ENABLEMENT,                                       "ToggleEditorOption",             func_supportsEditorMode,  "iWeWM_"                                      },
 {/*79*/  EdGetMultiplier, -1, 0,                                                                       "GetMultiplier",              NULL,  "i"                                     },
 {/*80*/  EdFindTag, -1, EW_HASFORM,                                                                "FindTag",                    NULL,  "iWibFORM_s"                                    },
 {/*81*/  EdFindFileCursor, -1, EW_NEEDSCURRF,                                                      "CursorFindFile",             NULL,  "iW"                                           },

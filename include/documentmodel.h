@@ -794,7 +794,7 @@ extern int ft_formatText(WINFO* wp, int scope, FORMATTING_ALIGNMENT alignment);
 /*
  * Can be used to determine whether formatting text is supported for the current file.
  */
-extern int ft_supportsFormatting(long long pUnused);
+extern int ft_supportsFormatting(intptr_t* pUnused);
 
 /*
  * Count the number of words in a file. A word is defined by the identifier definition
