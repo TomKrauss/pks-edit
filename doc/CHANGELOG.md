@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - A Grammar for Terraform Scripts has been added.
+- The new action `Open Wysiwyg Window` allows for opening a window in wysiwyg mode, which will follow your
+  caret in the editing window allowing for a better preview experience during editing text with a wysiwyg
+  preview (e.g. markdown).
 
 ### Improved
 - HEX editing has been improved. Caret movement works now as expected. Still some remaining open issues

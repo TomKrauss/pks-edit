@@ -314,18 +314,21 @@ void caret_moveToLine(WINFO* wp, long ln) {
 			nLeft = LN_COMPARE_ADDED;
 			nRight = LN_COMPARE_DELETED;
 		}
-		// TODO: calculate matching line in other window.
-		long ln1 = caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight);
+		long ln1 = pLink->lw_usedForComparison ? caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight) : ln;
 		long col = 0;
-		wp->renderer->r_placeCaret(wpOther, &ln1, 0, &col, 0, 0);
-		int nDelta = ln - wp->minln;
-		int nNewMin = ln1 - nDelta;
-		if (nNewMin < 0) {
-			nNewMin = 0;
-		}
-		nNewMin -= wpOther->minln;
-		if (nNewMin != 0 && wp == pLink->lw_wpLeft) {
-			wi_scrollTop(wpOther, nNewMin);
+		wpOther->renderer->r_placeCaret(wpOther, &ln1, 0, &col, 0, 0);
+		if (wp->fp == wpOther->fp) {
+			wpOther->renderer->r_adjustScrollBounds(wpOther);
+		} else {
+			int nDelta = ln - wp->minln;
+			int nNewMin = ln1 - nDelta;
+			if (nNewMin < 0) {
+				nNewMin = 0;
+			}
+			nNewMin -= wpOther->minln;
+			if (nNewMin != 0 && wp == pLink->lw_wpLeft) {
+				wi_scrollTop(wpOther, nNewMin);
+			}
 		}
 		pLink->lw_synchronizeCaret = TRUE;
 	}

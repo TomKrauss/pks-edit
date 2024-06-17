@@ -39,7 +39,7 @@ e.g. created using ctags)
 - auto-indentation and some basic formatting
 - sorting files
 - code completion
-- support for zooming font sizes (using keyboard and scrollwheel)
+- support for zooming (using keyboard and scrollwheel)
 - record & play and a macro language allowing to edit the recorded macros
 - different selection styles (block, line, normal)
 - support for different file types and for user-defined grammars
@@ -47,7 +47,7 @@ e.g. created using ctags)
 - hex editor mode for binary files
 - support for themes - e.g. support for a dark theme.
 - docking windows UI
-- [wysiwyg mode](doc/markdown.md) for markdown documents (currently readonly, typically wysiwyg window opened as 2nd view of an editable document)
+- wysiwyg mode for [markdown](doc/markdown.md) (and limited HTML) documents (wysiwyg window opened as preview window of an editable document)
 - support for tail -f mode to view large log files and watch them being appended
 - additional simple coding features such as automatic bracket matching or auto-indenting or shifting or moving text blocks 
   or toggle comments for text blocks

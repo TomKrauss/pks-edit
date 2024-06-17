@@ -1308,7 +1308,8 @@ BEGIN
     IDS_MSGNOPRINTER        "!Kein Printer installiert"
     IDS_MSGOVERWRITE        "Die Datei %s existiert bereits.\nSoll Sie überschrieben werden?"
     IDS_MSGQUERYNEWFILE     "Soll %s als neue Datei angelegt werden?"
-    IDS_MSGDISCARD_ALL_CHANGES "Sollen alle Änderungen im Text ignoriert werden?"
+    IDS_MSGDISCARD_ALL_CHANGES 
+                            "Sollen alle Änderungen im Text ignoriert werden?"
     IDS_MSGNOBRACKETS       "Kein Klammernpaar"
 END
 
@@ -1732,7 +1733,7 @@ BEGIN
     IDS_COMMAND194          "Nicht gepinnte Fenster schließen;Nicht gepinnte Fenster schließen"
     IDS_COMMAND195          "Geht zur Stelle der letzten Einfügung;Zur letzten Einfügung"
     IDS_COMMAND196          "Druckt den Inhalt der Zwischenablage;Drucken Ablage"
-    IDS_COMMAND197          "Druckt den Inhalt des Papierkorbs;Drucken Papierkorb"
+    IDS_COMMAND197          "Öffnet ein Fenster zur gleichzeitigen Ansicht im Wysiwyg Modus;Wysiwyg Ansicht öffnen"
     IDS_COMMAND198          "Fügt den Papierkorb von einem Icon ein"
     IDS_COMMAND199          "Fügt die Ablage von einem Icon ein"
     IDS_COMMAND200          "Führt ein Kommando aus"

@@ -889,15 +889,25 @@
         { "command": "@open-new-file" },
         { "command": "@open-file" },
         { "command": "@clone-window" },
-        { "command": "@quit-file", "icon": "close" },
+        { "command": "@clone-window-for-wysiwyg" },
+        {
+          "command": "@quit-file",
+          "icon": "close"
+        },
         { "command": "@save-file-and-close" },
         { "command": "@save-file" },
-        { "command": "@save-file-as", "icon": "save-as" },
-        { "command": "@save-all-files"},
+        {
+          "command": "@save-file-as",
+          "icon": "save-as"
+        },
+        { "command": "@save-all-files" },
         { "separator": true },
         { "command": "@read-block" },
         { "command": "@save-selection" },
-        { "command": "@discard-changes-in-file", "icon": "recycling" },
+        {
+          "command": "@discard-changes-in-file",
+          "icon": "recycling"
+        },
         { "separator": true },
         {
           "label-id": 1909,
@@ -907,10 +917,19 @@
           ]
         },
         { "separator": true },
-        { "command": "@close-all-windows", "icon": "done-all" },
-        { "command": "@close-all-but-current-window", "icon": "clear-all" },
+        {
+          "command": "@close-all-windows",
+          "icon": "done-all"
+        },
+        {
+          "command": "@close-all-but-current-window",
+          "icon": "clear-all"
+        },
         { "command": "@close-unpinned-windows" },
-        { "command": "@exit-edit", "icon": "exit-to-app" },
+        {
+          "command": "@exit-edit",
+          "icon": "exit-to-app"
+        },
         { "command": "@quit-edit" },
         {
           "separator": true,

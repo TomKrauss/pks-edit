@@ -1668,7 +1668,7 @@ BEGIN
     IDS_COMMAND194          "Close unpinned Windows;Close unpinned Windows"
     IDS_COMMAND195          "Move to last insertion position;To last Insertion Position"
     IDS_COMMAND196          "Print the contents of the clipboard;Print Clipboard..."
-    IDS_COMMAND197          "Print the contents of a trashcan;Print Trashcan..."
+    IDS_COMMAND197          "Open a wysiwyg view as a preview for the current window;Open Wysiwyg View"
     IDS_COMMAND198          "Insert contents of trashcan from icon;Insert Clipboard"
     IDS_COMMAND199          "Insert the clipboard from an icon"
     IDS_COMMAND200          "Executes command associated with icon;Execute Command..."

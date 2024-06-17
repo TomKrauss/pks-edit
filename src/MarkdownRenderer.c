@@ -4060,6 +4060,10 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		ll_destroy(&pData->md_pElements, mdr_destroyViewPart);
 		ll_destroy(&pData->md_referenceDefinitions, mdr_destroyReferenceDefinition);
 		pData->md_pElements = NULL;
+		pData->md_caretView = NULL;
+		pData->md_focussedPart = NULL;
+		pData->md_focussedRun = NULL;
+		pData->md_previousCaretView = NULL;
 		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
 		// do not: UpdateWindow(wp->ww_handle); at this point the model may not be completely edited - further editing operations
 		// may follow - so invalidate only and paint when really done.

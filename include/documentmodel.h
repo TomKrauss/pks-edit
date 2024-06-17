@@ -317,6 +317,18 @@ extern long ln_cnt(LINE *lps,LINE *lpe);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
 
 /*
+ * Options for opening a window to view on a file.
+ */
+typedef struct tagOPEN_WINDOW_OPTIONS {
+	// The preferred name of the dock, where the window is opened.
+	const char* owo_dockName;
+	// Whether the window should be linked with an existing window.
+	BOOL		owo_linkWithExisting;
+	// If != 0 - the preferred renderer mode (HEX, NORMAL, WYSIWYG)
+	int			owo_preferredRendererMode;
+} OPEN_WINDOW_OPTIONS;
+
+/*
  * Returns the current active document. Should not be used any more to often
  */
 extern FTABLE* ft_getCurrentDocument();
@@ -347,7 +359,7 @@ extern int ft_currentFileChanged(FTABLE* fp);
 /*
  * Clone a window given the file name of the window.
  */
-extern int ft_cloneWindowNamed(char* pszFilename, const char* pszDock);
+extern int ft_cloneWindowNamed(char* pszFilename, OPEN_WINDOW_OPTIONS* pOptions);
 
 /*
  *  Answer 1, if the passed file is modified.

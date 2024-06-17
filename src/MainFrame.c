@@ -2434,8 +2434,9 @@ char* mainframe_getDockName(HWND hwnd) {
 /*
  * Returns a string to be used as an open hint later, when opening the window.
  */
-char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int nDisplayMode) {
+char* mainframe_getOpenHint(WINFO* wp, BOOL bFocus, BOOL bClone, int nDisplayMode) {
 	static char szHint[100];
+	HWND hwnd = wp->edwin_handle;
 	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
 	if (pSlot == NULL) {
 		return szDefaultSlotName;
@@ -2451,6 +2452,8 @@ char* mainframe_getOpenHint(HWND hwnd, BOOL bFocus, BOOL bClone, int nDisplayMod
 		strcat(szHint, bFocus ? "focus" : "-");
 		strcat(szHint, " ");
 		strcat(szHint, bClone ? "cloned" : "-");
+		strcat(szHint, " ");
+		strcat(szHint, wp->linkedWindow != NULL && !wp->linkedWindow->lw_usedForComparison ? "link" : "-");
 		char szText[18];
 		sprintf(szText, " %x", nDisplayMode);
 		strcat(szHint, szText);
@@ -2466,35 +2469,37 @@ OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 	BOOL bActive = TRUE;
 	BOOL bClone = FALSE;
 	BOOL bFocus = FALSE;
+	BOOL bLink= FALSE;
 	int nDisplayMode = -1;
 	if (pszHint != NULL) {
-		char szActive[10];
-		char szCloned[10];
-		char szFocus[10];
-		szActive[0] = 0;
-		szCloned[0] = 0;
-		szFocus[0] = 0;
-		int nFound = sscanf(pszHint, "%11s %9s %9s %9s %x", szDock, szActive, szFocus, szCloned, (unsigned int*) & nDisplayMode);
-		if (nFound >= 2) {
-			bActive = strcmp("active", szActive) == 0;
-			pszHint = szDock;
+		char* pszDelim = " ";
+		char *pszToken = strtok(pszHint, pszDelim);
+		if (pszToken) {
+			strcpy(szDock, pszToken);
+			pszToken = strtok(NULL, pszDelim);
 		}
-		if (nFound >= 3) {
-			bFocus = strcmp("focus", szFocus) == 0;
-		}
-		if (nFound >= 4) {
-			bClone = strcmp("cloned", szCloned) == 0;
-		}
-		if (nFound < 5) {
-			nDisplayMode = -1;
+		while (pszToken) {
+			if (strcmp("active", pszToken) == 0) {
+				bActive = TRUE;
+			} else if (strcmp("focus", pszToken) == 0) {
+				bFocus = TRUE;
+			} else if (strcmp("cloned", pszToken) == 0) {
+				bClone = TRUE;
+			} else if (strcmp("link", pszToken) == 0) {
+				bLink = TRUE;
+			} else if (strcmp("-", pszToken) != 0 && strcmp("ffffffff", pszToken) != 0) {
+				nDisplayMode = strtol(pszToken, NULL, 16);
+			}
+			pszToken = strtok(NULL, pszDelim);
 		}
 	}
 	return (OPEN_HINT) {
-		pszHint,
-		bActive,
-		bFocus,
-		bClone,
-		nDisplayMode
+		.oh_slotName = pszHint,
+		.oh_activate = bActive,
+		.oh_focus = bFocus,
+		.oh_clone = bClone,
+		.oh_link = bLink,
+		.oh_displayMode = nDisplayMode
 	};
 }
 

@@ -322,7 +322,7 @@ void ft_saveWindowStates(void ) {
 					nDispmode = -1;
 				}
 				xref_addSearchListEntry(szBuff, fp->fname, wp->caret.ln,
-					mainframe_getOpenHint(wp->edwin_handle, wp == wpActive, nIndex > 0, nDispmode));
+					mainframe_getOpenHint(wp, wp == wpActive, nIndex > 0, nDispmode));
 				hist_saveString(OPEN_IN_EDITOR, szBuff);
 			}
 		}
@@ -509,13 +509,15 @@ static DWORD ft_globalediting(char *fn)
 	return SendBrotherMessage(WMBRD_FINDFILE,(LONG)fn);
 }
 #endif
+
 /*------------------------------------------------------------
  * ft_openwin()
  */
-static int ft_openwin(FTABLE *fp, const char* pszHint) {
+static int ft_openwin(FTABLE *fp, OPEN_WINDOW_OPTIONS* pOptions) {
 	HWND hwndNew;
 	size_t nOldWindows = fp->views == 0 ? 0 : arraylist_size(fp->views);
-	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pszHint)) == 0) {
+	WINFO* wpOld = nOldWindows == 1 ? arraylist_get(fp->views, 0) : NULL;
+	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pOptions->owo_dockName)) == 0) {
 		return 0;
 	}
 	WINFO* wp = ww_getWinfoForHwnd(hwndNew);
@@ -523,11 +525,16 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 		return 1;
 	}
 	if (nOldWindows == 1) {
-		RENDERER_SUPPORTS_MODE pFunc = wp->renderer->r_supportsMode;
-		if (pFunc && pFunc((EDIT_MODE) {
-			.em_displayMode = TRUE, .em_flag = SHOW_WYSIWYG_DISPLAY
-		})) {
-			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
+		if (pOptions->owo_preferredRendererMode) {
+			RENDERER_SUPPORTS_MODE pFunc = wp->renderer->r_supportsMode;
+			if (pFunc && pFunc((EDIT_MODE) {
+				.em_displayMode = TRUE, .em_flag = pOptions->owo_preferredRendererMode
+			})) {
+				ww_changeDisplayMode(wp, wp->dispmode | pOptions->owo_preferredRendererMode);
+			}
+		}
+		if (pOptions->owo_linkWithExisting && wpOld) {
+			ww_linkWindows(wp, wpOld, FALSE);
 		}
 	} else if (nOldWindows == 0) {
 		const char* pszMode = grammar_defaultDisplayMode(fp->documentDescriptor->grammar);
@@ -548,7 +555,7 @@ static int ft_openwin(FTABLE *fp, const char* pszHint) {
 /*
  * Open a second window for the passed file. 
  */
-int ft_cloneWindow(WINFO* wp) {
+int ft_cloneWindow(WINFO* wp, BOOL forWysiwyg) {
 	if (!wp) {
 		return 0;
 	}
@@ -556,18 +563,23 @@ int ft_cloneWindow(WINFO* wp) {
 	if (fp == NULL) {
 		return 0;
 	}
-	return ft_openwin(fp, DOCK_NAME_RIGHT);
+	OPEN_WINDOW_OPTIONS options = {
+		.owo_dockName = DOCK_NAME_RIGHT,
+		.owo_linkWithExisting = forWysiwyg,
+		.owo_preferredRendererMode = forWysiwyg ? SHOW_WYSIWYG_DISPLAY : 0
+	};
+	return ft_openwin(fp, &options);
 }
 
 /*
  * Clone a window given the file name of the window. 
  */
-int ft_cloneWindowNamed(char* pszFilename, const char* pszDock) {
+int ft_cloneWindowNamed(char* pszFilename, OPEN_WINDOW_OPTIONS* pOptions) {
 	FTABLE* fp = ft_fpbyname(pszFilename);
 	if (fp == NULL) {
 		return 0;
 	}
-	return ft_openwin(fp, pszDock);
+	return ft_openwin(fp, pOptions);
 }
 
 /*
@@ -771,9 +783,12 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		lstrcpy(fp->fname, fn);
 	}
 	fp->flags |= nFileCreationFlags;
+	OPEN_WINDOW_OPTIONS options = {
+	.owo_dockName = pszHint
+	};
 	if (doctypes_assignDocumentTypeDescriptor(fp, NULL, NULL) == 0 ||
          ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, 0) == 0 || 
-	    (lstrcpy(fp->fname, fn), ft_openwin(fp, pszHint) == 0)) {
+	    (lstrcpy(fp->fname, fn), ft_openwin(fp, &options) == 0)) {
 		ft_destroy(fp);
 		return 0;
 	}

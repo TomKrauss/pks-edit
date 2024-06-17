@@ -132,7 +132,8 @@ static int ww_createOrDestroyChildWindowOfEditor(
 }
 
 static int ruler_getLeft(WINFO* wp) {
-	if ((wp->dispmode & SHOW_LINENUMBERS) == 0 && wp->linkedWindow == NULL) {
+	BOOL hasComparisonLink = wp->linkedWindow == NULL ? FALSE : wp->linkedWindow->lw_usedForComparison;
+	if ((wp->dispmode & SHOW_LINENUMBERS) == 0 && !hasComparisonLink) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
@@ -147,7 +148,7 @@ static int ruler_getLeft(WINFO* wp) {
 			nWidth = nWidth * 5 / 4;
 		}
 	}
-	if (wp->linkedWindow != NULL) {
+	if (hasComparisonLink) {
 		nWidth += COMPARISON_ANNOTATION_WIDTH;
 	}
 	return dpisupport_getSize(nWidth);
@@ -196,7 +197,8 @@ static int ww_createSubWindows(HWND hwnd, WINFO *wp, XYWH *pWork, XYWH *pRuler, 
 	pLineInfo->w = rLineNumbers;
 	pLineInfo->y = pRuler->h;
 	pLineInfo->h = h - pRuler->h;
-	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOW_LINENUMBERS) || wp->linkedWindow != NULL));
+	BOOL hasComparisonLink = wp->linkedWindow == NULL ? FALSE : wp->linkedWindow->lw_usedForComparison;
+	lineNumbersVisible = (w > rLineNumbers && (ww_useDisplayMode(wp, SHOW_LINENUMBERS) || hasComparisonLink));
 	if (!ww_createOrDestroyChildWindowOfEditor(hwnd,
 		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
 		lineNumbersVisible, &wp->lineNumbers_handle, szLineNumbersClass, pLineInfo, wp)) {

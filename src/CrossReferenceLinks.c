@@ -918,15 +918,22 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 			bActive = FALSE;
 			int nDisplayMode = -1;
 			BOOL bClone = FALSE;
+			BOOL bLink = FALSE;
 			if (spec.comment[0]) {
 				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment);
 				bActive = hHint.oh_activate;
 				pszName = spec.comment;
 				bClone = hHint.oh_clone;
+				bLink = hHint.oh_link;
 				nDisplayMode = hHint.oh_displayMode;
 			}
 			if (bClone) {
-				ft_cloneWindowNamed(spec.filename, pszName);
+				OPEN_WINDOW_OPTIONS options = {
+					.owo_dockName = pszName,
+					.owo_linkWithExisting = bLink,
+					.owo_preferredRendererMode = nDisplayMode == -1 ? 0 : nDisplayMode
+				};
+				ft_cloneWindowNamed(spec.filename, &options);
 			} else {
 				xref_openFile(spec.filename, spec.line - 1L, pszName);
 			}
@@ -937,7 +944,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 						pActivate = wpThis;
 						pActivate->workmode |= WM_PINNED;
 					}
-					if (nDisplayMode != -1) {
+					if (nDisplayMode != -1 && !bClone) {
 						ww_changeDisplayMode(wpThis, nDisplayMode);
 					}
 				}
