@@ -541,7 +541,11 @@ EXPORT int bl_delete(WINFO *wp, LINE *lnfirst, LINE *lnlast, int cfirst,
 		}
 	} else {
 		if (bSaveOnClip) {
-			if (!bl_cutTextWithOptions (wp, bl_addrbyid(0,0, PLT_CLIPBOARD) ,lnfirst,lnlast,cfirst,clast,0)) {
+			PASTE* pBlock = bl_addrbyid(0, 0, PLT_CLIPBOARD);
+			if (pBlock) {
+				bl_free(pBlock);
+			}
+			if (!bl_cutTextWithOptions (wp, pBlock,lnfirst,lnlast,cfirst,clast,0)) {
 				return 0;
 			}
 		}

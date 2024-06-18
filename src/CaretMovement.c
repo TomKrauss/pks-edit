@@ -64,6 +64,7 @@ size_t caret_bufferOffset2Screen(WINFO* wp, const char* lbuf, int lnoffset) {
 	return col;
 }
 
+
 /*--------------------------------------------------------------------------
  * caret_lineOffset2screen()
  * the following stuff is calculating the cursor screen position, out of
@@ -274,6 +275,39 @@ static long caret_calculateSyncedLine(FTABLE* fp1, FTABLE* fp2, long ln, int nFl
 	return ln;
 }
 
+static void caret_syncLink(WINFO* wp, long ln) {
+	LINKED_WINDOW* pLink = wp->linkedWindow;
+	if (pLink != NULL && pLink->lw_synchronizeCaret) {
+		pLink->lw_synchronizeCaret = FALSE;
+		int nRight = LN_COMPARE_ADDED;
+		int nLeft = LN_COMPARE_DELETED;
+		WINFO* wpOther = pLink->lw_wpLeft;
+		if (wpOther == wp) {
+			wpOther = pLink->lw_wpRight;
+			nLeft = LN_COMPARE_ADDED;
+			nRight = LN_COMPARE_DELETED;
+		}
+		long ln1 = pLink->lw_usedForComparison ? caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight) : ln;
+		long col = 0;
+		wpOther->renderer->r_placeCaret(wpOther, &ln1, 0, &col, 0, 0);
+		if (wp->fp == wpOther->fp) {
+			wpOther->renderer->r_adjustScrollBounds(wpOther);
+		}
+		else {
+			int nDelta = ln - wp->minln;
+			int nNewMin = ln1 - nDelta;
+			if (nNewMin < 0) {
+				nNewMin = 0;
+			}
+			nNewMin -= wpOther->minln;
+			if (nNewMin != 0 && wp == pLink->lw_wpLeft) {
+				wi_scrollTop(wpOther, nNewMin);
+			}
+		}
+		pLink->lw_synchronizeCaret = TRUE;
+	}
+}
+
 /*
  * Removes all secondary carets from the screen.
  */
@@ -303,35 +337,7 @@ void caret_moveToLine(WINFO* wp, long ln) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}
-	LINKED_WINDOW* pLink = wp->linkedWindow;
-	if (pLink != NULL && pLink->lw_synchronizeCaret) {
-		pLink->lw_synchronizeCaret = FALSE;
-		int nRight = LN_COMPARE_ADDED;
-		int nLeft = LN_COMPARE_DELETED;
-		WINFO* wpOther = pLink->lw_wpLeft;
-		if (wpOther == wp) {
-			wpOther = pLink->lw_wpRight;
-			nLeft = LN_COMPARE_ADDED;
-			nRight = LN_COMPARE_DELETED;
-		}
-		long ln1 = pLink->lw_usedForComparison ? caret_calculateSyncedLine(wp->fp, wpOther->fp, ln, nLeft, nRight) : ln;
-		long col = 0;
-		wpOther->renderer->r_placeCaret(wpOther, &ln1, 0, &col, 0, 0);
-		if (wp->fp == wpOther->fp) {
-			wpOther->renderer->r_adjustScrollBounds(wpOther);
-		} else {
-			int nDelta = ln - wp->minln;
-			int nNewMin = ln1 - nDelta;
-			if (nNewMin < 0) {
-				nNewMin = 0;
-			}
-			nNewMin -= wpOther->minln;
-			if (nNewMin != 0 && wp == pLink->lw_wpLeft) {
-				wi_scrollTop(wpOther, nNewMin);
-			}
-		}
-		pLink->lw_synchronizeCaret = TRUE;
-	}
+	caret_syncLink(wp, ln);
 }
 
 /*-------------------------------------

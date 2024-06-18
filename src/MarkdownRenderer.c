@@ -500,6 +500,7 @@ typedef struct tagMARKDOWN_RENDERER_DATA {
 	BOOL md_printing;
 	BOOL md_needsSBUdpdate;
 	float md_zoomFactor;
+	void (*md_parse)(WINFO* wp);
 } MARKDOWN_RENDERER_DATA;
 
 /*
@@ -2986,6 +2987,7 @@ static void mdr_parseFileToHTML(WINFO* wp) {
 	MARKDOWN_RENDERER_DATA* pParsed = mdr_parseHTML(pStream, 0, fp->fname);
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	pData->md_pElements = pParsed->md_pElements;
+	pData->md_parse = mdr_parseFileToHTML;
 	free(pParsed);
 	pStream->is_destroy(pStream);
 }
@@ -3493,6 +3495,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 	int nDelta = 0;
 	RENDER_VIEW_PART* pLastPart = 0;
 
+	pData->md_parse = mdr_parseMarkdownFormat;
 	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, pData->md_imageCache, fp->fname);
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
@@ -3796,6 +3799,40 @@ static int mdr_forRunListDo(RENDER_VIEW_PART* pPart, int (*runCallback)(TEXT_RUN
 	return 1;
 }
 
+/*
+ * Can be used to ensure, that the internal view model is properly layouted and
+ * all sizes of the viewparts are correctly calculated.
+ */
+static void mdr_layout(WINFO* wp) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	if (pPart == NULL) {
+		return;
+	}
+	float zoomFactor = wp->zoomFactor;
+	HWND hwnd = wp->edwin_handle;
+	HDC hdc = GetWindowDC(hwnd);
+	RENDER_FLOW_PARAMS rfp = {
+		.rfp_focus = GetFocus() == hwnd,
+		.rfp_hdc = hdc,
+		.rfp_measureOnly = TRUE,
+		.rfp_theme = theme_getCurrent(),
+		.rfp_zoomFactor = zoomFactor
+	};
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	RECT occupiedBounds;
+	while (pPart) {
+		if (!pPart->rvp_layouted) {
+			rfp.rfp_part = pPart;
+			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
+			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
+		}
+		pPart = pPart->rvp_next;
+	}
+	ReleaseDC(hwnd, hdc);
+}
+
 static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA* pData, RECT* pClip, int nTopY) {
 	RECT rect;
 	RECT occupiedBounds;
@@ -3807,7 +3844,6 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		GetClientRect(hwnd, &rect);
 	}
 	RENDER_VIEW_PART* pPart = pData->md_pElements;
-
 	HBRUSH hBrushBg = CreateSolidBrush(pRC->rc_theme->th_defaultBackgroundColor);
 	FillRect(hdc, pClip, hBrushBg);
 	DeleteObject(hBrushBg);
@@ -3841,22 +3877,21 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		}
 		pPart = pPart->rvp_next;
 	}
-
 }
+
 /*
  * Render the current window displaying MARKDOWN/HTML wysiwyg contents.
  */
 static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), RECT* pClip, HBRUSH hBrushBg, int y) {
 	WINFO* wp = pCtx->rc_wp;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	if (pData->md_zoomFactor != wp->zoomFactor) {
+	if (!pData->md_pElements) {
+		parsePage(wp);
+	} else if (pData->md_zoomFactor != wp->zoomFactor) {
 		if (pData->md_zoomFactor != 0.0) {
 			mdr_invalidateViewpartsLayout(pData);
 		}
 		pData->md_zoomFactor = wp->zoomFactor;
-	}
-	if (!pData->md_pElements) {
-		parsePage(wp);
 	}
 	if (!pCtx->rc_printing) {
 		if (pData->md_printing) {
@@ -4116,6 +4151,14 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {
 		return 0;
+	}
+	if (!pData->md_pElements && pData->md_parse) {
+		pData->md_parse(wp);
+		mdr_layout(wp);
+		long nMDIndex = 0;
+		FTABLE* fp = FTPOI(wp);
+		wp->caret.linePointer = ln_goto(fp, *ln);
+		pData->md_caretPartIndex = 0;
 	}
 	// This is a hack for checking, whether we only scrolled up/down by 1: ideally relative caret positioning should be passed on to the renderer
 	// if we scroll one buffer line up or down we simulate a scroll up/down by markdown paragrah.

@@ -363,7 +363,8 @@ static UNDO_COMMAND* applyUndoDeltas(FTABLE *fp, UNDO_COMMAND *pCommand, BOOL bR
 	initUndoCommand(fp, pRedoCommand);
 	ln = 0; col = 0;
 	if (wp) {
-		wp->renderer->r_placeCaret(wp, &ln, 0, &col, 0,0);
+		// Do we need this?
+		// wp->renderer->r_placeCaret(wp, &ln, 0, &col, 0,0);
 		bl_hideSelection(wp, 0);
 	}
 	pOperation = pCommand->atomicSteps;

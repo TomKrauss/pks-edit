@@ -727,6 +727,10 @@ LINE *ln_modify(FTABLE *fp, LINE *lp, int col1, int col2) {
 
 	lplen = lp->len;
 	copylen = lplen - col1;
+	if (copylen < 0) {
+		// Work around for bad columns passed in certain situations.
+		return 0;
+	}
 	lplen += len;
 	if (lplen > MAXLINELEN) {	// do we need this?
 		ln_errorLineTooLong();
