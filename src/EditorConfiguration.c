@@ -545,7 +545,7 @@ void EdOptionSet(void) {
 		ui_switchToLanguage(pConfig->language);
 		config_saveConfiguration(FALSE);
 		fkey_visibilitychanged();
-		mainframe_windowTitleChanged(); 
+		mainframe_tabLayoutChanged(); 
 	}
 }
 

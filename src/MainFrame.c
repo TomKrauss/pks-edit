@@ -48,6 +48,10 @@ extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
 extern void		tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
+/*
+ * Activate a tab page with the given window handle.
+ */
+static int tabcontrol_selectPage(HWND hwnd, const HWND hwndPage);
 
 static const char* _applicationName = "PKS Edit";
 static WINFO* _selectedWindow;
@@ -518,6 +522,29 @@ static void tabcontrol_makeActiveTabVisible(HWND hwnd, TAB_CONTROL* pControl) {
 }
 
 /*
+ * Find the docking parent window for a given editor window.
+ */
+static DOCKING_SLOT* mainframe_getDockingParent(const HWND hwnd) {
+	DOCKING_SLOT* pSlot = dockingSlots;
+	while (pSlot) {
+		if (pSlot->ds_type == DS_EDIT_WINDOW) {
+			TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
+			if (pControl == 0) {
+				continue;
+			}
+			for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
+				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
+				if (pPage->tp_hwnd == hwnd) {
+					return pSlot;
+				}
+			}
+		}
+		pSlot = pSlot->ds_next;
+	}
+	return NULL;
+}
+
+/*
  * Activate a tab with a given index.
  */
 static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
@@ -533,6 +560,17 @@ static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 			pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
 			tabcontrol_resizeActiveTabContents(hwnd, pControl);
 			ShowWindow(pPage->tp_hwnd, SW_SHOW);
+			WINFO* wp = ww_getWinfoForHwnd(pPage->tp_hwnd);
+			if (wp->linkedWindow != NULL) {
+				WINFO* wpLeft = wp->linkedWindow->lw_wpLeft;
+				WINFO* wpRight = wp->linkedWindow->lw_wpRight;
+				WINFO* wpOther = wp == wpLeft ? wpRight : wpLeft;
+				DOCKING_SLOT* pParent1 = mainframe_getDockingParent(pPage->tp_hwnd);
+				DOCKING_SLOT* pParent2 = mainframe_getDockingParent(wpOther->edwin_handle);
+				if (pParent1 != NULL && pParent2 != NULL && pParent1 != pParent2) {
+					tabcontrol_selectPage(pParent2->ds_hwnd, wpOther->edwin_handle);
+				}
+			}
 			SetFocus(pPage->tp_hwnd);
 		}
 		tabcontrol_makeActiveTabVisible(hwnd, pControl);
@@ -1448,29 +1486,6 @@ static DOCKING_SLOT* mainframe_addDockingSlot(DOCKING_SLOT_TYPE dsType, HWND hwn
 }
 
 /*
- * Find the docking parent window for a given editor window.
- */
-static DOCKING_SLOT* mainframe_getDockingParent(const HWND hwnd) {
-	DOCKING_SLOT* pSlot = dockingSlots;
-	while (pSlot) {
-		if (pSlot->ds_type == DS_EDIT_WINDOW) {
-			TAB_CONTROL* pControl = (TAB_CONTROL *) GetWindowLongPtr(pSlot->ds_hwnd, GWLP_TAB_CONTROL);
-			if (pControl == 0) {
-				continue;
-			}
-			for (int i = 0; i < arraylist_size(pControl->tc_pages); i++) {
-				TAB_PAGE* pPage = arraylist_get(pControl->tc_pages, i);
-				if (pPage->tp_hwnd == hwnd) {
-					return pSlot;
-				}
-			}
-		}
-		pSlot = pSlot->ds_next;
-	}
-	return NULL;
-}
-
-/*
  * Returns the rect describing the "empty space", into which the docking windows
  * can be placed.
  */
@@ -1522,6 +1537,8 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
 		MoveWindow(pSlot->ds_hwnd, x, y, w, h, 1);
 		pSlot = pSlot->ds_next;
 	}
+	// Make the active tab visible, if the size of the docks has changed.
+	mainframe_tabLayoutChanged();
 	pSlot = dockingSlots;
 	while (pSlot) {
 		DOCKING_SLOT* pSibblingSlot = dockingSlots;
@@ -2255,9 +2272,10 @@ int mainframe_messageLoop() {
 }
 
 /*
- * To be invoked, when the window of a child window changes.
+ * To be invoked, when the tab layout of the mainframe has changed due to e.g. a the title of a child window changes
+ * or the docking slots are resized.
  */
-void mainframe_windowTitleChanged() {
+void mainframe_tabLayoutChanged() {
 	DOCKING_SLOT* pSlot = dockingSlots;
 	while (pSlot) {
 		if (pSlot->ds_type == DS_EDIT_WINDOW) {
@@ -2466,7 +2484,7 @@ char* mainframe_getOpenHint(WINFO* wp, BOOL bFocus, BOOL bClone, int nDisplayMod
  */
 OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
 	static char szDock[12];
-	BOOL bActive = TRUE;
+	BOOL bActive = FALSE;
 	BOOL bClone = FALSE;
 	BOOL bFocus = FALSE;
 	BOOL bLink= FALSE;
@@ -2542,6 +2560,6 @@ long long mainframe_toggleFullScreen() {
 
 	}
 	fkey_visibilitychanged();
-	mainframe_windowTitleChanged();
+	mainframe_tabLayoutChanged();
 	return 1;
 }

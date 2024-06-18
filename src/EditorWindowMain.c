@@ -383,7 +383,7 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 	HICON hIconOld = (HICON)SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	mainframe_destroyEditorIcon(hIconOld);
 	if (bRepaint) {
-		mainframe_windowTitleChanged();
+		mainframe_tabLayoutChanged();
 	}
 	return 1;
 }
@@ -999,7 +999,7 @@ void ww_destroy(WINFO *wp) {
 			ww_setwindowtitle(wp, FALSE);
 		}
 	}
-	mainframe_windowTitleChanged();
+	mainframe_tabLayoutChanged();
 	nwindows--;
 	EdTRACE({
 		if (nwindows == 0 && _winlist)

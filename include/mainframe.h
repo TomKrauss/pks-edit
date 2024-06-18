@@ -27,7 +27,7 @@ typedef struct tagOPEN_HINT {
 /*
  * To be invoked, when the window of a child window changes. 
  */
-extern void mainframe_windowTitleChanged();
+extern void mainframe_tabLayoutChanged();
 
  /*
   * Register the main wind
