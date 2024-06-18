@@ -35,11 +35,11 @@ extern void xref_destroyAllCrossReferenceLists();
 extern int xref_navigateCrossReference(char* s);
 
 /*---------------------------------
- * xref_openSearchListResultFromLine()
+ * xref_openWindowHistory()
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-extern void xref_openSearchListResultFromLine(LINE* lp);
+extern void xref_openWindowHistory(LINE* lp);
 
 /*---------------------------------*/
 /* xref_navigateSearchErrorList()				*/

@@ -283,7 +283,7 @@ EXPORT int hist_readSession(const char* pszFilename) {
 		mainframe_readDocks();
 		LINE* lp = NULL;
 		hist_convertToLines(&lp, hist_getHistoryArray(OPEN_IN_EDITOR));
-		xref_openSearchListResultFromLine(lp);
+		xref_openWindowHistory(lp);
 		ln_listfree(lp);
 		_currentSearchAndReplaceParams.options = hist_getSessionData()->sd_searchAndReplaceOptions;
 		return 1;

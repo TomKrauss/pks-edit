@@ -116,7 +116,7 @@ extern void mainframe_moveWindowAndActivate(HWND hwndEdit, const char* pszPrefer
 /*
  * Parse an open hint text. Note, that the hint text is modified during parsing.
  */
-extern OPEN_HINT mainframe_parseOpenHint(char* pszHint);
+extern OPEN_HINT mainframe_parseOpenHint(char* pszHint, BOOL bDefaultActive);
 
 /*
  * Used to switch to full screen mode and back.

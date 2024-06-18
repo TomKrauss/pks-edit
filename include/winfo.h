@@ -566,7 +566,7 @@ int render_makeCaretVisible(WINFO* wp, CARET* pCaret);
  * Creates an editor window with the given title, instance count, creation parameter and window
  * placement.
  */
-extern HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszDockName);
+extern HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszDockName, BOOL bDefaultActive);
 
 /*-----------------------------------------------------------
  * ww_setwindowtitle()

@@ -517,7 +517,7 @@ static int ft_openwin(FTABLE *fp, OPEN_WINDOW_OPTIONS* pOptions) {
 	HWND hwndNew;
 	size_t nOldWindows = fp->views == 0 ? 0 : arraylist_size(fp->views);
 	WINFO* wpOld = nOldWindows == 1 ? arraylist_get(fp->views, 0) : NULL;
-	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pOptions->owo_dockName)) == 0) {
+	if ((hwndNew = ww_createEditWindow(fp->fname, (LPVOID)(uintptr_t)fp, pOptions->owo_dockName, pOptions->owo_activate)) == 0) {
 		return 0;
 	}
 	WINFO* wp = ww_getWinfoForHwnd(hwndNew);
@@ -566,7 +566,8 @@ int ft_cloneWindow(WINFO* wp, BOOL forWysiwyg) {
 	OPEN_WINDOW_OPTIONS options = {
 		.owo_dockName = DOCK_NAME_RIGHT,
 		.owo_linkWithExisting = forWysiwyg,
-		.owo_preferredRendererMode = forWysiwyg ? SHOW_WYSIWYG_DISPLAY : 0
+		.owo_preferredRendererMode = forWysiwyg ? SHOW_WYSIWYG_DISPLAY : 0,
+		.owo_activate = TRUE
 	};
 	return ft_openwin(fp, &options);
 }
@@ -784,7 +785,8 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	}
 	fp->flags |= nFileCreationFlags;
 	OPEN_WINDOW_OPTIONS options = {
-	.owo_dockName = pszHint
+	.owo_dockName = pszHint,
+	.owo_activate = !pOptions->fo_openHistory
 	};
 	if (doctypes_assignDocumentTypeDescriptor(fp, NULL, NULL) == 0 ||
          ft_readfile(fp, fp->documentDescriptor,pOptions->fo_codePage, 0) == 0 || 

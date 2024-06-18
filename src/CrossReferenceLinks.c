@@ -742,8 +742,10 @@ int xref_openFile(const char *name, long line, const char* pszHint) {
 		ret = ft_openFileWithoutFileselector(name, line, &(FT_OPEN_OPTIONS) { 
 			.fo_dockName = pszHint, 
 			.fo_isNewFile = -1,
-				.fo_codePage = -1,
-			.fo_openHistory= 1}) != NULL;
+			.fo_codePage = -1}) != NULL;
+		if (ret && line > 0) {
+			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0L);
+		}
 	}
 
 	return ret;
@@ -902,11 +904,11 @@ RE_PATTERN* xref_compileSearchListPattern() {
 }
 
 /*---------------------------------
- * xref_openSearchListResultFromLine()
+ * xref_openWindowHistory()
  * Parse the search list result in the current line and try to navigate to
  * the file and line number which are obtained by parsing the line contents.
  *---------------------------------*/
-void xref_openSearchListResultFromLine(LINE *lp) {
+void xref_openWindowHistory(LINE *lp) {
 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(xref_getSearchListFormat());
@@ -920,7 +922,7 @@ void xref_openSearchListResultFromLine(LINE *lp) {
 			BOOL bClone = FALSE;
 			BOOL bLink = FALSE;
 			if (spec.comment[0]) {
-				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment);
+				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment, FALSE);
 				bActive = hHint.oh_activate;
 				pszName = spec.comment;
 				bClone = hHint.oh_clone;

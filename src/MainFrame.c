@@ -2482,9 +2482,9 @@ char* mainframe_getOpenHint(WINFO* wp, BOOL bFocus, BOOL bClone, int nDisplayMod
 /*
  * Parse an open hint text. Note, that the hint text is modified during parsing.
  */
-OPEN_HINT mainframe_parseOpenHint(char* pszHint) {
+OPEN_HINT mainframe_parseOpenHint(char* pszHint, BOOL bDefaultActive) {
 	static char szDock[12];
-	BOOL bActive = FALSE;
+	BOOL bActive = bDefaultActive;
 	BOOL bClone = FALSE;
 	BOOL bFocus = FALSE;
 	BOOL bLink= FALSE;

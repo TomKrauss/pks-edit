@@ -326,6 +326,7 @@ typedef struct tagOPEN_WINDOW_OPTIONS {
 	BOOL		owo_linkWithExisting;
 	// If != 0 - the preferred renderer mode (HEX, NORMAL, WYSIWYG)
 	int			owo_preferredRendererMode;
+	BOOL		owo_activate;
 } OPEN_WINDOW_OPTIONS;
 
 /*

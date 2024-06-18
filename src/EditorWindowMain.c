@@ -273,14 +273,14 @@ void ww_setScrollCheckBounds(WINFO *wp) {
  * Creates an editor window with the given title, instance count, creation parameter and a textual
  * hint defining the way the window is activated.
  */
-HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszHint) {
+HWND ww_createEditWindow(char* pTitle, LPVOID lParam, const char* pszHint, BOOL bDefaultActive) {
 	char szBuffer[128];
 	OPEN_HINT hHint;
 	if (pszHint == NULL) {
-		hHint = mainframe_parseOpenHint(NULL);
+		hHint = mainframe_parseOpenHint(NULL, bDefaultActive);
 	} else {
 		strcpy(szBuffer, pszHint);
-		hHint = mainframe_parseOpenHint(szBuffer);
+		hHint = mainframe_parseOpenHint(szBuffer, bDefaultActive);
 	}
 	return mainframe_addWindow(&hHint, szEditClass, pTitle, lParam);
 }
