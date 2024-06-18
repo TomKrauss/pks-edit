@@ -592,7 +592,7 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(in
 	}
 	if ((nf_flags & EW_UNDO_AVAILABLE) && !undo_isUndoAvailable(fp)) {
 		if (warn) {
-			ww_checkSelectionWithError(wp);
+			error_showErrorById(IDS_MSGNOUNDO);
 		}
 		return 0;
 	}
