@@ -557,6 +557,7 @@ void dlg_handleRadioButtonGroup(HWND hDlg, WORD checkedItemControl, ...) {
 			CheckDlgButton(hDlg, exclusiveItem, 0);
 		}
 	}
+	va_end(exclusiveGroup);
 }
 
 /*--------------------------------------------------------------------------

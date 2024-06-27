@@ -81,8 +81,8 @@ typedef struct undoStack {
 	int numberOfCommands;
 	int current;
 	int maximumUndoCommands;
-	// Reserve 10 slots - so we can inspect them in the debugger.
-	UNDO_COMMAND* commands[10];
+	// The commands to be allocated - number depends on maximum number of undo steps
+	UNDO_COMMAND* commands[];
 } UNDO_STACK;
 
 /*
@@ -280,13 +280,13 @@ static void undo_allocateCommand(UNDO_STACK* pStack, FTABLE* fp, BOOLEAN bFreeLi
 	pStack->numberOfCommands = pStack->current+1;
 	if (pStack->numberOfCommands >= pStack->maximumUndoCommands) {
 		undo_destroyCommand(pStack->commands[0], fp, TRUE);
-		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * (pStack->numberOfCommands - 1));
-		pStack->numberOfCommands = pStack->maximumUndoCommands - 1;
-		pStack->commands[pStack->numberOfCommands] = NULL;
+		int nCommands = pStack->maximumUndoCommands - 1;
+		memmove(&pStack->commands[0], &pStack->commands[1], sizeof pStack->commands[0] * nCommands);
+		pStack->commands[nCommands] = NULL;
+		pStack->numberOfCommands = nCommands;
 		pStack->current--;
 	}
-	UNDO_COMMAND* pCommand = malloc(sizeof * pCommand);
-	memset(pCommand, 0, sizeof * pCommand);
+	UNDO_COMMAND* pCommand = calloc(1, sizeof * pCommand);
 	pStack->commands[pStack->numberOfCommands++] = pCommand;
 	pStack->current++;
 }

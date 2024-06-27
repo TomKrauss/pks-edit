@@ -24,6 +24,7 @@
         "autosave-time": 10,
         "maximum-open-windows": 15,
         "theme": "system default",
+        "temp-path": "C:\\Users\\tom\\AppData\\Local\\Temp\\pksedit",
         "include-path": "..\\include;include",
         "language": "English",
         "default-font": "Consolas",

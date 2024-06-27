@@ -274,9 +274,9 @@ long long edit_toggleComment(WINFO* wp) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
 		size_t nOffset = pszFirst ? pszFirst - lpFirst->lbuf : lpFirst->len;
 		if (addCommentFlag < 0) {
-			nOffset -= ((size_t)nLen * addCommentFlag);
+			nOffset -= (size_t)(nLen * addCommentFlag);
 		}
-		size_t nOffset2 = nOffset + ((size_t)nLen * addCommentFlag);
+		size_t nOffset2 = nOffset + (size_t)(nLen * addCommentFlag);
 		if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)nOffset2)) == 0) {
 			break;
 		}

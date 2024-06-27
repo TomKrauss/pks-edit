@@ -1131,7 +1131,7 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	RE_PATTERN pattern;
 	RE_OPTIONS options;
 	RE_MATCH match;
-	unsigned char patternBuf[256];
+	unsigned char patternBuf[256] = { 0 };
 
 	if (wp->renderer->r_findLink && wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult)) {
 		return 1;

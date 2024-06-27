@@ -22,6 +22,7 @@
 #include <direct.h>
 #include "jsonparser.h"
 #include "winterf.h"
+#include "trace.h"
 #include "pksedit.h"
 #include "linkedlist.h"
 #include "dial2.h"
@@ -210,14 +211,15 @@ static JSON_MAPPING_RULE _allconfigRules[] = {
  * Save the current configuration to the specified config file.
  */
 int config_save(const char* pszFilename) {
-	ALL_CONFIGS config;
+	ALL_CONFIGS config = {
+		.ac_printConfiguration = _prtparams,
+		.ac_editorConfiguration = _configuration
+	};
 
 	char cOld = _configuration.pksEditTempPath[0];
 	if (config_tempPathIsDefault()) {
 		_configuration.pksEditTempPath[0] = 0;
 	}
-	config.ac_editorConfiguration = _configuration;
-	config.ac_printConfiguration = _prtparams;
 	if (!json_marshal(pszFilename, &config, _allconfigRules)) {
 		_configuration.pksEditTempPath[0] = cOld;
 		// TODO: I18N
@@ -442,7 +444,9 @@ char* config_getPKSEditTempPath() {
 		config_getDefaultTempPath(_configuration.pksEditTempPath);
 	}
 	if (file_exists(_configuration.pksEditTempPath) != 0) {
-		_mkdir(_configuration.pksEditTempPath);
+		if (!_mkdir(_configuration.pksEditTempPath)) {
+			EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot create directory for PKS Edit temp path."));
+		}
 	}
 	return _configuration.pksEditTempPath;
 }

@@ -238,6 +238,7 @@ static HWND tb_initToolbar(HWND hwndOwner) {
     tbb = calloc(nButtons, sizeof * tbb);
     CHAR_WITH_STYLE* pwImageCodes = calloc(nButtons, sizeof * pwImageCodes);
     if (pwImageCodes == NULL) {
+        free(tbb);
         return NULL;
     }
     int nImageIndex = 0;

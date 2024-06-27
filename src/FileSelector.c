@@ -145,9 +145,15 @@ static void menu_fseltitle(int nCommand, char* szTemp)
 static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *pattern, FILE_SELECT_PARAMS* pFSP) {
 	int	nSave;
 	int 	ret;
-	char pathname[EDMAXPATHLEN];
-	char szTemp[512];
+	char* pathname;
+	char* szTemp;
 
+	pathname = calloc(1, EDMAXPATHLEN);
+	szTemp = calloc(1, EDMAXDIRLEN);
+	if (szTemp == NULL) {
+		free(pathname);
+		return 0;
+	}
 	menu_fseltitle(nCommand, szTemp);
 	string_concatPathAndFilename(pathname,baseDirectory,filename);
 	nSave = nCurrentDialog;
@@ -159,6 +165,8 @@ static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *p
 	pFSP->fsp_title = szTemp;
 
 	ret = fsel_selectFile(pFSP);
+	free(pathname);
+	free(szTemp);
 
 	nCurrentDialog = nSave;
 	if (_fseltarget[0] == 0) {
@@ -236,6 +244,8 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	pszFileName = malloc(EDMAXPATHLEN);
 	pszPath = malloc(EDMAXPATHLEN);
 	if (pszPath == NULL) {
+		free(pszExt);
+		free(pszFileName);
 		return FALSE;
 	}
 

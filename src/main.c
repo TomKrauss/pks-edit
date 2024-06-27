@@ -264,7 +264,7 @@ static void main_restoreSizeAndMakeVisible() {
 		ShowWindow(hwndMain, SW_SHOWMINIMIZED);
 	} else if (pData->sd_mainWindowPlacement.rcNormalPosition.bottom > pData->sd_mainWindowPlacement.rcNormalPosition.top) {
 		ws = pData->sd_mainWindowPlacement;
-		RECT rect;
+		RECT rect = { 0 };
 		SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 		if (ws.rcNormalPosition.bottom > rect.bottom) {
 			ws.rcNormalPosition.bottom = rect.bottom;
@@ -422,6 +422,7 @@ static int dde_delegateArguments(LPSTR lpCmdLine) {
 /*
  * Remove all data structures, clear temp files and dump memory for debugging purpose.
  */
+_When_(pksEditMutex != NULL, _Releases_lock_(pksEditMutex))
 void main_cleanup(void) {
 	file_clearTempFiles();
 	dde_uninitialize();
@@ -443,8 +444,7 @@ void main_cleanup(void) {
 	ww_destroyAll();
 	config_destroy();
 	function_destroy();
-	if (pksEditMutex) {
-		ReleaseMutex(pksEditMutex);
+	if (pksEditMutex && ReleaseMutex(pksEditMutex)) {
 		CloseHandle(pksEditMutex);
 		pksEditMutex = 0;
 	}
@@ -453,7 +453,7 @@ void main_cleanup(void) {
 /*------------------------------------------------------------
  * WinMain()
  */
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ PSTR lpCmdLine, _In_ INT nCmdShow) {
 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);

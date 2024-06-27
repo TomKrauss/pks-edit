@@ -697,6 +697,7 @@ int ft_activateWindowOfFileNamed(const char *fn) {
 	FTABLE 	*fp;
 	char 	fullname[EDMAXPATHLEN];
 
+	memset(fullname, 0, sizeof fullname);
 	string_getFullPathName(fullname,fn, sizeof fullname);
 	fp = ft_fpbyname(fullname);
 	if (fp == NULL) {

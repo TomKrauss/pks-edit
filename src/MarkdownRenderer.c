@@ -372,7 +372,7 @@ extern void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize,
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
 static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBounds, 
-	RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign, RENDER_FLOW_PARAMS *pRFP);
+	RECT* pPartBounds, RECT* pUsed, int nBlockQuoteLevel, int nAlign, const RENDER_FLOW_PARAMS *pRFP);
 static void mdr_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* pHeight);
 static int mdr_getNextLinkRunOffset(RENDER_VIEW_PART* pPart, int nOffset, int nDelta);
 /*
@@ -602,7 +602,7 @@ static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom)
 	return CreateFontIndirect(&_lf);
 }
 
-static void mdr_paintRule(RENDER_FLOW_PARAMS* pParams, int left, int right, int y, int nStrokeWidth) {
+static void mdr_paintRule(const RENDER_FLOW_PARAMS* pParams, int left, int right, int y, int nStrokeWidth) {
 	THEME_DATA* pTheme = pParams->rfp_theme;
 	HPEN hPen = CreatePen(PS_SOLID, nStrokeWidth, pTheme->th_dialogBorder);
 	HDC hdc = pParams->rfp_hdc;
@@ -612,7 +612,7 @@ static void mdr_paintRule(RENDER_FLOW_PARAMS* pParams, int left, int right, int 
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
 
-static MARGINS mdr_getScaledMargins(float zoomFactor, MARGINS* pMargins) {
+static MARGINS mdr_getScaledMargins(float zoomFactor, const MARGINS* pMargins) {
 	MARGINS m;
 	m.m_bottom = (int)(pMargins->m_bottom * zoomFactor);
 	m.m_top = (int)(pMargins->m_top * zoomFactor);
@@ -621,7 +621,7 @@ static MARGINS mdr_getScaledMargins(float zoomFactor, MARGINS* pMargins) {
 	return m;
 }
 
-static void mdr_renderHorizontalRule(RENDER_FLOW_PARAMS* pParams,RECT* pBounds, RECT* pUsed) {
+static void mdr_renderHorizontalRule(const RENDER_FLOW_PARAMS* pParams, const RECT* pBounds, RECT* pUsed) {
 	RENDER_VIEW_PART* pPart = pParams->rfp_part;
 	MARGINS m = mdr_getScaledMargins(pParams->rfp_zoomFactor, &pPart->rvp_margins);
 	pUsed->top = pBounds->top + m.m_top;
@@ -644,9 +644,10 @@ static long mdr_codeBackgroundColor(THEME_DATA* pTheme) {
 /*
  * Render a markdown table. 
  */
-static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed) {
+static void mdr_renderTable(const RENDER_FLOW_PARAMS* pParams, const RECT* pBounds, RECT* pUsed) {
 	THEME_DATA* pTheme = pParams->rfp_theme;
 	int nColumnWidth[MAX_TABLE_COLUMNS];
+	memset(nColumnWidth, 0, sizeof nColumnWidth);
 	struct tagROW_BORDER {
 		int rb_header;
 		int rb_y;
@@ -699,7 +700,7 @@ static void mdr_renderTable(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pU
 				if (!align && pCell->rtc_isHeader) {
 					align = TA_ALIGN_CENTER;
 				}
-				mdr_renderTextFlow(&mTableMargins, &pCell->rtc_flow, &bounds, &flowBounds, &usedBounds, 0, align, pParams);
+				mdr_renderTextFlow(&mTableMargins, &pCell->rtc_flow, & bounds, &flowBounds, &usedBounds, 0, align, pParams);
 			}
 			int nHeight = usedBounds.bottom - usedBounds.top;
 			if (nHeight > nMaxHeight) {
@@ -886,7 +887,7 @@ static void mdr_paintImage(HDC hdc, TEXT_RUN* pTR, int x, int y, int nMaxWidth, 
 		pSize->cy = nHeight+nBorder;
 	} else {
 		char szFilename[512];
-		char* pszFilepart = string_getBaseFilename(pTR->tr_imageUrl);
+		const char* pszFilepart = string_getBaseFilename(pTR->tr_imageUrl);
 		sprintf(szFilename, "Cannot load image %s", pszFilepart);
 		SIZE size;
 		GetTextExtentPoint(hdc, szFilename, (int)strlen(szFilename), &size);
@@ -910,7 +911,7 @@ static void mdr_renderEmoji(HDC hdc, WCHAR* pEmoji, COLORREF cColor, int x, int 
  */
 static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, float zoomFactor, BOOL bChecked) {
 	HDC hdc = pParams->rfp_hdc;
-	THEME_DATA* pTheme = pParams->rfp_theme;
+	const THEME_DATA* pTheme = pParams->rfp_theme;
 	LOGBRUSH brush;
 	brush.lbColor = pTheme->th_dialogBorder;
 	brush.lbHatch = 0;
@@ -934,7 +935,7 @@ static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, float 
 	DeleteObject(SelectObject(hdc, hPenOld));
 }
 
-static void mdr_paintSelection(HDC hdc, int x, int y, RENDER_FLOW_PARAMS* pRFP, TEXT_RUN* pRun, int nOffs, int nDeltaPainted, int nFit, TEXT_FLOW* pFlow) {
+static void mdr_paintSelection(HDC hdc, int x, int y, const RENDER_FLOW_PARAMS* pRFP, TEXT_RUN* pRun, int nOffs, int nDeltaPainted, int nFit, TEXT_FLOW* pFlow) {
 	SIZE startSize;
 	SIZE selectionSize;
 	int nUnused;
@@ -1001,7 +1002,7 @@ static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
  */
 static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBounds, RECT* pPartBounds, 
-		RECT* pUsed, int nBlockQuoteLevel, int nAlign, RENDER_FLOW_PARAMS *pRFP) {
+		RECT* pUsed, int nBlockQuoteLevel, int nAlign, const RENDER_FLOW_PARAMS *pRFP) {
 	THEME_DATA* pTheme = pRFP->rfp_theme;
 	int x = pBounds->left + pMargins->m_left;
 	int y = pBounds->top + pMargins->m_top;
@@ -1207,10 +1208,10 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	pUsed->bottom = y + nHeight + pMargins->m_bottom;
 }
 
-static void mdr_paintFillDecoration(RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* pPart, RECT* pBounds) {
+static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER_VIEW_PART* pPart, const RECT* pBounds) {
 	HDC hdc = pRFP->rfp_hdc;
-	THEME_DATA* pData = pRFP->rfp_theme;
-	MARGINS m = mdr_getScaledMargins(pRFP->rfp_zoomFactor, &pPart->rvp_margins);
+	const THEME_DATA* pData = pRFP->rfp_theme;
+	MARGINS m = mdr_getScaledMargins(pRFP->rfp_zoomFactor, & pPart->rvp_margins);
 	int x = pBounds->left + m.m_left;
 	int y = pBounds->top + m.m_top;
 	int nRight = pBounds->right - m.m_right;
@@ -1698,7 +1699,7 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 	int nUrlPartStart = 0;
 	char c;
 	int state = startState;
-	char* szLinkEnd = szLinkText + 255;
+	const char* szLinkEnd = szLinkText + 255;
 	memset(pResult, 0, sizeof(*pResult));
 	int bRefStyleLink = 0;
 	STREAM_OFFSET savedOffset = pStream->is_tell(pStream);
@@ -1801,7 +1802,9 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 			pStream->is_positionToLineStart(pStream, 1);
 			return;
 		}
-		pPart->rvp_param.rvp_number++;
+		if (pPart) {
+			pPart->rvp_param.rvp_number++;
+		}
 		int nRunStart = pStream->is_inputMark(pStream, &lp);
 		pStream->is_skip(pStream, nOffs);
 		while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
@@ -1898,7 +1901,9 @@ static void mdr_applyFormat(RENDER_VIEW_PART* pPart, MDR_ELEMENT_FORMAT* pFormat
 		if (!pPart->rvp_decoration) {
 			pPart->rvp_decoration = calloc(1, sizeof * (pPart->rvp_decoration));
 		}
-		memcpy(pPart->rvp_decoration, pFormat->mef_decoration, sizeof * (pPart->rvp_decoration));
+		if (pPart->rvp_decoration) {
+			memcpy(pPart->rvp_decoration, pFormat->mef_decoration, sizeof * (pPart->rvp_decoration));
+		}
 	}
 }
 
@@ -2307,6 +2312,9 @@ static int mdr_parseEntity(STRING_BUF* pSB, INPUT_STREAM* pStream) {
  */
 static RENDER_TABLE* mdr_newTable(int nColumnCount) {
 	RENDER_TABLE* pResult = calloc(1, sizeof * pResult);
+	if (pResult == NULL) {
+		return NULL;
+	}
 	pResult->rt_borderWidth = 1;
 	pResult->rt_borderColor = NO_COLOR;
 	pResult->rt_columnCount = nColumnCount;
@@ -2370,9 +2378,11 @@ static RENDER_VIEW_PART* mdr_newPart(INPUT_STREAM* pStream, HTML_PARSER_STATE* p
 	FONT_STYLE_DELTA* pFSD = pState->hps_currentStyle;
 	if (pFSD->fsd_strokeColor != NO_COLOR || pFSD->fsd_fillColor != NO_COLOR) {
 		RENDER_BOX_DECORATION* pDecoration = calloc(1, sizeof * pDecoration);
-		pDecoration->rbd_fillColor = pFSD->fsd_fillColor;
-		pDecoration->rbd_strokeColor = pFSD->fsd_strokeColor;
-		pDecoration->rbd_strokeWidth = pFSD->fsd_strokeWidth;
+		if (pDecoration != NULL) {
+			pDecoration->rbd_fillColor = pFSD->fsd_fillColor;
+			pDecoration->rbd_strokeColor = pFSD->fsd_strokeColor;
+			pDecoration->rbd_strokeWidth = pFSD->fsd_strokeWidth;
+		}
 		pPart->rvp_decoration = pDecoration;
 	}
 	mdr_resetFontStyleDelta(pFSD);
@@ -2519,15 +2529,17 @@ static int mdr_applyImageAttributes(HTML_PARSER_STATE* pState, HASHMAP* pValues)
 	}
 	MD_IMAGE* pImage = calloc(1, sizeof(MD_IMAGE));
 	pRun->tr_data.tr_image = pImage;
-	if (pszW) {
-		pImage->mdi_width = (int)string_convertToLong(pszW);
-	}
-	if (pszH) {
-		pImage->mdi_height = (int)string_convertToLong(pszH);
-	}
-	if (pfsd->fsd_strokeColor != NO_COLOR && pfsd->fsd_strokeWidth > 0) {
-		pImage->mdi_borderColor = pfsd->fsd_strokeColor;
-		pImage->mdi_borderWidth = pfsd->fsd_strokeWidth;
+	if (pImage != NULL) {
+		if (pszW) {
+			pImage->mdi_width = (int)string_convertToLong(pszW);
+		}
+		if (pszH) {
+			pImage->mdi_height = (int)string_convertToLong(pszH);
+		}
+		if (pfsd->fsd_strokeColor != NO_COLOR && pfsd->fsd_strokeWidth > 0) {
+			pImage->mdi_borderColor = pfsd->fsd_strokeColor;
+			pImage->mdi_borderWidth = pfsd->fsd_strokeWidth;
+		}
 	}
 	pRun->tr_imageUrl = mdr_processUrlWithBase(pState->hps_baseUrl, pszLink, FALSE);
 	return nLen;
@@ -2569,8 +2581,15 @@ static void mdr_applyRunAttributes(HTML_PARSER_STATE* pState, TEXT_RUN* pRun) {
 }
 
 static TEXT_FLOW* mdr_getTextFlowEnsureInit(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
+	if (!pState) {
+		return 0;
+	}
+
 	if (!pState->hps_part) {
 		mdr_ensureParagraph(pStream, pState);
+		if (pState->hps_part == NULL) {
+			return 0;
+		}
 	}
 	if (pState->hps_table && !pState->hps_tableCell) {
 		return 0;
@@ -2637,11 +2656,13 @@ static void mdr_applyGrammar(RENDER_VIEW_PART* pPart) {
 				// Insert new run
 				pRun->tr_attributes.lineBreak = 0;
 				TEXT_RUN* pNew = calloc(1, sizeof(*pRun));
-				pNew->tr_size = state.le_length;
-				pNew->tr_attributes = pRun->tr_attributes;
-				pRun->tr_attributes.lineBreak = 0;
-				pNew->tr_next = pRun->tr_next;
-				pRun->tr_next = pNew;
+				if (pNew != NULL) {
+					pNew->tr_size = state.le_length;
+					pNew->tr_attributes = pRun->tr_attributes;
+					pRun->tr_attributes.lineBreak = 0;
+					pNew->tr_next = pRun->tr_next;
+					pRun->tr_next = pNew;
+				}
 			} else {
 				pRun->tr_attributes.lineBreak = 1;
 				pRun->tr_size = state.le_length;
@@ -2971,9 +2992,11 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 	}
 	mdr_finalizeParserState(pStream, &state);
 	MARKDOWN_RENDERER_DATA* pData = calloc(1, sizeof * pData);
-	pData->md_pElements = pFirst;
-	if (hwndParent) {
-		pData->md_hwndTooltip = cust_createToolTooltip(hwndParent);
+	if (pData != NULL) {
+		pData->md_pElements = pFirst;
+		if (hwndParent) {
+			pData->md_hwndTooltip = cust_createToolTooltip(hwndParent);
+		}
 	}
 	return pData;
 }
@@ -3067,7 +3090,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 	BOOL bEnforceBreak = TRUE;
 	while (pStream->is_peekc(pStream, 0)) {
 		BOOL bSkipped = FALSE;
-		char lastC ;
+		char lastC = 0;
 		char cNext;
 		char c = 0;
 		int nLineOffset = 0;
@@ -3223,8 +3246,10 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 						TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 						if (bImage) {
 							pRun->tr_data.tr_image = calloc(1, sizeof(MD_IMAGE));
-							pRun->tr_data.tr_image->mdi_height = result.lpr_height;
-							pRun->tr_data.tr_image->mdi_width = result.lpr_width;
+							if (pRun->tr_data.tr_image != NULL) {
+								pRun->tr_data.tr_image->mdi_height = result.lpr_height;
+								pRun->tr_data.tr_image->mdi_width = result.lpr_width;
+							}
 							mdr_assignImageUrl(pState->hps_imageCache, pRun, result.lpr_LinkUrl);
 							if (bImageLink) {
 								pStream->is_skip(pStream, 1);
@@ -3556,8 +3581,7 @@ static int mdr_supportsMode(EDIT_MODE aMode) {
 	if (!aMode.em_displayMode) {
 		return FALSE;
 	}
-	return (flag & (SHOW_CARET_LINE_HIGHLIGHT | SHOW_LINENUMBERS | SHOW_RULER | 
-		SHOW_SYNTAX_HIGHLIGHT | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
+	return (flag & (SHOW_CARET_LINE_HIGHLIGHT | SHOW_LINENUMBERS | SHOW_RULER | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
 }
 
 static int mdr_slSize(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {

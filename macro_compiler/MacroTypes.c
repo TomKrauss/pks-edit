@@ -42,6 +42,7 @@ static void types_destroyDescriptorProperties(PKS_TYPE_DESCRIPTOR* pType) {
 			free((char*)pTd[nProp].pev_name);
 		}
 	}
+
 	free(pDescriptors);
 	pType->ptd_elements.ptd_properties = 0;
 	pType->ptd_numberOfProperties = 0;
@@ -88,9 +89,9 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		}
 		else {
 			t = _maxTypeIndex;
-			if (t >= MAX_TYPES) {
-				return 0;
-			}
+		}
+		if (t < 0 || t >= MAX_TYPES) {
+			return 0;
 		}
 	}
 	PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
@@ -134,6 +135,9 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	if (pTemplate->ptd_isEnumType) {
 		if (pTemplate->ptd_elements.ptd_enumValues) {
 			pDescriptor->ptd_elements.ptd_enumValues = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_enumValues);
+			if (pDescriptor->ptd_elements.ptd_enumValues == NULL) {
+				return 0;
+			}
 			PARAMETER_ENUM_VALUE* pSource = pTemplate->ptd_elements.ptd_enumValues;
 			PARAMETER_ENUM_VALUE* pTarget = pDescriptor->ptd_elements.ptd_enumValues;
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
@@ -155,6 +159,9 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 	else {
 		if (pTemplate->ptd_elements.ptd_properties && pTemplate->ptd_numberOfProperties) {
 			pDescriptor->ptd_elements.ptd_properties = calloc(pTemplate->ptd_numberOfProperties, sizeof * pTemplate->ptd_elements.ptd_properties);
+			if (!pDescriptor->ptd_elements.ptd_properties) {
+				return 0;
+			}
 			for (int i = 0; i < pDescriptor->ptd_numberOfProperties; i++) {
 				TYPE_PROPERTY_DESCRIPTOR* pSource = &pTemplate->ptd_elements.ptd_properties[i];
 				TYPE_PROPERTY_DESCRIPTOR* pTarget = &pDescriptor->ptd_elements.ptd_properties[i];
@@ -183,7 +190,7 @@ static void file_close(PKS_VALUE v) {
 /*
  * Converts a WINFO structure to a HWND handle to be stored in the EDITOR_HANDLE. 
  */
-static void* types_toHwnd(WINFO* wp) {
+static void* types_toHwnd(const WINFO* wp) {
 	return wp->ww_handle;
 }
 
