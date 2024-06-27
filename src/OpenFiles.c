@@ -73,6 +73,7 @@ static int ft_generateAutosavePathname(char *destinationName, const char *fname)
 
 	string_splitFilename(fname,(char *)0,fn);
 	string_concatPathAndFilename(szBuff, config_getPKSEditTempPath(),fn);
+	*destinationName = 0;
 	string_getFullPathName(destinationName,szBuff,EDMAXPATHLEN);
 	return 1;
 }

@@ -35,7 +35,7 @@ extern unsigned int hashmap_hashCodeString(intptr_t pParam);
 /*
  * Returns the size of a hash table.
  */
-extern int hashmap_size(HASHMAP* pTable);
+extern int hashmap_size(const HASHMAP* pTable);
 
 /*
  * Return a hash entry for a particular key.

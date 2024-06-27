@@ -84,12 +84,12 @@ static void render_hexLine(RENDER_CONTEXT* pCtx, int y, const char* pszBytes, in
 		}
 		szRender[nHexOffs++] = ' ';
 	}
-	WINFO* wp = pCtx->rc_wp;
+	const WINFO* wp = pCtx->rc_wp;
 	TextOut(pCtx->rc_hdc, -(wp->mincol * wp->cwidth), y, szRender, nAscOffs);
 }
 
-static void hex_findLine(WINFO* wp, long nOffset, LINE** pLinePointer, long* pStartOffset) {
-	FTABLE* fp = FTPOI(wp);
+static void hex_findLine(const WINFO* wp, long nOffset, LINE** pLinePointer, long* pStartOffset) {
+	const FTABLE* fp = FTPOI(wp);
 	*pLinePointer = fp->firstl;
 	*pStartOffset = 0;
 	HEX_RENDERER_DATA* pData = wp->r_data;
@@ -121,9 +121,9 @@ static void hex_findLine(WINFO* wp, long nOffset, LINE** pLinePointer, long* pSt
  * method returns > 0, the Line pointer points to the corresponding line
  * and the pStartOffset contains the byte offset to the beginning of that line.
  */
-static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOffset, long* pLineOffset) {
+static int hex_getLinePointerFor(const WINFO* wp,long ln, LINE** pLine, long* pStartOffset, long* pLineOffset) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
-	FTABLE* fp = wp->fp;
+	const FTABLE* fp = wp->fp;
 	HEX_RENDERER_DATA* pData = wp->r_data;
 	LINE* lp;
 	long nStartOffset;
@@ -154,10 +154,10 @@ static int hex_getLinePointerFor(WINFO* wp,long ln, LINE** pLine, long* pStartOf
 /*
  * Get the next line of bytes from the current file to be rendered. 
  */
-static int hex_getBytes(LINE* lp, int nStartOffset, char* pszBuffer, WINFO* wp, long ln) {
+static int hex_getBytes(LINE* lp, int nStartOffset, char* pszBuffer, const WINFO* wp, long ln) {
 	long nOffset = ln * HEX_BYTES_PER_LINE;
 	HEX_RENDERER_DATA* pData = wp->r_data;
-	FTABLE* fp = wp->fp;
+	const FTABLE* fp = wp->fp;
 
 	int nCount = 0;
 	int lnOffset = nOffset - nStartOffset;
@@ -208,7 +208,7 @@ static void render_matchMarker(HDC hdc, THEME_DATA* pTheme, int xOffset, int y, 
 	DeleteObject(hBrush);
 }
 
-static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOffset, const LINE* lpSelection, int nStartColumn, int nNumberOfCharsSelected) {
+static BOOL render_hexSelection(HDC hdc, const WINFO* wp, int y, LINE* lp, int nLineOffset, const LINE* lpSelection, int nStartColumn, int nNumberOfCharsSelected) {
 	int nByteOffset = 0;
 	while (lp) {
 		if (lp == lpSelection) {
@@ -257,8 +257,8 @@ static BOOL render_hexSelection(HDC hdc, WINFO* wp, int y, LINE* lp, int nLineOf
   * Render the current window in hexadecimal display.
   */
 static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y, long min, long max) {
-	WINFO* wp = pCtx->rc_wp;
-	FTABLE* fp = FTPOI(wp);
+	const WINFO* wp = pCtx->rc_wp;
+	const FTABLE* fp = FTPOI(wp);
 	long ln;
 	long newy;
 	int nLength;

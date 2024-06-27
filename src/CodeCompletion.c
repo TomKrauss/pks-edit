@@ -256,7 +256,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
+	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
 	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
@@ -398,7 +398,7 @@ static void codecomplete_paint(HWND hwnd) {
 	}
 }
 
-static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, CODE_COMPLETION_PARAMS* pCC, int idx) {
+static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, const CODE_COMPLETION_PARAMS* pCC, int idx) {
 	RECT r;
 	GetClientRect(hwnd, &r);
 	idx -= pCC->ccp_topRow;
@@ -697,7 +697,7 @@ static LRESULT codecomplete_helpWndProc(HWND hwnd, UINT message, WPARAM wParam, 
 		if (pData != 0) {
 			int xPos = GET_X_LPARAM(lParam);
 			int yPos = GET_Y_LPARAM(lParam);
-			void* pLink = mdr_linkClicked(pData, xPos, yPos);
+			const void* pLink = mdr_linkClicked(pData, xPos, yPos);
 			if (pLink) {
 				CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(hwnd, GWL_HELPWINDOW_PARAMS);
 				if (pCC) {
@@ -770,7 +770,7 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 		case WM_WINDOWPOSCHANGED: {
 			HWND hwndSecondary = (HWND)GetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW);
 			if (hwndSecondary && IsWindowVisible(hwnd)) {
-				WINDOWPOS* pWinpos = (WINDOWPOS*)lParam;
+				const WINDOWPOS* pWinpos = (const WINDOWPOS*)lParam;
 				BOOL bHasContents = codecompletehelp_getData(hwndSecondary) != 0;
 				if (!bHasContents || (pWinpos->flags & SWP_HIDEWINDOW)) {
 					ShowWindow(hwndSecondary, SW_HIDE);

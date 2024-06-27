@@ -45,7 +45,7 @@ static int _primes[] = {
  * Calculate the hash code value for a string type key. 
  */
 unsigned int hashmap_hashCodeString(intptr_t pParam) {
-	unsigned char* pszString = (unsigned char*)pParam;
+	const unsigned char* pszString = (const unsigned char*)pParam;
 	unsigned int nResult = 0;
 	int nDelta;
 	while ((nDelta = *pszString++) != 0) {
@@ -58,7 +58,7 @@ unsigned int hashmap_hashCodeString(intptr_t pParam) {
  * Calculate the hash code value for a string type key ignoring the case.
  */
 static unsigned int hashmap_hashCodeStringIgnoreCase(intptr_t pParam) {
-	unsigned char* pszString = (unsigned char*)pParam;
+	const unsigned char* pszString = (const unsigned char*)pParam;
 	unsigned int nResult = 0;
 	int nDelta;
 	while ((nDelta = *pszString++) != 0) {
@@ -190,7 +190,7 @@ static void hashmap_rehash(HASHMAP* pTable, int newCapacity) {
 /*
  * Returns the size of a hash table.
  */
-int hashmap_size(HASHMAP* pTable) {
+int hashmap_size(const HASHMAP* pTable) {
 	return pTable->ht_size;
 }
 
