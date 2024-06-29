@@ -33,9 +33,14 @@
           "name": "xml.cdata"
         },
         {
-          "match": "\\</?[a-zA-Z0-9_-]+",
+          "match": "\\</?[.a-zA-Z0-9_-]+",
           "style": "keyword",
           "name": "xml.start"
+        },
+        {
+          "match": "\\$\\{[.a-zA-Z0-9_-]+\\}",
+          "style": "annotation",
+          "name": "xml.variable"
         },
         {
           "match": "\\>",
