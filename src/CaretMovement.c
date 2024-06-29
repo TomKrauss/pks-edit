@@ -751,7 +751,6 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 	}
 	if (mType == MSM_WORDS) {
 		char buf[256];
-		char buf2[256];
 		if (!xref_getSelectedIdentifier(wp, buf, sizeof buf)) {
 			return 0;
 		}
@@ -772,6 +771,8 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 			while ((pMatch = strstr(pMatch, buf)) != NULL) {
 				int nOffset = (int)(pMatch - lp->lbuf) + nDelta;
 				if (lp != wp->caret.linePointer || nOffset != wp->caret.offset) {
+					char buf2[256];
+					buf2[0] = 0;
 					xref_findIdentifierCloseToCaret(wp, &(CARET) {.linePointer = lp, .offset = nOffset}, buf2, buf2 + sizeof buf2, 0, 0, FI_COMPLETE_WORD);
 					if (strcmp(buf, buf2) == 0) {
 						caret_addSecondary(wp, nLine, nOffset);

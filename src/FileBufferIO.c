@@ -414,6 +414,7 @@ static int ft_initializeEncryption(EDIT_CONFIGURATION *linp, char *pw, char* psz
  */
 static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long* pCodepage) {
 	char szMagic[sizeof ((MAGIC*)0)->m_bytes];
+	memset(szMagic, 0, sizeof szMagic);
 	BOOL bHeaderHandled = FALSE;
 	if (Fread(fd, sizeof szMagic, szMagic) >= 8) {
 		MAGIC* pMagic = ft_findMagic(szMagic, sizeof szMagic);

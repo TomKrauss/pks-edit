@@ -371,6 +371,7 @@
         "tabulatorSizes": [4],
         "shiftWidth": 4,
         "showWhitespace": true,
+        "showRuler": true,
         "showLineNumbers": true,
         "showSyntaxHighlight": true,
         "highlightCaretLine": true,
@@ -482,6 +483,8 @@
         }
         ],
         "tabCharacter": " ",
+        "newlineCharacter": "\\0",
+        "crCharacter": "\\0",
         "scrollVerticallyBy": 0,
         "scrollHorizontallyBy": 0,
         "scrollVerticalBorder": 5,

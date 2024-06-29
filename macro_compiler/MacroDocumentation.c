@@ -77,6 +77,7 @@ static void macrodoc_formatJavadocComment(STRING_BUF* pBuf, const char* pszInput
 	char c;
 	STRING_BUF* psbLink = 0;
 
+	memset(szTag, 0, sizeof szTag);
 	macrodoc_startHelpSection(pBuf, "Description");
 	while ((c = *pszInput++) != 0) {
 		if (!pszTag) {

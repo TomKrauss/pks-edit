@@ -219,7 +219,7 @@ void arraylist_set(ARRAY_LIST* pList, int nIndex, void *pElement) {
 	arraylist_ensureFits(pList, nIndex);
 	(*pBuffer)[nIndex] = pElement;
 	if (nIndex >= pList->li_size) {
-		pList->li_size = nIndex+1;
+		pList->li_size = (size_t)nIndex+1;
 	}
 }
 
@@ -253,9 +253,10 @@ int arraylist_indexOf(const ARRAY_LIST* pList, const void* pElement) {
  * Returns an "iterator", which allows fast iteration over the list elements. 
  */
 ARRAY_ITERATOR arraylist_iterator(ARRAY_LIST* pList) {
-	ARRAY_ITERATOR iterator;
-	iterator.i_buffer = *pList->li_buffer;
-	iterator.i_bufferEnd = iterator.i_buffer + pList->li_size;
+	ARRAY_ITERATOR iterator = {
+		.i_buffer = *pList->li_buffer,
+		.i_bufferEnd = iterator.i_buffer + pList->li_size
+	};
 	return iterator;
 }
 

@@ -59,7 +59,7 @@ EXPORT long long string_convertToLong(const char *s)
 	} else {
 		while (*s >= '0' && *s <= '9') {
 			i *= 10;
-			i += (*s - '0');
+			i += (long long)*s - '0';
 			s++;
 		}
 		_strtolend = s;

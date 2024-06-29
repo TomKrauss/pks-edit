@@ -319,6 +319,7 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 					*((char**)pTargetSlot) = _strdup(tokenContents);
 				}
 				break;
+			case RT_CHAR_ZERO:
 			case RT_CHAR: 
 				if (tokens[i].type == JSMN_STRING && tokenContents[1] == 0) {
 					*((char*)pTargetSlot) = tokenContents[0];
@@ -633,13 +634,19 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		sprintf(tokenContents, "\"#%02x%02x%02x\"", GetRValue(rgb), GetGValue(rgb), GetBValue(rgb));
 		}
 		break;
+	case RT_CHAR_ZERO:
 	case RT_CHAR: {
 			b[0] = (char) *((int*)pSourceSlot);
-			if (!b[0]) {
-				return 0;
-			}
 			b[1] = 0;
-			json_quote(tokenContents, b);
+			if (!b[0]) {
+				if (pRule->r_type == RT_CHAR_ZERO) {
+					strcpy(tokenContents, "\"\\\\0\"");
+				} else {
+					return 0;
+				}
+			} else {
+				json_quote(tokenContents, b);
+			}
 		}
 		break;
 	}
@@ -723,6 +730,7 @@ static void json_destroyNode(void* pSourceObject, JSON_MAPPING_RULE* pRule) {
 	case RT_FLAG:
 	case RT_COLOR:
 	case RT_ENUM: 
+	case RT_CHAR_ZERO:
 	case RT_CHAR:
 		break;
 	case RT_NESTED_OBJECT:

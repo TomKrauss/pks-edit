@@ -27,6 +27,7 @@ typedef enum {
 	RT_CHAR_ARRAY,			// we expect a string in the JSON input and will store the value in the target object. The value descriptor will contain the maximum size
 	RT_ALLOC_STRING,		// we expect a string in the JSON input and will return a malloced version of the string in the target object 
 	RT_CHAR,				// we expect a number in the JSON input, which will define a character value
+	RT_CHAR_ZERO,			// we expect a number in the JSON input, which will define a character value. 0 characters are explicitly saved.
 	RT_FLAG,				// we expect a boolean value in the JSON input. If true, we will use the 
 	RT_INTEGER,				// we expect an "int" value in the JSON input.
 	RT_FLOAT,				// we expect a "float" value in the JSON input.

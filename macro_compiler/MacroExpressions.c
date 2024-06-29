@@ -132,15 +132,17 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
  */
 static int strmatch(const char *s1,const char *s2) {	
 	char ebuf[512];
+	ebuf[0] = 0;
 	const char *eol;
 	RE_PATTERN pattern;
-	RE_OPTIONS options;
+	RE_OPTIONS options = {
+		.eof = 0,
+		.patternBuf = ebuf,
+		.endOfPatternBuf = &ebuf[sizeof ebuf],
+		.flags = RE_DOREX,
+		.expression = (char*)s2
+	};
 
-	options.eof = 0;
-	options.patternBuf = ebuf;
-	options.endOfPatternBuf = &ebuf[sizeof ebuf];
-	options.flags = RE_DOREX;
-	options.expression = (char*)s2;
 	eol = &s1[strlen(s1)];
 	if (regex_compile(&options,&pattern) == 0) {
 		interpreter_raiseError("Illegal regular expression %s", s2);
@@ -249,7 +251,7 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 	v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
 	int l1 = v1.pkv_data.intValue;
 	int nMult = v2.pkv_type == VT_CHAR ? 1 : (int)memory_size(v2);
-	buf = calloc(1, l1*nMult+5);
+	buf = calloc(1, (size_t)l1*nMult+5);
 	if (!buf) {
 		interpreter_raiseError("out of memory");
 		return;
@@ -291,7 +293,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 	size_t nMax = memory_size(vSource);
 	if (bOperation == BIN_ADD) {
 		if (vIndex.pkv_type == VT_OBJECT_ARRAY) {
-			int nMax = (int)memory_size(vIndex);
+			nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
 				memory_addObject(pContext, &vSource, memory_getNestedObject(vIndex, i));
 			}
@@ -337,9 +339,14 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 	unsigned char op;
 	char buf[1024];
 
-	if (!sp)
+	if (!sp) {
 		return;
+	}
 	v1 = interpreter_popStackValue(pContext);
+	v2 = (PKS_VALUE) {
+		.pkv_type = VT_NIL
+
+	};
 	op = sp->op;
 	if (!IS_UNARY_OPERATOR(op)) {
 		v2 = v1;
@@ -453,7 +460,7 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			if (n1 < 0 || n1 > n2 || n2 > nLen) {
 				interpreter_raiseError("Illegal range %d, %d for string %s", n1, n2, p1);
 			}
-			size_t nLen = n2 - n1 + 1;
+			nLen = (size_t) n2 - n1 + 1;
 			if (nLen >= sizeof buf - 2) {
 				interpreter_raiseError("At operation fails due to lack of memory.");
 			}

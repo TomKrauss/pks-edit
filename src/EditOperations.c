@@ -274,9 +274,9 @@ long long edit_toggleComment(WINFO* wp) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
 		size_t nOffset = pszFirst ? pszFirst - lpFirst->lbuf : lpFirst->len;
 		if (addCommentFlag < 0) {
-			nOffset -= (size_t)(nLen * addCommentFlag);
+			nOffset -= (size_t)nLen * addCommentFlag;
 		}
-		size_t nOffset2 = nOffset + (size_t)(nLen * addCommentFlag);
+		size_t nOffset2 = nOffset + (size_t)nLen * addCommentFlag;
 		if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)nOffset2)) == 0) {
 			break;
 		}
@@ -687,6 +687,9 @@ join_next_words:
 					break;
 				}
 				render_repaintLine(fp, lp);
+				// Visual Studio thinks it does, but does not know the size of lbuf (defined with size 2 for historical reasons).
+				#pragma warning(disable:6385)
+				#pragma warning(disable:6386)
 				memmove(lp->lbuf, destbuf, desti);
 				ln_markModified(lp);
 				modified = 1;
@@ -1082,10 +1085,8 @@ long long EdCharInsert(WINFO* wp, int c)
 			if (c & 0x100) {
 				c &= 0xFF;
 			} else if (workmode & WM_OEMMODE) {
-				char source[2];
+				char source[2] = {c, 0};
 				char string2[10];
-				source[0] = c;
-				source[1] = 0;
 				AnsiToOemBuff(source, string2, 1);
 				c = *string2;
 			}

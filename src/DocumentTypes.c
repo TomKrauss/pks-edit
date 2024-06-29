@@ -118,9 +118,9 @@ static JSON_MAPPING_RULE _editConfigurationRules[] = {
 			{.r_t_arrayDescriptor = {0, _statuslineSegmentRules, sizeof(STATUS_LINE_SEGMENT)}}},
 	{	RT_CHAR, "tabCharacter", offsetof(EDIT_CONFIGURATION, tabDisplayFillCharacter)},
 	{	RT_CHAR, "fillCharacter", offsetof(EDIT_CONFIGURATION, expandTabsWith)},
-	{	RT_CHAR, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
+	{	RT_CHAR_ZERO, "newlineCharacter", offsetof(EDIT_CONFIGURATION, nl)},
 	{	RT_CHAR, "alternateNewlineCharacter", offsetof(EDIT_CONFIGURATION, nl2)},
-	{	RT_CHAR, "crCharacter", offsetof(EDIT_CONFIGURATION, cr)},
+	{	RT_CHAR_ZERO, "crCharacter", offsetof(EDIT_CONFIGURATION, cr)},
 	{	RT_INTEGER, "scrollVerticallyBy", offsetof(EDIT_CONFIGURATION, vscroll)},
 	{	RT_INTEGER, "scrollHorizontallyBy", offsetof(EDIT_CONFIGURATION, hscroll)},
 	{	RT_INTEGER, "scrollVerticalBorder", offsetof(EDIT_CONFIGURATION, scroll_dy)},
@@ -259,12 +259,13 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 	ListView_DeleteAllItems(hwndList);
 	DOCUMENT_TYPE* llp;
-	LVITEM lvI;
 	HIMAGELIST hSmall;
 	int			nCnt;
 
-	lvI.stateMask = LVIS_SELECTED | LVIS_FOCUSED;
-	lvI.state = 0;
+	LVITEM lvI = {
+		.stateMask = LVIS_SELECTED | LVIS_FOCUSED,
+		.state = 0
+	};
 	hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON),
 		GetSystemMetrics(SM_CYSMICON),
 		ILC_MASK, 1, 1);
@@ -314,6 +315,9 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	if (!llp) {
 		doctypes_createDocumentType((DOCUMENT_TYPE*)0);
 		llp = config.dc_types;
+	}
+	if (llp == NULL) {
+		return FALSE;
 	}
 	if (ppszId) {
 		*ppszId = llp->ll_name;
@@ -659,9 +663,10 @@ int doctypes_initAllDocumentTypes(void) {
  * doctypes_saveToFile()
  */
 int doctypes_saveToFile(void) {
-	FILE_SELECT_PARAMS params;
-	params.fsp_saveAs = TRUE;
-	params.fsp_optionsAvailable = FALSE;
+	FILE_SELECT_PARAMS params = {
+		.fsp_saveAs = TRUE,
+		.fsp_optionsAvailable = FALSE
+	};
 
 	if (!ft_getCurrentDocument() || fsel_selectFileWithOptions(&_editConfigurationFileInfo, CMD_ADD_DOC_MACROS, &params) == 0) {
 		return 0;

@@ -214,11 +214,12 @@ static int br_findMatching(GRAMMAR* pGrammar, MATCHED_BRACKET* pOther, LINE *lp,
 	int ret = 1;
 	long ln = *pLine;
 	MATCHED_BRACKET matchedBracket;
-	BRACKET_RULE calculatedRule;
+	BRACKET_RULE calculatedRule = {
+		.lefthand.pattern = 0
+	};
 	char *s = &lp->lbuf[*pColumn],*send;
 	int  level;
 
-	calculatedRule.lefthand.pattern = 0;
 	// check for right bracket
 	if (pOther && pOther->pSubgroupStart && mp->dynamicMatch) {
 		mp = br_calculateDynamicMatch(&calculatedRule, mp, pOther);

@@ -262,7 +262,7 @@ typedef struct tagFTABLE {
 	HIDDENP	views;			/* the list of our views */
 	HIDDENP	undo;
 	long    fileSize;			// The size of the file as it was "last known": is updated during reading and saving the file.
-	long 	as_time;			// next time for AUTOSAVE 
+	long long as_time;			// next time for AUTOSAVE 
 	VC_INFO* vcInfo;			// The current repository version status information
 	EDTIME	ti_modified;		// last modification time
 	EDTIME	ti_created;			// creation time

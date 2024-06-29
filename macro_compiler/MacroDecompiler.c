@@ -984,10 +984,10 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	MACROC_INSTRUCTION_OP_CODE nPreviousOpCode = 0;
 	MACRO* mp = pOptions->do_macro;
 	DECOMPILATION_STACK_ELEMENT  pStack[64];
+	memset(pStack, 0, sizeof pStack);
 	DECOMPILATION_STACK_ELEMENT* pStackCurrent = pStack;
 	DECOMPILATION_STACK_ELEMENT* pStackEnd = pStack + DIM(pStack);
 
-	memset(pStack, 0, sizeof pStack);
 	comment = MAC_COMMENT(mp);
 	if (*comment) {
 		decompile_printComment(pBuf, comment);
@@ -1003,6 +1003,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	stringbuf_appendString(pBuf, "{ \n");
 	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();
+	gop = NULL;
 	bytecode_startNextAutoLabel(&lname, (COM_GOTO**)&gop);
 	int nParamIndex = 1;
 	while (sp < spend) {

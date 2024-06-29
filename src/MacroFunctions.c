@@ -498,7 +498,7 @@ char* edit_replaceSpacesWithTabs(WINFO* wp, char* pszLine) {
  * In the passed text replace all tabs with spaces according to the tab stop specification for the given editor.
  */
 char* edit_replaceTabsWithSpaces(WINFO* wp, char* pszLine) {
-	int t;
+	int t = 0;
 	int nLen = ft_expandTabsWithSpaces(wp, _linebuf, LINEBUFSIZE, pszLine, strlen(pszLine), &t);
 	_linebuf[nLen] = 0;
 	return _linebuf;
@@ -520,6 +520,7 @@ char* macroc_substituteStringWith(char* string, char* pattern, char* with, long 
 	REPLACEMENT_PATTERN replacementPattern;
 
 	_linebuf[0] = 0;
+	replace[0] = 0;
 	RE_PATTERN* pPattern;
 	if (ft_getCurrentDocument()) {
 		nlchar = ft_getCurrentDocument()->documentDescriptor->nl;

@@ -212,20 +212,20 @@ static void ft_firePropertyChange(FTABLE* fp, PROPERTY_CHANGE* pChange) {
 #define 	HZ			1000L
 int ft_triggerAutosaveAllFiles(void)
 {	int	    		ret,flags,saved;
-	long	  		now,dclicks;
+	long	  		dclicks;
+	long long		now;
 	register FTABLE *fp;
 	char     		spath[EDMAXPATHLEN];
-	static long 	nchkclick;
+	static long long 	nchkclick;
 	static int 		inAutoSave;
 
 	if (inAutoSave || (dclicks = (GetConfiguration()->autosaveSeconds * HZ)) == 0) {
 		/* autosave option is OFF */
 		return 0;
 	}
-
-	now = GetTickCount();
+	now = GetTickCount64();
 	if (!nchkclick) {
-		nchkclick = now + 5 * HZ;
+		nchkclick = now + (long long)(5l * HZ);
 	}
 	if (now < nchkclick) {
 		return 0;
@@ -235,7 +235,7 @@ int ft_triggerAutosaveAllFiles(void)
 	inAutoSave = 1;
 
 	/* check every 5 secs */
-	nchkclick = now + 5 * HZ;
+	nchkclick = now + (long long)(5 * HZ);
 
 	saved = 0;
 	for (fp = _filelist; fp; fp = fp->next) {
@@ -724,8 +724,8 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	int			nFileCreationFlags = 0;
 	const char* pszHint = pOptions->fo_dockName;
 
-	szAsPath[0] = 0;
-	szResultFn[0] = 0;
+	memset(szResultFn, 0, sizeof szResultFn);
+	memset(szAsPath, 0, sizeof szAsPath);
 	if (fn) {
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
@@ -1041,11 +1041,12 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		if (newname[0]) {
 			strcpy(_txtfninfo.path, newname);
 		}
-		FILE_SELECT_PARAMS fsp;
-		fsp.fsp_saveAs = TRUE;
-		fsp.fsp_optionsAvailable = TRUE;
-		fsp.fsp_codepage = fp->codepageInfo.cpi_codepage;
-		fsp.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE;
+		FILE_SELECT_PARAMS fsp = {
+			.fsp_saveAs = TRUE,
+			.fsp_optionsAvailable = TRUE,
+			.fsp_codepage = fp->codepageInfo.cpi_codepage,
+			.fsp_encrypted = pConfig->workmode & O_CRYPTED ? TRUE : FALSE
+		};
 		if (fsel_selectFileWithTitle(CMD_SAVE_FILE_AS, newname, &fsp) == 0) {
 			return 0;
 		}
@@ -1117,10 +1118,11 @@ void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
 		return;
 	}
 	strcpy(oldName, pNewName);
-	PROPERTY_CHANGE change;
-	change.prop_type = FT_NAME;
-	change.prop_oldValue.v_string = oldName;
-	change.prop_newValue.v_string = pNewName;
+	PROPERTY_CHANGE change = {
+		.prop_type = FT_NAME,
+		.prop_oldValue.v_string = oldName,
+		.prop_newValue.v_string = pNewName
+	};
 	strcpy(fp->fname, pNewName);
 	ft_firePropertyChange(fp, &change);
 }
@@ -1138,10 +1140,11 @@ void ft_setTitle(FTABLE* fp, char* pNewName) {
 		fp->title = 0;
 	}
 	strcpy(oldName, pNewName);
-	PROPERTY_CHANGE change;
-	change.prop_type = FT_NAME;
-	change.prop_oldValue.v_string = oldName;
-	change.prop_newValue.v_string = pNewName;
+	PROPERTY_CHANGE change = {
+		.prop_type = FT_NAME,
+		.prop_oldValue.v_string = oldName,
+		.prop_newValue.v_string = pNewName
+	};
 	fp->title = _strdup(pNewName);
 	ft_firePropertyChange(fp, &change);
 }

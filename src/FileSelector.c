@@ -59,8 +59,9 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
 
 	switch (uMsg) {
 	case BFFM_INITIALIZED:
-		_getcwd(szDir, sizeof(szDir));
-		SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)szDir);
+		if (_getcwd(szDir, sizeof(szDir)) == 0) {
+			SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)szDir);
+		}
 		break;
 	}
 
@@ -72,12 +73,12 @@ static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM p
  * if the folder was selected. pResult will contain the resulting folder name.
  */
 BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
-	BROWSEINFO browseinfo;
-	memset(&browseinfo, 0, sizeof browseinfo);
-	browseinfo.hwndOwner = hwndParent;
-	browseinfo.lpszTitle = pTitle;
-	browseinfo.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_NONEWFOLDERBUTTON;
-	browseinfo.lpfn = BrowseCallbackProc;
+	BROWSEINFO browseinfo = {
+		.hwndOwner = hwndParent,
+		.lpszTitle = pTitle,
+		.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_NONEWFOLDERBUTTON,
+		.lpfn = BrowseCallbackProc
+	};
 	HWND hwndOld = GetFocus();
 	PIDLIST_ABSOLUTE pPids = SHBrowseForFolder(&browseinfo);
 	if (hwndOld) {
@@ -102,7 +103,9 @@ void fsel_changeDirectory(char* pszPath) {
 
 	if (pszPath[1] == ':') {
 		cDrv = pszPath[0] - (pszPath[0] > 'Z' ? 'a' : 'A');
-		_chdrive(cDrv);
+		if (_chdrive(cDrv) == -1) {
+			EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot change to drive %c", cDrv));
+		}
 	}
 
 	/* remove trailing \\ */
@@ -113,7 +116,9 @@ void fsel_changeDirectory(char* pszPath) {
 		}
 	}
 
-	_chdir(pszPath);
+	if (_chdir(pszPath) == -1) {
+		EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot change to path %s", pszPath));
+	}
 }
 
 /*---------------------------------*/
