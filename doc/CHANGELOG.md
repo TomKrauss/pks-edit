@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The active tab was sometimes not correctly showing in particular after opening PKS-Edit
   from the command line passing the name of a file to be edited and having multiple windows
   open already.
+- fixed garbled messages in confirmation boxes for messages with filenames containing 
+  umlaut characters
 
 ## [2.6.0] - 2024-06-06
 

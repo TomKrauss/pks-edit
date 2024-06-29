@@ -80,12 +80,6 @@ extern void string_splitFilename(const char* completeFileName, char* pathName, c
 extern char* string_abbreviateFileName(const char* filename);
 
 /*------------------------------------------------------------
- * string_abbreviateFileNameOem()
- * Same as string_abbreviateFileName, but all characters converted to ISO-8859-1.
- */
-extern char* string_abbreviateFileNameOem(const char* fn);
-
-/*------------------------------------------------------------
  * string_getFullPathName()
  * make full pathname
  */

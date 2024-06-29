@@ -186,7 +186,7 @@ void ft_checkForChangedFiles(BOOL bActive) {
 					ww_selectWindow(wp);
 					BOOL bSilentReload = GetConfiguration()->options & O_SILENTLY_RELOAD_CHANGED_FILES;
 					if ((bSilentReload && !ft_isFileModified(fp)) ||
-						error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileNameOem(fp->fname)) == IDYES) {
+						error_displayYesNoConfirmation(IDS_MSGFILESHAVECHANGED, string_abbreviateFileName(fp->fname)) == IDYES) {
 						ft_rereadFileAndDiscardChanges(fp, (EDIT_CONFIGURATION*)0);
 						// may make the list of files invalid.
 						bChangesDiscarded = TRUE;
@@ -732,7 +732,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	}
 	EdTRACE(log_errorArgs(DEBUG_TRACE, "ft_openFile (%s)", fn));
 	if (fn && ft_editing(fn) != 0) {
-		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileNameOem(fn));
+		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileName(fn));
 		if (ret == IDCANCEL) {
 			return 0;
 		}
@@ -749,7 +749,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 			error_showErrorById(IDS_WARN_FILE_MOVED_OR_DELETED, fn);
 			return 0;
 		}
-		if (!pOptions->fo_isNewFile && error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileNameOem(fn)) == IDNO) {
+		if (!pOptions->fo_isNewFile && error_displayYesNoConfirmation(IDS_MSGQUERYNEWFILE, string_abbreviateFileName(fn)) == IDNO) {
 			return 0;
 		}
 		szAsPath[0] = 0;
@@ -1056,7 +1056,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 		}
 		fp->codepageInfo.cpi_codepage = fsp.fsp_codepage;
 		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
-			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileNameOem(newname)) == IDNO)
+			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileName(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */
 		}

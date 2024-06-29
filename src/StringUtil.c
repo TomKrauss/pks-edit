@@ -173,15 +173,6 @@ char *string_abbreviateFileName(const char *fn) {
 	return aname;
 }
 
-/*------------------------------------------------------------
- * string_abbreviateFileNameOem()
- */
-char *string_abbreviateFileNameOem(const char *fn) {
-	char *ret = string_abbreviateFileName(fn);
-	OemToAnsi(ret,ret);
-	return ret;
-}
-
 
 #define	isblnk(c)    (c == ' ' || c == '\t' || c == '' || c == '' || c == '')
 
