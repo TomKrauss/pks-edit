@@ -1451,9 +1451,17 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
  * Add a window with the given window class to our tab control managing the edit windows. 
  */
 HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, const char* pszTitle, LPVOID lParam) {
+	MANAGE_DOCKS_TYPE mdType = MD_ENSURE_DEFAULT;
+	if (pHint->oh_slotName != NULL) {
+		if (strcmp(pHint->oh_slotName, DOCK_NAME_RIGHT) == 0) {
+			mdType = MD_ADD_HORIZONTAL;
+		} else if (strcmp(pHint->oh_slotName, DOCK_NAME_BOTTOM) == 0) {
+			mdType = MD_ADD_VERTICAL;
+		}
+		mainframe_manageDocks(mdType);
+	}
 	DOCKING_SLOT* pSlot = mainframe_getSlot(pHint->oh_slotName);
 	if (pSlot == NULL) {
-		mainframe_manageDocks(MD_ENSURE_DEFAULT);
 		pSlot = dockingSlots;
 	}
 	HWND hwnd = CreateWindow(pszChildWindowClass, pszTitle, WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 10, 10, pSlot->ds_hwnd, NULL, hInst, lParam);
@@ -1461,9 +1469,6 @@ HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, cons
 		return 0;
 	}
 	tabcontrol_addTab(pSlot->ds_hwnd, hwnd, pHint->oh_activate);
-	if (pHint->oh_slotName != NULL) {
-		mainframe_moveWindowAndActivate(hwnd, pHint->oh_slotName, pHint->oh_activate);
-	}
 	return hwnd;
 }
 

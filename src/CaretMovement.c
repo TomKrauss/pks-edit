@@ -516,6 +516,10 @@ int caret_saveLastPosition(void) {
 static int wi_adjust(WINFO *wp, long ln,int adjustflag)
 {	long pos,dy;
 
+	if (wp->mincursln == 0 && wp->maxcursln == 0 && !IsWindowVisible(wp->ww_handle)) {
+		// Window not yet visible and not yet layouted.
+		return 0;
+	}
 	if (ln < wp->mincursln || ln > wp->maxcursln || (adjustflag & 2)) {
 		if (adjustflag & 1) caret_saveLastPosition();
 		if (wp->cursaftersearch == CP_POSTOP) pos = wp->mincursln;
