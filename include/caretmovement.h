@@ -171,7 +171,9 @@ extern int caret_lineOffset2screen(WINFO* wp, CARET* cp);
 /*--------------------------------------------------------------------------
  * caret_screen2lineOffset()
  * Calculate the internal offset in the line buffer
- * for a given cursor screen position
+ * for a given cursor screen position. You must specify the screen column in the
+ * field offset of the caret + you must specify either the line pointer to the line,
+ * where the offset should be calculated or the line number.
  */
 extern int caret_screen2lineOffset(WINFO* wp, CARET* pCaret);
 

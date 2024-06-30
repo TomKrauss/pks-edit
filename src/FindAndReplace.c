@@ -536,7 +536,8 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 			s--;
 			BOOL bModified = FALSE;
 			for (int i = 0; s + i < pszEnd; i++) {
-				if (i + col == nextTabStop) {
+				// i>1: do not convert single spaces to tab.
+				if (i > 1 && i + col == nextTabStop) {
 					*pszDest++ = '\t';
 					s += i;
 					col = nextTabStop;

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regarding modification of the underlying data.
 - PKS Edit correctly enables now menu items and option buttons depending on whether a display or edit mode
   is supported.
+- Additional File types and grammars (e.g. explicit support for Maven pom files or Terraform config files) were added.
 
 ### Fixed
 - fixed missing update of line number area, when lines are modified.
@@ -29,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   open already.
 - fixed garbled messages in confirmation boxes for messages with filenames containing 
   umlaut characters
+- Changing the display/edit settings of a file results in saving `pkseditconfig.json`. When one
+  defined a **line separator** or **cr** being 0 in `pkseditconfig.json`, this setting was lost during save.
+- Using `${caret}` in a template sometimes resulted in a wrong caret position, when the corresponding
+  template was inserted.
 
 ## [2.6.0] - 2024-06-06
 

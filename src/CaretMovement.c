@@ -109,7 +109,6 @@ size_t caret_screenOffset2Buffer(WINFO* wp, const char* p, size_t lineLen, size_
 EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret) {
 	int col = pCaret->offset;
 	LINE* lp = pCaret->linePointer;
-	char *	p = lp->lbuf;
 
 	if (wp == NULL) {
 		wp = ww_getCurrentEditorWindow();
@@ -117,6 +116,14 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret) {
 			return 0;
 		}
 	}
+	if (lp == NULL) {
+		FTABLE* fp = FTPOI(wp);
+		lp = ln_goto(fp, pCaret->ln);
+		if (lp == NULL) {
+			return 0;
+		}
+	}
+	char* p = lp->lbuf;
 	return (int)caret_screenOffset2Buffer(wp, p, lp->len, col);
 }
 

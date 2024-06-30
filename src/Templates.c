@@ -75,8 +75,14 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 	char chSpace = ft_getSpaceFillCharacter(wp);
 	FTABLE* fp = wp->fp;
 	BOOL bUseTabs = fp->documentDescriptor->expandTabsWith == 0;
+	BOOL bBreak = FALSE;
 
-	while ((c = *pszSource++) != 0) {
+	while (!bBreak) {
+		c = *pszSource++;
+		if (c == 0) {
+			c = '\n';
+			bBreak = TRUE;
+		}
 		if (pVar) {
 			if (c == '}') {
 				*pVar = 0;
@@ -85,42 +91,52 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 					pTAction->ta_cursorDelta.cd_deltaCol = col;
 					pTAction->ta_cursorDelta.cd_deltaLn = ln;
 					pTAction->ta_positionCursor = TRUE;
-				} else if (strcmp("secondary", variable) == 0) {
+				}
+				else if (strcmp("secondary", variable) == 0) {
 					if (pTAction->ta_secondaryCarets < MAX_SECONDARY) {
 						CARET_DELTA* pDelta = &pTAction->ta_secondary[pTAction->ta_secondaryCarets++];
 						pDelta->cd_deltaCol = col;
 						pDelta->cd_deltaLn = ln;
 					}
-					// currently not supported.
-					bUseTabs = FALSE;
-				} else if (strcmp("indent", variable) == 0) {
+				}
+				else if (strcmp("indent", variable) == 0) {
 					for (int i = 0; i < nIndent; i++) {
 						stringbuf_appendChar(pResult, chSpace);
 					}
 					col += nIndent;
-				} else if (strcmp("tab", variable) == 0) {
+				}
+				else if (strcmp("tab", variable) == 0) {
 					for (int i = 0; i < fp->documentDescriptor->tabsize; i++) {
 						stringbuf_appendChar(pResult, chSpace);
 					}
 					col += fp->documentDescriptor->tabsize;
-				} else if (strcmp("selection_end", variable) == 0) {
+				}
+				else if (strcmp("selection_end", variable) == 0) {
 					pTAction->ta_selectionDeltaCol = col - pTAction->ta_cursorDelta.cd_deltaCol;
 					pTAction->ta_selectionDeltaLn = ln - pTAction->ta_cursorDelta.cd_deltaLn;
-				} else if (strcmp("word_selection", variable) == 0) {
+				}
+				else if (strcmp("word_selection", variable) == 0) {
 					strcpy(expandedVariable, pszSelected);
-				} else {
+				}
+				else {
 					string_getVariable(wp, variable, expandedVariable, sizeof expandedVariable);
 				}
 				stringbuf_appendString(pResult, expandedVariable);
 				col += (long)strlen(expandedVariable);
 				pVar = NULL;
-			} else if (pVar < variable+sizeof variable-1) {
+			}
+			else if (pVar < variable + sizeof variable - 1) {
 				*pVar++ = c;
 			}
+		} else if (c == '\\' && *pszSource == '$') {
+			c = '$';
+			pszSource++;
+			goto normalText;
 		} else if (c == '$' && *pszSource == '{') {
 			pszSource++;
 			pVar = variable;
 		} else {
+		normalText:
 			if (c == '\n') {
 				ln++;
 				col = 0;
@@ -144,7 +160,6 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 			}
 		}
 	}
-	stringbuf_appendChar(pResult, '\n');
 	return pResult;
 }
 
@@ -163,6 +178,7 @@ static void template_replaceCurrentWord(WINFO* wp, char* pszIdentifier) {
 		size_t o2 = wp->caret.offset;
 		ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
 		wp->caret.offset = (long)o1;
+		wp->caret.col = caret_lineOffset2screen(wp, &wp->caret);
 		render_repaintCurrentLine(wp);
 	}
 }
@@ -248,23 +264,38 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, 
 			template_replaceCurrentWord(wp, szIdentifier);
 		}
 		CARET oldCaret = wp->caret;
+		int firstLineCol = oldCaret.col;
 		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
 		if (templateAction.ta_positionCursor) {
-			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol : templateAction.ta_cursorDelta.cd_deltaCol + oldCaret.offset;
+			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol : 
+				templateAction.ta_cursorDelta.cd_deltaCol + firstLineCol;
 			long ln = templateAction.ta_cursorDelta.cd_deltaLn + oldCaret.ln;
+			col = caret_screen2lineOffset(wp, &(CARET) {
+				.ln = ln,
+				.offset = col
+			});
 			caret_placeCursorInCurrentFile(wp, ln, col);
 			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
 				bl_hideSelection(wp, 0);
 				EdSyncSelectionWithCaret(wp, MARK_START);
 				col += templateAction.ta_selectionDeltaCol;
 				ln += templateAction.ta_selectionDeltaLn;
+				col = caret_screen2lineOffset(wp, &(CARET) {
+					.ln = ln,
+					.offset = col
+				});
 				caret_placeCursorInCurrentFile(wp, ln, col);
 				EdSyncSelectionWithCaret(wp, MARK_END);
 			}
 			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
 				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];
-				int secondaryCol = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : oldCaret.offset + pDelta->cd_deltaCol;
-				caret_addSecondary(wp, oldCaret.ln+pDelta->cd_deltaLn, secondaryCol);
+				int secondaryCol = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : firstLineCol + pDelta->cd_deltaCol;
+				ln = oldCaret.ln + pDelta->cd_deltaLn;
+				secondaryCol = caret_screen2lineOffset(wp, &(CARET) {
+					.ln = ln,
+					.offset = secondaryCol
+				});
+				caret_addSecondary(wp, ln, secondaryCol);
 			}
 		}
 		ln_listfree(pasteBuffer.pln);

@@ -95,6 +95,13 @@
         "filenamePatterns": "*.log;*.err;*.out;*.logfile"
     },
     {
+        "name": "pom",
+        "description": "Maven POM Files (pom.xml)",
+        "grammar": "maven",
+        "editorConfiguration": "default",
+        "filenamePatterns": "pom.xml"
+    },
+    {
         "name": "xmlmarkup",
         "description": "XML Files (*.xml, *.xsd)",
         "grammar": "xml",

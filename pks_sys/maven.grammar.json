@@ -1,0 +1,33 @@
+{
+  "grammars": [
+    {
+      "scopeName": "maven",
+      "description": "Maven POM Files",
+      "import": [ "commonmarkup" ],
+      "templates": [
+        {
+          "match": "<properties",
+          "contents": "<properties>\n${indent}${tab}${cursor}\n${indent}</properties>",
+		  "help": "Properties are the last required piece to understand POM basics. Maven properties are value placeholders, like properties in Ant.",
+        },
+        {
+          "match": "<dependency",
+          "contents": "<dependency>\n${indent}${tab}<groupId>mygroup</groupId>\n${indent}${tab}<artifactId>artifact${cursor}<artifactId/>\n${indent}${tab}<version>\\${artifact${secondary}.version}<version/>\n${indent}</dependency>",
+		  "help": "The cornerstone of the POM is its dependency list. Most projects depend on others to build and run correctly. If all Maven does for you is manage this list, you have gained a lot. Maven downloads and links the dependencies on compilation, as well as on other goals that require them.",
+        }
+      ],
+      "patterns": [
+        {
+          "match": "\\$\\{[.a-zA-Z0-9_-]+\\}",
+          "style": "classname",
+          "name": "maven.variable"
+        },
+		{
+          "match": "(\\<|\\</)(properties|parent|build|dependency|repositories|project|modelVersion|plugins?|dependencies|modules?|distributionManagement|artifactId|name|groupId|version|packaging|description)[ >]",
+          "style": "regexp",
+          "name": "keyword.cpp"
+        }
+      ]
+    }
+  ]
+}
