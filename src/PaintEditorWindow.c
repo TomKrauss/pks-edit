@@ -254,7 +254,7 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 				}
 			} else if (tabFiller && tabFiller != ' ') {
 				render_fillBuf(fillbuf, tabFiller, indent - i);
-				render_formattedString(pRC, x, y, fillbuf, indent-i, FS_CONTROL_CHARS, &fsPreviousClass);
+				render_formattedString(pRC, x, y, fillbuf, (size_t)indent-i, FS_CONTROL_CHARS, &fsPreviousClass);
 			}
 			x += (indent - i) * wp->cwidth;
 			i = indent;
@@ -348,7 +348,7 @@ static void render_customCaret(WINFO* wp, HDC hdc, int y) {
  */
 void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	THEME_DATA* pTheme = pCtx->rc_theme;
-	int  		newy, visLen;
+	int  		newy = 0, visLen;
 	long		ln;
 	long		minMarkedLine;
 	long		maxMarkedLine;

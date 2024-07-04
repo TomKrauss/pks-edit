@@ -36,14 +36,15 @@ typedef struct tagINSPECTOR_VARIABLE {
  * Initialize the debugger list views.
  */
 static void debugger_initVariablesView(HWND hwnd) {
-	LVCOLUMN lvc;
 
 	ListView_SetExtendedListViewStyleEx(hwnd, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
-	lvc.iSubItem = 0;
-	lvc.pszText = "Name";
-	lvc.cx = 100;
-	lvc.fmt = LVCFMT_LEFT;
+	LVCOLUMN lvc = {
+		.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+		.iSubItem = 0,
+		.pszText = "Name",
+		.cx = 100,
+		.fmt = LVCFMT_LEFT
+	};
 
 	ListView_InsertColumn(hwnd, 0, &lvc);
 

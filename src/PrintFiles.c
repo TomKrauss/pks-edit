@@ -128,11 +128,12 @@ static void print_drawHeaderDecoration(HDC hdc, DEVEXTENTS* dep, PAGE_DECORATION
 		y2 = dep->yFooterPos;
 	}
 	int delta = dep->lineHeight / 4;
-	RECT rect;
-	rect.left = x1;
-	rect.right = x2;
-	rect.top = y + delta;
-	rect.bottom = y2 - delta;
+	RECT rect = {
+		.left = x1,
+		.right = x2,
+		.top = y + delta,
+		.bottom = y2 - delta
+	};
 	if (pdType == PDT_LINE) {
 		if (bHeader) {
 			rect.top = rect.bottom - 2;
@@ -529,26 +530,27 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 	TEXTMETRIC	textMetrics;
 	FTABLE*		fp = _currentPrintScope.fp;
 	PRTPARAM	*pp = config_getPrintConfiguration();
-	PRINT_LINE	printLineParam;
 
 	print_getDeviceExtents(hdc, &de);
 	print_selectfont(hdc,&pp->font);
 	GetTextMetrics(hdc, &textMetrics);
 	oldpageno = 0;
-	printLineParam.linesPrinted = 0;
-	printLineParam.pagenumber = 1;
-	printLineParam.pLastElement = _currentPrintScope.lplast;
-	printLineParam.wrappedLineOffset = 0;
-	printLineParam.yPos = 0;
-	printLineParam.xPos = de.xLMargin;
-	printLineParam.pElement = _currentPrintScope.lp;
-	printLineParam.charHeight = de.lineHeight;
-	printLineParam.firstc = _currentPrintScope.firstColumn;
-	printLineParam.lastc = _currentPrintScope.lastColumn;
-	printLineParam.lineNumber = 1;
-	printLineParam.maxYPos = de.yBottom;
-	printLineParam.yOffset = 0;
-	printLineParam.wp = _currentPrintScope.wp;
+	PRINT_LINE	printLineParam = {
+		.linesPrinted = 0,
+		.pagenumber = 1,
+		.pLastElement = _currentPrintScope.lplast,
+		.wrappedLineOffset = 0,
+		.yPos = 0,
+		.xPos = de.xLMargin,
+		.pElement = _currentPrintScope.lp,
+		.charHeight = de.lineHeight,
+		.firstc = _currentPrintScope.firstColumn,
+		.lastc = _currentPrintScope.lastColumn,
+		.lineNumber = 1,
+		.maxYPos = de.yBottom,
+		.yOffset = 0,
+		.wp = _currentPrintScope.wp
+	};
 
 	WINFO* wp = _currentPrintScope.wp;
 	if (wp == NULL) {

@@ -196,9 +196,10 @@ static int hex_getBytes(LINE* lp, int nStartOffset, char* pszBuffer, const WINFO
 static void render_matchMarker(HDC hdc, THEME_DATA* pTheme, int xOffset, int y, int width, int height, int nColumn) {
 	HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogBorder);
 
-	RECT rect;
-	rect.top = y;
-	rect.bottom = y + height;
+	RECT rect = {
+		.top = y,
+		.bottom = y + height
+	};
 	int x;
 	int nCharsMarked = 1;
 	x = HEX_MAX_COL - HEX_BYTES_PER_LINE + nColumn;
@@ -228,9 +229,10 @@ static BOOL render_hexSelection(HDC hdc, const WINFO* wp, int y, LINE* lp, int n
 	int xOffset = -wp->mincol * wp->cwidth;
 	int cWidth = wp->cwidth;
 	int cHeight = wp->cheight;
-	RECT rect;
-	rect.top = y;
-	rect.bottom = y + cHeight;
+	RECT rect = {
+		.top = y,
+		.bottom = y + cHeight
+	};
 	int nMax = nByteOffset + nNumberOfCharsSelected;
 	BOOL nRet = TRUE;
 	if (nMax > HEX_BYTES_PER_LINE) {
@@ -260,11 +262,9 @@ static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrus
 	const WINFO* wp = pCtx->rc_wp;
 	const FTABLE* fp = FTPOI(wp);
 	long ln;
-	long newy;
 	int nLength;
 	char szBuffer[HEX_BYTES_PER_LINE+5];
 	RECT rect;
-	RECT r;
 	LINE* lp;
 	LINE* lpSelection;
 	int nSelectionStart;
@@ -288,6 +288,7 @@ static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrus
 		lpSelection = 0;
 		nSelectionStart = -1;
 	}
+	long newy = 0;
 	for (ln = min; ln <= max && y < pClip->bottom; ln++, y = newy) {
 		newy = y + cheight;
 		if (newy > pClip->top) {
@@ -297,8 +298,11 @@ static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrus
 			nLength = nResult <= 0 ? -1 : hex_getBytes(lp, nStartOffset, szBuffer, wp, ln);
 			if (nLength <= 0) {
 				if (nLength == -1) {
-					r.left = rect.left; r.right = rect.right;
-					r.top = y;
+					RECT r = {
+						.left = rect.left,
+						.right = rect.right,
+						.top = y
+					};
 					r.bottom = min(pClip->bottom, y + cheight);
 					FillRect(pCtx->rc_hdc, &r, hBrushBg);
 					FONT_STYLE_CLASS fsPreviousStyle;
@@ -313,8 +317,11 @@ static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrus
 			} else {
 				hBrush = hBrushBg;
 			}
-			r.left = rect.left; r.right = rect.right;
-			r.top = y;
+			RECT r = {
+				.left = rect.left,
+				.right = rect.right,
+				.top = y
+			};
 			r.bottom = min(pClip->bottom, y + cheight);
 			FillRect(pCtx->rc_hdc, &r, hBrush);
 			render_hexLine(pCtx, y, szBuffer, nLength);
@@ -329,8 +336,11 @@ static void render_hexModeFromTo(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrus
 		}
 	}
 
-	r.left = rect.left; r.right = rect.right;
-	r.top = y;
+	RECT r = {
+		.left = rect.left,
+		.right = rect.right,
+		.top = y
+	};
 	r.bottom = min(pClip->bottom, y + (max - ln) * cheight);
 	if (r.bottom > r.top) {
 		FillRect(pCtx->rc_hdc, &r, hBrushBg);
@@ -621,11 +631,12 @@ PRINT_FRAGMENT_RESULT hex_print(RENDER_CONTEXT* pRC, PRINT_LINE* printLineParam,
 	if (nMax > nMaxLines) {
 		nMax = nMaxLines;
 	}
-	RECT rect;
-	rect.left = pExtents->xLMargin;
-	rect.right = pExtents->xRMargin;
-	rect.top = pExtents->yTop;
-	rect.bottom = pExtents->yBottom;
+	RECT rect = {
+		.left = pExtents->xLMargin,
+		.right = pExtents->xRMargin,
+		.top = pExtents->yTop,
+		.bottom = pExtents->yBottom
+	};
 	int nOldDC = SaveDC(hdc);
 	HBRUSH hBrush = CreateSolidBrush(pRC->rc_theme->th_defaultBackgroundColor);
 	IntersectClipRect(hdc, rect.left, rect.top, rect.right, rect.bottom);

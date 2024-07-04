@@ -48,7 +48,7 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
  * must not exceed MAX_TOKEN_SIZE in size.
  */
 static void json_tokenContents(const char* json, jsmntok_t* tok, char* pDest) {
-	size_t nSize = tok->end - tok->start;
+	size_t nSize = (size_t) tok->end - tok->start;
 	if (nSize > MAX_TOKEN_SIZE) {
 		nSize = MAX_TOKEN_SIZE;
 	}
@@ -83,7 +83,7 @@ static void json_tokenContents(const char* json, jsmntok_t* tok, char* pDest) {
  */
 static int json_matches(const char* json, jsmntok_t* tok, JSON_MAPPING_RULE* pRule) {
 	jsmntype_t tokenType = JSMN_STRING;
-	size_t tokenSize = tok->end - tok->start;
+	size_t tokenSize = (size_t) tok->end - tok->start;
 	if (tok->type == tokenType && (int)strlen(pRule->r_name) == tokenSize &&
 		strncmp(json + tok->start, pRule->r_name, tokenSize) == 0) {
 		return 1;
@@ -102,7 +102,7 @@ static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSO
 		pRule++;
 	}
 	char szBuf[256];
-	size_t nLen = pToken->end - pToken->start;
+	size_t nLen = (size_t) pToken->end - pToken->start;
 	memcpy(szBuf, pJsonInput + pToken->start, nLen);
 	szBuf[nLen] = 0;
 
@@ -553,7 +553,6 @@ static void json_marshalStringArray(FILE* fp, int indent, ARRAY_LIST* pValues) {
 static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPPING_RULE* pRule, int bNeedsTermination) {
 	void * pSourceSlot = ((char*)pSourceObject + pRule->r_targetOffset);
 	char	tokenContents[MAX_TOKEN_SIZE + 1];
-	char b[64];
 	int bit;
 
 	switch (pRule->r_type) {
@@ -636,8 +635,8 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
 		break;
 	case RT_CHAR_ZERO:
 	case RT_CHAR: {
+			char b[2] = { 0 };
 			b[0] = (char) *((int*)pSourceSlot);
-			b[1] = 0;
 			if (!b[0]) {
 				if (pRule->r_type == RT_CHAR_ZERO) {
 					strcpy(tokenContents, "\"\\\\0\"");

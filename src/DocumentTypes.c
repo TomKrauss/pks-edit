@@ -196,6 +196,9 @@ static void doctypes_copyDescriptor(EDIT_CONFIGURATION* pDest, EDIT_CONFIGURATIO
 EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor() {
 	EDIT_CONFIGURATION* pDescriptor = calloc(1, sizeof * pDescriptor);
 
+	if (pDescriptor == NULL) {
+		return NULL;
+	}
 	pDescriptor->rmargin = 80;
 	pDescriptor->tabsize = 8;
 	pDescriptor->shiftwidth = 4;

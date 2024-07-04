@@ -130,7 +130,9 @@ static GRAMMAR_DEFINITIONS _grammarDefinitions;
 
 static BRACKET_RULE* grammar_createBracketRule() {
 	BRACKET_RULE* pRule = calloc(1, sizeof(*pRule));
-	memcpy(pRule, &_defaultBracketRule, sizeof _defaultBracketRule);
+	if (pRule != NULL) {
+		memcpy(pRule, &_defaultBracketRule, sizeof _defaultBracketRule);
+	}
 	return pRule;
 }
 
@@ -441,6 +443,9 @@ static void grammar_createPatternFromKeywords(GRAMMAR_PATTERN* pGrammarPattern) 
 
 static RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope, int someFlags) {
 	RE_PATTERN *pPattern = calloc(1, sizeof(RE_PATTERN));
+	if (pPattern == NULL) {
+		return NULL;
+	}
 	RE_OPTIONS options;
 	memset(&options, 0, sizeof options);
 	options.flags = someFlags;
@@ -453,9 +458,12 @@ static RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope,
 		error_displayAlertDialog("Wrong regular expression %s in grammar", pszMatch, pszScope);
 		return NULL;
 	}
-	size_t nLen = pPattern->compiledExpressionEnd - pPattern->compiledExpression;
-	pPattern->compiledExpression = realloc(pPattern->compiledExpression, nLen);
-	pPattern->compiledExpressionEnd = pPattern->compiledExpression + nLen;
+	size_t nLen = (size_t)(pPattern->compiledExpressionEnd - pPattern->compiledExpression);
+	void* pTemp = realloc(pPattern->compiledExpression, nLen);
+	if (pTemp != NULL) {
+		pPattern->compiledExpression = pTemp;
+		pPattern->compiledExpressionEnd = pPattern->compiledExpression + nLen;
+	}
 	return pPattern;
 
 }

@@ -126,6 +126,9 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bPara
 	}
 	unsigned char* pszCopy = bAlloc ? _strdup(pszTagName) : (unsigned char* )pszTagName;
 	CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
+	if (pAction == NULL) {
+		return NULL;
+	}
 	pAction->ca_name = pszCopy;
 	pAction->ca_type = CA_TAG;
 	pAction->ca_param.text = pszCopy;
@@ -243,6 +246,9 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	while (up) {
 		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern)) {
 			CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
+			if (pAction == NULL) {
+				return;
+			}
 			pAction->ca_name = up->uc_pattern.pattern;
 			pAction->ca_type = CA_TEMPLATE;
 			pAction->ca_param.template = up;
@@ -732,8 +738,10 @@ static LRESULT codecomplete_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			LPCREATESTRUCT cp = (LPCREATESTRUCT)lParam;
 			wp = (WINFO*)cp->lpCreateParams;
 			pCC = calloc(1, sizeof * pCC);
-			pCC->ccp_wp = wp;
-			SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)pCC);
+			if (pCC != NULL) {
+				pCC->ccp_wp = wp;
+				SetWindowLongPtr(hwnd, GWL_PARAMS, (LONG_PTR)pCC);
+			}
 		}
 		break;
 		case WM_DESTROY: {

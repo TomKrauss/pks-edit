@@ -215,8 +215,8 @@ void template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, siz
 	if (pPattern && (nPatternLength = strlen(pPattern)) != 0) {
 		int start = wp->caret.offset;
 		for (int i = (int)(start - nPatternLength); i < start; i++) {
-			if (i >= 0 && strncmp(&wp->caret.linePointer->lbuf[i], pPattern, start - i) == 0) {
-				size_t nLen = start - i;
+			size_t nLen = (size_t) start - i;
+			if (i >= 0 && strncmp(&wp->caret.linePointer->lbuf[i], pPattern, nLen) == 0) {
 				if (nLen > nMatchedSize - 1) {
 					nLen = nMatchedSize - 1;
 				}

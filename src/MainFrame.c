@@ -604,7 +604,13 @@ static int tabcontrol_selectPage(HWND hwnd, const HWND hwndPage) {
 static int tabcontrol_addTab(HWND hwnd, HWND hwndTab, BOOL bSelect) {
 	char szTitle[EDMAXPATHLEN];
 	TAB_CONTROL* pControl = (TAB_CONTROL*)GetWindowLongPtr(hwnd, GWLP_TAB_CONTROL);
+	if (pControl == NULL) {
+		return 0;
+	}
 	TAB_PAGE* pData = calloc(1, sizeof * pData);
+	if (pData == NULL) {
+		return 0;
+	}
 	int idx = (int)arraylist_size(pControl->tc_pages);
 	arraylist_add(pControl->tc_pages, pData);
 	pData->tp_hwnd = hwndTab;
@@ -652,10 +658,11 @@ static void tabcontrol_paintWidgetContents(HDC hdc, RECT* pRect, BOOL bRollover,
 	int nDelta = 4;
 	int h2;
 	THEME_DATA* pTheme = theme_getCurrent();
-	LOGBRUSH brush;
-	brush.lbColor = pTheme->th_dialogBorder;
-	brush.lbHatch = 0;
-	brush.lbStyle = PS_SOLID;
+	LOGBRUSH brush = {
+		.lbColor = pTheme->th_dialogBorder,
+		.lbHatch = 0,
+		.lbStyle = PS_SOLID
+	};
 	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_ROUND | PS_ENDCAP_ROUND, 
 		dpisupport_getSize(bRollover && twWidgetType == TW_CLOSER ? 4 : 2), &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
@@ -821,7 +828,6 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	THEME_DATA* pTheme = theme_getCurrent();
 	int nIconSize = dpisupport_getSize(TAB_ICON_SIZE);
 	int nMargin = dpisupport_getSize(TAB_ICON_MARGIN);
-	RECT rect;
 	
 	tabcontrol_measureTab(hdc, pPage, bSelected);
 	if (x + pPage->tp_width >= xMax) {
@@ -830,10 +836,12 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 	pszTitle = tabcontrol_getTitle(pPage->tp_hwnd, szBuffer, sizeof szBuffer);
 	size_t nLen = strlen(pszTitle);
 	HFONT hFont = SelectObject(hdc, theme_createDialogFont(bSelected ? FW_BOLD : FW_NORMAL));
-	rect.left = x;
-	rect.right = x + pPage->tp_width;
-	rect.top = y;
-	rect.bottom = y + height;
+	RECT rect = {
+		.left = x,
+		.right = x + pPage->tp_width,
+		.top = y,
+		.bottom = y + height
+	};
 	HBRUSH hBrush = CreateSolidBrush(bSelected ? pTheme->th_defaultBackgroundColor : pTheme->th_dialogLight);
 	HBRUSH hOld = SelectObject(hdc, hBrush);
 	int border = dpisupport_getSize(2);
@@ -885,10 +893,11 @@ static BOOL tabcontrol_paintTab(HDC hdc, TAB_PAGE* pPage, BOOL bSelected, BOOL b
 		if (!hwndFocus) {
 			return TRUE;
 		}
-		LOGBRUSH brush;
-		brush.lbColor = pTheme->th_dialogActiveTab;
-		brush.lbHatch = 0;
-		brush.lbStyle = PS_SOLID;
+		LOGBRUSH brush = {
+			.lbColor = pTheme->th_dialogActiveTab,
+			.lbHatch = 0,
+			.lbStyle = PS_SOLID
+		};
 		hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, dpisupport_getSize(3), &brush, 0, NULL);
 		hPenOld = SelectObject(hdc, hPen);
 		MoveToEx(hdc, x + border/2, y + border/2, NULL);
@@ -1040,9 +1049,10 @@ static BOOL tabcontrol_dragTab(HWND hwnd, TAB_CONTROL* pControl, TAB_PAGE* pPage
 		SetCapture(hwnd);
 		HCURSOR hCursor = LoadCursor(0, IDC_SIZEALL);
 		SetCursor(hCursor);
-		RECT rect;
-		rect.left = x;
-		rect.top = y;
+		RECT rect = {
+			.left = x,
+			.top = y
+		};
 		rect.right = pPage->tp_width + rect.left;
 		rect.bottom = rect.top + pControl->tc_stripHeight;
 		HWND hwndProxy = dragproxy_open(&rect, pPage);
@@ -1192,10 +1202,11 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 		bTrackChanged = TRUE;
 	}
 	if (bTrackChanged) {
-		TRACKMOUSEEVENT tme;
-		tme.cbSize = sizeof(tme);
-		tme.hwndTrack = hwnd;
-		tme.dwHoverTime = HOVER_DEFAULT;
+		TRACKMOUSEEVENT tme = {
+			.cbSize = sizeof(tme),
+			.hwndTrack = hwnd,
+			.dwHoverTime = HOVER_DEFAULT
+		};
 		if (nIndex > 0 || bShow) {
 			tme.dwFlags = TME_LEAVE;
 		}
@@ -1334,6 +1345,9 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	switch (message) {
 	case WM_CREATE:
 		pControl = calloc(1, sizeof * pControl);
+		if (pControl == NULL) {
+			break;
+		}
 		pControl->tc_pages = arraylist_create(5);
 		pControl->tc_stripHeight = dpisupport_getSize(26);
 		pControl->tc_activeTab = -1;
@@ -1369,9 +1383,10 @@ static LRESULT tabcontrol_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPA
 	}
 
 	case WM_MOUSEMOVE: {
-		POINT p;
-		p.x = GET_X_LPARAM(lParam);
-		p.y = GET_Y_LPARAM(lParam);
+		POINT p = {
+			.x = GET_X_LPARAM(lParam),
+			.y = GET_Y_LPARAM(lParam)
+		};
 		if (wParam & MK_LBUTTON && (abs(p.x - ptDown.x) > 1 || abs(p.y - ptDown.y) > 1)) {
 			if (GetCapture() != hwnd) {
 				tabcontrol_handleButtonDown(hwnd, lParam, TRUE);
@@ -1576,9 +1591,10 @@ static void mainframe_arrangeDockingSlots(HWND hwnd) {
  * no rect can be found containing the mouse pointer NULL is returned.
  */
 static RECT* mainframe_findSplitterRect(LPARAM lParam) {
-	POINT pt;
-	pt.x = GET_X_LPARAM(lParam);
-	pt.y = GET_Y_LPARAM(lParam);
+	POINT pt = {
+		.x = GET_X_LPARAM(lParam),
+		.y = GET_Y_LPARAM(lParam)
+	};
 	DOCKING_SLOT* pSlot = dockingSlots;
 	MapWindowPoints(HWND_DESKTOP, hwndFrameWindow, (LPPOINT)&pt, 1);
 	while (pSlot) {
