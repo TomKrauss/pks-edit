@@ -6,35 +6,36 @@ The form
 at is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.7.0] - 2024-06-06
+## [2.7.0] - 2024-07-05
 
 ### Added
-- A Grammar for Terraform Scripts has been added.
+- A Grammar for `Terraform Config Files` has been added.
+- A Grammar for `Maven Files` with some explicit Maven support (custom templates etc...) has been added.
 - The new action `Open Wysiwyg Window` allows for opening a window in wysiwyg mode, which will follow your
   caret in the editing window allowing for a better preview experience during editing text with a wysiwyg
   preview (e.g. markdown).
 
 ### Improved
-- HEX editing has been improved. Caret movement works now as expected. Still some remaining open issues
+- HEX editing has been improved. Caret movement works now as expected. There are still some remaining open issues
   regarding modification of the underlying data.
 - PKS Edit correctly enables now menu items and option buttons depending on whether a display or edit mode
   is supported.
 - Additional File types and grammars (e.g. explicit support for Maven pom files or Terraform config files) were added.
 
 ### Fixed
-- fixed missing update of line number area, when lines are modified.
+- We fixed the missing repaint of the line number area, when lines were modified.
 - The Open File dialog is now correctly opened as child of the PKS Edit main window.
 - Pressing backspace does not trigger template expansion any more.
-- The active tab was sometimes not correctly showing in particular after opening PKS-Edit
+- The active tab was sometimes not correctly visible - in particular after opening PKS-Edit
   from the command line passing the name of a file to be edited and having multiple windows
   open already.
-- fixed garbled messages in confirmation boxes for messages with filenames containing 
-  umlaut characters
+- We fixed garbled messages displayed in confirmation boxes for messages referring to file names containing 
+  umlaut characters.
 - Changing the display/edit settings of a file results in saving `pkseditconfig.json`. When one
   defined a **line separator** or **cr** being 0 in `pkseditconfig.json`, this setting was lost during save.
 - Using `${caret}` in a template sometimes resulted in a wrong caret position, when the corresponding
   template was inserted.
-- A possible Crash was fixed, when trying to format a file with a single line. In that case, the EOF-marker
+- A possible crash was fixed, when trying to format a file with a single line. In that case, the EOF-marker
   was removed and further processing could cause the crash.
 
 ## [2.6.0] - 2024-06-06

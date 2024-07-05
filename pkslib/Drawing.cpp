@@ -54,10 +54,12 @@ static BOOL fontawesome_initFontFamilies() {
 	int found = (*awesomeFontCollection).GetFamilyCount();
 	// Currently the free awesome font is not correctly handled as a font family, but the separate font files are loaded
 	// as separate font families.
-	if (found > 2) {
+	if (found == 3) {
 		(*awesomeFontCollection).GetFamilies(found, families, &found);
-		families[found - 1].GetFamilyName(faFamilyName);
-		families[found - 2].GetFamilyName(faFamilyNameRegular);
+		if (found == 3) {
+			families[found - 1].GetFamilyName(faFamilyName);
+			families[found - 2].GetFamilyName(faFamilyNameRegular);
+		}
 		families[0].GetFamilyName(faFamilyNameBrands);
 		return TRUE;
 	}
@@ -126,9 +128,9 @@ extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nCol
     HDC hdcScreen = GetDC(0);
     HDC hdc = CreateCompatibleDC(hdcScreen);
 
-    int nWidth = nIcons * nSize;
-    int nBitcount = 32;
-    int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nSize;
+    const int nWidth = nIcons * nSize;
+    const int nBitcount = 32;
+    const int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nSize;
 
     BITMAPINFO bmi = { 0 };
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -144,11 +146,11 @@ extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nCol
         (void**)&pvBits, NULL, 0x0);
     auto hBmpOld = hBmp == nullptr ? nullptr : SelectObject(hdc, hBmp);
 	RECT rect;
-    rect.top = 0;
-    rect.bottom = nSize;
-    rect.left = 0;
-    rect.right = rect.left + nWidth;
-    paint_awesomeIcons(hdc, icons, nIcons, nColorRef, rect.left, 0, nSize);
+	rect.top = 0;
+	rect.bottom = nSize;
+	rect.left = 0;
+	rect.right = rect.left + nWidth;
+	paint_awesomeIcons(hdc, icons, nIcons, nColorRef, rect.left, 0, nSize);
 	if (hBmpOld != nullptr) {
 		SelectObject(hdc, hBmpOld);
 	}

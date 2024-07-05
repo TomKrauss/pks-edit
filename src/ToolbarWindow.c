@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <windowsx.h>
+#include "trace.h"
 #include "fontawesome.h"
 #include "customcontrols.h"
 #include "winterf.h"
@@ -116,8 +117,10 @@ static void tb_loadFont(int id) {
             DWORD len = SizeofResource(hInstance, hFntRes);
             paint_loadFontAwesome(pFontData, len);
             FreeResource(hFntMem);
+            return;
         }
     }
+    EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot load Font with id %d.", id));
 }
 
 /*
