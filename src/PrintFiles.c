@@ -684,14 +684,14 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 		case WM_DRAWITEM:
 			hdc = ((LPDRAWITEMSTRUCT)lParam)->hDC;
 			int savedDc = SaveDC(hdc);
-			RECT pageRect;
 			DEVEXTENTS de;
 			print_getDeviceExtents(hdc, &de);
-			RENDER_CONTEXT rc;
-			rc.rc_hdc = hdc;
-			rc.rc_wp = _currentPrintScope.wp;
-			rc.rc_printing = TRUE;
-			rc.rc_theme = theme_getDefault();
+			RENDER_CONTEXT rc = {
+				.rc_hdc = hdc,
+				.rc_wp = _currentPrintScope.wp,
+				.rc_printing = TRUE,
+				.rc_theme = theme_getDefault()
+			};
 			if (numberOfPreviewPages <= 0) {
 				numberOfPreviewPages = print_file(&rc, TRUE);
 				if (numberOfPreviewPages <= 0) {
@@ -699,14 +699,17 @@ static INT_PTR CALLBACK DlgPreviewProc(HWND hDlg, UINT message, WPARAM wParam, L
 				}
 				prt_enablePreviewButtons(hDlg, numberOfPreviewPages, newPage);
 			}
-			pageRect.top = 0;
-			pageRect.bottom = de.yPage;
-			pageRect.right = de.xPage;
+			RECT pageRect = {
+				.left = 0,
+				.top = 0,
+				.bottom = de.yPage,
+				.right = de.xPage
+			};
 			HPEN hPen = CreatePen(0, 1, theme_getDefault()->th_dialogBorder);
 			HGDIOBJ original = SelectObject(hdc, hPen);
 			SelectObject(hdc, GetStockObject(DC_BRUSH));
 			SetDCBrushColor(hdc, RGB(255, 255, 255));
-			Rectangle(hdc, 0, pageRect.top, pageRect.right, pageRect.bottom);
+			Rectangle(hdc, pageRect.left, pageRect.top, pageRect.right, pageRect.bottom);
 			DeleteObject(SelectObject(hdc, original));
 			print_file(&rc, FALSE);
 			RestoreDC(hdc, savedDc);
@@ -969,12 +972,12 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 		return 0;
 	}
 	prtDlg->lStructSize = sizeof * prtDlg;
-	PRINTPAGERANGE pageRange;
 	HPROPSHEETPAGE pPage1 = CreatePropertySheetPage(&psp[0]);
 	HPROPSHEETPAGE pPage2 = CreatePropertySheetPage(&psp[1]);
-	HPROPSHEETPAGE pages[2];
-	pages[0] = pPage1;
-	pages[1] = pPage2;
+	HPROPSHEETPAGE pages[2] = {
+		pPage1,
+		pPage2
+	};
 	prtDlg->hwndOwner = hwndMain;
 	prtDlg->lphPropertyPages = pages;
 	prtDlg->Flags = PD_ALLPAGES | PD_RETURNDC | PD_PAGENUMS;
@@ -982,9 +985,11 @@ static HDC DlgPrint(char* title, PRTPARAM *pp, WINFO* wp) {
 		prtDlg->Flags |= PD_NOSELECTION;
 	}
 	prtDlg->nPageRanges = 1;
+	PRINTPAGERANGE pageRange = {
+		.nFromPage = 1,
+		.nToPage = 999
+	};
 	prtDlg->lpPageRanges = &pageRange;
-	pageRange.nFromPage = 1;
-	pageRange.nToPage = 999;
 	prtDlg->nMinPage = 1;
 	prtDlg->nMaxPage = 999;
 	prtDlg->nCopies = 1;

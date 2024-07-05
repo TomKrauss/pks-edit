@@ -1475,6 +1475,9 @@ HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, cons
 		}
 		mainframe_manageDocks(mdType);
 	}
+	else if (dockingSlots == NULL) {
+		mainframe_manageDocks(MD_ENSURE_DEFAULT);
+	}
 	DOCKING_SLOT* pSlot = mainframe_getSlot(pHint->oh_slotName);
 	if (pSlot == NULL) {
 		pSlot = dockingSlots;

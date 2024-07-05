@@ -289,8 +289,7 @@ void error_showMessage(char* s, ...) {
  * error_showErrorById()
  * Display an error error_displayAlertDialog given a resource ID + optional arguments.
  */
-void error_showErrorById(int nId, ...)
-{
+void error_showErrorById(int nId, ...) {
 	va_list 	ap;
 	char* s;
 	char        buf[256];
@@ -325,11 +324,15 @@ void error_displayGenericErrorNumber(int num)
  * error_openingFileFailed()
  * Display an (OS level) error about a file.
  */
-void error_openingFileFailed(char *fn, int fd) {
+void error_openingFileFailed(char *fn, BOOL bNonBlocking, int fd) {
 	BOOL bDirectory = FALSE;
 	file_getFileAttributes(fn, NULL, NULL, &bDirectory);
 	if (bDirectory) {
-		error_showErrorById(IDS_FILE_IS_DIRECTORY, (LPSTR)string_abbreviateFileName(fn));
+		if (bNonBlocking) {
+			error_showMessageInStatusbar(IDS_FILE_IS_DIRECTORY, (LPSTR)string_abbreviateFileName(fn));
+		} else {
+			error_showErrorById(IDS_FILE_IS_DIRECTORY, (LPSTR)string_abbreviateFileName(fn));
+		}
 		return;
 	}
 	DWORD dw = GetLastError();
@@ -344,7 +347,12 @@ void error_openingFileFailed(char *fn, int fd) {
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
-	error_showErrorById(IDS_MSGOPEN, (LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
+	if (bNonBlocking) {
+		error_showMessageInStatusbar(IDS_MSGOPEN, (LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
+	}
+	else {
+		error_showErrorById(IDS_MSGOPEN, (LPSTR)string_abbreviateFileName(fn), lpMsgBuf);
+	}
 	LocalFree(lpMsgBuf);
 }
 

@@ -582,7 +582,12 @@ int ft_formatText(WINFO* wp, int nRange, FORMATTING_ALIGNMENT nAlignment) {
 	int ret = 1;
 	if (lp && lp != lplast) {
 		LINE* lpTarget = lp->prev;
-		bl_delete(wp, lp, lplast, 0, lplast->len, 0, 0);
+		if (lplast == fp->lastl) {
+			lplast = lplast->prev;
+		}
+		if (lplast) {
+			bl_delete(wp, lp, lplast, 0, lplast->len, 0, 0);
+		}
 		lpTarget = lpTarget ? lpTarget->next : fp->firstl;
 		paste.pln = lpReplace;
 		ret = bl_paste(&paste, wp, lpTarget, 0, 0);

@@ -31,7 +31,7 @@ HWND hwndAbort;
 
 static DLGPROC lpfnAbort;
 static int  	_cancelled;
-static long		_tickCountToStart = -1;
+static long long _tickCountToStart = -1;
 static int		_nMessageId;
 
 /*------------------------------------------------------------
@@ -64,18 +64,15 @@ static INT_PTR DlgProgressProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
 void progress_startMonitor(unsigned int ids, int nWaitForPopup) {
 	_nMessageId = ids;
 	if (nWaitForPopup > 0) {
-		_tickCountToStart = GetTickCount() + nWaitForPopup;
+		_tickCountToStart = GetTickCount64() + nWaitForPopup;
 		return;
 	}
 	_tickCountToStart = -1;
 	if (!hwndAbort) {
-		char szB1[30];
-		char szBuff[256];
-		szB1[0] = 0;
-		LoadString(ui_getResourceModule(),ids,szB1,sizeof szB1);
-		wsprintf(szBuff,"%s...",szB1);
-		win_createModelessDialog(&hwndAbort,"DLGABORT",
-						  DlgProgressProc,&lpfnAbort);
+		char szBuff[256] = { 0 };
+		LoadString(ui_getResourceModule(), ids, szBuff, sizeof szBuff-10);
+		strcat(szBuff, "...");
+		win_createModelessDialog(&hwndAbort,"DLGABORT", DlgProgressProc, &lpfnAbort);
 		if (hwndAbort) {
 			theme_enableDarkMode(hwndAbort);
 			HWND hwndPB = GetDlgItem(hwndAbort, IDC_PROGRESS);
@@ -87,7 +84,7 @@ void progress_startMonitor(unsigned int ids, int nWaitForPopup) {
 }
 
 static void progress_popupAfterDelay() {
-	if (_tickCountToStart > 0 && GetTickCount() > (unsigned long)_tickCountToStart) {
+	if (_tickCountToStart > 0 && GetTickCount64() > (unsigned long long) _tickCountToStart) {
 		_tickCountToStart = -1;
 		progress_startMonitor(_nMessageId, 0);
 	}

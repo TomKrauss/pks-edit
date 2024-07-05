@@ -434,7 +434,7 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 
 	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, 
 				CFSF_SEARCH_ABSOLUTE | CFSF_SEARCH_APP_PKS_SYS| CFSF_SEARCH_LOCAL_PKS_SYS| CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR)) != 0L
-			&& (fd = file_openFile(fn)) > 0) {
+			&& (fd = file_openFile(fn, FALSE)) > 0) {
 		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading config file %s", fn));
 		ret = json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
@@ -442,7 +442,7 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 	// Allow extending configurations by placing config files into user.home/CONFIG
 	if (extensionSupported && 
 		(fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && 
-		(fd = file_openFile(fn)) > 0) {
+		(fd = file_openFile(fn, FALSE)) > 0) {
 		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading extension file %s", fn));
 		json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);

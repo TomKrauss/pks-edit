@@ -54,19 +54,13 @@ void error_vdisplayAlertDialog(const char* fmt, va_list ap);
  * error_openingFileFailed()
  * Display an (OS level) error about a file.
  */
-extern void error_openingFileFailed(char* fn, int fd);
+extern void error_openingFileFailed(char* fn, BOOL bNonBlocking, int fd);
 
 /*------------------------------------------------------------
  * error_displayGenericErrorNumber()
  * Report an arbitrary error with an error number.
  */
 extern void error_displayGenericErrorNumber(int num);
-
-/*------------------------------------------------------------
- * error_showErrorById()
- * Display an error error_displayAlertDialog given a resource ID + optional arguments.
- */
-extern void error_showErrorById(int nId, ...);
 
 /*------------------------------------------------------------
  * error_displayErrorInToastWindow()

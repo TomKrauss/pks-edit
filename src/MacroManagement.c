@@ -283,7 +283,7 @@ static int macro_writeMacroBindingsToFile(int whichresource, char *name)
 	int 		ret = 1,fd;
 
 	if ((fd = rsc_create(name,1)) < 0) {
-		error_openingFileFailed(name,fd);
+		error_openingFileFailed(name, FALSE, fd);
 		return 0;
 	}
 

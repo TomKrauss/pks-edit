@@ -132,9 +132,10 @@ static int mouse_textBlockEndDrag(WINFO* wp, int x, int y, int bCancel) {
 	hwnd = WindowFromPoint(p);
 
 	if (hwnd == wp->ww_handle) {
-		intptr_t stack[8];
-		stack[0] = (intptr_t)ww_getCurrentEditorWindow();
-		stack[1] = 0;
+		intptr_t stack[8] = {
+			(intptr_t)ww_getCurrentEditorWindow(),
+			0
+		};
 		if (_dragTextBlockMoveData.moving) {
 			ret = (int)interpreter_executeFunction(FUNC_EdBlockMove, stack);
 		} else {

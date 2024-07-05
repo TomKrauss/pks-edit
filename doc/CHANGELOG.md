@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defined a **line separator** or **cr** being 0 in `pkseditconfig.json`, this setting was lost during save.
 - Using `${caret}` in a template sometimes resulted in a wrong caret position, when the corresponding
   template was inserted.
+- A possible Crash was fixed, when trying to format a file with a single line. In that case, the EOF-marker
+  was removed and further processing could cause the crash.
 
 ## [2.6.0] - 2024-06-06
 

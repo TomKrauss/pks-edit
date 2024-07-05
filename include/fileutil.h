@@ -38,8 +38,9 @@ extern int file_isAbsolutePathName(const char* pszFilename);
 /*--------------------------------------------------------------------------
  * file_openFile()
  * Open a file and return the file handle. If it cannot be opened, display an error.
+ * If used during batch mode, error handling is different.
  */
-extern int file_openFile(char* fn);
+extern int file_openFile(char* fn, BOOL bBatchMode);
 
 /*
  * Make a file readable and writeable.

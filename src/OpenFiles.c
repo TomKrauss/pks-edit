@@ -104,7 +104,7 @@ FTABLE* ft_getCurrentErrorDocument() {
 static int ft_appendFileChanges(WINFO* wp) {
 	int fd;
 	FTABLE* fp = wp->fp;
-	if ((fd = file_openFile(fp->fname)) < 0) {
+	if ((fd = file_openFile(fp->fname, FALSE)) < 0) {
 		return 0;
 	}
 	FTABLE ftAppend;

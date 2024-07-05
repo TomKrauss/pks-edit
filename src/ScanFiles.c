@@ -237,7 +237,7 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 	int 	fd;
 	_searchContext.sc_line = 0L;
 
-	if ((fd = file_openFile(pszFile)) <= 0) {
+	if ((fd = file_openFile(pszFile, TRUE)) <= 0) {
 		_searchContext.sc_openFailures++;
 		return 1;
 	}
@@ -317,7 +317,7 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
 	HASHMAP* pResult = hashmap_create(37, 0, 0);
 	int 	fd;
 
-	if ((fd = file_openFile(pszStepfile)) <= 0) {
+	if ((fd = file_openFile(pszStepfile, TRUE)) <= 0) {
 		return pResult;
 	}
 	CODE_PAGE_INFO cpInfo = {

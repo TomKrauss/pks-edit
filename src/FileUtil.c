@@ -97,7 +97,7 @@ int file_getFileAttributes(char *fname, EDTIME* pCreated, EDTIME* pModified, BOO
  * file_openFile()
  * Open a file and return the file handle. If it cannot be opened, display an error.
  */
-EXPORT int file_openFile(char *fn) {	
+EXPORT int file_openFile(char *fn, BOOL bBatchMode) {
 	int fd;
 
 	if ((fd = Fopen(fn, OF_READ)) < 0) {
@@ -119,7 +119,7 @@ EXPORT int file_openFile(char *fn) {
 			free(pszWPath);
 		}
 		if (fd < 0) {
-			error_openingFileFailed(fn, fd);
+			error_openingFileFailed(fn, bBatchMode, fd);
 		}
 	}
 	return fd;
@@ -143,7 +143,7 @@ EXPORT int file_createFileWithMode(char *fn,int mode)
 	while(1) {
 		if ((fd = Fcreate(fn,mode)) < 0) {
 			if ( file_getFileMode(fn) < 0) {
-				error_openingFileFailed(fn,fd);
+				error_openingFileFailed(fn, FALSE, fd);
 				break;
 			} else {
 				if (error_displayYesNoConfirmation(IDS_MSGWPROTECT,(LPSTR)string_abbreviateFileName(fn)) == IDYES) {

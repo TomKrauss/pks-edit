@@ -168,7 +168,7 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 	FTABLE* fp = ((FTABLE*)FTPOI(wp));
 	char fillbuf[20];
 	char eofStyles[20];
-	char buf[300];
+	char buf[512];
 	unsigned char* pszStyles;
 	int flags;
 	int startX = x;

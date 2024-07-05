@@ -87,7 +87,7 @@ Source: "{#GetEnv('GITLIBDIRECTORY')}\bin\git2.dll"; DestDir: "{app}"; DestName:
 Source: "licenses\COPYING.libgit2"; DestDir: "{app}\licenses"; DestName: "COPYING.libgit2"; Flags: ignoreversion
 Source: "x64\Release\{#MyAppBaseName}.en-US.dll"; DestDir: "{app}"; DestName: "{#MyAppBaseName}.en-US.dll"; Flags: ignoreversion
 Source: "x64\Release\pkslib.dll"; DestDir: "{app}"; DestName: "pkslib.dll"; Flags: ignoreversion
-Source: "pks_sys\*.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
+Source: "pks_sys\*.json"; Excludes: "pkssession.json"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "pks_sys\pksedit.mac"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "rc\pks.ico"; DestDir: "{app}\pks_sys"; Flags: ignoreversion
 Source: "readme.md"; DestDir: "{app}"; Flags: ignoreversion 

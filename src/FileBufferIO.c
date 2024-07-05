@@ -198,7 +198,7 @@ void err_writeErrorOcurred(void)
  */
 void err_openFailed(char *fname)
 {
-	error_openingFileFailed(fname,0);
+	error_openingFileFailed(fname, FALSE, 0);
 }
 
 /*
@@ -483,7 +483,7 @@ nullfile:
 		fileHandle = CreateFile(fp->fname, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, 0,
 			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); 
 		if (fileHandle == INVALID_HANDLE_VALUE) {
-			if ((fd = file_openFile(fp->fname)) < 0) {
+			if ((fd = file_openFile(fp->fname, FALSE)) < 0) {
 				ret = 0;
 				goto readerr;
 			}
@@ -741,7 +741,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 			fd = Fcreate(fp->fname, crflags);
 		}
 		if (fd < 0) {
-			error_openingFileFailed(fp->fname,fd);
+			error_openingFileFailed(fp->fname,FALSE, fd);
 			ret = 100;
 			goto wfail1;
 		}
@@ -766,7 +766,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 	}
 
 	// don't save last line
-	while (lp != fp->lastl) {
+	while (lp && lp != fp->lastl) {
 		// Make sure we are not overriding end of _linebuf, which has size LINEBUFSIZE
 		if ((no = offset+lp->len) < LINEBUFSIZE-2) {
 			memmove(&_linebuf[offset],lp->lbuf,lp->len);
@@ -809,7 +809,7 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 wfail1:
 	file_closeFile(&fd);
 	if (saveLockFd > 0) {
-		fp->lockFd = file_openFile(fp->fname);
+		fp->lockFd = file_openFile(fp->fname, FALSE);
 	}
 	if (!quiet)
 		mouse_setDefaultCursor();
