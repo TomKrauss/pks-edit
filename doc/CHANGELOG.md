@@ -6,6 +6,18 @@ The form
 at is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2024-07-05
+
+### Improved
+- The Align Text function is more intuitive to use now.
+- Most dialogs support now context sensitive help. The PKS Edit manual was improved to be able to support this.
+- The Markdown Wysiwyg mode supports now caret line highlighting.
+
+### Fixed
+- A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.
+  the File & Replace dialog), when multiple lines of text were selected and the column of the selection end was less
+  than the column of the selection start.
+
 ## [2.7.0] - 2024-07-05
 
 ### Added

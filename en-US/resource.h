@@ -55,7 +55,7 @@
 #define IDS_MSGNOPRINTER                75
 #define IDS_MSGOVERWRITE                76
 #define IDS_MSGQUERYNEWFILE             77
-#define IDS_MSGDISCARD_ALL_CHANGES                  78
+#define IDS_MSGDISCARD_ALL_CHANGES      78
 #define IDS_MSGNOBRACKETS               79
 #define IDS_MSGUNDEFWINREG              80
 #define IDS_MSGNOLASTPOS                81
@@ -209,12 +209,13 @@
 #define IDS_COMMAND254                  2302
 #define IDS_ERROR_MESSAGE               3000
 #define ID_FILE_HISTORY                 40008
+#define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        212
+#define _APS_NEXT_RESOURCE_VALUE        216
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           101

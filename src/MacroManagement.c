@@ -1006,10 +1006,13 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 static KEYCODE macro_getCurrentKeycode(void)
 {
 	KEYCODE k;
-	DIALOG_ITEM_DESCRIPTOR _d[] = { {IDD_KEYCODE,	sizeof k,	&k}, {0} };
+	DIALOG_ITEM_DESCRIPTOR dialogItems[] = { {IDD_KEYCODE,	sizeof k,	&k}, {0} };
 
 	k = K_DELETED;
-	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL || k == 0) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = dialogItems
+	};
+	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure, &dialogDescriptor, NULL) == IDCANCEL || k == 0) {
 		return K_DELETED;
 	}
 	return k;

@@ -51,8 +51,23 @@ typedef struct tagDIALOG_ITEM_DESCRIPTOR {
 	LIST_HANDLER* did_listhandler;
 } DIALOG_ITEM_DESCRIPTOR;
 
+/*
+ * Can be used to connect a section in the PKS Edit manual with the context sensitive help for
+ * one item on a dialog.
+ */
+typedef struct tagDIALOG_HELP_DESCRIPTOR {
+	// Pointer to the PKS Edit manual in the form mydocument.md#link
+	// Will be opened, when the help icon in the dialog is clicked.
+	// If this is NULL - it is the last item in the list of help items.
+	char* dhd_link;
+	// The number of the item for which this descriptor defines the context sensitive help.
+	// If this number is 0, it is the help entry for the dialog itself.
+	int   dhd_itemNumber;
+} DIALOG_HELP_DESCRIPTOR;
+
 typedef struct tagDIALOG_DESCRIPTOR {
 	DIALOG_ITEM_DESCRIPTOR* dd_items;
+	DIALOG_HELP_DESCRIPTOR* dd_helpItems;
 } DIALOG_DESCRIPTOR;
 
 typedef struct tagITEM_TOOLTIP_MAPPING {
@@ -65,10 +80,10 @@ typedef struct tagITEM_TOOLTIP_MAPPING {
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-extern void			dlg_setXDialogParams(DIALOG_ITEM_DESCRIPTOR* (*func)(int pageIndex), boolean propertySheetFlag);
+extern void			dlg_setXDialogParams(DIALOG_DESCRIPTOR* (*func)(int pageIndex), boolean propertySheetFlag);
 
 extern BOOL			DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams);
-extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
+extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 /*
@@ -77,14 +92,14 @@ extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 # if defined(_EDFUNCS_H)
-extern int 			win_callDialog(int nId, PARAMS *pp, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+extern int 			win_callDialog(int nId, PARAMS *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 /*--------------------------------------------------------------------------
  * win_callDialogCB()
  * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-extern int win_callDialogCB(int nId, PARAMS* pp, DIALOG_ITEM_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
+extern int win_callDialogCB(int nId, PARAMS* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
 # endif
 extern void 		dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax);
 /*--------------------------------------------------------------------------
@@ -144,7 +159,7 @@ extern void dlg_help(void);
  * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
  * The list of item descriptors must be 0-terminated.
  */
-extern BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR* dp);
+extern BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_DESCRIPTOR* dp);
 
 
 /*--------------------------------------------------------------------------
@@ -179,6 +194,11 @@ extern int EdPromptForCharacter(int ids_num);
  * EdHelpContext()
  */
 extern int EdHelpContext(DWORD nCtx);
+
+/*--------------------------------------------------------------------------
+ * Opens a PKS Edit Help file with an optional Anchor (e.g. manual\edit_operations.md#align)
+ */
+extern int help_open(char* szFile);
 
 /*
  * Property Sheet callback method for darkmode handling.

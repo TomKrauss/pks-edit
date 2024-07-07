@@ -67,11 +67,13 @@ extern EDTEXTSTYLE* highlight_getTextStyleForLexicalState(HIGHLIGHTER* pHighligh
 
 typedef struct tagRENDER_FLOW_PARAMS {
 	RENDER_VIEW_PART* rfp_part;
+	WINFO* rfp_wp;
 	HDC rfp_hdc;
 	BOOL rfp_skipSpace;
 	float rfp_zoomFactor;
 	BOOL rfp_measureOnly;
 	BOOL rfp_focus;
+	BOOL rfp_printing;
 	THEME_DATA* rfp_theme;
 } RENDER_FLOW_PARAMS;
 
@@ -995,6 +997,18 @@ static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
 	}
 	if (x2 > pPartBounds->right) {
 		pPartBounds->right = x2;
+	}
+}
+
+/*
+ * Highlight the section where the caret is.
+ */
+static void mdr_highlightCaretLine(const RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* pPart) {
+	if (!pRFP->rfp_printing && pPart->rvp_layouted && (pRFP->rfp_wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT)) {
+		HBRUSH hBrushCaretLine;
+		hBrushCaretLine = CreateSolidBrush(pRFP->rfp_theme->th_caretLineColor);
+		FillRect(pRFP->rfp_hdc, &pPart->rvp_bounds, hBrushCaretLine);
+		DeleteObject(hBrushCaretLine);
 	}
 }
 
@@ -3581,7 +3595,7 @@ static int mdr_supportsMode(EDIT_MODE aMode) {
 	if (!aMode.em_displayMode) {
 		return FALSE;
 	}
-	return (flag & (SHOW_CARET_LINE_HIGHLIGHT | SHOW_LINENUMBERS | SHOW_RULER | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
+	return (flag & (SHOW_LINENUMBERS | SHOW_RULER | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
 }
 
 static int mdr_slSize(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {
@@ -3713,7 +3727,7 @@ static long mdr_calculateMaxLine(WINFO* wp) {
 	return fp->nlines;
 }
 
-static int mdr_adjustScrollBounds(WINFO* wp) {
+static int mdr_adjustScrollBoundsOffset(WINFO* wp, BOOL bMiddleOfScreen) {
 	SIZE size;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	SCROLLINFO info = {
@@ -3732,10 +3746,14 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 		nUse = nScreenHeight;
 	}
 	int nMaxY = info.nPos + nScreenHeight - nUse;
+	if (bMiddleOfScreen) {
+		size.cy += nScreenHeight / 2;
+	}
 	if (size.cy < info.nPos) {
 		nNewY = size.cy;
 	} else if (size.cy > nMaxY) {
-		nNewY = size.cy - nScreenHeight + nUse;
+		int nDelta = nUse;
+		nNewY = size.cy - nScreenHeight + nDelta;
 	} else {
 		return 0;
 	}
@@ -3746,6 +3764,10 @@ static int mdr_adjustScrollBounds(WINFO* wp) {
 	}
 	mdr_scrolled(wp->ww_handle, pData, MAKELPARAM(SB_THUMBPOSITION, nNewY), TRUE);
 	return 1;
+}
+
+static int mdr_adjustScrollBounds(WINFO* wp) {
+	return mdr_adjustScrollBoundsOffset(wp, FALSE);
 }
 
 /*
@@ -3877,7 +3899,9 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		.rfp_focus = GetFocus() == hwnd,
 		.rfp_hdc = hdc,
 		.rfp_theme = pRC->rc_theme,
-		.rfp_zoomFactor = zoomFactor
+		.rfp_zoomFactor = zoomFactor,
+		.rfp_wp = pRC->rc_wp,
+		.rfp_printing = pRC->rc_printing
 	};
 	if (GetMapMode(hdc) == MM_ANISOTROPIC) {
 		LONG ext = win_getWindowExtension(hdc);
@@ -3897,6 +3921,9 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 				pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
+			if (pData->md_caretView == pPart && !rfp.rfp_measureOnly) {
+				mdr_highlightCaretLine(&rfp, pPart);
+			}
 			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
 		}
 		pPart = pPart->rvp_next;
@@ -4213,7 +4240,16 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	}
 	int nMDCaretLine;
 	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.linePointer, &nMDCaretLine);
-	pData->md_caretView = pPart;
+	if (pData->md_caretView != pPart) {
+		BOOL bHighlight = wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT;
+		if (bHighlight && pData->md_caretView && pData->md_caretView->rvp_layouted) {
+			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_bounds, FALSE);
+		}
+		pData->md_caretView = pPart;
+		if (bHighlight && pData->md_caretView && pData->md_caretView->rvp_layouted) {
+			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_bounds, FALSE);
+		}
+	}
 	if (pPart) {
 		int nStart = pData->md_caretRunIndex;
 		if (pData->md_caretPartIndex != nMDCaretLine) {
@@ -4449,7 +4485,7 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 		return 0;
 	case WM_KILLFOCUS:
 	case WM_SETFOCUS:
-		if ((pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_caretRun) {
+		if ((pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_caretRun && pData->md_caretView) {
 			RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView, pData->md_caretRun);
 			InvalidateRect(hwnd, (RECT*) & rb, 0);
 		}
@@ -4655,6 +4691,7 @@ anchorMatched:
 				nLine = ln_indexOf(wp->fp, pPart->rvp_lpStart);
 				mdr_placeCaret(wp, &nLine, 0, &nCol, 0, 0);
 				wt_curpos(wp, nLine, 0);
+				mdr_adjustScrollBoundsOffset(wp, TRUE);
 				return;
 			}
 		}

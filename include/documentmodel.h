@@ -316,6 +316,11 @@ extern LINE *ln_relative(LINE *cl, long l);
 extern long ln_cnt(LINE *lps,LINE *lpe);
 extern void ln_replace(FTABLE *fp,LINE *oln,LINE *nl);
 
+/*--------------------------------------------------------------------------
+ * edit_expandTabsInLineWithSpaces()
+ */
+LINE* edit_expandTabsInLineWithSpaces(WINFO* wp, LINE* lp, long* nt);
+
 /*
  * Options for opening a window to view on a file.
  */

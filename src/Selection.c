@@ -216,6 +216,9 @@ int bl_getSelectedText(WINFO* wp, char* pszBuf, int nMaxLines, size_t nCapacity)
 			if (--n <= 0) {
 				mend.m_linePointer = lp;
 				mend.m_line = mstart.m_line + nMaxLines - 1;
+				if (mend.m_column < mstart.m_column) {
+					mend.m_column = lp->len;
+				}
 				break;
 			}
 			lp = lp->next;
@@ -833,7 +836,10 @@ char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	};
 
 	bl_namedClipboardDialogAction = bOption;
-	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, _d, NULL, bl_namedClipboardDialogProc);
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, &dialogDescriptor, NULL, bl_namedClipboardDialogProc);
 	if (!ret) {
 		return 0;
 	}

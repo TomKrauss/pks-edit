@@ -228,7 +228,7 @@ static int op_toggleOption(WINFO* wp, struct optiontab *op)
 {    int *flg;
 
 	if ((flg = op_getFlagToToggle(wp, op->op_type)) != 0) {
-		BOOL displayMode = op->flag & OPT_DMODE;
+		BOOL displayMode = op->op_type == OP_DISPLAY_MODE;
 		int flag = op->flag & ~(OPT_DMODE | OPT_WMODE);
 		EDIT_MODE mode = {
 			.em_displayMode = displayMode,

@@ -492,8 +492,11 @@ int config_tempPathIsDefault() {
 	return 0;
 }
 
-static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
-	return _paramsPerPage[pageIndex];
+static DIALOG_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
+	static DIALOG_DESCRIPTOR d;
+
+	d.dd_items = _paramsPerPage[pageIndex];
+	return &d;
 }
 
 void EdOptionSet(void) {

@@ -405,7 +405,7 @@ COMMAND _commandTable[] = {
 77, C_1FUNC, 27 /* macro_readWriteWithFileSelection */, 	1, 1 , "write-macros",
 78, C_1FUNC, 27 /* macro_readWriteWithFileSelection */, 	1, 0 , "read-macros",
 79, C_1FUNC, 29 /* EdSetup */, 								1, 1,  "save-configuration",
-80, C_0FUNC, 109 /* EdConfigureIcons */, 					1, 0 , "configure-icons",
+80, C_1FUNC, 78 /* EdOptionToggle */, 						1, OPT_DMODE | SHOW_CARET_LINE_HIGHLIGHT, "toggle-highlight-caret",
 81, C_0FUNC, 75 /* dlg_configureEditorModes */, 			1, 0 , "dialog-display-mode",
 82, C_0FUNC, 74 /* EdDlgWorkMode */, 						1, 0 , "dialog-work-mode",
 83, C_0FUNC, 76 /* EdDlgCursTabs */, 						1, 0 , "dialog-text-cursor",

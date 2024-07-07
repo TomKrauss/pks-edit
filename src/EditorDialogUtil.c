@@ -51,8 +51,8 @@ extern int 		_translatekeys;
 extern BOOL 	DlgChooseFont(HWND hWnd, char* pszFontName, BOOL bPrinter);
 
 static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
-static DIALOG_ITEM_DESCRIPTOR* _dp;
-static DIALOG_ITEM_DESCRIPTOR* (*_dialogInitParameterCallback)(int pageIndex);
+static DIALOG_DESCRIPTOR* _dp;
+static DIALOG_DESCRIPTOR* (*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
 static boolean		bPropertySheetMove;
 
@@ -77,7 +77,7 @@ char* dlg_getResourceString(int nId) {
  * for that particular page, if the page is activated. The callback is passed the index of the
  * property page activated.
  */
-void dlg_setXDialogParams(DIALOG_ITEM_DESCRIPTOR* (*func)(int pageIndex), boolean positionDialogOnInit) {
+void dlg_setXDialogParams(DIALOG_DESCRIPTOR* (*func)(int pageIndex), boolean positionDialogOnInit) {
 	_dialogInitParameterCallback = func;
 	bInPropertySheet = TRUE;
 	bPropertySheetMove = positionDialogOnInit;
@@ -157,11 +157,11 @@ static void applyRadioButtons(int idCtrl, DIALOG_ITEM_DESCRIPTOR* dp) {
 /*--------------------------------------------------------------------------
  * DoDialog()
  */
-int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
 	int 		nSave;
 	HWND		hwnd;
 	INT_PTR		ret;
-	DIALOG_ITEM_DESCRIPTOR* dpOld = _dp;
+	DIALOG_DESCRIPTOR* dpOld = _dp;
 
 	bInPropertySheet = FALSE;
 	_dp = dp;
@@ -304,13 +304,18 @@ static WINFUNC dlg_charInputWindowProc(HWND hwnd, UINT message, WPARAM wParam, L
  * dlg_setRangeForOperation()
  */
 static int dlg_setRangeForOperation(HWND hwnd, int *rangetype, int first)
-{	int    blkvalid,item,range;
-	char	  szSel[64];
-	HWND	  hwndList;
+{
+	BOOL bHasSelection;
+	int	 item,range;
+	char szSel[64];
+	HWND hwndList;
 
-	blkvalid = ww_hasSelection(ww_getCurrentEditorWindow());
-	if (*rangetype == RNG_BLOCK && !blkvalid)
+	bHasSelection = ww_hasSelection(ww_getCurrentEditorWindow());
+	if (bHasSelection) {
+		*rangetype = RNG_BLOCK;
+	} else if (*rangetype == RNG_BLOCK) {
 		*rangetype = RNG_CHAPTER;
+	}
 
 	hwndList = GetDlgItem(hwnd, IDD_RNGE);
 	SendMessage(hwndList, CB_RESETCONTENT,0,0L);
@@ -320,8 +325,7 @@ static int dlg_setRangeForOperation(HWND hwnd, int *rangetype, int first)
 	for (item = IDS_RNGONCE; item <= IDS_RNGGLOBAL; item++) {
 		range = item-IDS_RNGONCE;
 		char* pszBuf = dlg_getResourceString(item);
-		if (range >= first && 
-		    (range != RNG_BLOCK || blkvalid)) {
+		if (range >= first && (range != RNG_BLOCK || bHasSelection)) {
 			SendMessage(hwndList, CB_ADDSTRING, 0, (LPARAM)pszBuf);
 		}
 		if (range == *rangetype) {
@@ -507,12 +511,13 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 /*--------------------------------------------------------------------------
  * DlgInit()
  */
-static void DlgInit(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, BOOL initialFlag) {
+static void DlgInit(HWND hDlg, DIALOG_DESCRIPTOR *dpDialog, BOOL initialFlag) {
 	static const int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
 	static const int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
 	DIALOG_ITEM_DESCRIPTOR *dp2;
 	int		nPars;
 
+	DIALOG_ITEM_DESCRIPTOR* dp = dpDialog->dd_items;
 	for (dp2 = dp, nPars = 0; dp2->did_controlNumber; dp2++) {
 		nPars++;
 	}
@@ -563,15 +568,19 @@ void dlg_handleRadioButtonGroup(HWND hDlg, WORD checkedItemControl, ...) {
 /*--------------------------------------------------------------------------
  * dlg_itemDescriptorForControl()
  */
-static DIALOG_ITEM_DESCRIPTOR *dlg_itemDescriptorForControl(DIALOG_ITEM_DESCRIPTOR *dp, int nItem)
+static DIALOG_ITEM_DESCRIPTOR *dlg_itemDescriptorForControl(DIALOG_DESCRIPTOR *dpDialog, int nItem)
 {
+	if (dpDialog == NULL) {
+		return NULL;
+	}
+	DIALOG_ITEM_DESCRIPTOR* dp = dpDialog->dd_items;
 	while(dp && dp->did_controlNumber != 0) {
 		if (dp->did_controlNumber == nItem) {
 			return dp;
 		}
 		dp++;
 	}
-	return (DIALOG_ITEM_DESCRIPTOR*)0;
+	return (DIALOG_ITEM_DESCRIPTOR*)NULL;
 }
 
 /*--------------------------------------------------------------------------
@@ -617,11 +626,12 @@ static int macro_getReplaceActionForControlId(int idCtrl)
  * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
  * The list of item descriptors must be 0-terminated.
  */
-BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_ITEM_DESCRIPTOR *dp) {
+BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_DESCRIPTOR *dpDialog) {
 	char 	cbuf[2],numbuf[32];
 	int  	item,*ip;
 	BOOL	buttonChecked;
 
+	DIALOG_ITEM_DESCRIPTOR* dp = dpDialog->dd_items;
 	if (!dp) {
 		return idCtrl == IDCANCEL;
 	}
@@ -765,7 +775,7 @@ BOOL dlg_selectFontCommand(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DE
 /*--------------------------------------------------------------------------
  * dlg_command()
  */
-static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR *pItemDescriptors)
+static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_DESCRIPTOR *pDialog)
 {
 	int		idCtrl;
 	int  	nNotify;
@@ -775,7 +785,7 @@ static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DES
 	callback = 0;
 	idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 	nNotify = GET_WM_COMMAND_CMD(wParam, lParam);
-	pDescriptor = dlg_itemDescriptorForControl(pItemDescriptors, idCtrl);
+	pDescriptor = dlg_itemDescriptorForControl(pDialog, idCtrl);
 	if (pDescriptor != NULL) {
 		callback = (DIALOG_CB)pDescriptor->did_data;
 		LIST_HANDLER* pListHandler = pDescriptor->did_listhandler;
@@ -786,9 +796,8 @@ static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DES
 	} else {
 		callback = NULL;
 	}
-	if (pDescriptor && pDescriptor->did_command) {
-		DIALOG_DESCRIPTOR dd = { .dd_items = pItemDescriptors };
-		if (pDescriptor->did_command(hDlg, nNotify, lParam, pDescriptor, &dd)) {
+	if (pDescriptor && pDescriptor->did_command && pDialog) {
+		if (pDescriptor->did_command(hDlg, nNotify, lParam, pDescriptor, pDialog)) {
 			EndDialog(hDlg, idCtrl);
 			return TRUE;
 		}
@@ -799,7 +808,7 @@ static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DES
 			dlg_handleRadioButtonGroup(hDlg,idCtrl,IDD_REGEXP,IDD_SHELLJOKER, 0);
 			break;
 		case IDD_RAWCHAR: case IDOK: case IDD_BUT3: case IDD_BUT4: case IDD_BUT5:
-			if (!dlg_applyChanges(hDlg, idCtrl, pItemDescriptors)) {
+			if (pDialog && !dlg_applyChanges(hDlg, idCtrl, pDialog)) {
 				return FALSE;
 			}
 			// drop through
@@ -811,7 +820,9 @@ static BOOL dlg_command(HWND hDlg, WPARAM wParam, LPARAM lParam, DIALOG_ITEM_DES
 			EndDialog(hDlg,idCtrl);
 			return TRUE;
 		default:
-			applyRadioButtons(idCtrl, pItemDescriptors);
+			if (pDialog) {
+				applyRadioButtons(idCtrl, pDialog->dd_items);
+			}
 			break;
 	}
 	return FALSE;
@@ -908,6 +919,23 @@ INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	return FALSE;
 }
 
+static DIALOG_HELP_DESCRIPTOR* dlg_findContextHelp(DIALOG_HELP_DESCRIPTOR* pItems, int nItem) {
+	if (pItems == NULL) {
+		return NULL;
+	}
+	DIALOG_HELP_DESCRIPTOR* pMain = NULL;
+	while (pItems->dhd_link) {
+		if (pItems->dhd_itemNumber == nItem) {
+			return pItems;
+		}
+		else if (pItems->dhd_itemNumber == 0) {
+			pMain = pItems;
+		}
+		pItems++;
+	}
+	return pMain;
+}
+
 /*--------------------------------------------------------------------------
  * dlg_standardDialogProcedure()
  */
@@ -921,6 +949,15 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 
 	idCtrl = GET_WM_COMMAND_ID(wParam, lParam);
 	switch(message) {
+		case WM_HELP: {
+			HELPINFO* pInfo = (HELPINFO*)lParam;
+			DIALOG_HELP_DESCRIPTOR* pDhd = dlg_findContextHelp(_dp->dd_helpItems, pInfo == NULL ? 0 : pInfo->iCtrlId);
+			if (pDhd != NULL) {
+				help_open(pDhd->dhd_link);
+			}
+			EndDialog(hDlg, IDCANCEL);
+			return TRUE;
+		}
 		case WM_NOTIFY:
 			return DlgNotify(hDlg, wParam, lParam);
 
@@ -991,7 +1028,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-int win_callDialogCB(int nId, PARAMS *pp, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
+int win_callDialogCB(int nId, PARAMS *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
 { 	int ret = 1;
 
 	if (interpreter_openDialog(pp)) {
@@ -1006,7 +1043,7 @@ int win_callDialogCB(int nId, PARAMS *pp, DIALOG_ITEM_DESCRIPTOR *dp, DLG_ITEM_T
 /*--------------------------------------------------------------------------
  * win_callDialog()
  */
-int win_callDialog(int nId, PARAMS* pp, DIALOG_ITEM_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+int win_callDialog(int nId, PARAMS* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
 	return win_callDialogCB(nId, pp, dp, pTooltips, dlg_standardDialogProcedure);
 }
 

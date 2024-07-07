@@ -217,10 +217,12 @@ int DialogCharInput(int promptfield, unsigned char c)
 		{IDD_RAWCHAR,		sizeof _c,	&_c},
 		{0}
 	};
-
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
 	_d->did_data = (void*)(LPARAM)promptfield;
 	_c = c;
-	if (!win_callDialog(DLGBOXC,&_bgc,_d, NULL))
+	if (!win_callDialog(DLGBOXC,&_bgc,&dialogDescriptor, NULL))
 		return -1L;
 	return _c;
 }
@@ -329,7 +331,10 @@ int dlg_displayRecordMacroOptions(int *o)
 		{0}
 	};
 
-	if (!DoDialog(DLGRECORDER,dlg_standardDialogProcedure,_d, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!DoDialog(DLGRECORDER,dlg_standardDialogProcedure,&dialogDescriptor, NULL))
 		return 0;
 	*o = opt;
 	return 1;
@@ -356,7 +361,10 @@ int EdAbout(void)
 		{0}
 	};
 	sprintf(_versionInfo, "%s, %s", _pksVersion, __DATE__);
-	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, _d, NULL);
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, &dialogDescriptor, NULL);
 }
 
 /*--------------------------------------------------------------------------
@@ -372,7 +380,10 @@ static long dialogGetNumber(int nDialog, int nInitialNumber)
 	};
 
 	num = nInitialNumber;
-	if (!win_callDialog(nDialog,&_np,_d, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(nDialog,&_np,&dialogDescriptor, NULL))
 		return -1L;
 	return num;
 }
@@ -381,6 +392,21 @@ static BOOL dlg_alignmentFlagsExclusive(HWND hwndDialog, int nNotify, LPARAM lPa
 		DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
 	dlg_handleRadioButtonGroup(hwndDialog, pDescriptor->did_controlNumber, IDD_3S1, IDD_3S2, 0);
 	return FALSE;
+}
+
+static BOOL dlg_applyAlignmentFlag(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* dp) {
+	int * ip = (int*)dp->did_data;
+	BOOL buttonChecked = IsDlgButtonChecked(hDlg, dp->did_controlNumber);
+	*ip = buttonChecked ?
+		*ip | dp->did_flagOrSize :
+		*ip & ~dp->did_flagOrSize;
+	return TRUE;
+}
+
+static BOOL dlg_initAlignmentFlag(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* dp) {
+	int* ip = (int*)dp->did_data;
+	CheckDlgButton(hDlg, dp->did_controlNumber, *ip & dp->did_flagOrSize);
+	return TRUE;
 }
 
 /*--------------------------------------------------------------------------
@@ -399,10 +425,11 @@ int EdAlignText(void)
 		{IDD_REGEXP,	RE_DOREX,			&_currentSearchAndReplaceParams.options},
 		{IDD_SHELLJOKER,RE_SHELLWILD,		&_currentSearchAndReplaceParams.options},
 		{IDD_IGNORECASE,RE_IGNCASE,			&_currentSearchAndReplaceParams.options},
-		{IDD_OPT2,		RE_IGNORE_BINARY,	&_currentSearchAndReplaceParams.options},
-		{IDD_3S1,		AL_FIX,				&_alflags, .did_command = dlg_alignmentFlagsExclusive},
-		{IDD_3S2,		AL_CPOS,			&_alflags, .did_command = dlg_alignmentFlagsExclusive},
-		{IDD_OPT1,		AL_END,				&_alflags},
+		{IDD_3S1,		AL_TO_CURSOR,		&_alflags, 
+			.did_command = dlg_alignmentFlagsExclusive, .did_apply = dlg_applyAlignmentFlag, .did_initialize = dlg_initAlignmentFlag},
+		{IDD_3S2,		AL_OFFSET_FIRST_MATCH,	&_alflags, 
+			.did_command = dlg_alignmentFlagsExclusive, .did_apply = dlg_applyAlignmentFlag, .did_initialize = dlg_initAlignmentFlag},
+		{IDD_OPT2,		AL_END,				&_alflags},
 		{0}
 	};
 	static ITEMS	_i   =  	{ 
@@ -419,8 +446,24 @@ int EdAlignText(void)
 	};
 
 	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
-	if (!win_callDialog(DLGALIGN, &_fp, _d, _tt)) {
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_FINDS, .dhd_link = "manual\\editing_files.md#aligning-text-pattern"},
+		{.dhd_itemNumber = IDD_RNGE, .dhd_link = "manual\\editing_files.md#aligning-text-range"},
+		{.dhd_itemNumber = IDD_3S1, .dhd_link = "manual\\editing_files.md#aligning-text-caret-position"},
+		{.dhd_itemNumber = IDD_OPT2, .dhd_link = "manual\\editing_files.md#aligning-text-right-align"},
+		{.dhd_itemNumber = IDD_3S2, .dhd_link = "manual\\editing_files.md#aligning-text-1st-match"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#aligning-text-dialog-options"},
+		{.dhd_link = 0}
+	};
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
+	};
+	if (!win_callDialog(DLGALIGN, &_fp, &dialogDescriptor, _tt)) {
 		return 0;
+	}
+	if (_scope == RNG_BLOCK) {
+		_scope = RNG_BLOCK_LINES;
 	}
 	return align_text(_currentSearchAndReplaceParams.searchPattern, _scope, _alfiller, _alflags);
 }
@@ -440,10 +483,20 @@ int EdFormatText(void)
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &alignment     },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope	}
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_RNGE, .dhd_link = "manual\\editing_files.md#formatting-text-range"},
+		{.dhd_itemNumber = IDD_RADIO1, .dhd_link = "manual\\editing_files.md#formatting-text-alignment"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#formatting-text"},
+		{.dhd_link = 0}
+	};
 	PARAMS _fp = 	{ DIM(_i), P_MAYOPEN, _i   };
 
 
-	if (!win_callDialog(DLGFORMAT,&_fp,_d, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
+	};
+	if (!win_callDialog(DLGFORMAT,&_fp,&dialogDescriptor, NULL))
 		return 0;
 
 	return ft_formatText(ww_getCurrentEditorWindow(), _scope, alignment);
@@ -565,7 +618,10 @@ int EdSort(void)
 	sort_guessSeparators(wp, fs, &flags);
 	// No default selection criteria
 	_currentSearchAndReplaceParams.searchPattern[0] = 0;
-	if (!win_callDialog(DLGSORT,&_sp,_d, _tt))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(DLGSORT,&_sp,&dialogDescriptor, _tt))
 		return 0;
 
 	return ft_sortFile(wp->fp, _scope,fs,key, _currentSearchAndReplaceParams.searchPattern,flags);
@@ -585,7 +641,10 @@ int EdKeycodeInsert(void)
 		{0}
 	};
 
-	if (!win_callDialog(DLGKEYCODE,&_sp,_d, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(DLGKEYCODE,&_sp,&dialogDescriptor, NULL))
 		return 0;
 
 	visible = bindings_keycodeToString(k);
@@ -679,7 +738,10 @@ int EdReplaceTabs(int expand)
 
 	_dconvert->did_flagOrSize = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
 
-	if (!win_callDialog(DLGCONVERT,&_tp,_dconvert, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _dconvert
+	};
+	if (!win_callDialog(DLGCONVERT,&_tp, &dialogDescriptor, NULL))
 		return 0;
 
 	return find_replaceTabsWithSpaces(_scope,expand);
@@ -698,8 +760,11 @@ int EdPromptAutosavePath(char *path)
 
 	lstrcpy(path, config_getPKSEditTempPath());
 	_d[0].did_data = path;
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
 
-	return DoDialog(DLGNEWASPATH, dlg_standardDialogProcedure,_d, NULL) == IDOK;
+	return DoDialog(DLGNEWASPATH, dlg_standardDialogProcedure,&dialogDescriptor, NULL) == IDOK;
 }
 
 /*------------------------------------------------------------
@@ -821,7 +886,10 @@ static int showWindowList(int nTitleId)
 	if (dlist.li_param != NULL) {
 		infoFillParams(infoDialListPars, (WINFO*) dlist.li_param);
 	}
-	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,infoDialListPars, NULL);
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = infoDialListPars
+	};
+	nRet = DoDialog(DLGINFOFILE, dlg_standardDialogProcedure,&dialogDescriptor, NULL);
 	if (nRet == IDCANCEL) {
 		return 0;
 	}
@@ -891,7 +959,10 @@ int EdFilesCompare(int dir) {
 	FTABLE* fp = _compareFile1->fp;
 	compareDialListPars[0].did_data = fp->fname;
 	compareDialListPars[1].did_listhandler = &dlist;
-	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, compareDialListPars, NULL);
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = compareDialListPars
+	};
+	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, &dialogDescriptor, NULL);
 	WINFO* wp = (WINFO*) dlist.li_param;
 	if (nRet == IDD_BUT3) {
 		fp = ft_openBackupfile(_compareFile1->fp);
@@ -981,7 +1052,7 @@ static BOOL doctypes_apply(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DE
 	if ((fp = ft_getCurrentDocument()) == 0) {
 		return FALSE;
 	}
-	if (!dlg_applyChanges(hDlg, pDescriptor->did_controlNumber, pDialog->dd_items)) {
+	if (!dlg_applyChanges(hDlg, pDescriptor->did_controlNumber, pDialog)) {
 		return FALSE;
 	}
 	char* pDocTypeName;
@@ -1101,7 +1172,10 @@ static int doDocumentTypes(int nDlg) {
 
 	_selectedDocType = pConfig != NULL ? pConfig->documentType : NULL;
 	doctypes_fillParameters(docTypePars, (void*)pConfig);
-	if (DoDialog(nDlg, doctype_dialogProcedure, docTypePars, NULL) == IDCANCEL) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = docTypePars
+	};
+	if (DoDialog(nDlg, doctype_dialogProcedure, &dialogDescriptor, NULL) == IDCANCEL) {
 		return 0;
 	}
 
@@ -1128,7 +1202,10 @@ int EdRangeShift(int dir)
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
 	_dconvert->did_flagOrSize = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
-	if (!win_callDialog(DLGCONVERT,&_tp,_dconvert, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _dconvert
+	};
+	if (!win_callDialog(DLGCONVERT,&_tp, &dialogDescriptor, NULL))
 		return 0;
 		
 	return uc_shiftRange(_scope,dir);
@@ -1137,9 +1214,9 @@ int EdRangeShift(int dir)
 /*--------------------------------------------------------------------------
  * dlg_configureEditorModes()
  */
-static DIALOG_ITEM_DESCRIPTOR* _paramsPerPage[4];
+static DIALOG_DESCRIPTOR* _paramsPerPage[4];
 
-static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
+static DIALOG_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
 	return _paramsPerPage[pageIndex];
 }
 
@@ -1244,10 +1321,18 @@ int dlg_configureEditorModes(void) {
 	FTABLE* fp = wp->fp;
 
 	linp = fp->documentDescriptor;
-	_paramsPerPage[0] = _dDisplayMode;
-	_paramsPerPage[1] = _dWorkMode;
-	_paramsPerPage[2] = _dFileFormat;
-	_paramsPerPage[3] = _dCursorBehavior;
+	_paramsPerPage[0] = &(DIALOG_DESCRIPTOR) {
+		.dd_items = _dDisplayMode
+	};
+	_paramsPerPage[1] = &(DIALOG_DESCRIPTOR) {
+		.dd_items = _dWorkMode
+	};
+	_paramsPerPage[2] = &(DIALOG_DESCRIPTOR) {
+		.dd_items = _dFileFormat
+	};
+	_paramsPerPage[3] = &(DIALOG_DESCRIPTOR) {
+		.dd_items = _dCursorBehavior
+	};
 
 	lstrcpy(backupExtension, linp->backupExtension);
 	opt = 0;
@@ -1391,7 +1476,10 @@ int EdReplace(void)
 	};
 	WINFO* wp = ww_getCurrentEditorWindow();
 
-	if (!wp || win_callDialog(DLGREPLACE,&_fp,_d, _tt) == 0) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!wp || win_callDialog(DLGREPLACE, &_fp, &dialogDescriptor, _tt) == 0) {
 		return 0;
 	}
 
@@ -1431,7 +1519,10 @@ int EdFind(void)
 	}
 	WINFO* wp = ww_getCurrentEditorWindow();
 	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
-	if (!win_callDialog(DLGFIND, &_fp, _d, _tt)) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(DLGFIND, &_fp, &dialogDescriptor, _tt)) {
 		return 0;
 	}
 
@@ -1510,7 +1601,10 @@ int EdFindInFileList(void)
 		strcpy(_currentSearchAndReplaceParams.filenamePattern, "*.*");
 	}
 	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
-	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, _d, _tt, find_inFilesDialogProc);
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, &dialogDescriptor, _tt, find_inFilesDialogProc);
 	if (ret == 0) {
 		return 0;
 	}
@@ -1551,7 +1645,10 @@ int macro_getIndexForKeycode(KEYCODE *scan,char *name,int oldidx)
 	_d[0].did_data = name;
 	_d[1].did_data = scan;
 	do {
-		if (DoDialog(DLGMACNAME, dlg_standardDialogProcedure,_d, NULL) == IDCANCEL)
+		DIALOG_DESCRIPTOR dialogDescriptor = {
+			.dd_items = _d
+		};
+		if (DoDialog(DLGMACNAME, dlg_standardDialogProcedure,&dialogDescriptor, NULL) == IDCANCEL)
 			return 0;
 	} while (!macro_validateMacroName(name,oldidx, FALSE));
 	return 1;
@@ -1596,7 +1693,10 @@ long long EdCharControlInsert(void)
 		{0}
 	};
 
-   if (!win_callDialog(DLGCONTROLINS,&_p,_d, NULL)) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(DLGCONTROLINS,&_p,&dialogDescriptor, NULL)) {
 		return 0;
 	}
 	return EdCharInsert(ww_getCurrentEditorWindow(), 0x100|(int)(unsigned char)c);
@@ -1693,7 +1793,10 @@ int EdCommandExecute(void)
 		{0}
 	};
 
-	if (!win_callDialog(DLGEXEC,&_fp,_d, NULL)) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (!win_callDialog(DLGEXEC,&_fp,&dialogDescriptor, NULL)) {
 		return 0;
 	}
 	int nExecuteOptions = opt;
@@ -1720,7 +1823,10 @@ static int inputPassWord(LPSTR pszPW, LPSTR pszFilename, BOOL bSave) {
 	_d[0].did_data = pszPW;
 	LPSTR pszFormat = dlg_getResourceString(bSave ? IDS_ENTER_PASSWORD_TO_ENCRYPT : IDS_ENTER_PASSWORD_TO_DECRYPT);
 	sprintf(szMsg, pszFormat, string_abbreviateFileName(pszFilename));
-	return DoDialog(DLGCRYPT, dlg_standardDialogProcedure, _d, NULL) != IDCANCEL;
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	return DoDialog(DLGCRYPT, dlg_standardDialogProcedure, &dialogDescriptor, NULL) != IDCANCEL;
 }
 
 /*--------------------------------------------------------------------------
@@ -1826,7 +1932,10 @@ char* EdPromptAssign(char* prompt, char* init) {
 		buf[0] = 0;
 	}
 
-	if (win_callDialog(DLGPROMPT, &_np, _d, NULL) != IDOK) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = _d
+	};
+	if (win_callDialog(DLGPROMPT, &_np, &dialogDescriptor, NULL) != IDOK) {
 		*buf = 0;
 	}
 

@@ -1068,6 +1068,7 @@
         { "command": "@toggle-show-control" },
         { "command": "@toggle-show-ruler" },
         { "command": "@toggle-hex-modus" },
+        { "command": "@toggle-highlight-caret" },
         { "command": "@toggle-syntax-highlighting" },
         { "command": "@toggle-show-linenumbers" },
         { "command": "@toggle-show-wysiwyg" },

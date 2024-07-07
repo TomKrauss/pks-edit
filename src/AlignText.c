@@ -17,6 +17,7 @@
 #include <windows.h>
 #include <string.h>
 #include "caretmovement.h"
+#include "documentmodel.h"
 #include "winfo.h"
 #include "regexp.h"
 #include "publicapi.h"
@@ -28,13 +29,11 @@
 /* align_text()					*/
 /*---------------------------------*/
 EXPORT int align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAGS flags)
-{	int  col,firstcol,aligncol = -1,
-		firsti,besti,bestcol,nchars,ret;
+{	int  col,firstcol,aligncol = -1, screencol, nchars, ret;
 	long i;
 	FTABLE *fp;
 	LINE *lp;
 	MARK *mps,*mpe;
-	char **loc;
 	RE_MATCH match;
 	RE_PATTERN* pattern;
 	WINFO* wp;
@@ -50,60 +49,66 @@ EXPORT int align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAG
 	if (filler == 0)
 		filler = ' ';
 	progress_startMonitor(IDS_ABRTALIGN, 1000);
-
-	if (flags & (AL_CPOS|AL_FIX)) {
-		firstcol = caret_lineOffset2screen(wp,&wp->caret);
+	BOOL bAlignEnd = flags & AL_END;
+	if (flags & AL_TO_CURSOR) {
+		aligncol = caret_lineOffset2screen(wp,&wp->caret);
 	}
-	else
+	else {
 		firstcol = 0;
-
-	if (flags & AL_FIX)
-		aligncol = firstcol;
-	else
-		/* looking for the right most position */
+		/* looking for the matching position for alignment */
 		for (aligncol = 0, lp = mps->m_linePointer; lp != 0; lp = lp->next) {
-			i = caret_screen2lineOffset(wp, &(CARET){ .linePointer = lp, .offset = firstcol });
-			if (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
-				loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
-				col = caret_lineOffset2screen(wp, &(CARET) { .linePointer = lp, .offset = (int)(*loc - lp->lbuf)});
-				if (col > aligncol)
+			if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+				char* pMatch = bAlignEnd ? match.loc2 : match.loc1;
+				size_t  nOffset = pMatch - lp->lbuf;
+				col = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = (int)nOffset});
+				if (col > aligncol) {
 					aligncol = col;
+					if (flags & AL_OFFSET_FIRST_MATCH) {
+						break;
+					}
+				}
 			}
 			if (lp == mpe->m_linePointer || progress_cancelMonitor(1))
 				break;
 		}
+	}
 
 	ret = 1;
 	for (lp = mps->m_linePointer; lp != 0; lp = lp->next) {
-		besti  = -1;
-		firsti = caret_screen2lineOffset(wp, &(CARET){.linePointer = lp, .offset = firstcol });
-		if (flags & AL_FIX)
-			i = 0;		
-		else
-			i = firsti;
-		while (regex_match(pattern, &lp->lbuf[i],&lp->lbuf[lp->len], &match)) {
-			loc = (flags & AL_END) ? &match.loc1 : &match.loc2;
-			i = (long)(*loc - lp->lbuf);
-			if (flags & AL_FIX) {
-				if (i > firsti)
-					break;
+		if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+			size_t nOffset = (bAlignEnd ? match.loc2 : match.loc1) - lp->lbuf;
+			screencol = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = (int)nOffset});
+			if (screencol != aligncol) {
+				int nt = 0;
+				lp = edit_expandTabsInLineWithSpaces(wp, lp, &nt);
+				nchars = aligncol - screencol;
+				size_t nMatchLen = match.loc2 - match.loc1;
+				int nStart = bAlignEnd ? screencol - (int)nMatchLen : screencol;
+				if (nchars > 0) { 
+					if ((lp = ln_modify(fp, lp, nStart, nStart + nchars)) == 0L) {
+						ret = 0;
+						break;
+					}
+					memset(&lp->lbuf[nStart], filler, nchars);
+				} else if (nchars < 0) {
+					i = nStart;
+					int nTarget = nStart + nchars;
+					while (i > nTarget) {
+						if (lp->lbuf[i-1] != filler) {
+							break;
+						}
+						i--;
+					}
+					if ((lp = ln_modify(fp, lp, nStart, i)) == 0L) {
+						ret = 0;
+						break;
+					}
+				}
 			}
-			besti = i;
-			if (!(flags & AL_FIX))
-				break;
-			i++;
 		}
-		if (besti >= 0) {
-			bestcol = caret_lineOffset2screen(wp, &(CARET) {.linePointer = lp, .offset = besti});
-			nchars  = aligncol - bestcol;
-			if ((lp = ln_modify(fp,lp,besti,besti+nchars)) == 0L) {
-				ret = 0;
-				break;
-			}
-			memset(&lp->lbuf[besti],filler,nchars);
-		}
-		if (lp == mpe->m_linePointer || progress_cancelMonitor(1))
+		if (lp == mpe->m_linePointer || progress_cancelMonitor(1)) {
 			break;
+		}
 	}
 	progress_closeMonitor(0);
 	render_repaintAllForFile(fp);

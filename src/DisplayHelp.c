@@ -28,9 +28,9 @@
 static char szHelpDir[512];
 
 /*--------------------------------------------------------------------------
- * help_open()
+ * Opens a PKS Edit Help file with an optional Anchor (e.g. manual\edit_operations.md#align)
  */
-static int help_open(char *szFile) {
+int help_open(char *szFile) {
 	if (!szHelpDir[0]) {
 		char* pszHelp = file_searchFileInPKSEditLocation("../doc");
 		if (!pszHelp) {
@@ -39,13 +39,22 @@ static int help_open(char *szFile) {
 		}
 		strcpy(szHelpDir, pszHelp);
 	}
+	char szFileName[EDMAXFNLEN];
+	strcpy(szFileName, szFile);
+	char* pszLink = strrchr(szFileName, '#');
+	if (pszLink != NULL) {
+		*pszLink++ = 0;
+	}
 	char szPath[EDMAXPATHLEN];
-	string_concatPathAndFilename(szPath, szHelpDir, szFile);
+	string_concatPathAndFilename(szPath, szHelpDir, szFileName);
 	FTABLE* fp = NULL;
 	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_RIGHT, -1 })) != NULL) {
-		WINFO* wp = fp ? WIPOI(fp) : ww_getCurrentEditorWindow();
+		WINFO* wp = fp ? WIPOI(fp) : NULL;
 		if (wp) {
 			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
+			if (pszLink && wp->renderer->r_navigateAnchor) {
+				wp->renderer->r_navigateAnchor(wp, pszLink);
+			}
 		}
 		return 1;
 	}

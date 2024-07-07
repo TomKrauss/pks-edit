@@ -258,27 +258,29 @@ BEGIN
     LTEXT           "Platform:",-1,174,34,28,8,NOT WS_GROUP
 END
 
-DLGALIGN DIALOG 24, 88, 242, 124
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGALIGN DIALOGEX 24, 88, 293, 175
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Align Textranges"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Align:",-1,6,6,60,8
-    COMBOBOX        IDD_FINDS,6,18,116,46,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Alignment Options",-1,4,42,112,56,WS_GROUP
-    CONTROL         "&Fix Caretposition",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,58,102,10
-    CONTROL         "&1st Column from Cursor",IDD_3S2,"Button",BS_AUTOCHECKBOX,8,70,102,8
-    CONTROL         "A&lign Delimiter End",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,82,102,10
-    GROUPBOX        "Options Search",-1,130,42,102,56
-    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,134,58,92,12
-    CONTROL         "Regul&ar Expression",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,134,70,80,12
-    CONTROL         "&Shell Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,134,82,80,12
-    LTEXT           "F&ill Character:",-1,166,108,50,8
-    EDITTEXT        IDD_CHAR,220,106,12,12
-    LTEXT           "&Range:",-1,6,106,30,8
-    COMBOBOX        IDD_RNGE,42,104,71,48,CBS_DROPDOWNLIST | WS_TABSTOP
-    PUSHBUTTON      "&Cancel",2,192,24,42,14,WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,192,6,42,14,WS_GROUP
+    LTEXT           "Align Text Matching:",IDC_STATIC,6,6,106,8
+    COMBOBOX        IDD_FINDS,6,18,214,46,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Alignment Options",IDC_STATIC,5,87,164,56,WS_GROUP
+    CONTROL         "&Align to current Caret Position",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,103,152,10
+    CONTROL         "Align to Column of 1st Match Found",IDD_3S2,"Button",BS_AUTOCHECKBOX,8,116,151,8
+    CONTROL         "&Right A&lign Matched Text",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,127,157,10
+    GROUPBOX        "Options Search",IDC_STATIC,175,87,102,56
+    CONTROL         "&Ignore upper/lower case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,179,103,92,12
+    CONTROL         "Regul&ar Expression",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,179,115,80,12
+    CONTROL         "&Shell Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,179,127,80,12
+    LTEXT           "F&ill Character:",IDC_STATIC,208,153,50,8
+    EDITTEXT        IDD_CHAR,262,149,12,12
+    LTEXT           "&Range:",IDC_STATIC,6,151,30,8
+    COMBOBOX        IDD_RNGE,42,149,71,48,CBS_DROPDOWNLIST | WS_TABSTOP
+    PUSHBUTTON      "&Cancel",2,230,24,42,14,WS_GROUP
+    DEFPUSHBUTTON   "&OK",1,230,6,42,14,WS_GROUP
+    LTEXT           "The align function lets you align pieces of text vertically. Examples are comments in source code. You define a pattern of text to match, which is then aligned.",IDC_STATIC,7,50,265,27
 END
 
 DLGCONTROLINS DIALOGEX 11, 19, 317, 166
@@ -394,7 +396,8 @@ BEGIN
 END
 
 DLGFORMAT DIALOGEX 8, 72, 218, 106
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Format Text"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -898,6 +901,12 @@ BEGIN
     BEGIN
     END
 
+    DLGALIGN, DIALOG
+    BEGIN
+        RIGHTMARGIN, 292
+        BOTTOMMARGIN, 172
+    END
+
     DLGCONTROLINS, DIALOG
     BEGIN
         RIGHTMARGIN, 316
@@ -1172,6 +1181,11 @@ BEGIN
 END
 
 DLG_DEBUG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGALIGN AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1523,7 +1537,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND80           "Configure icons of the  PKS Edit desktop;Edit Icons"
+    IDS_COMMAND80           "Highlight the line containing the insertion caret;Highlight Caret"
     IDS_COMMAND81           "Change display settings;Change Editor Settings..."
     IDS_COMMAND82           "Chnage the edit settings;Change Editor Settings..."
     IDS_COMMAND83           "Change scroll and caret settings;Change Scroll Behavior..."

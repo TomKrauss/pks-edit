@@ -65,10 +65,10 @@ typedef enum {
 
 /* Flags for align operations */
 typedef enum {
-	// Ignore all characters in front of caret position
-	AL_CPOS = 0x1,
-	// Align straight to caret position
-	AL_FIX = 0x2,
+	// Align all matched text to the fix offset defined by the current caret.
+	AL_TO_CURSOR = 0x1,
+	// Align to the offset defined by the 1st match
+	AL_OFFSET_FIRST_MATCH = 0x2,
 	// Align to end of search pattern match
 	AL_END = 0x4
 } ALIGN_FLAGS;

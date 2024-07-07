@@ -168,27 +168,30 @@ BEGIN
     LTEXT           "Plattform:",-1,152,36,35,8,NOT WS_GROUP
 END
 
-DLGALIGN DIALOG 24, 88, 242, 124
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGALIGN DIALOGEX 24, 88, 317, 170
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Ausrichten von Textbereichen"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "A&usrichten von:",-1,6,6,60,8
-    COMBOBOX        IDD_FINDS,6,18,116,46,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "Optionen Ausrichten",-1,4,42,112,56,WS_GROUP
-    CONTROL         "&Fest auf Cursorposition",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,58,102,10
-    CONTROL         "&1. Spalte ab Cursor",IDD_3S2,"Button",BS_AUTOCHECKBOX,8,70,102,8
-    CONTROL         "A&lign Trennerende",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,82,102,10
-    GROUPBOX        "Optionen Suche",-1,130,42,102,56
-    CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,134,58,92,12
-    CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,134,70,80,12
-    CONTROL         "&Shell Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,134,82,80,12
-    LTEXT           "F&üllbuchstabe:",-1,166,108,50,8
-    EDITTEXT        IDD_CHAR,220,106,12,12
-    LTEXT           "&Bereich:",-1,6,106,30,8
-    COMBOBOX        IDD_RNGE,42,104,71,48,CBS_DROPDOWNLIST | WS_TABSTOP
-    PUSHBUTTON      "&Abbruch",2,192,24,42,14,WS_GROUP
-    DEFPUSHBUTTON   "&OK",1,192,6,42,14,WS_GROUP
+    LTEXT           "A&usrichten Text, der folgendem Muster entspricht:",IDC_STATIC,6,6,212,8
+    COMBOBOX        IDD_FINDS,6,18,244,46,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Optionen Ausrichten",IDC_STATIC,4,77,188,56,WS_GROUP
+    CONTROL         "&Ausrichten auf aktuelle Cursorposition",IDD_3S1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,93,159,10
+    CONTROL         "Ausrichten auf Spalte des 1. gefundenen Elements",IDD_3S2,
+                    "Button",BS_AUTOCHECKBOX,8,106,180,8
+    CONTROL         "Rechtsbündig ausrichten",IDD_OPT2,"Button",BS_AUTOCHECKBOX,8,117,161,10
+    GROUPBOX        "Optionen Suche",IDC_STATIC,197,77,102,56
+    CONTROL         "&Ignoriere Groß / Klein",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,201,93,92,12
+    CONTROL         "Regul&äre Ausdrücke",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,201,105,80,12
+    CONTROL         "&Shell Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,201,117,80,12
+    LTEXT           "F&üllbuchstabe:",IDC_STATIC,212,143,50,8
+    EDITTEXT        IDD_CHAR,266,141,12,12
+    LTEXT           "&Bereich:",IDC_STATIC,6,141,30,8
+    COMBOBOX        IDD_RNGE,42,139,71,48,CBS_DROPDOWNLIST | WS_TABSTOP
+    PUSHBUTTON      "&Abbruch",2,256,24,42,14,WS_GROUP
+    DEFPUSHBUTTON   "&OK",1,256,6,42,14,WS_GROUP
+    LTEXT           "Diese Funktion richtet Textfragmente, die durch ein Suchmuster identifiziert werden, vertical durch Einfügen von Füllbuchstaben aus.",IDC_STATIC,7,48,295,26
 END
 
 DLGCONTROLINS DIALOGEX 11, 19, 353, 178
@@ -304,7 +307,8 @@ BEGIN
 END
 
 DLGFORMAT DIALOGEX 8, 72, 218, 106
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Formatieren von Text"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -907,6 +911,11 @@ BEGIN
         BOTTOMMARGIN, 151
     END
 
+    DLGALIGN, DIALOG
+    BEGIN
+        RIGHTMARGIN, 316
+    END
+
     DLGCONTROLINS, DIALOG
     BEGIN
         BOTTOMMARGIN, 172
@@ -1078,7 +1087,7 @@ BEGIN
             VALUE "LegalCopyright", "Mozilla Public License Version 2.0"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "2.7.0"
+            VALUE "ProductVersion", "2.8.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -1219,6 +1228,11 @@ BEGIN
 END
 
 DLGTAGLIST AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGALIGN AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1588,7 +1602,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND80           "Konfiguriert die Symbole des PKS Edit Desktops;Symbole bearbeiten"
+    IDS_COMMAND80           "Toggled die Hervorhebung des Bildschirmbereichs mit dem Einfügecursor;Cursor hervorheben"
     IDS_COMMAND81           "Stellt den Anzeige-Modus ein;Anzeigemodus einstellen"
     IDS_COMMAND82           "Stellt den Bearbeitungs-Modus ein;Beabeitungsmodus einstellen"
     IDS_COMMAND83           "Stellt das Verhalten des Textcursors ein;Cursorverhalten einstellen"

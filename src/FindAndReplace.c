@@ -570,7 +570,7 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 /*--------------------------------------------------------------------------
  * edit_expandTabsInLineWithSpaces()
  */
-static LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
+LINE *edit_expandTabsInLineWithSpaces(WINFO *wp, LINE *lp,long *nt)
 {	long t = 0;
 	int  size;
 

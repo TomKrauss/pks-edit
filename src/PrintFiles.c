@@ -900,9 +900,11 @@ static IUnknown unknown = { (IUnknownVtbl*) & unknown_Vtbl};
  * DlgPrint()
  */
 static DIALOG_ITEM_DESCRIPTOR* _dPrintLayoutParams;
-static DIALOG_ITEM_DESCRIPTOR* _getDialogParsForPage(int page) {
+static DIALOG_DESCRIPTOR* _getDialogParsForPage(int page) {
 	if (page == 1) {
-		return _dPrintLayoutParams;
+		static DIALOG_DESCRIPTOR printDialog;
+		printDialog.dd_items = _dPrintLayoutParams;
+		return &printDialog;
 	}
 	return NULL;
 }

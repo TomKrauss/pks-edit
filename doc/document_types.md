@@ -20,6 +20,7 @@ The following example defines an editor configuration `default`, which defines s
         "id": 1,
         "leftMargin": 0,
         "rightMargin": 100,
+        "highlightCaretLine": true,
         "tabSize": 4,
         "codepage": 65001,
         "tabulatorSizes": [4],
