@@ -4,11 +4,11 @@
 
 PKS Edit supports the following options when searching for text:
 
-- _Regular Expressions_ - the searched pattern is interpreted as a [regular expression](#regular-expressions)
-- _Ignore Case_ - upper lower case spelling of matched text and pattern are ignored
-- _Shell Wildcards_ - only the special characters ? (matches single char) and * (matches a group of any characters) have a special meaning in the provided 
+- <a name="find-pattern"></a>_Regular Expressions_ - the searched pattern is interpreted as a [regular expression](#regular-expressions)
+- <a name="ignore-case"></a>_Ignore Case_ - upper lower case spelling of matched text and pattern are ignored
+- <a name="shell-wildcards"></a>_Shell Wildcards_ - only the special characters ? (matches single char) and * (matches a group of any characters) have a special meaning in the provided 
 pattern
-- _Wrap Search_ - if a text cannot be found towards the end of a file, the search starts from the beginning.
+- <a name="wrap-search"></a>_Wrap Search_ - if a text cannot be found towards the end of a file, the search starts from the beginning.
 
 ## Regular Expressions
 

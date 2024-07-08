@@ -596,6 +596,15 @@ int EdSort(void)
 		{IDD_OPT4,		SO_SKIPSEPARATORS,		&flags},
 		{0}
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_RNGE, .dhd_link = "manual\\editing_files.md#sorting-text-range"},
+		{.dhd_itemNumber = IDD_FINDS2, .dhd_link = "manual\\editing_files.md#sorting-text-criteria"},
+		{.dhd_itemNumber = IDD_STRING1, .dhd_link = "manual\\editing_files.md#sorting-text-delimiters"},
+		{.dhd_itemNumber = IDD_STRING2, .dhd_link = "manual\\editing_files.md#sorting-text-keyfields"},
+		{.dhd_itemNumber = IDD_OPT1, .dhd_link = "manual\\editing_files.md#sorting-text-clustered"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#sorting-text"},
+		{.dhd_link = 0}
+	};
 	ITEMS	_i   = {
 		{ C_PUSH_STRING_LITERAL,_currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL,fs },
@@ -619,7 +628,8 @@ int EdSort(void)
 	// No default selection criteria
 	_currentSearchAndReplaceParams.searchPattern[0] = 0;
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	if (!win_callDialog(DLGSORT,&_sp,&dialogDescriptor, _tt))
 		return 0;
@@ -1513,6 +1523,14 @@ int EdFind(void)
 		IDD_FINDS,	IDS_TT_REGULAR_EXPRESSION,
 		0
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_FINDS, .dhd_link = "manual\\find_replace.md#find-pattern"},
+		{.dhd_itemNumber = IDD_SHELLJOKER, .dhd_link = "manual\\find_replace.md#shell-wildcards"},
+		{.dhd_itemNumber = IDD_OPT1, .dhd_link = "manual\\find_replace.md#wrap-search"},
+		{.dhd_itemNumber = IDD_IGNORECASE, .dhd_link = "manual\\find_replace.md#ignore-case"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\find_replace.md#finding text"},
+		{.dhd_link = 0}
+	};
 
 	if (_dir == -1) {
 		_dir = 0;
@@ -1520,7 +1538,8 @@ int EdFind(void)
 	WINFO* wp = ww_getCurrentEditorWindow();
 	bl_getSelectedText(wp, _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	if (!win_callDialog(DLGFIND, &_fp, &dialogDescriptor, _tt)) {
 		return 0;

@@ -46,6 +46,41 @@ with one operation.
 Multi caret mode ends, when an operation is performed inside PKS Edit other than inserting characters and deleting characters or
 when the `ESCAPE` key is pressed.
 
+## Sorting text
+
+A selectable range of text can be *sorted* using the `Sort Text...` menu entry from the `Functions` menu. The most
+simple way of sorting text will sort all lines selected in a range alphabetically ascending (no sort fields and no 
+selection criteria specified). Sorting allows however also to sort tabular data containing multiple fields (columns in
+the table), where the sort criteria for the fields can be specified in the `Keyfields` entry field. One may also *select*
+the lines supported by specifying a `Selection Criteria`.
+
+### Sorting text dialog options
+
+- <a name="sorting-text-range"></a>_Range_: Defines the range of text to be formatted.
+  - `LINE`: formats the current line
+  - `PARAGRAPH`: formats one *paragraph* of text. For text type documents this is a block of text separated by an empty line.
+  - `GLOBALLY`: formats the text of the whole document.
+  - `SELECTION`: formats the text currently selected.
+  - `FROM CURSOR`: formats the text from the current cursor position down to the end of file.
+  - `TO CURSOR`: formats the text from the beginning of the file up to the current cursor position.
+- <a name="sorting-text-criteria"></a>_Selection Criteria_: a search pattern, defining the lines to select for sorting
+- <a name="sorting-text-delimiters"></a>_Field Delimiters_: if the data should be interpreted in a tabular way, specify the delimiter here separating the coluns (e.g. `;` as typical CSV delimiter)
+- <a name="sorting-text-keyfields"></a>_Keyfields_: Fields can be defined and specified delimited using "," and may contain whitespace
+  The format for one key (sort field) is: `f[0-9]+{l[0-9]+}?{w[0-9]+}?[dDiabu-]`
+  - `f number`: 0-based field number in order of appearance
+  - `l number`: 0-based line number offset into cluster in clustered sorting case
+  - `o number`: optional 0-based character offset of field. If fields are separated using field separators, offset into the 
+              field otherwise offset into the line sorted
+  - `w number`: optional width of field in number of characters
+  Example: To sort comparing two fields, the 1st one numeric descending and the 2nd one interpreting the value as Date enforcing a field width
+  of 10 characters use: f0-d,f1w10D
+- <a name="sorting-text-clustered"></a>_Sort lines clustered by Selection Criteria_: check this option to sort *blocks of text*, where each text block starts with the regular expression
+  given in the selection criteria.
+- _CSV Quoting of Delimiters_: Use this option to have PKS-Edit support the quoting of the delimiter in a CSV compliant way (i.e. Fields may be
+  enclosed in `"`).
+- _Backslash Quoting of Delimiters_: Use this option to have PKS-Edit allow for the quoting of delimiters using the `\` character as in `field1\;xyz;abc`.
+- _Skip Multiple Delimiters_: use this option to have PKS-Edit skip multiple sub-sequent delimiters, when extracting fields.
+
 ## Formatting text
 
 Text can be formatted using the `Format Text...` menu entry from the `Functions` menu. Currently PKS Edits
@@ -63,9 +98,9 @@ to the grammar defimition file for the language, where code formatting should be
 
 Options in the `Formatting text...` dialog:
 
-- <a name="formatting-text-alignment"></a>`Alignment`: Can be used to define the alignment of the text formatted. This option is only applied,
+- <a name="formatting-text-alignment"></a>_Alignment_: Can be used to define the alignment of the text formatted. This option is only applied,
   when formatting text type documents.
-- <a name="formatting-text-range"></a>`Range`: Defines the range of text to be formatted.
+- <a name="formatting-text-range"></a>_Range_: Defines the range of text to be formatted.
   - `LINE`: formats the current line
   - `PARAGRAPH`: formats one *paragraph* of text. For text type documents this is a block of text separated by an empty line.
   - `GLOBALLY`: formats the text of the whole document.
@@ -113,16 +148,16 @@ By selecting `Right Align Matched Text`, you may format the text this way:
 
 ### Aligning text dialog options
 
-- <a name="aligning-text-pattern"></a>`Align Text Matching`: The text to look for (typically expressed as
+- <a name="aligning-text-pattern"></a>_Align Text Matching_: The text to look for (typically expressed as
   a regular expression), which is aligned.
-- <a name="aligning-text-caret-position"></a>`Align to current Caret Position`: if checked the column if the current caret is used and applied to all matches. 
+- <a name="aligning-text-caret-position"></a>_Align to current Caret Position_: if checked the column if the current caret is used and applied to all matches. 
   This option is only useful, if no text is selected, but another way of defining the range of text to align is selected.
-- <a name="aligning-text-1st-match"></a>`Align to column of 1st match found`: if checked, the column of the first match is applied to all sub-sequent matches.
+- <a name="aligning-text-1st-match"></a>_Align to column of 1st match found_: if checked, the column of the first match is applied to all sub-sequent matches.
   If not checked, the column of the *right most* match is applied to sub-sequent matches.
-- <a name="aligning-text-right-align"></a>`Right Align Matched Text`: if checked, matching ocurrences of a pattern are right aligned with the anchor column.
-- <a name="aligning-text-fill-character"></a>`Fill Character`: let's you use another character than `Blank` to fill up space created by moving the text.
-- `Other Options`: See [Find&Replace](manual/find_replace.md) for a description of the other options.
-- <a name="aligning-text-range"></a>`Range`: Defines the range of text to be formatted.
+- <a name="aligning-text-right-align"></a>_Right Align Matched Text_: if checked, matching ocurrences of a pattern are right aligned with the anchor column.
+- <a name="aligning-text-fill-character"></a>_Fill Character_: let's you use another character than `Blank` to fill up space created by moving the text.
+- _Other Options_: See [Find&Replace](manual/find_replace.md) for a description of the other options.
+- <a name="aligning-text-range"></a>_Range_: Defines the range of text to be formatted.
   - `LINE`: formats the current line
   - `PARAGRAPH`: formats one *paragraph* of text. For text type documents this is a block of text separated by an empty line.
   - `GLOBALLY`: formats the text of the whole document.
