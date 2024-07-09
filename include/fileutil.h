@@ -148,5 +148,11 @@ extern char _pksSysExtensionFolder[];
 extern char _pksSysOverrideFolder[];
 
 
+/*
+ * Checks whether two file names describe two different files. Returns
+ * TRUE, if different.
+ */
+extern BOOL file_fileNamesDiffer(const char* fileName1, const char* fileName2);
+
 #define FILEUTIL_H
 #endif

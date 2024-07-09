@@ -35,8 +35,6 @@ extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
 
-#define	EX_DOS				EX_CD
-
 /*--------------------------------------------------------------------------
  * exec_error()
  */
@@ -82,7 +80,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 
 	show = (flags & EX_SYMBOL) ? SW_SHOWMINIMIZED : SW_SHOWNORMAL;
 	DWORD dwCreationFlags = 0;
-	if (flags & EX_DOS) {
+	if (flags & EX_RUN_IN_SHELL) {
 
 		string_concatPathAndFilename(infile, tmp, "IN.___");
 		string_concatPathAndFilename(outfile, tmp, "OUT.___");

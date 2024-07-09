@@ -1671,6 +1671,7 @@
     <None Include="doc\manual\configuration.md" />
     <None Include="doc\manual\document_types.md" />
     <None Include="doc\manual\editing_files.md" />
+    <None Include="doc\manual\extras.md" />
     <None Include="doc\manual\find_replace.md" />
     <None Include="doc\manual\getting_started.md" />
     <None Include="doc\manual\grammar.md" />

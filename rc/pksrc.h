@@ -55,6 +55,7 @@
 #define IDS_LINE_NUMBER_DOES_NOT_EXIST  212
 #define IDS_LINE_NUMBER_DOES_NOT_EXIST2 213
 #define IDS_FILE_NOT_FOUND              213
+#define IDS_NO_CROSS_REFERENCES_DEFINED 214
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
 #define IDB_BROKEN_IMAGE                235
@@ -98,7 +99,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        244
+#define _APS_NEXT_RESOURCE_VALUE        245
 #define _APS_NEXT_COMMAND_VALUE         40038
 #define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101

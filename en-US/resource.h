@@ -189,6 +189,8 @@
 #define IDS_OPTIONS                     211
 #define IDM_ERASEBLOCK                  212
 #define IDM_REDO                        213
+#define IDS_FILE_NOT_FOUND2             214
+#define IDS_NO_CROSS_REFERENCES_DEFINED 214
 #define DLGFINDINFILES                  535
 #define DLG_DEBUG                       561
 #define IDD_ICONLIST2                   801

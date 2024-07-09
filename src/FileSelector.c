@@ -53,14 +53,13 @@ extern int	nCurrentDialog;
 extern int file_open_vista_version(HWND hwnd, FILE_SELECT_PARAMS* pParams);
 
 char _fseltarget[EDMAXPATHLEN];
+static char* _currentDirectory;
 
 static INT CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData) {
-	char szDir[EDMAXPATHLEN];
-
 	switch (uMsg) {
 	case BFFM_INITIALIZED:
-		if (_getcwd(szDir, sizeof(szDir)) == 0) {
-			SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)szDir);
+		if (_currentDirectory != NULL && *_currentDirectory) {
+			SendMessage(hwnd, BFFM_SETSELECTION, TRUE, (LPARAM)_currentDirectory);
 		}
 		break;
 	}
@@ -79,6 +78,7 @@ BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
 		.ulFlags = BIF_EDITBOX | BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_NONEWFOLDERBUTTON,
 		.lpfn = BrowseCallbackProc
 	};
+	_currentDirectory = pResult;
 	HWND hwndOld = GetFocus();
 	PIDLIST_ABSOLUTE pPids = SHBrowseForFolder(&browseinfo);
 	if (hwndOld) {
@@ -86,10 +86,12 @@ BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
 	}
 	if (pPids == NULL) {
 		EdTRACE(log_lastWindowsError("Select Folder"));
+		_currentDirectory = NULL;
 		return FALSE;
 	}
 	SHGetPathFromIDList(pPids, pResult);
 	CoTaskMemFree(pPids);
+	_currentDirectory = NULL;
 	return TRUE;
 }
 
@@ -100,7 +102,11 @@ BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
 void fsel_changeDirectory(char* pszPath) {
 	char 	cDrv;
 	LPSTR	pszTrailer;
+	char    szCurrent[EDMAXPATHLEN];
 
+	if (_getcwd(szCurrent, sizeof szCurrent) != NULL && !file_fileNamesDiffer(szCurrent, pszPath)) {
+		return;
+	}
 	if (pszPath[1] == ':') {
 		cDrv = pszPath[0] - (pszPath[0] > 'Z' ? 'a' : 'A');
 		if (_chdrive(cDrv) == -1) {

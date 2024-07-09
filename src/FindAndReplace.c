@@ -887,7 +887,6 @@ success:	olen = (int)(match.loc2 - match.loc1);
 		delta = (int)newlen;
 	advance1:
 		nReplacements++;
-		ln_markModified(lp);
 		lp->lflg |= LN_MARKED_FOR_COUNTING;
 		if (scope == RNG_ONCE)
 			break;

@@ -203,7 +203,8 @@ BEGIN
 END
 
 DLGREPLACE DIALOGEX 44, 57, 315, 158
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Search & Replace"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -213,7 +214,7 @@ BEGIN
     COMBOBOX        IDD_REPLS,4,48,222,48,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     GROUPBOX        "Replace Options",111,4,66,158,60
     CONTROL         "On Confir&mation",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,78,80,12
-    CONTROL         "&Only in marked lines",IDD_OPT2,"Button",BS_AUTOCHECKBOX,12,90,104,14
+    CONTROL         "&Only in marked Lines",IDD_OPT2,"Button",BS_AUTOCHECKBOX,12,90,104,14
     LTEXT           "&Range:",112,6,135,32,10,NOT WS_GROUP
     COMBOBOX        IDD_RNGE,44,132,118,51,CBS_DROPDOWNLIST | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     GROUPBOX        "Options Search",IDD_OPT10,171,66,136,60
@@ -351,29 +352,30 @@ BEGIN
     CONTROL         "W&ysiwyg Display",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,80,152,10
 END
 
-DLGEXEC DIALOGEX 7, 68, 245, 134
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+DLGEXEC DIALOGEX 7, 68, 270, 182
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Execute Program"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "C&ommand:",99,8,12,36,10
-    EDITTEXT        IDD_PATH1,48,10,136,12
-    PUSHBUTTON      "Find..",IDD_PATH1SEL,186,8,54,16
-    LTEXT           "P&ath:",111,8,28,36,8
-    EDITTEXT        IDD_STRING1,48,26,136,12
-    GROUPBOX        "Redirections",112,4,48,72,60
-    CONTROL         "&None",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,8,58,52,12
-    CONTROL         "&Producer",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,70,52,12
-    CONTROL         "Con&sumer",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,82,52,12
-    CONTROL         "Con&verter",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,94,52,12
-    GROUPBOX        "Options",113,80,48,98,60
-    CONTROL         "As S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,84,60,86,12
-    CONTROL         "&Wait",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,72,86,12
-    CONTROL         "&Dos Application",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,84,86,12
-    LTEXT           "Error&list:",120,8,118,36,8
-    EDITTEXT        IDD_STRING2,50,116,136,12
-    DEFPUSHBUTTON   "OK",1,186,56,54,14,WS_GROUP
-    PUSHBUTTON      "Cancel",2,186,78,54,14,WS_GROUP
+    LTEXT           "C&ommand:",99,10,18,36,10
+    EDITTEXT        IDD_STRING1,10,31,197,12
+    PUSHBUTTON      "..",IDD_PATH1SEL,190,63,14,12
+    LTEXT           "&Working Directory:",111,10,50,71,8
+    EDITTEXT        IDD_PATH1,10,63,180,12
+    GROUPBOX        "Redirections",112,12,80,96,60
+    CONTROL         "&None",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,15,90,85,12
+    CONTROL         "&Output",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,15,102,85,12
+    CONTROL         "&Input",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,15,114,85,12
+    CONTROL         "In- &and Output",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,15,126,85,12
+    GROUPBOX        "Options",113,105,80,98,60
+    CONTROL         "As S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,111,89,86,12
+    CONTROL         "&Wait",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,111,102,86,12
+    CONTROL         "&Run in Command Shell",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,111,115,86,12
+    LTEXT           "&Redirect Output to:",120,10,150,72,8
+    EDITTEXT        IDD_STRING2,10,163,194,12
+    DEFPUSHBUTTON   "OK",1,211,8,54,14,WS_GROUP
+    PUSHBUTTON      "Cancel",2,211,30,54,14,WS_GROUP
 END
 
 DLGFIND DIALOGEX 22, 125, 259, 88
@@ -611,7 +613,8 @@ BEGIN
 END
 
 DLGFINDINFILES DIALOGEX 28, 41, 335, 210
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Find in Files"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -1528,7 +1531,7 @@ BEGIN
     IDS_COMMAND70           "Run an external application / start command;Start Command..."
     IDS_COMMAND71           "Read a tag file;Read Tag File..."
     IDS_COMMAND72           "Use old search result list;Use Search Results"
-    IDS_COMMAND73           "Read compiler output file;Read Compiler Output File"
+    IDS_COMMAND73           "Read compiler output file;Read Output produced by Build..."
     IDS_COMMAND74           "Save all current Document Settings;Save Document Settings..."
     IDS_COMMAND75           "Start stop macro recorder;Record Macro"
     IDS_COMMAND76           "Edit ans start marcros and bind;Edit Macros..."
@@ -1765,6 +1768,8 @@ BEGIN
     IDS_LINE_NUMBER_DOES_NOT_EXIST 
                             "The current file does not contain that many lines."
     IDS_FILE_NOT_FOUND      "!File %s not found."
+    IDS_NO_CROSS_REFERENCES_DEFINED 
+                            "!No cross reference (tag) information defined for this file."
 END
 
 #endif    // Englisch (USA) resources

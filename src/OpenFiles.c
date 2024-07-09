@@ -134,23 +134,6 @@ static int ft_appendFileChanges(WINFO* wp) {
 	return 1;
 }
 
-/*
- * Checks whether two file names describe two different files. Returns
- * value != 0, if different
- */
-static BOOL areFilenamesDifferent(const char* fileName1, const char* fileName2) {
-	char tempFn1[EDMAXPATHLEN];
-	char tempFn2[EDMAXPATHLEN];
-
-	if (GetLongPathName(fileName1, tempFn1, sizeof tempFn1) == FALSE) {
-		strcpy(tempFn1, fileName1);
-	}
-	if (GetLongPathName(fileName2, tempFn2, sizeof tempFn2) == FALSE) {
-		strcpy(tempFn2, fileName2);
-	}
-	return lstrcmpi(tempFn1, tempFn2);
-}
-
 void ft_checkForChangedFiles(BOOL bActive) {
 	FTABLE *	fp;
 	EDTIME		lCurrentTime;
@@ -364,7 +347,7 @@ void ft_deleteautosave(FTABLE *fp) {
 
 	if ((GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) && 
 			ft_generateAutosavePathname(as_name,fp->fname) && 
-			areFilenamesDifferent(fp->fname,as_name)) {
+			file_fileNamesDiffer(fp->fname,as_name)) {
 		_unlink(as_name);
 	}
 }
@@ -485,7 +468,7 @@ FTABLE *ft_fpbyname(const char *fn)
 {	FTABLE *fp;
 
 	for (fp = _filelist; fp; fp = fp->next) {
-		if (!areFilenamesDifferent(fp->fname,fn)) {
+		if (!file_fileNamesDiffer(fp->fname,fn)) {
 		    return fp;
 		}
 	}
@@ -768,7 +751,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		if (!(nFileCreationFlags & F_NEWFILE) && 
 			(GetConfiguration()->options & O_DELETE_AUTOSAVE_FILES) &&
 			ft_generateAutosavePathname(szAsPath, fn) &&
-			areFilenamesDifferent(szAsPath, fn) &&
+			file_fileNamesDiffer(szAsPath, fn) &&
 			file_exists(szAsPath) == 0 &&
 			error_displayYesNoConfirmation(IDS_MSGRECOVER, string_abbreviateFileName(fn)) == IDYES) {
 			;
@@ -1056,7 +1039,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 			pConfig->workmode &= ~O_CRYPTED;
 		}
 		fp->codepageInfo.cpi_codepage = fsp.fsp_codepage;
-		if (areFilenamesDifferent(newname,fp->fname) && file_exists(newname) >= 0) {
+		if (file_fileNamesDiffer(newname,fp->fname) && file_exists(newname) >= 0) {
 			if (error_displayYesNoConfirmation(IDS_MSGOVERWRITE,string_abbreviateFileName(newname)) == IDNO)
 				return 0;
 			/* if ret == "APPEND".... fp->flags |= F_APPEND */

@@ -1,6 +1,6 @@
 # Find and Replace
 
-## Finding text
+## Finding Text
 
 PKS Edit supports the following options when searching for text:
 
@@ -39,9 +39,9 @@ Character groups can be used to match repeating sections
 - `(group).*\1` matches the specified group, than any character and then the group again
 - `(:?[a-z]+)` non-capturing group repitition
 
-## Replacing text
+## Replacing Text
 
-When replacing text, the following special options are supported:
+<a name="replacing-text-with"></a>In the text specified with _Replace with_, the following special options are supported:
 
 - Range: controls the range of text in which the replacement is performed.
 - On Confirmation: when set, the user is asked before replacing an occurrence of the matched strings.
@@ -57,6 +57,16 @@ In replaced text one can also use special patterns:
 - `\u` will have all successive replacement text being translated to lower case. 
 - `\e` will end the range of text in the replacement pattern where an upper/lower case conversion is performed.
 
+### Replacing Text Dialog Options
+
+- _On Confirmation_ - PKS Edit will popup a confirmation dialog before every text fragment to be replaced.
+- _Only in marked Lines_ - PKS Edit will only replace text in all lines previously _marked_ (not selected - see below for details
+  about marking).
+- _Preserve upper/lower case_ - PKS Edit will preserve the spelling, when replacing. "Hello" will be replaced
+  by "World", while "hello" will be replaced by "world" for instance.
+- <a name="replacing-text-count"></a>_Count_ pressing this button will count found occurrences rather than replacing them.
+- <a name="replacing-text-mark"></a>_Mark_ will _mark_ all lines with occurrences rather than replacing them. This can be used in combination with _Only in marked Lines_.
+
 ## Find in Files
 
 This option allows to find a text in a directory of files (and optionally replace all occurrences). When the search is started, PKS Edit will open a new window, displaying 
@@ -66,10 +76,11 @@ search result list to navigate the results any time later using menu "Find->Use 
 
 When finding/replacing text in multiple files, the following special options (in addition to normal search options) are available:
 
-- `Single Match in File` will try to find only the 1st occurrence of the search pattern
-- `Ignore Binary Files` will ignore all files with binary content (zip-files, exe-files, obj-files, etc...)
-- `Append to previous Result` will extend the previously displayed _search result list_.
-- `Search in previous Results` will only consider files mentioned in the currently displayed _search result list_.
+- <a name="find-in-files-single-match"></a>_Single Match in File_ will try to find only the 1st occurrence of the search pattern in a file to quickly scan through all
+  files with matches.
+- <a name="find-in-files-ignore-binary"></a>_Ignore Binary Files_ will ignore all files with binary content (zip-files, exe-files, obj-files, etc...)
+- <a name="find-in-files-append"></a>_Append to previous Result_ will extend the previously displayed _search result list_.
+- <a name="find-in-files-search-in-previous"></a>_Search in previous Results_ will only consider files mentioned in the currently displayed _search result list_.
 
 If the option `Search in previous Results` is not specified, all files in the selected path with the given _filename pattern_ are searched recursively (one may specify a maximum folder depth for
 the search). The filename pattern might be a simple pattern such as `*.txt` or a combination of file name patterns all to consider such as `*.c;*.h`.

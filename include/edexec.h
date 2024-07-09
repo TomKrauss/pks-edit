@@ -46,7 +46,7 @@ EX_WCLIP = 0x4000,
 /* read GEM Clipboard after exec */
 EX_RCLIP = 0x8000,
 EX_SYMBOL = 0x1,
-EX_CD = 0x4,
+EX_RUN_IN_SHELL = 0x4,
 EX_RDNONE = 0x10,
 EX_RDCONV = 0x80
 } EXEC_FLAGS;

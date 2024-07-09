@@ -330,3 +330,21 @@ EXPORT void file_clearTempFiles(void)
 EXPORT int file_isAbsolutePathName(const char* pszFilename) {
 	return strlen(pszFilename) > 2 && (pszFilename[1] == ':' || (pszFilename[0] == '\\' && pszFilename[1] == '\\'));
 }
+
+/*
+ * Checks whether two file names describe two different files. Returns
+ * value != 0, if different
+ */
+EXPORT BOOL file_fileNamesDiffer(const char* fileName1, const char* fileName2) {
+	char tempFn1[EDMAXPATHLEN];
+	char tempFn2[EDMAXPATHLEN];
+
+	if (GetLongPathName(fileName1, tempFn1, sizeof tempFn1) == FALSE) {
+		strcpy(tempFn1, fileName1);
+	}
+	if (GetLongPathName(fileName2, tempFn2, sizeof tempFn2) == FALSE) {
+		strcpy(tempFn2, fileName2);
+	}
+	return lstrcmpi(tempFn1, tempFn2);
+}
+

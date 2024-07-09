@@ -112,7 +112,8 @@ BEGIN
 END
 
 DLGREPLACE DIALOGEX 44, 57, 315, 158
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Suchen & Ersetzen"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -262,29 +263,30 @@ BEGIN
     CONTROL         "W&ysiwyg Darstellung",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,18,75,141,10
 END
 
-DLGEXEC DIALOG 7, 68, 245, 134
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+DLGEXEC DIALOGEX 7, 68, 272, 181
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Programm starten"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "K&ommando:",99,8,12,36,10
-    EDITTEXT        IDD_PATH1,48,10,136,12
-    PUSHBUTTON      "D&urchsuchen..",IDD_PATH1SEL,186,8,54,16
-    LTEXT           "P&fad:",111,8,28,36,8
-    EDITTEXT        IDD_STRING1,48,26,136,12
-    GROUPBOX        "Umleitungen",112,4,48,72,60
-    CONTROL         "&Keine",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,8,58,52,12
-    CONTROL         "&Produzent",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,70,52,12
-    CONTROL         "Kon&sument",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,82,52,12
-    CONTROL         "Kon&verter",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,8,94,52,12
-    GROUPBOX        "Optionen",113,80,48,98,60
-    CONTROL         "Als S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,84,60,86,12
-    CONTROL         "&Warten",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,72,86,12
-    CONTROL         "&Dos Applikation",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,84,84,86,12
-    LTEXT           "Fehler&liste:",120,8,118,36,8
-    EDITTEXT        IDD_STRING2,50,116,136,12
-    DEFPUSHBUTTON   "OK",1,186,56,54,14,WS_GROUP
-    PUSHBUTTON      "Abbruch",2,186,78,54,14,WS_GROUP
+    LTEXT           "K&ommando:",99,7,20,36,10
+    EDITTEXT        IDD_PATH1,7,34,191,12
+    PUSHBUTTON      "..",IDD_PATH1SEL,181,62,16,13
+    LTEXT           "Arbeits&verzeichnis:",111,7,50,62,8
+    EDITTEXT        IDD_STRING1,7,63,174,12
+    GROUPBOX        "Umleitungen",112,7,78,90,60
+    CONTROL         "&Keine",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,10,88,83,12
+    CONTROL         "&Ausgabe",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,10,100,83,12
+    CONTROL         "Ein&gabe",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,10,112,83,12
+    CONTROL         "Ein- &und Ausgabe",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,10,124,83,12
+    GROUPBOX        "Optionen",113,97,78,98,60
+    CONTROL         "Als S&ymbol",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,101,90,86,12
+    CONTROL         "&Warten",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,101,102,86,12
+    CONTROL         "&In Command Shell",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,101,114,86,12
+    LTEXT           "Ausgabe in Datei umleiten:",120,7,148,95,8
+    EDITTEXT        IDD_STRING2,7,160,188,12
+    DEFPUSHBUTTON   "OK",1,205,10,54,14,WS_GROUP
+    PUSHBUTTON      "Abbruch",2,205,32,54,14,WS_GROUP
 END
 
 DLGFIND DIALOGEX 22, 125, 218, 88
@@ -521,7 +523,8 @@ BEGIN
 END
 
 DLGFINDINFILES DIALOGEX 28, 41, 379, 213
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Suche in Ordnern"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -940,6 +943,8 @@ BEGIN
 
     DLGEXEC, DIALOG
     BEGIN
+        RIGHTMARGIN, 269
+        BOTTOMMARGIN, 171
     END
 
     DLGFIND, DIALOG
@@ -1240,6 +1245,16 @@ BEGIN
 END
 
 DLGFIND AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGEXEC AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGREPLACE AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1598,7 +1613,7 @@ BEGIN
     IDS_COMMAND70           "Startet eine externe Applikation;Programm Starten"
     IDS_COMMAND71           "Liest eine Verweisdatei;Verweis lesen"
     IDS_COMMAND72           "Alte Suchergebnisse verwenden;Suchergebnisse verwenden"
-    IDS_COMMAND73           "Liest eine Compiler Fehler Liste;Compilerausgabe lesen"
+    IDS_COMMAND73           "Liest eine Compiler Fehler Liste;Logausgabe eines Builds lesen..."
     IDS_COMMAND74           "Fügt Dokumenteinstellungen (Abkürzungen, ...) einer Modusdatei hinzu;Erweitere Einstellungen"
     IDS_COMMAND75           "Startet/Stoppt eine Makro Aufnahme;Makro aufnehmen"
     IDS_COMMAND76           "Editiert Makros und ihre Anbindungen;Makros bearbeiten"
@@ -1835,6 +1850,8 @@ BEGIN
     IDS_LINE_NUMBER_DOES_NOT_EXIST 
                             "Die angegebene Zeilennummer existiert nicht in der aktuellen Datei."
     IDS_FILE_NOT_FOUND      "!Die Datei %s wurde nicht gefunden."
+    IDS_NO_CROSS_REFERENCES_DEFINED 
+                            "!Für diese Datei sind keine Verweise bekannt."
 END
 
 #endif    // Deutsch (Deutschland) resources

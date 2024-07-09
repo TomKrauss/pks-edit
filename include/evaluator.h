@@ -35,6 +35,6 @@ extern void evaluator_destroyEvaluators();
  * Evaluate the current selection or the line containing the cursor.
  * If the selection exists a maximum size, return an error.
  */
-extern long long evaluator_evaluateCurrentSelection();
+extern long long evaluator_evaluateCurrentSelection(WINFO* wp);
 
 #endif

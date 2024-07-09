@@ -792,6 +792,7 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 	_tagCancelled = FALSE;
 
 	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
+		error_showErrorById(IDS_NO_CROSS_REFERENCES_DEFINED);
 		return 0;
 	}
 	_tagword = _strdup(s);

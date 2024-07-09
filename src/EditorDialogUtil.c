@@ -610,19 +610,6 @@ void dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax)
 }
 
 /*--------------------------------------------------------------------------
- * macro_getReplaceActionForControlId()
- */
-static int macro_getReplaceActionForControlId(int idCtrl)
-{
-	switch (idCtrl) {
-	case IDD_BUT3: return REP_MARK;
-	case IDD_BUT4: return REP_COUNT;
-	case IDCANCEL: return 0;
-	default:       return REP_REPLACE;
-	}
-}
-
-/*--------------------------------------------------------------------------
  * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
  * The list of item descriptors must be 0-terminated.
  */
@@ -651,11 +638,6 @@ BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_DESCRIPTOR *dpDialog) {
 		}
 		ip = (int*)dp->did_data;
 		switch(item) {
-		case IDD_RECORDRET:
-			if (ip) {
-				*ip = macro_getReplaceActionForControlId(idCtrl);
-			}
-			break;
 		case IDD_OPT1:
 		case IDD_OPT2:
 		case IDD_OPT3:

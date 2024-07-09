@@ -1453,14 +1453,22 @@ int dlg_configureEditorModes(void) {
 }
 
 /*--------------------------------------------------------------------------
+ * macro_getReplaceActionForControlId()
+ */
+static int replace_getReplaceActionForControlId(HWND hDialog, struct tagDIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	int* ip = (int*) pDescriptor->did_data;
+	*ip = pDescriptor->did_flagOrSize;
+	EndDialog(hDialog, *ip);
+	return FALSE;
+}
+
+/*--------------------------------------------------------------------------
  * EdReplace()
  */
-int EdReplace(void)
-{	static int ret;
+int EdReplace(void) {
 	static ITEMS	_i   =  	{ 
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.replaceWith },
-		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &ret },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   },
 	};
@@ -1475,8 +1483,16 @@ int EdReplace(void)
 		{IDD_REPLS,		sizeof _currentSearchAndReplaceParams.replaceWith, &_currentSearchAndReplaceParams.replaceWith},
 		{IDD_OPT1,		RE_CONFIRM_REPLACEMENT,	&_currentSearchAndReplaceParams.options},
 		{IDD_OPT2,		RE_CONSIDER_MARKED_LINES,	 &_currentSearchAndReplaceParams.options},
-		{IDD_RECORDRET,	sizeof ret,		&ret},
 		{0}
+	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_REPLS, .dhd_link = "manual\\find_replace.md#replacing-text-with"},
+		{.dhd_itemNumber = IDD_REPLS, .dhd_link = "manual\\find_replace.md#replacing-text-with"},
+		{.dhd_itemNumber = IDD_REPLS, .dhd_link = "manual\\find_replace.md#replacing-text-with"},
+		{.dhd_itemNumber = IDD_BUT3, .dhd_link = "manual\\find_replace.md#replacing-text-mark"},
+		{.dhd_itemNumber = IDD_BUT4, .dhd_link = "manual\\find_replace.md#replacing-text-count"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\find_replace.md#replacing-text"},
+		{.dhd_link = 0}
 	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		{IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION},
@@ -1487,14 +1503,20 @@ int EdReplace(void)
 	WINFO* wp = ww_getCurrentEditorWindow();
 
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
-	if (!wp || win_callDialog(DLGREPLACE, &_fp, &dialogDescriptor, _tt) == 0) {
+	int nResult;
+	if (!wp || (nResult = win_callDialog(DLGREPLACE, &_fp, &dialogDescriptor, _tt)) == 0) {
 		return 0;
 	}
-
+	REPLACE_TEXT_ACTION action = REP_REPLACE;
+	switch (nResult) {
+		case IDD_BUT3: action = REP_MARK; break;
+		case IDD_BUT4: action = REP_COUNT; break;
+	}
 	return edit_replaceText(wp, _currentSearchAndReplaceParams.searchPattern,
-		_currentSearchAndReplaceParams.replaceWith, _currentSearchAndReplaceParams.options, _scope,ret);
+		_currentSearchAndReplaceParams.replaceWith, _currentSearchAndReplaceParams.options, _scope, action);
 }
 
 /*--------------------------------------------------------------------------
@@ -1528,7 +1550,7 @@ int EdFind(void)
 		{.dhd_itemNumber = IDD_SHELLJOKER, .dhd_link = "manual\\find_replace.md#shell-wildcards"},
 		{.dhd_itemNumber = IDD_OPT1, .dhd_link = "manual\\find_replace.md#wrap-search"},
 		{.dhd_itemNumber = IDD_IGNORECASE, .dhd_link = "manual\\find_replace.md#ignore-case"},
-		{.dhd_itemNumber = 0, .dhd_link = "manual\\find_replace.md#finding text"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\find_replace.md#finding-text"},
 		{.dhd_link = 0}
 	};
 
@@ -1576,6 +1598,7 @@ static INT_PTR find_inFilesDialogProc(HWND hDlg, UINT wMessage, WPARAM wParam, L
 static BOOL dlg_selectPath(HWND hwnDialog, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
 	char szBuff[128];
 	char* pszTitle = dlg_getTitleResource(hwnDialog, pDescriptor->did_controlNumber, szBuff, sizeof szBuff);
+	GetDlgItemText(hwnDialog, IDD_PATH1, _fseltarget, EDMAXPATHLEN);
 	if (fsel_selectFolder(hwnDialog, pszTitle, _fseltarget)) {
 		SetDlgItemText(hwnDialog, IDD_PATH1, _fseltarget);
 	}
@@ -1615,13 +1638,22 @@ int EdFindInFileList(void)
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
 		0
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_OPT1, .dhd_link = "manual\\find_replace.md#find-in-files-single-match"},
+		{.dhd_itemNumber = IDD_OPT2, .dhd_link = "manual\\find_replace.md#find-in-files-ignore-binary"},
+		{.dhd_itemNumber = IDD_OPT3, .dhd_link = "manual\\find_replace.md#find-in-files-append"},
+		{.dhd_itemNumber = IDD_OPT4, .dhd_link = "manual\\find_replace.md#find-in-files-search-in-previous"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\find_replace.md#find-in-files"},
+		{.dhd_link = 0}
+	};
 
 	if (!_currentSearchAndReplaceParams.filenamePattern[0] && hist_getString(FILE_PATTERNS, 0) == 0) {
 		strcpy(_currentSearchAndReplaceParams.filenamePattern, "*.*");
 	}
 	bl_getSelectedText(ww_getCurrentEditorWindow(), _currentSearchAndReplaceParams.searchPattern, 1, sizeof _currentSearchAndReplaceParams.searchPattern);
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	int ret = win_callDialogCB(DLGFINDINFILES, &_fp, &dialogDescriptor, _tt, find_inFilesDialogProc);
 	if (ret == 0) {
@@ -1789,31 +1821,42 @@ int EdListBindings(LIST_BINDING_OPTION lWhich)
 int EdCommandExecute(void)
 {
 	static char	cmd[512];
-	static char	dir[512];
+	static char	workingDirectory[512];
 	static char	errlist[64];
 	static int  opt;
 	static int	redir;
 	static ITEMS	_i   =  	{ 
 		{ C_PUSH_STRING_LITERAL, 	cmd }, 
-		{ C_PUSH_STRING_LITERAL, 	dir }, 
+		{ C_PUSH_STRING_LITERAL, 	workingDirectory }, 
 		{ C_PUSH_STRING_LITERAL, 	errlist },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &opt }
 	};
 	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_PATH1SEL,	.did_command = dlg_selectPath},
-		{IDD_PATH1,	sizeof cmd,			cmd},
-		{IDD_STRING1,	sizeof dir,		dir},
+		{IDD_STRING1,	sizeof cmd,		cmd},
+		{IDD_PATH1,	sizeof workingDirectory,		workingDirectory},
 		{IDD_STRING2,	sizeof errlist,	errlist},
 		{IDD_OPT1,		EX_SYMBOL,		&opt},
 		{IDD_OPT2,		EX_WAIT,		&opt},
-		{IDD_OPT3,		EX_CD,			&opt},
+		{IDD_OPT3,		EX_RUN_IN_SHELL,&opt},
 		{IDD_RADIO1,		4,			&redir},
 		{0}
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+	{.dhd_itemNumber = IDD_OPT2, .dhd_link = "manual\\extras.md#start-command-wait"},
+	{.dhd_itemNumber = IDD_OPT3, .dhd_link = "manual\\extras.md#start-command-run-in-shell"},
+	{.dhd_itemNumber = IDD_STRING2, .dhd_link = "manual\\extras.md#start-command-output"},
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\extras.md#start-command"},
+	{.dhd_link = 0}
+	};
 
+	if (_getcwd(workingDirectory, sizeof workingDirectory) == NULL) {
+		workingDirectory[0] = 0;
+	}
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	if (!win_callDialog(DLGEXEC,&_fp,&dialogDescriptor, NULL)) {
 		return 0;
@@ -1824,7 +1867,7 @@ int EdCommandExecute(void)
 	case 2: nExecuteOptions |= EX_RDIN; break;
 	case 3: nExecuteOptions |= EX_RDCONV; break;
 	}
-	return EdExecute((long)nExecuteOptions, cmd, dir, errlist);
+	return EdExecute((long)nExecuteOptions, cmd, workingDirectory, errlist);
 }
 
 /*--------------------------------------------------------------------------

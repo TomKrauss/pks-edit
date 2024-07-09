@@ -109,7 +109,6 @@
 #define IDD_RADIO5 204
 #define IDD_RADIO6 205
 #define IDD_RAWCHAR 57
-#define IDD_RECORDRET -6
 #define IDD_REGEXP 133
 #define IDD_REPLS 31
 #define IDD_RNGE 35

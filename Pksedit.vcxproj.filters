@@ -687,6 +687,7 @@
     <None Include="rc\font2.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="doc\manual\extras.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">
