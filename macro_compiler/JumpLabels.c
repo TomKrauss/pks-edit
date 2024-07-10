@@ -45,7 +45,6 @@ static GOTOS _gotos[MAXLABEL];
 static int   _ngotos;
 
 void 	yyerror(char *s, ...);
-unsigned char  *yystralloc(unsigned char *s);
 
 /*---------------------------------*/
 /* bytecode_findLabelNamed()					*/
@@ -79,7 +78,7 @@ static LABEL *bytecode_insertLabelType(LABEL *lp, char *name, int type)
 		}
 	}
 
-	lp->name = yystralloc(name);
+	lp->name = _strdup(name);
 	lp->recp = 0;
 
 redef:
@@ -243,7 +242,7 @@ int bytecode_makeAutoLabel(COM_GOTO *cp)
 	/*
 	 * be careful: yystralloc requires a setjmp in main!
 	 */
-	lastfree->name = yystralloc(bytecode_generateAutoLabelName("L",_autonum++));
+	lastfree->name = _strdup(bytecode_generateAutoLabelName("L",_autonum++));
 	lastfree->recp = cp;
 	lastfree->type = L_DEFINED;
 	return 1;

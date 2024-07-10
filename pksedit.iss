@@ -104,9 +104,9 @@ Type: files; Name: "{app}\pksedit.ini"
 Name: "{group}\PKS Edit"; Filename: "{app}\{#MyAppExeName}"
 
 [Registry]
-Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\command"; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
-Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}"; ValueData: "{app}\pks_sys\pks.ico"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: "icon"
-Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec";  ValueData: """%1""";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\command"; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}"; ValueData: "{app}\pks_sys\pks.ico"; Flags: uninsdeletevalue; ValueType: string;  ValueName: "icon"
+Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec";  ValueData: """%1""";  Flags: uninsdeletevalue; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\Application";  ValueData: "{#MyAppName}";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKCR; Subkey: "*\shell\{cm:MsgOpenWith,PKS Edit}\ddeexec\topic";  ValueData: "commandline";  Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""
 Root: HKLM; Subkey: "Software\Classes\.txt"; ValueData: "{#MyAppName}"; Flags: uninsdeletevalue noerror; ValueType: string;  ValueName: ""; Tasks: fileAssociation

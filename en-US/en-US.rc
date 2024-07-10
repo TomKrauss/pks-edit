@@ -1286,7 +1286,7 @@ BEGIN
     IDS_MSGABRT             "Cancel operation"
     IDS_MSGEXECERR          "!An error occurred when executing a macro"
     IDS_MSGTOOMANYMACROS    "!Too many macros"
-    IDS_MSGMACFORMATERR     "!Formaterror"
+    IDS_MSGMACFORMATERR     "!Passing wrong form parameters during execution of macro function %s."
     IDS_MSGBADICONACTION    "The action bound to an icon is not defined"
 END
 

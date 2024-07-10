@@ -12,11 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The Align Text function is more intuitive to use now.
 - Most dialogs support now context sensitive help. The PKS Edit manual was improved to be able to support this.
 - The Markdown Wysiwyg mode supports now caret line highlighting.
+- The Code Evaluation menu is now only enabled, if code evaluation is really supported. Code evaluation of PKSMacroC
+  code handles now more szenarios of selected text.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.
   the File & Replace dialog), when multiple lines of text were selected and the column of the selection end was less
   than the column of the selection start.
+- A potential crash in the MacroC compiler was fixed. Some memory leaks were fixed as well, that occurred if macro
+  compilation resulted in one or more errors.
 
 ## [2.7.0] - 2024-07-05
 

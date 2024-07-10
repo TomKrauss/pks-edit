@@ -252,14 +252,17 @@ int yyfinish(void)
 /*---------------------------------*/
 /* yystralloc()				*/
 /*---------------------------------*/
-unsigned char *yystralloc(unsigned char *s)
+static unsigned char *yystralloc(_YYSTYPE* pYYVal, unsigned char *s)
 {	unsigned char *d;
 
 	if ((d = _strdup(s)) == 0) {
-		if (yyerr.failpt)
+		if (yyerr.failpt) {
 			longjmp(*yyerr.failpt,ERR_SPACE);
+		}
 		return 0;
 	}
+	pYYVal->ident.stringIsAlloced = TRUE;
+	pYYVal->ident.s = d;
 	return d;
 }
 
@@ -438,7 +441,7 @@ WS		[ \t]
 					}
 				}
 			}
-			yylval.ident.stringIsAlloced = 0;
+			yylval.ident.stringIsAlloced = FALSE;
 			yylval.ident.s = unquotealloc(yytext,yyleng);
 			return T_STRING;
 }
@@ -489,8 +492,7 @@ WS		[ \t]
 \+\+		{	return T_PLUSPLUS; }
 \-\-		{	return T_MINUSMINUS; }
 @{CHN}+		{
-				yylval.ident.s = yystralloc(yytext);
-				yylval.ident.stringIsAlloced = 1;
+				yystralloc(&yylval, yytext);
 				return T_ANNOTATION;
 			}
 {CHN}+		{	SYMBOL 	sym;
@@ -502,8 +504,7 @@ WS		[ \t]
 					key = yytext;
 				}
 				if (NULLSYM(sym)) {
-retIdent:			yylval.ident.s = yystralloc(yytext);
-					yylval.ident.stringIsAlloced = 1;
+retIdent:			yystralloc(&yylval, yytext);
 					return T_IDENT;
 				}
 				t = TYPEOF(sym);
@@ -547,8 +548,7 @@ retIdent:			yylval.ident.s = yystralloc(yytext);
 						yylval.num = sym.s.symbol.s_data.uchar;
 						return T_CHARACTER;
 					case VT_STRING:
-						yylval.ident.stringIsAlloced = 1;
-						yylval.ident.s = yystralloc((char *)VALUE(sym));
+						yystralloc(&yylval, (char *)VALUE(sym));
 						return T_STRING;
 					default: yyerror("Unsupported constant type %d", VALUE_TYPE(sym));
 					}

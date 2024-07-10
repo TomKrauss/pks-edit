@@ -152,6 +152,7 @@ int			bytecode_createBranchLabel(BYTECODE_BUFFER* pBuffer, char *name);
 void 		bytecode_closeOpenLabels(void);
 void 		bytecode_destroyLabelNamed(char *name);
 char*		bytecode_generateAutoLabelName(char *prefix, int num);
+static void destroy_bytecodeBuffer(int nStart);
 static ANNOTATION*	_currentMethodAnnotations;
 static int			_localVariableIndex;
 static STRING_BUF*  _nativeMethodSignature;
@@ -407,7 +408,7 @@ namespace:  {
 			}
 			| T_NAMESPACE T_IDENT ';' {
 				_currentNamespaceIndex = macro_lookupNamespace($2.ident.s);
-				free($2.ident.s);
+				freeitem(&$2.ident.s);
 			}
 
 prerequisites:
@@ -415,7 +416,7 @@ prerequisites:
 
 require:	T_REQUIRE T_STRING ';' {
 				yyrequire($2.ident.s);
-				free($2.ident.s);
+				freeitem(&$2.ident.s);
 			}
 
 global_declarations:
@@ -485,10 +486,10 @@ constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal
 				sym_createSymbol(_currentIdentifierContext, $2.ident.s,
 					S_CONSTANT, $4.v.type, $4.v.data, 0);
 				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
+					freeitem(&$2.ident.s);
 				}
 				if (bString) {
-					free($4.v.data.string);
+					freeitem(&$4.v.data.string);
 				}
 			}
 
@@ -524,7 +525,7 @@ variable_reference:
 				yyerror("Using undeclared variable %s", $1.ident.s);
 				// auto-correct by introducing variable
 				sym_createSymbol(_currentIdentifierContext, $1.ident.s, _bInHeader ? S_VARIABLE : S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {0}, 0);
-				free($1.ident.s);
+				freeitem(&$1.ident.s);
 				$$.ident = $1.ident;
 			}
 
@@ -570,13 +571,13 @@ var_decl:	type_name variable_identifier assignment_expression {
 				parser_defineVariable($2.ident.s, $1.ident.type, 0, $1.ident.arraySize);
 				parser_emitAssignment(&$2.ident);
 				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
+					freeitem(&$2.ident.s);
 				}
 				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0});
 			} | type_name variable_identifier {
 				parser_defineVariable($2.ident.s, $1.ident.type, 0, $1.ident.arraySize);
 				if ($2.ident.stringIsAlloced) {
-					free($2.ident.s);
+					freeitem(&$2.ident.s);
 				}
 			}
 
@@ -584,7 +585,7 @@ optional_description:
 			|
 			T_STRING {
 				yywarning("Old Style macro descriptions not supported any more. Use C-Syntax style comments to describe macros.");
-				free($1.ident.s);
+				freeitem(&$1.ident.s);
 			}
 
 argument_list:
@@ -611,7 +612,7 @@ argument_declaration: type_name variable_identifier {
 					sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
 					bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER, $1.ident.type,_nparam, _localVariableIndex++);
 				}
-				free($2.ident.s);
+				freeitem(&$2.ident.s);
 				_nparam++;
 			} | T_ELLIPSIS {
 				if (_bInNativeDefinition) {
@@ -666,10 +667,11 @@ native_function_definition:
 							C_0FUNC, (GENERIC_DATA){ FUNC_RegisterNative}, 6);
 					// register right away as well, so we can use it.
 					function_registerNativeFunction(pszMacroCName, $3.ident.s, pszLib, pszSignature, stringbuf_getString(_yyCurrentComment), pszArgs);
-					free($3.ident.s);
+					freeitem(&$3.ident.s);
 					finalize_native();
 				} | error {
 					finalize_native();
+					destroy_bytecodeBuffer(0);
 				}
 
 macro_definition: { init_macroDefinition(); } 
@@ -682,6 +684,9 @@ macro_definition: { init_macroDefinition(); }
 				bytecode_optimizeInstructions(_currentBytecodeBuffer);
 				macro_processAnnotations(&_macroParam, _currentMethodAnnotations);
 				_macroParam.mp_name = $2.ident.s;
+				if (_yyCurrentComment == NULL) {
+					_yyCurrentComment = stringbuf_create(512);
+				}
 				_macroParam.mp_comment = stringbuf_getString(_yyCurrentComment);
 				_macroParam.mp_returnType = $2.ident.type;
 				_macroParam.mp_numberOfLocalVariables = _localVariableIndex;
@@ -857,7 +862,7 @@ value:		T_VARIABLE {
 			| string {
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
 				$$.v.type = C_PUSH_STRING_LITERAL;
-				free($1.ident.s);
+				freeitem(&$1.ident.s);
 			}
 			| simple_literal {	$$.ident.type = $1.ident.type;	}
 			| T_IDENT {
@@ -870,8 +875,8 @@ string:		T_STRING {	$$.ident = $1.ident; }
 			| string T_STRING { 
 				if (($$.ident.s = malloc(strlen($1.ident.s)+strlen($2.ident.s)+1)) != 0) {
 					strcat(strcpy($$.ident.s,$1.ident.s),$2.ident.s);
-					free($1.ident.s);
-					free($2.ident.s);
+					freeitem(&$1.ident.s);
+					freeitem(&$2.ident.s);
 				} else {
 					yyerror("String too long: buffer overflow");
 					$$.ident = $2.ident;
@@ -955,7 +960,7 @@ for_loop_expression:
 			} local_block {
 				if ($2.ident.s) {
 					sym_remove(_currentIdentifierContext, $2.ident.s);
-					free($2.ident.s);
+					freeitem(&$2.ident.s);
 				}
 				parser_flushBuffer(_breaklevel);
 				_breaklevel--;
@@ -1119,7 +1124,7 @@ map_associate:
 			T_STRING ':' { 
 				YY_EMIT(C_PUSH_STRING_LITERAL, (GENERIC_DATA){.string=$1.ident.s});
 				$$.v.type = C_PUSH_STRING_LITERAL;
-				free($1.ident.s);
+				freeitem(&$1.ident.s);
 				(*_currentFunctionCallParamIndexP) += 2;
 			} value
 

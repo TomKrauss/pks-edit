@@ -30,6 +30,7 @@
 #include "stringutil.h"
 #include "caretmovement.h"
 #include "pksrc.h"
+#include "grammar.h"
 #include "menu.h"
 #include "pksmacro.h"
 #include "markpositions.h"
@@ -100,6 +101,15 @@ static int func_supportsEditorMode(intptr_t* pStack) {
     BOOL displayMode = dd == OP_DISPLAY_MODE;
     mode = LOWORD(mode);
     return ww_supportsDisplayMode(wp, (EDIT_MODE) { .em_displayMode = displayMode, .em_flag = (int)mode });
+}
+
+static int func_supportsEvaluate(intptr_t* pStack) {
+    WINFO* wp = ww_getCurrentEditorWindow();
+    if (wp == NULL) {
+        return FALSE;
+    }
+    FTABLE* fp = FTPOI(wp);
+    return grammar_getEvaluator(fp->documentDescriptor->grammar) != NULL;
 }
 
 // Describes functions and their respective names, options and parameter type descriptions for being used e.g. from within PKSMacroC.
@@ -178,7 +188,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*71*/  EdInfoFiles, -1, 0,                                                                           "ShowInfo",                   NULL,  "i"                                           },
 {/*72*/  EdShowMatch, -1, EW_NEEDSCURRF,                                                           "CheckBrackets",              NULL,  "iW"                                           },
 {/*73*/  edit_convertCharacterCase, -1, EW_MODIFY | EW_FINDCURS | EW_NEEDSCURRF | EW_UNDOFLSH,     "UpToLow",                    NULL,  "iWeCC_"                                           },
-{/*74*/  evaluator_evaluateCurrentSelection, -1, EW_NEEDSCURRF | EW_FINDCURS,                      "EvaluateSelection",          NULL,  "iW"                                        },
+{/*74*/  evaluator_evaluateCurrentSelection, -1, EW_NEEDSCURRF | EW_FINDCURS | EW_CUSTOM_ENABLEMENT,                      "EvaluateSelection",          func_supportsEvaluate,  "iW"                                        },
 {/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF,                                              "SetEditorSettings",                NULL, "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS,                                        "FindOnInternet",             NULL,  "iWbFORM_siii"                                  },

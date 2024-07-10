@@ -543,7 +543,7 @@ int interpreter_openDialog(PARAMS *pp)
 					strcpy(dp->p.s, memory_accessString(v));
 				}
 				else {
-					error_showErrorById(IDS_MSGMACFORMATERR);
+					error_showErrorById(IDS_MSGMACFORMATERR, _currentExecutionContext->ec_currentFunction);
 				}
 				break;
 		   }

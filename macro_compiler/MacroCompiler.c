@@ -185,6 +185,8 @@ static int compiler_compileWithParams(COMPILER_CONFIGURATION* pConfig) {
 				i++;
 			}
 		}
+	}
+	if (bTopLevel && pConfig->cb_dependencies) {
 		arraylist_destroyStringList(pConfig->cb_dependencies);
 	}
 	return nRet;
@@ -263,22 +265,55 @@ static void macro_noStatus(char* fmt, ...) {
  * function before compiling.
  */
 static BOOL macro_needsWrapper(const char* pszCode) {
-	RE_PATTERN pattern;
-	RE_OPTIONS options;
-	RE_MATCH match;
-	char patternBuf[400];
+	int state = 0;
+	const char* pszId = NULL;
 
-	// keep CPPCHECK happy
-	memset(&options, 0, sizeof options);
-	options.flags = RE_DOREX;
-	options.patternBuf = patternBuf;
-	options.endOfPatternBuf = &patternBuf[sizeof patternBuf];
-	options.expression = "^\\s*(string|void|int|bool)\\s+";
-	if (!regex_compile(&options, &pattern)) {
-		return TRUE;
+	while (*pszCode) {
+		char c = *pszCode++;
+		if (isspace(c)) {
+			continue;
+		}
+		if (c == '/') {
+			if (*pszCode == '/') {
+				while (*pszCode) {
+					c = *pszCode++;
+					if (c == '\n') {
+						break;
+					}
+				}
+			} else if (*pszCode == '*') {
+				pszCode++;
+				while (*pszCode) {
+					c = *pszCode++;
+					if (c == '*' && *pszCode == '/') {
+						pszCode++;
+						break;
+					}
+				}
+			}
+			continue;
+		} else if (isalpha(c)) {
+			pszId = pszCode - 1;
+			while (*pszCode) {
+				c = *pszCode;
+				if (!isalpha(c)) {
+					break;
+				}
+				pszCode++;
+			}
+			char buf[10];
+			size_t nLen = pszCode - pszId;
+			if (nLen < sizeof buf) {
+				strncpy(buf, pszId, nLen);
+				buf[nLen] = 0;
+				if (strcmp("void", buf) == 0 || strcmp("int", buf) == 0 || strcmp("string", buf) == 0 || strcmp("bool", buf) == 0) {
+					return FALSE;
+				}
+			}
+			return TRUE;
+		}
 	}
-	regex_match(&pattern, (char*)pszCode, 0, &match);
-	return !match.matches;
+	return TRUE;
 }
 
 /*
@@ -333,8 +368,9 @@ int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char
 	_tempMacroName = NULL;
 	memset(&ft, 0, sizeof ft);
 	BOOL bNeedsWrapper = macro_needsWrapper(pszCode);
+	char* pszHeader = "string temp-block() {";
 	if (bNeedsWrapper) {
-		ln_createAndAdd(&ft, "string temp-block() {", -1, 0);
+		ln_createAndAdd(&ft, pszHeader, -1, 0);
 	}
 	size_t nSize = strlen(pszCode);
 	char* pszTemp = calloc(1, nSize + 3);
@@ -376,7 +412,18 @@ int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char
 	config.cb_stream = &cis;
 	int ret = 1;
 	if (!compiler_compileWithParams(&config)) {
-		error_displayAlertDialog("Error in command: %s", pszTemp);
+		if (strlen(pszTemp) > 128) {
+			// Shorten command
+			strcpy(pszTemp + 128, "...");
+		}
+		char buffer[256];
+		if (bNeedsWrapper) {
+			sprintf(buffer, "%s\n%s\n}", pszHeader, pszTemp);
+		}
+		else {
+			strcpy(buffer, pszTemp);
+		}
+		error_displayAlertDialog("Failed to compile\n%s", buffer);
 		ret = 0;
 	} else {
 		macro_executeByName(_tempMacroName);
