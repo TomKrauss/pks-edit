@@ -126,7 +126,7 @@ extern int bl_setSelection(WINFO* wp, LINE* lps, int cs, LINE* lpe, int ce);
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-extern int bl_insertPasteBufFromFile(WINFO* wp, char* fn);
+extern int bl_insertPasteBufFromFile(WINFO* wp, char* fn, long codePage);
 
 /*---------------------------------
  * bl_syncSelectionWithCaret()

@@ -20,7 +20,7 @@
  */
 extern int xref_restoreFromConfigFile(void);
 
-extern int xref_openFile(const char* name, long line, const char* pszDockName);
+extern int xref_openFile(const char* name, long line, FT_OPEN_OPTIONS* pOptions);
 
 /*
  * Free all memory occupied by the cross reference lists.
@@ -82,7 +82,7 @@ extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned 
 extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbAnalyzer);
 #endif
 
-extern int xref_openSearchList(char* fn, int cmpflg);
+extern int xref_openSearchList(char* fn, int cmpflg, long codePage);
 
 extern int EdSearchListRead(void);
 

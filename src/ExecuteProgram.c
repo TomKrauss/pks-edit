@@ -28,9 +28,8 @@
 #include "fileutil.h"
 #include "stringutil.h"
 #include "textblocks.h"
+#include "crossreferencelinks.h"
 
-extern void fsel_changeDirectory(char* pszPath);
-extern void xref_openSearchList(char *fn, int cmpflg);
 extern void undo_startModification(FTABLE *fp);
 
 extern FTABLE 	_outfile;
@@ -43,6 +42,31 @@ static void exec_error(char *cmd, int errcode)
 	error_showErrorById(IDS_MSGEXECERROR,errcode,cmd);
 }
 
+/*
+ * Find out, how to to start a command to be executed in the command shell.
+ * We use the heuristic now, to assume, that all commands containing a "-" are
+ * powershell commands and all other commands are executed by cmd.
+ */
+static const char* execute_determineCommandShellCommand(const char* pszCommandLine) {
+	char szCommand[1024];
+	char* pszStart = szCommand;
+	strcpy(szCommand, pszCommandLine);
+	while (*pszStart) {
+		char c = *pszStart;
+		if (c == ' ') {
+			*pszStart = 0;
+			break;
+		}
+		pszStart++;
+	}
+	pszStart = szCommand;
+	char* pszDash = strstr(pszStart, "-");
+	if (pszDash != NULL) {
+		return "powershell -Command %s";
+	}
+	return "cmd /e:1024 /c %s";
+}
+
 /*--------------------------------------------------------------------------
  * EdExecute()
  * EX_RDIN,EX_RDOUT:
@@ -52,7 +76,7 @@ static void exec_error(char *cmd, int errcode)
  *   EX_RDOUT     : write the marked block to an output file before execution
  * 
  */
-int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
+int EdExecute(long flags, LPSTR cmdline, LPSTR lpWorkingDirectory, LPSTR errfile) {
 	int				show;
 	char			szTemp[1024];
 	char			outfile[1024];
@@ -69,39 +93,38 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	outfile[0] = 0;
 	hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 	hStdin = GetStdHandle(STD_INPUT_HANDLE);
+	if (errfile && errfile[0]) {
+		flags |= EX_RDOUT;
+	}
 	BOOL bConsumer = flags & (EX_RDCONV | EX_RDIN);
 	BOOL bProducer = flags & (EX_RDCONV | EX_RDOUT);
 
 	bUInited = FALSE;
 
-	if (newdir && newdir[0]) {
-		fsel_changeDirectory(newdir);
-	}
-
 	show = (flags & EX_SYMBOL) ? SW_SHOWMINIMIZED : SW_SHOWNORMAL;
 	DWORD dwCreationFlags = 0;
-	if (flags & EX_RUN_IN_SHELL) {
+	BOOL bRunInCommandShell = flags & EX_RUN_IN_SHELL;
+	if (bRunInCommandShell) {
 
 		string_concatPathAndFilename(infile, tmp, "IN.___");
 		string_concatPathAndFilename(outfile, tmp, "OUT.___");
 
 		if (errfile && errfile[0]) {
-			flags |= EX_RDOUT;
 			lstrcpy(outfile, errfile);
 		}
-
-		wsprintf(szTemp,"cmd /e:1024 /c %s", cmdline);
+		const char* pszInvoker = execute_determineCommandShellCommand(cmdline);
+		wsprintf(szTemp, pszInvoker, cmdline);
 		cmdline = szTemp;
 		dwCreationFlags = CREATE_NO_WINDOW;
 	}
 
 	PROCESS_INFORMATION pi;
-	STARTUPINFO si;
+	STARTUPINFO si = {
+		.cb = sizeof(si),
+		.wShowWindow = show
+	};
 
-	ZeroMemory(&si, sizeof(si));
-	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
-	si.wShowWindow = show;
 	SECURITY_ATTRIBUTES saAttr = {
 		.nLength = sizeof(saAttr),
 		.bInheritHandle = TRUE
@@ -133,7 +156,10 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 	si.hStdInput = hStdin;
 	si.hStdOutput = hStdout;
 	si.dwFlags |= STARTF_USESTDHANDLES;
-	if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, dwCreationFlags, NULL, NULL, &si, &pi)) {
+	if (lpWorkingDirectory != NULL && !*lpWorkingDirectory) {
+		lpWorkingDirectory = NULL;
+	}
+	if (!CreateProcess(NULL, cmdline, NULL, NULL, TRUE, dwCreationFlags, NULL, lpWorkingDirectory, &si, &pi)) {
 		exec_error(cmdline, (int) GetLastError());
 		return 0;
 	}
@@ -160,14 +186,14 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile) {
 		EdBlockDelete(wp, 0);
 	}
 
-
+	long codePage = bRunInCommandShell ? CP_OEMCP : -1;
 	if (errfile && errfile[0]) {
-		xref_openSearchList(errfile, 1);
+		xref_openSearchList(errfile, 1, codePage);
 	} else if (wp && bProducer) {
 		if (!bUInited) {
 			undo_startModification(fp);
 		}
-		bl_insertPasteBufFromFile(wp, outfile);
+		bl_insertPasteBufFromFile(wp, outfile, codePage);
 	}
 
 	return 1;

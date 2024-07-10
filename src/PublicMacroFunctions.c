@@ -61,7 +61,7 @@
 extern BOOL find_replacementHadBeenPerformed();
 
 extern int 		align_text(char *pszSearch, RANGE_TYPE scope, char filler, ALIGN_FLAGS flags);
-extern int 		EdExecute(long flags, LPSTR cmdline, LPSTR newdir, LPSTR errfile);
+extern int 		EdExecute(long flags, LPSTR cmdline, LPSTR lpWorkingDirectory, LPSTR errfile);
 extern int 		clp_getdata(void);
 extern long long EdCharInsert(WINFO* wp, int c);
 extern int 		undo_lastModification(FTABLE *fp);

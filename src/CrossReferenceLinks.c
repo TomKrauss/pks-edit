@@ -731,18 +731,21 @@ static char *xref_saveCrossReferenceWord(WINFO* wp, unsigned char *d,unsigned ch
 /*------------------*/
 /* xref_openFile()	*/
 /*------------------*/
-int xref_openFile(const char *name, long line, const char* pszHint) {
+int xref_openFile(const char *name, long line, FT_OPEN_OPTIONS* pOptions) {
 	int ret = 0;
-
+	FT_OPEN_OPTIONS options = {
+		.fo_codePage = -1
+	};
+	if (pOptions == NULL) {
+		pOptions = &options;
+	}
 	if (ft_activateWindowOfFileNamed(name)) {
 		if (line >= 0)
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
 		else ret = 1;
 	} else {
-		ret = ft_openFileWithoutFileselector(name, line, &(FT_OPEN_OPTIONS) { 
-			.fo_dockName = pszHint, 
-			.fo_isNewFile = -1,
-			.fo_codePage = -1}) != NULL;
+		pOptions->fo_isNewFile = -1;
+		ret = ft_openFileWithoutFileselector(name, line, pOptions) != NULL;
 		if (ret && line > 0) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0L);
 		}
@@ -938,7 +941,11 @@ void xref_openWindowHistory(LINE *lp) {
 				};
 				ft_cloneWindowNamed(spec.filename, &options);
 			} else {
-				xref_openFile(spec.filename, spec.line - 1L, pszName);
+				FT_OPEN_OPTIONS options = {
+					.fo_dockName = pszName,
+					.fo_codePage = -1
+				};
+				xref_openFile(spec.filename, spec.line - 1L, &options);
 			}
 			if (bActive || nDisplayMode != -1) {
 				WINFO* wpThis = ww_getCurrentEditorWindow();
@@ -1092,7 +1099,7 @@ void xref_initSearchList(FTABLE* fp) {
 #define	ST_STEP		3
 static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
 static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
-static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp) {
+static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp, FT_OPEN_OPTIONS* pOptions) {
 	FILE_SELECT_PARAMS params;
 	FTABLE* fp;
 	memset(&params, 0, sizeof params);
@@ -1103,7 +1110,7 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 
 	switch(st_type) {
 		case ST_ERRORS:
-			if (!xref_openFile(_fseltarget, 0L, DOCK_NAME_BOTTOM)) {
+			if (!xref_openFile(_fseltarget, 0L, pOptions)) {
 				break;
 			}
 			fp = ft_fpbyname(_fseltarget);
@@ -1114,7 +1121,7 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			}
 			return xref_navigateSearchErrorList(LIST_START);
 		case ST_STEP:
-			fp = ft_openFileWithoutFileselector(_fseltarget, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_BOTTOM, CP_ACP });
+			fp = ft_openFileWithoutFileselector(_fseltarget, 0, pOptions);
 			if (fp) {
 				xref_initSearchList(fp);
 				return xref_navigateSearchErrorList(LIST_START);
@@ -1203,7 +1210,11 @@ int EdFindFileCursor(WINFO* wp)
 			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
 			fm_savepos(MTE_AUTO_LAST_SEARCH);
-			if (xref_openFile(found, result.ni_lineNumber, result.ni_wp)) {
+			FT_OPEN_OPTIONS options = {
+				.fo_dockName = result.ni_wp,
+				.fo_codePage = -1
+			};
+			if (xref_openFile(found, result.ni_lineNumber, &options)) {
 				// avoid to do a shell execute on the result - we have opened the file "internally".
 				_fseltarget[0] = 0;
 				wp = ww_getCurrentEditorWindow();
@@ -1303,10 +1314,10 @@ int EdFindWordCursor(WINFO* wp, int dir)
 /*---------------------------------*/
 /* xref_openSearchList()				*/
 /*---------------------------------*/
-int xref_openSearchList(char *fn, int cmpflg)
-{
+int xref_openSearchList(char *fn, int cmpflg, long codePage) {
 	strcpy(_fseltarget,fn);
-	return xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo);
+	FT_OPEN_OPTIONS options = { DOCK_NAME_BOTTOM, codePage };
+	return xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo, &options);
 }
 
 /*---------------------------------*/
@@ -1316,7 +1327,8 @@ int EdSearchListRead(void)
 {
 	FSELINFO searchResultFileSpec = { "", "pksedit.grep", "*.grep" };
 	strcpy(searchResultFileSpec.path, config_getPKSEditTempPath());
-	return xref_openTagFileOrSearchResults(CMD_READ_SEARCH_LIST,ST_STEP,&searchResultFileSpec);
+	FT_OPEN_OPTIONS options = { DOCK_NAME_BOTTOM, CP_ACP };
+	return xref_openTagFileOrSearchResults(CMD_READ_SEARCH_LIST,ST_STEP,&searchResultFileSpec, &options);
 }
 
 /*---------------------------------*/
@@ -1324,13 +1336,15 @@ int EdSearchListRead(void)
 /*---------------------------------*/
 int EdTagfileRead(void)
 {
-	return xref_openTagFileOrSearchResults(CMD_READ_TAGFILE,ST_TAGS,&_tagfselinfo);
+	FT_OPEN_OPTIONS options = { DOCK_NAME_BOTTOM, CP_ACP };
+	return xref_openTagFileOrSearchResults(CMD_READ_TAGFILE,ST_TAGS,&_tagfselinfo, &options);
 }
 
 /*---------------------------------*/
 /* EdErrorListRead()			*/
 /*---------------------------------*/
 int EdErrorListRead(long dummy1, long dummy2) {
-	return xref_openTagFileOrSearchResults(CMD_READ_COMPILER_ERRORS,ST_ERRORS,&_cmpfselinfo);
+	FT_OPEN_OPTIONS options = { DOCK_NAME_BOTTOM, CP_ACP };
+	return xref_openTagFileOrSearchResults(CMD_READ_COMPILER_ERRORS,ST_ERRORS,&_cmpfselinfo, &options);
 }
 

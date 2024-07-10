@@ -1,0 +1,98 @@
+
+THEMA
+    Hilfesystem zu Windows PowerShell
+
+KURZBESCHREIBUNG
+    Zeigt Hilfe zu Windows PowerShell-Cmdlets und -Konzepten an. 
+
+DETAILBESCHREIBUNG
+    In der Windows PowerShell-Hilfe werden Cmdlets, Funktionen, Skripts und Module von Windows PowerShell beschrieben sowie Konzepte erlÑutert, u.ˇa. die Elemente der Windows PowerShell-Sprache.
+
+
+    Windows PowerShell enthÑlt keine Hilfedateien, Sie kînnen die Hilfethemen jedoch online lesen. Oder laden Sie mit dem Cmdlet "Update-Help" Hilfedateien auf den Computer herunter, und zeigen Sie die Hilfethemen anschlie·end mit dem Cmdlet "Get-Help" in der Befehlszeile an.
+
+    Sie kînnen auch mit dem Cmdlet "Update-Help" aktualisierte Hilfedateien nach ihrer Verîffentlichung herunterladen, sodass der lokale Hilfeinhalt immer auf dem neusten Stand ist. 
+
+    Ohne Hilfedateien wird von "Get-Help" eine automatisch erstellte Hilfe fÅr Cmdlets, Funktionen und Skripts angezeigt.
+
+
+  ONLINEHILFE    
+    Sie finden die Hilfe fÅr Windows PowerShell online in der TechNet-Bibliothek unter "http://go.microsoft.com/fwlink/?LinkID=108518". 
+
+    Geben Sie zum ôffnen der Onlinehilfe fÅr ein Cmdlet oder eine Funktion Folgendes ein:
+
+        Get-Help <Cmdlet-Name> -Online    
+
+  UPDATE-HELP
+    Gehen Sie zum Herunterladen und Installieren von Hilfedateien auf dem Computer folgenderma·en vor:
+
+       1. Starten Sie Windows PowerShell mit der Option "Als Administrator ausfÅhren".
+       2. Geben Sie Folgendes ein:
+
+          Update-Help
+
+    Nach der Installation der Hilfedateien kînnen Sie mit dem Cmdlet "Get-Help" die Hilfethemen anzeigen. Sie kînnen mit dem Cmdlet "Update-Help" auch aktualisierte Hilfedateien herunterladen, sodass die lokalen Hilfedateien immer auf dem neuesten Stand sind.
+    
+    Weitere Informationen zum Cmdlet "Update-Help" erhalten Sie, indem Sie Folgendes eingeben:
+
+       Get-Help Update-Help -Online
+
+    Oder rufen Sie "http://go.microsoft.com/fwlink/?LinkID=210614" auf.
+
+
+  GET-HELP
+    Mit dem Cmdlet "Get-Help" zeigen Sie Hilfe aus dem Inhalt der Hilfedateien auf dem Computer in der Befehlszeile an. Ohne Hilfedateien wird von "Get-Help" grundlegende Hilfe zu Cmdlets und Funktionen angezeigt. Sie kînnen mithilfe von "Get-Help" auch die Onlinehilfe fÅr Cmdlets und Funktionen anzeigen.
+
+    Hilfe zu einem Cmdlet erhalten Sie mit folgendem Befehl:
+
+        Get-Help <Cmdlet-Name>
+    
+    Onlinehilfe rufen Sie mit folgendem Befehl auf:
+   
+        Get-Help <Cmdlet-Name> -Online    
+
+    Die Titel der konzeptionellen Themen beginnen mit "About_".
+    Geben Sie zum Abrufen von Hilfe zu einem Konzept oder Sprachelement Folgendes ein:
+
+        Get-Help About_<Themenname>
+
+    Geben Sie zum Suchen nach einem Wort oder Begriff in allen Hilfedateien Folgendes ein:
+
+        Get-Help <Suchbegriff>
+
+    Weitere Informationen zum Cmdlet "Get-Help" erhalten Sie, indem Sie Folgendes eingeben:
+
+        Get-Help Get-Help -Online
+
+    Oder rufen Sie "http://go.microsoft.com/fwlink/?LinkID=113316" auf.
+
+
+  BEISPIELE:
+      Save-Help              : LÑdt Hilfedateien aus dem Internet herunter und speichert sie auf einer Dateifreigabe.
+      Update-Help            : LÑdt Hilfedateien aus dem Internet oder von einer Dateifreigabe herunter und installiert sie.
+      Get-Help Get-Process   : Zeigt Hilfe zum Cmdlet "Get-Process" an.   
+      Get-Help Get-Process -Online
+                             : ôffnet die Onlinehilfe fÅr das Cmdlet "Get-Process".                            
+      Help Get-Process       : Zeigt Hilfe zu "Get-Process" seitenweise an.
+      Get-Process -?   : Zeigt Hilfe zum Cmdlet "Get-Process" an.      
+      Get-Help About_Modules : Zeigt Hilfe zu Windows PowerShell-Modulen an.
+      Get-Help remoting      : Durchsucht die Hilfethemen nach dem Wort "remoting."
+
+  SIEHE AUCH:
+      about_Updatable_Help
+      Get-Help
+      Save-Help
+      Update-Help
+
+
+
+
+
+
+
+
+
+
+
+
+

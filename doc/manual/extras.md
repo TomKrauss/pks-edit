@@ -17,7 +17,8 @@ Supports running a command (either batch or with UI) optionally processing in an
   - _As Symbol_ - in particular applicable to applications opening a UI. Will run the application initially *iconized* (the application will
 	not really open a window, but is initially displayed as an icon
   - <a name="start-command-wait"></a>_Wait_ - wait for the command execution to end and block PKS Edit while the command runs.
-  - <a name="start-command-run-in-shell"></a>_Run in Command Shell_ - must be used for commands requiring a DOS cmd shell or Powershell to execute (such as DIR or COPY).
+  - <a name="start-command-run-in-shell"></a>_Run in Command Shell_ - must be used for commands to be started in a `cmd shell` or `powershell` to execute (such as DIR or COPY or Get-Help).
+	PKS Edit will automatically detect, whether the command must be invoked via `powershell` or Windows `CMD`.
 - <a name="start-command-output"></a>_Redirect Output to_ - redirects the output to the named file and opens the file as an
   _PKS Edit Error List_ allowing to navigate potentials problems found running the command (typically a build command - maven or the like).
 

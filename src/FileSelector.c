@@ -95,38 +95,6 @@ BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult) {
 	return TRUE;
 }
 
-/*--------------------------------------------------------------------------
- * fsel_changeDirectory()
- * Change the current directory. Allow for drive specification and trailing slash.
- */
-void fsel_changeDirectory(char* pszPath) {
-	char 	cDrv;
-	LPSTR	pszTrailer;
-	char    szCurrent[EDMAXPATHLEN];
-
-	if (_getcwd(szCurrent, sizeof szCurrent) != NULL && !file_fileNamesDiffer(szCurrent, pszPath)) {
-		return;
-	}
-	if (pszPath[1] == ':') {
-		cDrv = pszPath[0] - (pszPath[0] > 'Z' ? 'a' : 'A');
-		if (_chdrive(cDrv) == -1) {
-			EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot change to drive %c", cDrv));
-		}
-	}
-
-	/* remove trailing \\ */
-	for (pszTrailer = pszPath; *pszTrailer; pszTrailer++) {
-		if (*pszTrailer == '\\' && pszTrailer[1] == 0) {
-			pszTrailer[0] = 0;
-			break;
-		}
-	}
-
-	if (_chdir(pszPath) == -1) {
-		EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot change to path %s", pszPath));
-	}
-}
-
 /*---------------------------------*/
 /* menu_fseltitle()				*/
 /*---------------------------------*/

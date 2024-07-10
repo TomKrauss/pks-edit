@@ -75,6 +75,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Statusline Configuration is now more flexible and more intuitive. The individual segments can be configured individually
   may also contain icons (with an optiona color) and may tagged with a locale for I18N.
 - Repaint during resize of mainframe areas has been removed and does not cause flicker any more.
+- Text output consumed and inserted into PKS Edit from programs started with _Execute Program..._ will now use the
+  correct character set for insertion. Futhermore PKS Edit will now detect, whether a program must be started using
+- powershell or using the Windows cmd shell.
 
 ### Changed
 - The action `delete-selection` was renamed to `cut-to-clipnoard`.

@@ -53,12 +53,6 @@ extern BOOL fsel_selectFolder(HWND hwndParent, char* pTitle, char* pResult);
  */
 extern int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams);
 
-/*--------------------------------------------------------------------------
- * fsel_changeDirectory()
- * Change the current directory. Allow for drive specification and trailing slash.
- */
-extern void fsel_changeDirectory(char* pszPath);
-
 /*------------------------------------------------------------
  * fsel_selectFileWithTitle()
  * Select a file given a resource id for the title and return the selected

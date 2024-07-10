@@ -205,7 +205,7 @@ EXPORT int EdBlockPaste(WINFO* wp, int which)
  * Read a text block from a file with the given name
  * and insert it into the current document.
  *----------------------------*/
-EXPORT int bl_insertPasteBufFromFile(WINFO* wp, char *fn)
+EXPORT int bl_insertPasteBufFromFile(WINFO* wp, char *fn, long codePage)
 {	PASTE	pbuf;
 	char 	fname[256];
 	int		ret;
@@ -222,12 +222,14 @@ EXPORT int bl_insertPasteBufFromFile(WINFO* wp, char *fn)
 			return 0;
 		fn = fname;
 	}
-	FILE_READ_OPTIONS fro;
-	memset(&fro, 0, sizeof fro);
-	fro.fro_fileName = fn;
-	fro.fro_useDefaultDocDescriptor = 0;
-	if ((ret = bl_readFileIntoPasteBuf(&pbuf, &fro)) != 0)
-		paste(wp, &pbuf,0);
+	FILE_READ_OPTIONS fro = {
+		.fro_fileName = fn,
+		.fro_useDefaultDocDescriptor = 0,
+		.fro_codePage = codePage
+	};
+	if ((ret = bl_readFileIntoPasteBuf(&pbuf, &fro)) != 0) {
+		paste(wp, &pbuf, 0);
+	}
 	ln_listfree(pbuf.pln);
 	return ret;
 }
@@ -236,7 +238,7 @@ EXPORT int bl_insertPasteBufFromFile(WINFO* wp, char *fn)
  * PKS Edit command to read a block from a default file name 
  */
 EXPORT int EdBlockRead(WINFO* wp) { 
-	return bl_insertPasteBufFromFile(wp, (char *)0);	
+	return bl_insertPasteBufFromFile(wp, (char *)0, -1);	
 }
 
 /*
