@@ -20,7 +20,6 @@
 #include "pksmacrocvm.h"
 #include "pksmacro.h"
 #include "funcdef.h"
-#include "pksmod.h"
 #include "symbols.h"
 #include "test.h"
 #include "funcdef.h"

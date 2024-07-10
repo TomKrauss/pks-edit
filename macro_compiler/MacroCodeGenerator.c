@@ -120,14 +120,18 @@ unsigned char *bytecode_emitInstruction(BYTECODE_BUFFER* pBuffer, unsigned char 
 			break;
 		case C_ASSIGN:
 		case C_PUSH_VARIABLE:
-			strcpy(((COM_STRING1*)sp)->s, data.string);
+			if (data.string) {
+				strcpy(((COM_STRING1*)sp)->s, data.string);
+			}
 			break;
 		case C_MACRO_REF_LOCAL:
 			((COM_MAC*)sp)->heapIndex = data.intValue;
 			break;
 		case C_MACRO_REF:
 		case C_MACRO:
-			strcpy(((COM_MAC*)sp)->name, data.string);
+			if (data.string) {
+				strcpy(((COM_MAC*)sp)->name, data.string);
+			}
 			break;
 		case C_PUSH_STRING_LITERAL:
 			if (data.string)

@@ -22,7 +22,6 @@
 #include "alloc.h"
 #include "winterf.h"
 #include "pksmacro.h"
-#include "pksmod.h"
 #include "actionbindings.h"
 
 #include "funcdef.h"

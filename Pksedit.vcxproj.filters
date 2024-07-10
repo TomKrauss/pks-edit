@@ -389,9 +389,6 @@
     <ClInclude Include="include\pksmacrocvm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\pksmod.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\printing.h">
       <Filter>Header Files</Filter>
     </ClInclude>

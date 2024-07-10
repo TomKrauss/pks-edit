@@ -37,7 +37,7 @@ typedef struct tagEVALUATOR {
 static EVALUATOR* _evaluators;
 
 static char* evaluator_evaluateMacros(const char* pszCode, EVALUATION_ACTION anAction) {
-	macro_executeSingleLineMacro(pszCode, FALSE, "Evaluation");
+	macro_executeSingleLineMacro(pszCode, FALSE, "evaluated_text.pkc");
 	return NULL;
 }
 

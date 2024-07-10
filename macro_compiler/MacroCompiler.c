@@ -374,10 +374,12 @@ int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char
 	}
 	size_t nSize = strlen(pszCode);
 	char* pszTemp = calloc(1, nSize + 3);
+	if (pszTemp == NULL) {
+		return 0;
+	}
 	if (bUnescape) {
 		macro_unEscape(pszTemp, pszCode, nSize);
-	}
-	else {
+	} else {
 		strcpy(pszTemp, pszCode);
 	}
 	int nLen = (int)strlen(pszTemp);
@@ -423,6 +425,7 @@ int macro_executeSingleLineMacro(const char* pszCode, BOOL bUnescape, const char
 		else {
 			strcpy(buffer, pszTemp);
 		}
+		compile_showSummary(&config, config.cb_numberOfErrors, config.cb_numberOfWarnings);
 		error_displayAlertDialog("Failed to compile\n%s", buffer);
 		ret = 0;
 	} else {

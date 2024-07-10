@@ -1646,7 +1646,6 @@
     <ClInclude Include="include\iccall.h" />
     <ClInclude Include="include\pathname.h" />
     <ClInclude Include="include\pksmacrocvm.h" />
-    <ClInclude Include="include\pksmod.h" />
     <ClInclude Include="include\printing.h" />
     <ClInclude Include="include\regexp.h" />
     <ClInclude Include="include\resource.h" />
