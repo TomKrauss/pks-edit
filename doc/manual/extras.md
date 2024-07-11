@@ -19,7 +19,7 @@ Supports running a command (either batch or with UI) optionally processing in an
   - <a name="start-command-wait"></a>_Wait_ - wait for the command execution to end and block PKS Edit while the command runs.
   - <a name="start-command-run-in-shell"></a>_Run in Command Shell_ - must be used for commands to be started in a `cmd shell` or `powershell` to execute (such as DIR or COPY or Get-Help).
 	PKS Edit will automatically detect, whether the command must be invoked via `powershell` or Windows `CMD`.
-- <a name="start-command-output"></a>_Redirect Output to_ - redirects the output to the named file and opens the file as an
+- <a name="start-command-output"></a>_Redirect Output to_ - redirects the output to the named file and opens the file as a
   _PKS Edit Error List_ allowing to navigate potentials problems found running the command (typically a build command - maven or the like).
 
 ## Evaluate Code
@@ -30,9 +30,20 @@ currently are of course PKS Macroc and DOS Commands.
 
 ## Read Tag File
 
+Allows o open a file containing cross reference definitions (e.g. created by [CTAGS](https://docs.ctags.io/en/latest/index.html)). This
+will read the cross references in this file and will then alllow to use them when navigating in PKS Edit.
+
 ## Read output produced by Build
 
+This menu allows you to read a build log file, which is opened in the navigation pane and analyzed by PKS Edit for the purpose of navigating
+to errors and warnings pointing to problems located in files. PKS Edit supports then to navigate the errors / warnings displayed in
+the build log opened and opens the corresponding files / places, where the error occurred.
+
 ## Settings
+
+Opens the PKS Edit Settings Dialog allowing to change the base configuration described in the corresponding 
+[chapter](configuration.md).
+
 
 
 

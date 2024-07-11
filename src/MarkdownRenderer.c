@@ -4251,7 +4251,7 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 		}
 	}
 	if (pPart) {
-		int nStart = pData->md_caretRunIndex;
+		int nStart = xDelta != 0 ? pData->md_caretRunIndex : 0;
 		if (pData->md_caretPartIndex != nMDCaretLine) {
 			pData->md_caretPartIndex = nMDCaretLine;
 			pData->md_caretRunIndex = 0;

@@ -63,7 +63,7 @@ EdExitAndSave(long ), EdExit(long ),
 EdCommandExecute(long ), EdExecute(long ),
 EdShiftBetweenBrackets(long ), EdSort(long ), EdLinesShift(long ), EdInfoFiles(long ),
 EdShowMatch(long ), dlg_configureEditorModes(long ),
-EdFindTag(long ), EdFindFileCursor(long ), xref_navigateSearchErrorList(long ), EdFindTagCursor(long ),
+xref_openCrossReferenceList(long ), EdFindFileCursor(long ), xref_navigateSearchErrorList(long ), EdFindTagCursor(long ),
 EdFindWordCursor(long ), EdRangeShift(long ),
 EdUndo(long ), EdRedo(long), EdFilesCompare(long ), EdScrollScreen(long ), EdScrollCursor(long ),
 EdAlignText(long ), 
@@ -101,6 +101,15 @@ static int func_supportsEditorMode(intptr_t* pStack) {
     BOOL displayMode = dd == OP_DISPLAY_MODE;
     mode = LOWORD(mode);
     return ww_supportsDisplayMode(wp, (EDIT_MODE) { .em_displayMode = displayMode, .em_flag = (int)mode });
+}
+
+static int func_supportsCrossReferences(intptr_t* pStack) {
+    WINFO* wp = ww_getCurrentEditorWindow();
+    if (wp == NULL) {
+        return FALSE;
+    }
+    FTABLE* fp = FTPOI(wp);
+    return grammar_getTagSources(fp->documentDescriptor->grammar) != NULL;
 }
 
 static int func_supportsEvaluate(intptr_t* pStack) {
@@ -192,9 +201,9 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*75*/  dlg_configureEditorModes, -1, EW_NEEDSCURRF,                                              "SetEditorSettings",                NULL, "ibFORM_siiiieSHOW_"                            },
 {/*76*/  mainframe_toggleFullScreen, -1, 0,                                                            "ToggleFullScreen",           NULL,  "i"                                           },
 {/*77*/  EdFindOnInternet, -1, EW_NEEDSCURRF | EW_FINDCURS,                                        "FindOnInternet",             NULL,  "iWbFORM_siii"                                  },
-{/*78*/  (long long (*)())EdOptionToggle, -1, EW_NEEDSCURRF|EW_CUSTOM_ENABLEMENT,                                       "ToggleEditorOption",             func_supportsEditorMode,  "iWeWM_"                                      },
+{/*78*/  (long long (*)())EdOptionToggle, -1, EW_NEEDSCURRF|EW_CUSTOM_ENABLEMENT,   "ToggleEditorOption",             func_supportsEditorMode,  "iWeWM_"                                      },
 {/*79*/  EdGetMultiplier, -1, 0,                                                                       "GetMultiplier",              NULL,  "i"                                     },
-{/*80*/  EdFindTag, -1, EW_HASFORM,                                                                "FindTag",                    NULL,  "iWibFORM_s"                                    },
+{/*80*/  xref_openCrossReferenceList, -1, EW_HASFORM | EW_CUSTOM_ENABLEMENT,        "FindTag",                    func_supportsCrossReferences,  "iWibFORM_s"                                    },
 {/*81*/  EdFindFileCursor, -1, EW_NEEDSCURRF,                                                      "CursorFindFile",             NULL,  "iW"                                           },
 {/*82*/  xref_navigateSearchErrorList, -1, 0,                                                          "NextResultOrError",          NULL,  "ieLIST_"                                      },
 {/*83*/  EdFindTagCursor, -1, EW_NEEDSCURRF | EW_FINDCURS| 0,                                          "CursorFindTag",              NULL,  "iW"                                           },
@@ -362,7 +371,7 @@ COMMAND _commandTable[] = {
 24, C_1FUNC, 84 /* EdFindWordCursor */, 					1, -1 , "find-word-back",
 25, C_0FUNC, 81 /* EdFindFileCursor */, 					1, 0 , "find-file-under-cursor",
 26, C_0FUNC, 46 /* EdFindInFileList */, 					1, 0 , "find-in-filelist",
-27, C_1FUNC, 80 /* EdFindTag */, 							1, 0 , "find-tag",
+27, C_1FUNC, 80 /* xref_openCrossReferenceList */, 							1, 0 , "find-tag",
 28, C_0FUNC, 54 /* EdMarkSet */, 							1, 0 , "set-mark",
 29, C_0FUNC, 55 /* EdMarkGoto */, 							1, 0 , "goto-mark",
 30, C_0FUNC, 53 /* EdGotoLine */, 							1, 0 , "goto-line",

@@ -156,7 +156,7 @@ By selecting `Right Align Matched Text`, you may format the text this way:
   If not checked, the column of the *right most* match is applied to sub-sequent matches.
 - <a name="aligning-text-right-align"></a>_Right Align Matched Text_: if checked, matching ocurrences of a pattern are right aligned with the anchor column.
 - <a name="aligning-text-fill-character"></a>_Fill Character_: let's you use another character than `Blank` to fill up space created by moving the text.
-- _Other Options_: See [Find&Replace](manual/find_replace.md) for a description of the other options.
+- _Other Options_: See [Find&Replace](find_replace.md) for a description of the other options.
 - <a name="aligning-text-range"></a>_Range_: Defines the range of text to be formatted.
   - `LINE`: formats the current line
   - `PARAGRAPH`: formats one *paragraph* of text. For text type documents this is a block of text separated by an empty line.

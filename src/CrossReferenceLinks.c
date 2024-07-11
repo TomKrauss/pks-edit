@@ -575,7 +575,6 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 	switch (message) {
 	case WM_INITDIALOG:
 		hwndListView = GetDlgItem(hDlg, IDD_ICONLIST);
-		win_moveWindowToDefaultPosition(GetParent(hDlg));
 		xref_initTagListView(hwndListView);
 		// This will trigger an EN_CHANGE filling the tag list.
 		SetDlgItemText(hDlg, IDD_STRING1, (char*)lParam);
@@ -750,7 +749,6 @@ int xref_openFile(const char *name, long line, FT_OPEN_OPTIONS* pOptions) {
 			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0L);
 		}
 	}
-
 	return ret;
 }
 
@@ -794,12 +792,9 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 	find_setCurrentSearchExpression(s);
 	_tagCancelled = FALSE;
 
-	if ((ttl = grammar_getTagSources(fp->documentDescriptor->grammar)) == NULL) {
-		error_showErrorById(IDS_NO_CROSS_REFERENCES_DEFINED);
-		return 0;
-	}
 	_tagword = _strdup(s);
 	s = _tagword;
+	ttl = grammar_getTagSources(fp->documentDescriptor->grammar);
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
 			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bForceDialog)) != 0L) {
@@ -830,7 +825,11 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 	}
 
 	if (!ret && !_tagCancelled) {
-		error_showErrorById(IDS_MSGUNKNWONTAG, (LPSTR)s);
+		if (ttl == NULL) {
+			error_showErrorById(IDS_NO_CROSS_REFERENCES_DEFINED);
+		} else {
+			error_showErrorById(IDS_MSGUNKNWONTAG, (LPSTR)s);
+		}
 	}
 	free(_tagword);
 	_tagword = 0;
@@ -861,9 +860,9 @@ int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
 }
 
 /*--------------------------------------------------------------------------
- * EdFindTag()
+ * xref_openCrossReferenceList()
  */
-int EdFindTag(WINFO* wp) {
+int xref_openCrossReferenceList(WINFO* wp) {
 	char selected[80];
 	xref_getSelectedIdentifier(wp, selected, sizeof selected);
 	return xref_navigateCrossReferenceForceDialog(wp, selected, TRUE);
@@ -1141,8 +1140,8 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 	RE_MATCH match;
 	unsigned char patternBuf[256] = { 0 };
 
-	if (wp->renderer->r_findLink && wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult)) {
-		return 1;
+	if (wp->renderer->r_findLink) {
+		return wp->renderer->r_findLink(wp, szFileBuffer, nFileBufferSize, pResult);
 	}
 	NAVIGATION_PATTERN* pPattern = grammar_getNavigationPatterns(fp->documentDescriptor->grammar);
 	while (pPattern) {
@@ -1296,6 +1295,9 @@ int EdFindTagCursor(WINFO* wp)
 {
 	if (EdFindFileCursor(wp)) {
 		return 1;
+	}
+	if (wp->renderer->r_findLink) {
+		return 0;
 	}
 	return xref_navigateCrossReferenceForceDialog(wp, xref_saveCrossReferenceWord(wp, _linebuf, &_linebuf[LINEBUFSIZE]), FALSE);
 }
