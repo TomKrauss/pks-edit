@@ -87,10 +87,18 @@ the search). The filename pattern might be a simple pattern such as `*.txt` or a
 
 ### Navigating the Find in Files Result List
 
-All matches found during `Find in Files...` are displayed in a Find Files Result File List by default attached
-as a bottom window. To jump to one of the matches, `Shift+Click Left Mouse Button` to select the line showing the match.
-You may use `Shift+Ctrl+N` and `Shift+Ctrl+P` or the menu entries _Extras->Next/Previous Build Error or File Match_ to
-navigate to the next respectively to the previous match. You can also move the caret in the list and press `Space` to select
-the current line. To jump to the begin or the end of the list you may use `Alt+Ctrl+P` and `Alt+Ctrl+N` respectively.
+All matches found during `Find in Files...` are displayed in a _Find Files Result File List_ which is by default attached
+as a bottom window. 
+
+To select one of the matches in that list 
+- `Shift+Click Left Mouse Button` to select the line showing the match.
+- use `Shift+Ctrl+N` and `Shift+Ctrl+P` or the menu entries _Extras->Next/Previous Build Error or File Match_ to
+navigate to the next respectively to the previous match 
+- move the caret to the matching entry in the list and press `Space` to select activate the current line
+- To jump to the begin or the end of the list you may use `Alt+Ctrl+P` and `Alt+Ctrl+N` respectively
+
+
+
+
 
 
