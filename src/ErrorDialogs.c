@@ -185,7 +185,7 @@ int error_displayYesNoCancelConfirmation(int nId, ...)
  * error_displayErrorToast()
  * If configured, popup a temporary dialog window showing an error.
  */
-static void error_displayErrorToast(const char* fmt, va_list ap) {
+void error_displayErrorToast(const char* fmt, va_list ap) {
 	char szBuf[1024];
 	BOOL bShowToast = fmt[0] != '~';
 

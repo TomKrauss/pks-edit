@@ -1674,10 +1674,10 @@ BEGIN
     IDS_COMMAND121          "Verschiebt um eine Spalte nach links;Schieben links"
     IDS_COMMAND122          "Verschiebt um eine Spalte nach rechts;Schieben rechts"
     IDS_COMMAND123          "Wiederholt die letzte Ersetzung;Erneut ersetzen"
-    IDS_COMMAND124          "Geht zum nächsten Compiler-Fehler;Suche Fehler"
-    IDS_COMMAND125          "Geht zum letzten Compiler-Fehler;Suche letzt. Fehler"
-    IDS_COMMAND126          "Geht zum vorherigenen Compiler-Fehler;Suche Fehler <-"
-    IDS_COMMAND127          "Geht zum ersten Compiler-Fehler;Suche 1. Fehler"
+    IDS_COMMAND124          "Geht zum nächsten Fehler in einem Build Output oder zum Suchergebnis bei Suche in Dateien;Zum nächste Build-Fehler oder Suchergebnis"
+    IDS_COMMAND125          "Geht zum letzten Fehler in einem Build Output oder zum Suchergebnis bei Suche in Dateien;Zum letzten Build-Fehler oder Suchergebnis"
+    IDS_COMMAND126          "Geht zum vorherigen Fehler in einem Build Output oder zum Suchergebnis bei Suche in Dateien;Zum vorherigen Build-Fehler oder Suchergebnis"
+    IDS_COMMAND127          "Geht zum ersten Fehler in einem Build Output oder zum Suchergebnis bei Suche in Dateien;Zum ersten Build-Fehler oder Suchergebnis"
 END
 
 STRINGTABLE

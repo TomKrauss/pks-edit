@@ -1075,16 +1075,14 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 	WINFO			*wp;
 	BOOL			bGoForward = FALSE;
 
-	memset(&navigationSpec, 0, sizeof navigationSpec);
-	if (fp) {
-		pNavigationPattern = fp->navigationPattern;
-		wp = WIPOI(fp);
-	}
-
-	if (fp == NULL || pNavigationPattern == 0) {
+	if (fp == NULL || fp->navigationPattern == 0) {
 		error_showErrorById(IDS_MSGNOTAGFILE);
 		return 0;
 	}
+	memset(&navigationSpec, 0, sizeof navigationSpec);
+	pNavigationPattern = fp->navigationPattern;
+	wp = WIPOI(fp);
+
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 
 	switch (nNavigationType) {
@@ -1123,15 +1121,17 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 		}
 	}
 	if (lp && navigationSpec.filename[0]) {
-		if ((wp = WIPOI(fp)) != 0) {
+		if (wp != 0) {
 			long lineno = ln_indexOf(fp, lp);
 			caret_placeCursorForFile(wp, lineno, 0, 0, 0);
+		}
+		if (fp->lpReadPointer != lp) {
 			fp->lpReadPointer->lflg &= ~LNXMARKED;
 			render_repaintLine(fp, fp->lpReadPointer);
 			lp->lflg |= LNXMARKED;
 			render_repaintLine(fp, lp);
+			fp->lpReadPointer = lp;
 		}
-		fp->lpReadPointer = lp;
 		/* make file name relativ to list file */
 		if (navigationSpec.filename[0] == '/' || navigationSpec.filename[1] == ':') {
 			lstrcpy(fullname, navigationSpec.filename);
@@ -1151,7 +1151,7 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 					// Special case: PKS Edit Search List Result
 					xref_highlightMatch(navigationSpec.line - 1L, col, len);
 				} else {
-					error_showMessage(navigationSpec.comment);
+					error_displayErrorToast(navigationSpec.comment, NULL);
 				}
 			}
 			return 1;

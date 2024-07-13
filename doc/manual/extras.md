@@ -40,6 +40,9 @@ to errors and warnings pointing to problems located in files. PKS Edit supports 
 the build log opened and opens the corresponding files / places, where the error occurred. PKS Edit will try to parse the build output
 based on build output patterns as described in the [Configuration Documentation](configuration.md#configuring-build-log-parsing).
 
+To navigate in the build log (jump from one build log entry to the next or previous), use the same procedure
+as described in [Navigating Find in Files Result](fin_replace.md#navigating-the-find-in-files-result-list).
+
 ## Settings
 
 Opens the PKS Edit Settings Dialog allowing to change the base configuration described in the corresponding 

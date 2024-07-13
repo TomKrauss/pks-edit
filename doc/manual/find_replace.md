@@ -85,4 +85,12 @@ When finding/replacing text in multiple files, the following special options (in
 If the option `Search in previous Results` is not specified, all files in the selected path with the given _filename pattern_ are searched recursively (one may specify a maximum folder depth for
 the search). The filename pattern might be a simple pattern such as `*.txt` or a combination of file name patterns all to consider such as `*.c;*.h`.
 
+### Navigating the Find in Files Result List
+
+All matches found during `Find in Files...` are displayed in a Find Files Result File List by default attached
+as a bottom window. To jump to one of the matches, `Shift+Click Left Mouse Button` to select the line showing the match.
+You may use `Shift+Ctrl+N` and `Shift+Ctrl+P` or the menu entries _Extras->Next/Previous Build Error or File Match_ to
+navigate to the next respectively to the previous match. You can also move the caret in the list and press `Space` to select
+the current line. To jump to the begin or the end of the list you may use `Alt+Ctrl+P` and `Alt+Ctrl+N` respectively.
+
 

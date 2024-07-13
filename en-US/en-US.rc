@@ -1594,10 +1594,10 @@ BEGIN
     IDS_COMMAND121          "Shift one column to the left;Shift left"
     IDS_COMMAND122          "Shift one column to the right;Shift Right"
     IDS_COMMAND123          "Repeat the last replacement;Replace Again"
-    IDS_COMMAND124          "Go to the next compiler error;Find Error"
-    IDS_COMMAND125          "Go to the last compiler error;Find last Error"
-    IDS_COMMAND126          "Go to the previous compiler error;Find last Error Backwards"
-    IDS_COMMAND127          "Go to the first compiler error;Go to first Error"
+    IDS_COMMAND124          "Go to the next build error or match in a find file list;Next Build Error or File Match"
+    IDS_COMMAND125          "Go to the last build error or match in a find file list;Last Build Error or File Match"
+    IDS_COMMAND126          "Go to the previous build error or match in a find file list;Previous Build Error or File Match"
+    IDS_COMMAND127          "Go to the first build error or match in a find file list;First Build Error or File Match"
 END
 
 STRINGTABLE

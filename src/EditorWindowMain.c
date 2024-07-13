@@ -230,21 +230,24 @@ static int ww_snapPositionToCharGrid(int x, int grid)
  * ww_updateRangeAndCheckBounds()
  * calculate scrollops checking bounds
  */
-static void ww_updateRangeAndCheckBounds(long nMinLineOrCol, int nDefaultDeltaXorY, int nSizeInPixels,
+static void ww_updateRangeAndCheckBounds(long nMinLineOrCol, int nLnOrColSizeInPixels, int nTotalSizeInPixels,
 				  long *max, long *maxcurs, long *mincurs, 
 				  int *scroll_d)
 {	int delta,d2;
 
-	if (!nDefaultDeltaXorY)
+	if (!nLnOrColSizeInPixels) {
 		return;
-	*max = nMinLineOrCol + (delta = ww_snapPositionToCharGrid(nSizeInPixels,nDefaultDeltaXorY));
+	}
+	*max = nMinLineOrCol + (delta = ww_snapPositionToCharGrid(nTotalSizeInPixels,nLnOrColSizeInPixels));
 	delta /= 2;
-	d2 = (nSizeInPixels % nDefaultDeltaXorY) ? 2 : 1;
+	d2 = (nTotalSizeInPixels % nLnOrColSizeInPixels) ? 2 : 1;
 	delta -= d2;
-	if (delta < 0)
+	if (delta < 0) {
 		delta = 1;
-	if (*scroll_d > delta)
-		*scroll_d = delta;
+	}
+	if (*scroll_d > delta / 2) {
+		*scroll_d = delta / 2;
+	}
 	*mincurs = (nMinLineOrCol < *scroll_d) ? nMinLineOrCol : nMinLineOrCol + *scroll_d;
 	*maxcurs = *max - (*scroll_d + d2);
 

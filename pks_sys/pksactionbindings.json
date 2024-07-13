@@ -1086,6 +1086,8 @@
         { "separator": true },
         { "command": "@read-tagfile" },
         { "command": "@read-compiler-errors" },
+        { "command": "@errorlist-next" },
+        { "command": "@errorlist-previous" },
         { "separator": true },
         { "command": "@set-options" }
       ]

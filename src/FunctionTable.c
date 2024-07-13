@@ -75,8 +75,9 @@ EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(BO
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_createArray(), interpreter_createMap(), interpreter_registerType(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),
-macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
+macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
+
+extern FTABLE* ft_getCurrentErrorDocument();
 
 static const char* ww_getFilename(WINFO* wp) {
     FTABLE* fp = wp->fp;
@@ -102,6 +103,19 @@ static int func_supportsEditorMode(intptr_t* pStack) {
     mode = LOWORD(mode);
     return ww_supportsDisplayMode(wp, (EDIT_MODE) { .em_displayMode = displayMode, .em_flag = (int)mode });
 }
+
+
+static int func_supportsNavigateErrorList(intptr_t* pStack) {
+    FTABLE* fp = ft_getCurrentErrorDocument();
+    if (fp == NULL) {
+        return FALSE;
+    }
+    // long long param = pStack[1];
+    // LIST_OPERATION_FLAGS flags = (int)param;
+    // TODO: implement check for navigation type.
+    return TRUE;
+}
+
 
 static int func_supportsCrossReferences(intptr_t* pStack) {
     WINFO* wp = ww_getCurrentEditorWindow();
@@ -205,7 +219,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*79*/  EdGetMultiplier, -1, 0,                                                                       "GetMultiplier",              NULL,  "i"                                     },
 {/*80*/  xref_openCrossReferenceList, -1, EW_HASFORM | EW_CUSTOM_ENABLEMENT,        "FindTag",                    func_supportsCrossReferences,  "iWibFORM_s"                                    },
 {/*81*/  EdFindFileCursor, -1, EW_NEEDSCURRF,                                                      "CursorFindFile",             NULL,  "iW"                                           },
-{/*82*/  xref_navigateSearchErrorList, -1, 0,                                                          "NextResultOrError",          NULL,  "ieLIST_"                                      },
+{/*82*/  xref_navigateSearchErrorList, -1, EW_CUSTOM_ENABLEMENT,        "NextResultOrError",          func_supportsNavigateErrorList,  "ieLIST_"                                      },
 {/*83*/  EdFindTagCursor, -1, EW_NEEDSCURRF | EW_FINDCURS| 0,                                          "CursorFindTag",              NULL,  "iW"                                           },
 {/*84*/  EdFindWordCursor, -1, EW_NEEDSCURRF | EW_FINDCURS,                                        "CursorFindWord",             NULL,  "iWeDIR_"                                      },
 {/*85*/mainframe_manageDocks, -1, 0,                                                                   "ManageDocks",                NULL,  "ieMD_"                                      },
