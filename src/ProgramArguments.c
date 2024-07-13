@@ -131,7 +131,7 @@ static int arguments_parsePhase2(char *arg) {
 			_runInteractive = FALSE;
 			return 0;
 		case 'T':
-			xref_openSearchList(arg,1,-1); 		/* Edit Compiler-Errors 	*/
+			xref_openBuildOutputFile(arg, FALSE, -1); 		/* Edit Compiler-Errors 	*/
 			break;
 		default:
 			argument_openFiles(szPath, arg);

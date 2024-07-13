@@ -18,6 +18,9 @@
 
  /*----- ... --------------*/
 
+#define	ESIZE		560		 		// maximum Expressionsize in standard search expressions 
+									// - must have at least a size of 256 bytes + length of pattern for Boyer matches + RE-BUFFER header
+
 #define	RE_DOREX		0x1					// use .{}*?+ and all the stuff
 #define	RE_IGNCASE		0x2					// ignore case 
 #define	RE_SHELLWILD	0x4					// wildcards are: *?[] 

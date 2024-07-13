@@ -95,15 +95,15 @@ static TAG_TABLE _allTags;
 extern FTABLE 	*ft_getCurrentErrorDocument();
 
 static NAVIGATION_PATTERN _pksEditSearchlistFormat = {
-0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	1,	2,	3 };
+0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	.filenameCapture = 1,.lineNumberCapture =	2,.commentCapture =	3 };
 static NAVIGATION_PATTERN _universalCTagsFileFormat =  {
-0, "", "^([^\t]+)\t([^\t]+)\t(.*);\"\t(.*)", 2, 3, 3, 1, 4 };
-static NAVIGATION_PATTERN *_exprerror = &_pksEditSearchlistFormat;
+0, "", "^([^\t]+)\t([^\t]+)\t(.*);\"\t(.*)", .filenameCapture = 2, .lineNumberCapture = 3, .tagExtensionFields = 1 };
 static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
 static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
 
 static int xref_destroyCmpTag(NAVIGATION_PATTERN* ct) {
 	free(ct->pattern);
+	free(ct->filenamePattern);
 	return 1;
 }
 
@@ -139,6 +139,36 @@ static NAVIGATION_PATTERN* xref_getNavigationPatternFor(const char* pszCompiler)
 }
 
 /*
+ * Try to find a line in the current build output log file matching any of te defined build output patterns.
+ * If a match was found return the navigation pattern, that was able to match the line.
+ */
+static NAVIGATION_PATTERN* xref_detectNavigationPattern(FTABLE* fp) {
+	LINE* lp = fp->firstl;
+	int count = 2000;
+
+	while (lp) {
+		NAVIGATION_PATTERN* pPatterns = _compilerOutputNavigationPatterns;
+		RE_MATCH match;
+		while (pPatterns) {
+			if (pPatterns->filenamePattern != NULL) {
+				if (!strstr(lp->lbuf, pPatterns->filenamePattern)) {
+					continue;
+				}
+			}
+			if (regex_match(&pPatterns->rePattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+				return pPatterns;
+			}
+			pPatterns = pPatterns->next;
+		}
+		lp = lp->next;
+		if (--count < 0) {
+			break;
+		}
+	}
+	return _compilerOutputNavigationPatterns;
+}
+
+/*
  * Free all memory occupied by the cross reference lists.
  */
 void xref_destroyAllCrossReferenceLists() {
@@ -146,35 +176,48 @@ void xref_destroyAllCrossReferenceLists() {
 	xref_destroyTagTable();
 }
 
-/*--------------------------------------------------------------------------
- * compiler_llinsert()
- */
-static NAVIGATION_PATTERN* compiler_llinsert(void* pHead, int size, char* pszCompiler) {
-	NAVIGATION_PATTERN* pNewPattern;
+/*---------------------------------*/
+/* xref_initializeNavigationPattern()				*/
+/*---------------------------------*/
+static RE_PATTERN* xref_initializeNavigationPattern(NAVIGATION_PATTERN* pNavigationPattern) {
+	return find_regexCompile(&pNavigationPattern->rePattern, pNavigationPattern->ebuf, pNavigationPattern->pattern, RE_DOREX);
+}
 
+/*--------------------------------------------------------------------------
+ * xref_defineNavigationPattern()
+ */
+static NAVIGATION_PATTERN* xref_defineNavigationPattern(void* pHead, int size, char* pszCompiler) {
+	NAVIGATION_PATTERN* pNewPattern;
 
 	if ((pNewPattern = (NAVIGATION_PATTERN * )ll_find(*(void**)pHead, pszCompiler)) == 0) {
 		if ((pNewPattern = (NAVIGATION_PATTERN * )ll_insert(pHead, size)) == 0) {
 			return 0;
 		}
 	}
-	strncpy(pNewPattern->compiler, pszCompiler, sizeof(pNewPattern->compiler) - 1);
 	return pNewPattern;
 }
 
 /*--------------------------------------------------------------------------
- * compiler_mk()
+ * xref_addBuildOutputPattern()
  */
-static int compiler_mk(COMPILER_OUTPUT_PATTERN *pPattern) {
-	NAVIGATION_PATTERN* ct;
+static int xref_addBuildOutputPattern(BUILD_OUTPUT_PATTERN *pPattern) {
+	NAVIGATION_PATTERN* pNavigationPattern;
 
-	if ((ct = compiler_llinsert(&_compilerOutputNavigationPatterns,sizeof *ct, pPattern->cop_name)) == 0) {
+	if ((pNavigationPattern = xref_defineNavigationPattern(&_compilerOutputNavigationPatterns,
+			sizeof *pNavigationPattern, pPattern->cop_name)) == 0) {
 		return 0;
 	}
-	ct->pattern = _strdup(pPattern->cop_pattern);
-	ct->filenameCapture = pPattern->cop_filenameCapture;
-	ct->lineNumberCapture = pPattern->cop_lineNumberCapture;
-	ct->commentCapture= pPattern->cop_commentCapture;
+	strncpy(pNavigationPattern->compiler, pPattern->cop_name, sizeof(pNavigationPattern->compiler) - 1);
+	pNavigationPattern->pattern = _strdup(pPattern->cop_pattern);
+	if (pPattern->cop_filenamePattern[0] != 0) {
+
+		pNavigationPattern->filenamePattern = _strdup(pPattern->cop_filenamePattern);
+	}
+	pNavigationPattern->filenameCapture = pPattern->cop_filenameCapture;
+	pNavigationPattern->lineNumberCapture = pPattern->cop_lineNumberCapture;
+	pNavigationPattern->commentCapture= pPattern->cop_commentCapture;
+	// TODO: Should check, whether compilation is successful.
+	xref_initializeNavigationPattern(pNavigationPattern);
 	return 1;
 }
 
@@ -184,24 +227,14 @@ static int compiler_mk(COMPILER_OUTPUT_PATTERN *pPattern) {
  */
 int xref_restoreFromConfigFile(void)
 {
-	COMPILER_OUTPUT_PATTERN* pPattern = GetConfiguration()->outputPatterns;
+	BUILD_OUTPUT_PATTERN* pPattern = GetConfiguration()->outputPatterns;
 	while (pPattern) {
-		if (!compiler_mk(pPattern)) {
+		if (!xref_addBuildOutputPattern(pPattern)) {
 			return 0;
 		}
 		pPattern = pPattern->cop_next;
 	}
 	return 1;
-}
-
-/*---------------------------------*/
-/* xref_initializeNavigationPattern()				*/
-/*---------------------------------*/
-static RE_PATTERN *xref_initializeNavigationPattern(NAVIGATION_PATTERN *s) {
-	static char ebuf[ESIZE];
-	static RE_PATTERN pattern;
-	_exprerror = s;
-	return find_regexCompile(&pattern, ebuf,_exprerror->pattern,RE_DOREX);
 }
 
 /*---------------------------------*/
@@ -265,14 +298,14 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 /*
  * Parse a tag definition from the tag file. If successful, return the tag definition, if not, return 0.
  */
-static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
+static TAG* xref_parseTagDefinition(NAVIGATION_PATTERN* pNavigationPattern, LINE* lp, RE_PATTERN* pattern) {
 	RE_MATCH match;
 	TAG_REFERENCE* pReference;
 	static char extCommand[256];
 	static char extCommandCopy[256];
 
 	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		regex_getCapturingGroup(&match, _exprerror->tagCapture - 1, extCommand, sizeof extCommand);
+		regex_getCapturingGroup(&match, pNavigationPattern->tagCapture - 1, extCommand, sizeof extCommand);
 		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, extCommand);
 		if (pTag == NULL) {
 			pTag = calloc(1, sizeof *pTag);
@@ -282,14 +315,14 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 		pReference = ll_insert((void**) & pTag->tagReferences, sizeof * pReference);
 		pReference->pTag = pTag;
 		char* filename = calloc(1, EDMAXPATHLEN);
-		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, filename, EDMAXPATHLEN);
+		regex_getCapturingGroup(&match, pNavigationPattern->filenameCapture - 1, filename, EDMAXPATHLEN);
 		pReference->filename = realloc(filename, strlen(filename)+1);
 		if (pReference->filename == NULL) {
 			free(filename);
 			return 0;
 		}
 		memset(extCommand, 0, sizeof extCommand);
-		regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, extCommand, sizeof extCommand);
+		regex_getCapturingGroup(&match, pNavigationPattern->commentCapture - 1, extCommand, sizeof extCommand);
 		if (extCommand[0] == '?' || extCommand[0] == '/') {
 			char* pszSource = extCommand + 1;
 			char* pszDest = extCommandCopy;
@@ -314,7 +347,7 @@ static TAG* xref_parseTagDefinition(LINE* lp, RE_PATTERN* pattern) {
 			// lines are 0-based
 			pReference->ln = (long)string_convertToLong(extCommand)-1l;
 		}
-		regex_getCapturingGroup(&match, _exprerror->tagExtensionFields - 1, extCommand, sizeof extCommand);
+		regex_getCapturingGroup(&match, pNavigationPattern->tagExtensionFields - 1, extCommand, sizeof extCommand);
 		pReference->kind = extCommand[0];
 		char* pszRef = strtok(extCommand + 2, "\t");
 		pReference->isDefinition = TRUE;
@@ -358,13 +391,13 @@ static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
 		return FALSE;
 	}
 	_allTags.tt_map = hashmap_create(997, NULL, NULL);
-	find_initializeReplaceByExpression(_exprerror->pattern);	/* assure a few initialiations */
+	find_initializeReplaceByExpression(_tagfileFormatPattern->pattern);	/* assure a few initialiations */
 	for (lp = ftable.firstl; lp; lp = lp->next) {
 		if (lp->len > 0 && lp->lbuf[0] == '!') {
 			// Metatag lines in tag file format.
 			continue;
 		}
-		xref_parseTagDefinition(lp, pPattern);
+		xref_parseTagDefinition(_tagfileFormatPattern, lp, pPattern);
 	}
 	ft_bufdestroy(&ftable);
 	return 1;
@@ -872,16 +905,16 @@ int xref_openCrossReferenceList(WINFO* wp) {
  * Parse a "navigation spec" (open file in line, with options...) from the output created either by a compiler
  * or from a PKS Edit grep result list.
  */
-static BOOL xref_parseNavigationSpec(NAVIGATION_SPEC* pSpec, RE_PATTERN* pPattern, LINE* lp) {
+static BOOL xref_parseNavigationSpec(NAVIGATION_PATTERN* pNavigationPattern, NAVIGATION_SPEC* pSpec, RE_PATTERN* pPattern, LINE* lp) {
 	RE_MATCH match;
 	char lineNumber[20];
 
 	if (regex_match(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		regex_getCapturingGroup(&match, _exprerror->filenameCapture - 1, pSpec->filename, sizeof pSpec->filename);
-		if (regex_getCapturingGroup(&match, _exprerror->commentCapture - 1, pSpec->comment, sizeof pSpec->comment) != SUCCESS) {
+		regex_getCapturingGroup(&match, pNavigationPattern->filenameCapture - 1, pSpec->filename, sizeof pSpec->filename);
+		if (regex_getCapturingGroup(&match, pNavigationPattern->commentCapture - 1, pSpec->comment, sizeof pSpec->comment) != SUCCESS) {
 			pSpec->comment[0] = 0;
 		}
-		regex_getCapturingGroup(&match, _exprerror->lineNumberCapture - 1, lineNumber, sizeof lineNumber);
+		regex_getCapturingGroup(&match, pNavigationPattern->lineNumberCapture - 1, lineNumber, sizeof lineNumber);
 		if (lineNumber[0]) {
 			pSpec->line = atol(lineNumber);
 		}
@@ -914,12 +947,13 @@ RE_PATTERN* xref_compileSearchListPattern() {
 void xref_openWindowHistory(LINE *lp) {
 	NAVIGATION_SPEC spec;
 	const char* pszName = NULL;
-	RE_PATTERN *pPattern = xref_initializeNavigationPattern(xref_getSearchListFormat());
+	NAVIGATION_PATTERN* pNavigationPattern = xref_getSearchListFormat();
+	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 	WINFO* pActivate = NULL;
 	BOOL bActive;
 
 	while(lp != 0L) {		/* we may skip 1st line ! */
-		if (lp->len && xref_parseNavigationSpec(&spec, pPattern, lp)) {
+		if (lp->len && xref_parseNavigationSpec(pNavigationPattern, &spec, pPattern, lp)) {
 			bActive = FALSE;
 			int nDisplayMode = -1;
 			BOOL bClone = FALSE;
@@ -983,7 +1017,7 @@ static void xref_highlightMatch(long ln, int col, int len) {
 /*---------------------------------*/
 /* xref_navigateSearchErrorList()				*/
 /*---------------------------------*/
-int xref_navigateSearchErrorList(int dir) {
+int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 	LINE*			lp;
  	NAVIGATION_SPEC navigationSpec;
 	FTABLE	    	*fp = ft_getCurrentErrorDocument();
@@ -1005,7 +1039,7 @@ int xref_navigateSearchErrorList(int dir) {
 	}
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 
-	switch (dir) {
+	switch (nNavigationType) {
 	case LIST_PREV:
 		lp = fp->lpReadPointer;
 		if (lp) {
@@ -1032,11 +1066,11 @@ int xref_navigateSearchErrorList(int dir) {
 		break;
 	}
 	if (bGoForward) {
-		while (lp && (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE) {
+		while (lp && (xref_parseNavigationSpec(pNavigationPattern, &navigationSpec, pPattern, lp)) == FALSE) {
 			lp = lp->next;
 		}
 	} else {
-		while (lp && (xref_parseNavigationSpec(&navigationSpec, pPattern, lp)) == FALSE) {
+		while (lp && (xref_parseNavigationSpec(pNavigationPattern, &navigationSpec, pPattern, lp)) == FALSE) {
 			lp = lp->prev;
 		}
 	}
@@ -1096,6 +1130,7 @@ void xref_initSearchList(FTABLE* fp) {
 #define	ST_TAGS		1
 #define	ST_ERRORS	2
 #define	ST_STEP		3
+#define	ST_MACROC_ERRORS	4
 static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
 static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
 static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp, FT_OPEN_OPTIONS* pOptions) {
@@ -1108,15 +1143,21 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 	}
 
 	switch(st_type) {
+		case ST_MACROC_ERRORS:
 		case ST_ERRORS:
 			if (!xref_openFile(_fseltarget, 0L, pOptions)) {
 				break;
 			}
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {
+				xref_initSearchList(fp);
 				EdRereadFileFromDisk(WIPOI(fp));
-				// TODO: make this configurable - currently only used by PKSMacroC compiler.
-				fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
+				if (st_type == ST_MACROC_ERRORS) {
+					// TODO: make this configurable - currently only used by PKSMacroC compiler.
+					fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
+				} else {
+					fp->navigationPattern = xref_detectNavigationPattern(fp);
+				}
 			}
 			return xref_navigateSearchErrorList(LIST_START);
 		case ST_STEP:
@@ -1314,12 +1355,12 @@ int EdFindWordCursor(WINFO* wp, int dir)
 }
 
 /*---------------------------------*/
-/* xref_openSearchList()				*/
+/* xref_openBuildOutputFile()				*/
 /*---------------------------------*/
-int xref_openSearchList(char *fn, int cmpflg, long codePage) {
+int xref_openBuildOutputFile(const char *fn, int bMacroCError, long codePage) {
 	strcpy(_fseltarget,fn);
 	FT_OPEN_OPTIONS options = { DOCK_NAME_BOTTOM, codePage };
-	return xref_openTagFileOrSearchResults(0, cmpflg ? ST_ERRORS: ST_STEP, &_cmpfselinfo, &options);
+	return xref_openTagFileOrSearchResults(0, bMacroCError ? ST_MACROC_ERRORS : ST_ERRORS, &_cmpfselinfo, &options);
 }
 
 /*---------------------------------*/

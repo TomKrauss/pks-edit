@@ -13,9 +13,9 @@ installation. Note, that in the later case, you should review overridden files, 
 
 ## Configuration File Search PATH
 Configuration files are looked up in the following directories:
-- `.\PKS_SYS`
-- `%user.home\.pksedit\PKS_SYS`
-- `%appinstalldir%\PKS_SYS`
+- _.\PKS_SYS_
+- _%user.home\.pksedit\PKS_SYS_
+- _%appinstalldir%\PKS_SYS_
 
 ### Configuring PKS Edit using the UI
 You may set the overall PKS Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
@@ -40,50 +40,49 @@ In this section you may configure all actions performed during startup and shutd
 
 PKS Edit supports two _autosave_ modes: it may either save the files directly automatically or it may save them to a temprary directory. 
 
-- `Autosave time` - can be used to configure the time period during which all changed editors are automatically saved. Setting the time to 0 will disable autosave.
-- `Automatically delete autosave temporary files` - if this option is set, PKS Edit will automatically erase all auto-saved files saved to a temporary directory even after crashes when exiting.
-- `Autosave path` - configures the PKS Edit temporary directory, where it will autosave files.
-- `Save settings on exit` - will have PKS Edit save the options configured during exit
-- `Reopen previously open file` - will have PKS Edit maintain the current _editing session_. When PKS Edit exits, it will save the information about all currently open files and windows (in a file named `pksedit.his`) and will
+- _Autosave time_ - can be used to configure the time period during which all changed editors are automatically saved. Setting the time to 0 will disable autosave.
+- _Automatically delete autosave temporary files_ - if this option is set, PKS Edit will automatically erase all auto-saved files saved to a temporary directory even after crashes when exiting.
+- _Autosave path_ - configures the PKS Edit temporary directory, where it will autosave files.
+- _Reopen previously open file_ - will have PKS Edit maintain the current _editing session_. When PKS Edit exits, it will save the information about all currently open files and windows (in a file named `pksedit.his`) and will
   restore these files, when it is restarted.
-- `Save macros on exit` - when checked all recorded or compiled [macros](macro_language.md) are saved automatically to the compiled macro file (`pksedit.mac`).
-- `Place backup files in temporary directory` - if this option is set, a copy of a modified file is written to the temporary PKS Edit directory.
-- `Save/restore named clipboards` - if this option is set, all text copied to a named clipboard will be made persistent in the temporary directory and restored when PKS Edit starts so named clipboards are preserved through editing sessions.
-- `Provide clipboard history` - will maintain a list of recently used clipboard contents automatically.
-- `Autosave files to temporary directory or file` - when set, copies of files are saved during autosave (to a temporary directory), when unset, changed files are automatically saved directly.
+- _Save macros on exit_ - when checked all recorded or compiled [macros](macro_language.md) are saved automatically to the compiled macro file (`pksedit.mac`).
+- _Place backup files in temporary directory_ - if this option is set, a copy of a modified file is written to the temporary PKS Edit directory.
+- _Save/restore named clipboards_ - if this option is set, all text copied to a named clipboard will be made persistent in the temporary directory and restored when PKS Edit starts so named clipboards are preserved through editing sessions.
+- _Provide clipboard history_ - will maintain a list of recently used clipboard contents automatically.
+- _Autosave files to temporary directory or file_ - when set, copies of files are saved during autosave (to a temporary directory), when unset, changed files are automatically saved directly.
 
 ## Notification Options
 
 PKS Edit differentiates between major errors (disk full or the like) and minor errors / hints (search pattern not found). Major errors are always shown in modal message boxes. The way minor errors are shown can be configured
 in this section.
 
-- `Play sound on error` - when set, a warning sound is played, when an error occurs in PKS Edit.
-- `Flash window on error` - when set, the editor window is _flashed_ during errors.
-- `Display error in popup window` - when set, a _toast window_ is opened when an error occurs. Otherwise minor errors are shown less intrusive in the status bar.
+- _Play sound on error_ - when set, a warning sound is played, when an error occurs in PKS Edit.
+- _Flash window on error_ - when set, the editor window is _flashed_ during errors.
+- _Display error in popup window_ - when set, a _toast window_ is opened when an error occurs. Otherwise minor errors are shown less intrusive in the status bar.
 
 ## Layout Options
 
 Layout Options configure the general UI of PKS Edit
 
-- `Show Optionbar` - when set, the option bar at the bottom of the screen is displayed.
-- `Show Functionkeybar` - when set, the function keys are displayed.
-- `Show Statusline` - when set, a status line is displayed.
-- `Show Toolbar` - when set, the toolbar is displayed.
-- `Display Editor Tabs in compact mode` - when set, only the file name is displayed for the tabs of the editors. Note, that one can still see the full filename of a file edited by hovering over the tab or in the window lists.
-- `Toolbar Icon Size` - can be used to configure the size of the toolbar icons using 4 predefined sizes.
+- _Show Optionbar_ - when set, the option bar at the bottom of the screen is displayed.
+- _Show Functionkeybar_ - when set, the function keys are displayed.
+- _Show Statusline_ - when set, a status line is displayed.
+- _Show Toolbar_ - when set, the toolbar is displayed.
+- _Display Editor Tabs in compact mode_ - when set, only the file name is displayed for the tabs of the editors. Note, that one can still see the full filename of a file edited by hovering over the tab or in the window lists.
+- _Toolbar Icon Size_ - can be used to configure the size of the toolbar icons using 4 predefined sizes.
 
 ## Miscellaneous Options
 
-- `Undo available` - should be set by default to allow for undo and redo of actions.
-- `Number of undo steps` - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
-- `Silently reload files changed externally` - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
+- _Undo available_ - should be set by default to allow for undo and redo of actions.
+- _Number of undo steps_ - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
+- _Silently reload files changed externally_ - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
    a confirmation dialog.
-- `Hide selection on caret movement` - when the caret is moved and text is selected, the selection "goes away", if this option is set.
-- `Open dialogs close to mouse pointer` - when opening a dialog (e.g. Find or Replace), the dialog opens close to the current mouse position, when this option is set.
-- `Lock edited files` - when this option is set, files are locked, when they are edited, so they cannot be changed by other applications concurrently.
-- `Theme` - allows to select one of the pre-defined editor themes defining fonts and colors used in PKS Edit. The available themes are configured in a file named `themeconfig.json`. 
-- `Language` - allows to select the user interface language of PKS Edit (currently only German and English are available - the manual is only available in English).
-- `Default Font` - can be used to configure the default text font face used in editing windows, when no explicit font face name is configured in a 
+- _Hide selection on caret movement_ - when the caret is moved and text is selected, the selection "goes away", if this option is set.
+- _Open dialogs close to mouse pointer_ - when opening a dialog (e.g. Find or Replace), the dialog opens close to the current mouse position, when this option is set.
+- _Lock edited files_ - when this option is set, files are locked, when they are edited, so they cannot be changed by other applications concurrently.
+- _Theme_ - allows to select one of the pre-defined editor themes defining fonts and colors used in PKS Edit. The available themes are configured in a file named `themeconfig.json`. 
+- _Language_ - allows to select the user interface language of PKS Edit (currently only German and English are available - the manual is only available in English).
+- _Default Font_ - can be used to configure the default text font face used in editing windows, when no explicit font face name is configured in a 
    style defined in the theme configuration.
 
 ## Configuration of bindings for keyboard, mouse, context menu 
@@ -101,9 +100,9 @@ The action bindings can be extended as all default configuration files in PKS Ed
 case named %home%\pksedit\config\pksactionbindings.json. Note, that PKS Edit currently defines 3 action contexts which can be associated to a binding
 to have the binding only be available in a certain context.
 
-- `default` - the standard context - active by default and contains all actions always available
-- `search-list` - active, when viewing / editing a search result list (result of search in files or a compiler output file)
-- `markdown-renderer`- active when viewing / navigating a markdown document in wysiwyg mode.
+- _default_ - the standard context - active by default and contains all actions always available
+- _search-list_ - active, when viewing / editing a search result list (result of search in files or a compiler output file)
+- _markdown-renderer_- active when viewing / navigating a markdown document in wysiwyg mode.
 
 In order to activate a binding only in the given context, specify `"context": "search-list"` (for instance.)
 
@@ -140,9 +139,9 @@ in the text exists to an action.
 
 Key bindings support the following properties:
 
-- `key` the keycode combination bound
-- `command` the command to execute (either a built-in command or the name of a macro)
-- `context` the optional action context in which the binding is active.
+- _key_ the keycode combination bound
+- _command_ the command to execute (either a built-in command or the name of a macro)
+- _context_ the optional action context in which the binding is active.
 
 ### Binding mouse events
 
@@ -164,11 +163,11 @@ one line at the same time displaying an info message.
 
 Mouse bindings support the following properties:
 
-- `key` the mouse event description (modifier combination + MLeft|MRight|MMiddle (number of clicks)) to bind
-- `command` the command to execute (either a built-in command or the name of a macro)
-- `context` the optional action context in which the binding is active.
-- `message` an optional message to display
-- `message-id` internal integer value for referring to a PKS Edit string resource.
+- _key_ the mouse event description (modifier combination + MLeft|MRight|MMiddle (number of clicks)) to bind
+- _command_ the command to execute (either a built-in command or the name of a macro)
+- _context_ the optional action context in which the binding is active.
+- _message_ an optional message to display
+- _message-id_ internal integer value for referring to a PKS Edit string resource.
 
 ### Context menu and menu bar bindings
 
@@ -197,15 +196,15 @@ with a label of "Find" and two sub-menu items to find a string and to replace a 
 
 Context menu and menu definitions support the following properties:
 
-- `command` the command to execute (either a built-in command or the name of a macro)
-- `context` the optional action context in which the binding is active
-- `label` an optional label to display in the item
-- `label-id` internal integer value for referring to a PKS Edit string resource to define the label
-- `sub-menu` array of menu definitions to be used as a sub-menu
-- `separator` may be set to `true` to define a separator item in a menu
-- `history` may be set to true to mark the position, where PKS Edit will insert menu items allowing to access a recently used file.
-- `anchor` string defining an anchor allowing to modify default menus in extension files
-- `insert-at` string value referring to an anchor defined using `id` to be used when extending menus. The corresponding item will be added to
+- _command_ the command to execute (either a built-in command or the name of a macro)
+- _context_ the optional action context in which the binding is active
+- _label_ an optional label to display in the item
+- _label-id_ internal integer value for referring to a PKS Edit string resource to define the label
+- _sub-menu_ array of menu definitions to be used as a sub-menu
+- _separator_ may be set to `true` to define a separator item in a menu
+- _history_ may be set to true to mark the position, where PKS Edit will insert menu items allowing to access a recently used file.
+- _anchor_ string defining an anchor allowing to modify default menus in extension files
+- _insert-at_ string value referring to an anchor defined using `id` to be used when extending menus. The corresponding item will be added to
   the menu specified using the anchor name.
 
 ### Toolbar definition and bindings
@@ -228,19 +227,26 @@ internally wherever appropriate). Toolbar labels can be defined similar to menu 
 
 Toolbar button definitions support the following properties:
 
-- `command` the command to execute (either a built-in command or the name of a macro)
-- `context` the optional action context in which the binding is active
-- `label` an optional label (tooltip) to display in the button
-- `label-id` internal integer value for referring to a PKS Edit string resource to define the label  (tooltip) 
-- `separator` may be set to `true` to define a separator button in the toolbar
-- `icon` name of the Awesome Font icon to use
-- `anchor` string defining an anchor allowing to modify default toolbar in extension files
-- `insert-at` string value referring to an anchor defined using `id` to be used when extending toolbars. The corresponding button will be added after
+- _command_ the command to execute (either a built-in command or the name of a macro)
+- _context_ the optional action context in which the binding is active
+- _label_ an optional label (tooltip) to display in the button
+- _label-id_ internal integer value for referring to a PKS Edit string resource to define the label  (tooltip) 
+- _separator_ may be set to `true` to define a separator button in the toolbar
+- _icon_ name of the Awesome Font icon to use
+- _anchor_ string defining an anchor allowing to modify default toolbar in extension files
+- _insert-at_ string value referring to an anchor defined using `id` to be used when extending toolbars. The corresponding button will be added after
   the button specified using the anchor name.
 
 ## Advanced configuration
 
+Not all configuration options in PKS Edit can be changed yet in the PKS Edit Configuration Dialog. 
 Some configuration options can only be configured in the `pkseditini.json` file directly.
+
+**Important Caveat**: changining these options from within PKS Edit requires, that you do not open
+the configuration dialog before closing PKS Edit as closing the configuration dialog will then override
+the old options from the last session.
+
+### Configuring Sounds
 
 Put a property named `sound-name` into the configuration section to configure the error sound played upon errors. 
 The following sample selects a high beep tone as the error sound. 
@@ -252,10 +258,40 @@ The following sample selects a high beep tone as the error sound.
 
 The following sound names may be used:
 
-- `Beep` plays a normal beep sound
-- `LowBeep` plays a low tone beep sound
-- `HighBeep` plays a high tone beep sound
-- `Asterisk` plays the windows "Asterisk" sound.
-- `Exclamation` plays the windows "Exclamation" sound.
-- `Question` plays the windows "Question" sound.
+- _Beep_ plays a normal beep sound
+- _LowBeep_ plays a low tone beep sound
+- _HighBeep_ plays a high tone beep sound
+- _Asterisk_ plays the windows "Asterisk" sound.
+- _Exclamation_ plays the windows "Exclamation" sound.
+- _Question_ plays the windows "Question" sound.
 
+### Configuring Build Log Parsing
+
+One can configure formats to be tried, when parsing build output log to let PKS Edit navigate along the errors / warnings
+found in the build log using a configuration like in the following sample (comments must of course be ommitted and exist
+for explanation purpos):
+
+```json
+        "compiler-output-patterns": [
+        {
+            "name": "PKSMAKROC",
+            // The pattern to match one navigatable build result
+            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
+            // An optional file name pattern to file name patterns for quick auto-detection of patterns to use
+            "filename-pattern": ".pkc",
+            // The index of the bracket in pattern to match the file name part
+            "filename-capture": 1,
+            // The index of the bracket in pattern to match the line number part
+            "linenumber-capture": 2,
+            // The index of the bracket in pattern to match the comment part
+            "comment-capture": 3
+        },
+        {
+            "name": "Java",
+            "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
+            "filename-pattern": ".java",
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "comment-capture": 3
+        },
+```

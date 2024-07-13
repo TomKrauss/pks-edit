@@ -131,7 +131,7 @@ BOOL macro_createFileAndDisplay(char *fn, long (* callback)(FILE *fp), int bWysi
 
 static void compile_showSummary(COMPILER_CONFIGURATION* pConfig, int nErr, int nWarn) {
 	if (nErr || nWarn) {
-		xref_openSearchList((char*)pConfig->cb_errorFile, 1, -1);
+		xref_openBuildOutputFile((const char*)pConfig->cb_errorFile, TRUE, -1);
 	} else {
 		macro_showStatus("Compilation of %d file(s) successful. No errors and no warnings found.", pConfig->cb_numberOfFilesCompiled);
 	}

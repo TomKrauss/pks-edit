@@ -792,26 +792,25 @@ BEGIN
     CONTROL         "Display &error in popup window",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,35,210,8
 END
 
-DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 249, 196
+DLG_OPT_AUTOSAVE DIALOGEX 0, 0, 251, 176
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Saving"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Autosave &time [sec]:",-1,12,12,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,186,12,57,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "Save settings on exit",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,231,10
     LTEXT           "Path &autosave:",-1,12,50,53,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,69,48,174,12,ES_AUTOHSCROLL
     CONTROL         "Automatically delete temporary autosave files",IDD_OPT1,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,231,10
-    CONTROL         "&Reopen previously opened files",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,231,10
-    CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,102,231,10
+    CONTROL         "&Reopen previously opened files",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,68,231,10
+    CONTROL         "&Save macros on exit",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,86,231,10
     CONTROL         "&Place backup files in autosave directory",IDD_OPT5,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,120,231,10
-    CONTROL         "Save / restore &named clipboards",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,137,231,10
-    CONTROL         "Provide clipboard history",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,153,231,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,104,231,10
+    CONTROL         "Save / restore &named clipboards",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,121,231,10
+    CONTROL         "Provide clipboard history",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,137,231,10
     CONTROL         "Autosave files to temporary directory or file",IDD_OPT8,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,169,231,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,153,231,10
 END
 
 DLG_OPT_MISC DIALOGEX 0, 0, 261, 229
@@ -1020,6 +1019,7 @@ BEGIN
 
     DLG_OPT_AUTOSAVE, DIALOG
     BEGIN
+        RIGHTMARGIN, 249
     END
 
     DLG_OPT_MISC, DIALOG

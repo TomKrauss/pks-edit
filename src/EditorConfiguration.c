@@ -148,11 +148,14 @@ static JSON_MAPPING_RULE _prtparamRules[] = {
 };
 
 static JSON_MAPPING_RULE _copRules[] = {
-	{	RT_CHAR_ARRAY, "name", offsetof(COMPILER_OUTPUT_PATTERN, cop_name), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_name)},
-	{	RT_CHAR_ARRAY, "pattern", offsetof(COMPILER_OUTPUT_PATTERN, cop_pattern), sizeof(((COMPILER_OUTPUT_PATTERN*)NULL)->cop_pattern)},
-	{	RT_INTEGER, "filename-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_filenameCapture)},
-	{	RT_INTEGER, "linenumber-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_lineNumberCapture)},
-	{	RT_INTEGER, "comment-capture", offsetof(COMPILER_OUTPUT_PATTERN, cop_commentCapture)},
+	{	RT_CHAR_ARRAY, "name", offsetof(BUILD_OUTPUT_PATTERN, cop_name), sizeof(((BUILD_OUTPUT_PATTERN*)NULL)->cop_name)},
+	{	RT_CHAR_ARRAY, "pattern", offsetof(BUILD_OUTPUT_PATTERN, cop_pattern), 
+			sizeof(((BUILD_OUTPUT_PATTERN*)NULL)->cop_pattern)},
+	{	RT_CHAR_ARRAY, "filename-pattern", offsetof(BUILD_OUTPUT_PATTERN, cop_filenamePattern), 
+			sizeof(((BUILD_OUTPUT_PATTERN*)NULL)->cop_filenamePattern)},
+	{	RT_INTEGER, "filename-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_filenameCapture)},
+	{	RT_INTEGER, "linenumber-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_lineNumberCapture)},
+	{	RT_INTEGER, "comment-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_commentCapture)},
 	{	RT_END}
 };
 
@@ -171,7 +174,6 @@ static JSON_MAPPING_RULE _editConfigurationRules[] = {
 	{	RT_FLAG, "maintain-clipboard-history", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_CLIPBOARD_HISTORY},
 	{	RT_FLAG, "reuse-application-running-instance", offsetof(EDITOR_CONFIGURATION, options), O_REUSE_APPLICATION_INSTANCE},
 	{	RT_FLAG, "save-macros-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_MACROS_ON_EXIT},
-	{	RT_FLAG, "save-settings-on-exit", offsetof(EDITOR_CONFIGURATION, options), O_SAVE_SETTINGS_ON_EXIT},
 	{	RT_FLAG, "show-error-toast", offsetof(EDITOR_CONFIGURATION, options), O_SHOW_MESSAGES_IN_SNACKBAR},
 	{	RT_FLAG, "silently-reload-changed-files", offsetof(EDITOR_CONFIGURATION, options), O_SILENTLY_RELOAD_CHANGED_FILES},
 	{	RT_FLAG, "undo-enabled", offsetof(EDITOR_CONFIGURATION, options), O_UNDOENABLED},
@@ -192,7 +194,7 @@ static JSON_MAPPING_RULE _editConfigurationRules[] = {
 	{	RT_CHAR_ARRAY, "default-font", offsetof(EDITOR_CONFIGURATION, defaultFontFace), sizeof(((EDITOR_CONFIGURATION*)NULL)->defaultFontFace)},
 	{	RT_CHAR_ARRAY, "search-engine", offsetof(EDITOR_CONFIGURATION, searchEngine), sizeof(((EDITOR_CONFIGURATION*)NULL)->searchEngine)},
 	{	RT_OBJECT_LIST, "compiler-output-patterns", offsetof(EDITOR_CONFIGURATION, outputPatterns),
-			{.r_t_arrayDescriptor = {.ro_nestedRules = _copRules, .ro_nestedSize = sizeof(COMPILER_OUTPUT_PATTERN)}}},
+			{.r_t_arrayDescriptor = {.ro_nestedRules = _copRules, .ro_nestedSize = sizeof(BUILD_OUTPUT_PATTERN)}}},
 	{	RT_END}
 };
 
@@ -243,9 +245,6 @@ extern void config_destroy() {
 static void config_autosaveConfiguration() {
 	EDITOR_CONFIGURATION* config = GetConfiguration();
 
-	if (config->options & O_SAVE_SETTINGS_ON_EXIT) {
-		config_saveConfiguration(FALSE);
-	}
 	macro_autosaveAllBindings(config->options & O_SAVE_MACROS_ON_EXIT ? FALSE : TRUE);
 }
 
@@ -290,7 +289,6 @@ static DIALOG_ITEM_DESCRIPTOR _dAutoSave[] = {
 	{IDD_INT1,		sizeof _configuration.autosaveSeconds,		&_configuration.autosaveSeconds},
 	{IDD_OPT1,		O_DELETE_AUTOSAVE_FILES,				&_configuration.options},
 	{IDD_STRING1,	sizeof _configuration.pksEditTempPath,	_configuration.pksEditTempPath},
-	{IDD_OPT2,		O_SAVE_SETTINGS_ON_EXIT,				&_configuration.options},
 	{IDD_OPT3,		O_AUTO_OPEN_HISTORY,					&_configuration.options},
 	{IDD_OPT4,		O_SAVE_MACROS_ON_EXIT,					&_configuration.options},
 	{IDD_OPT5,		O_CREATE_BACKUP_IN_TEMP_PATH,			&_configuration.options},

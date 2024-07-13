@@ -710,22 +710,20 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Automatisches Speichern nach [sec]:",-1,12,12,135,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,201,12,42,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "Einstellungen beim &Verlassen speichern",IDD_OPT2,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,66,232,10
     LTEXT           "&Pfad:",-1,12,48,20,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,48,47,196,12,ES_AUTOHSCROLL
     CONTROL         "Dateien des automatischen Speicherns aufräumen",IDD_OPT1,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,232,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,232,8
     CONTROL         "&Zuletzt geöffnete Dateien wieder öffnen",IDD_OPT3,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,84,232,10
-    CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,104,232,10
-    CONTROL         "&Backup Dateien im o.g. Pfad speichern",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,121,232,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,67,232,8
+    CONTROL         "&Makros beim Verlassen speichern",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,85,232,8
+    CONTROL         "&Backup Dateien im o.g. Pfad speichern",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,104,232,8
     CONTROL         "Benannte Clipboards speichern und wiederherstellen",IDD_OPT6,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,138,231,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,121,232,8
     CONTROL         "Liste vorheriger Clipboards bereitstellen",IDD_OPT7,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,153,231,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,136,232,8
     CONTROL         "Automatisches Speichern in temporäre Datei oder Verzeichnis",IDD_OPT8,
-                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,169,231,10
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,152,232,8
 END
 
 DLG_OPT_MISC DIALOGEX 0, 0, 272, 224

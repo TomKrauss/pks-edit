@@ -36,8 +36,6 @@ typedef enum {
 	O_LOCKFILES = 0x8,
 	// Restore previously opened files
 	O_AUTO_OPEN_HISTORY = 0x10,
-	// Save the PKS Edit settings on exit
-	O_SAVE_SETTINGS_ON_EXIT = 0x20,
 	// Automatically save all macros recorded / compiled when exiting
 	O_SAVE_MACROS_ON_EXIT = 0x40,
 	// Unlink temporary autosave files if not needed any more
@@ -79,14 +77,25 @@ typedef enum {
 
 typedef enum { ICS_SMALL, ICS_MEDIUM, ICS_BIG, ICS_LARGE } ICONSIZE;
 
-typedef struct tagCOMPILER_OUTPUT_PATTERN {
-	struct tagCOMPILER_OUTPUT_PATTERN* cop_next;
+/*
+ * Describes the output of a build command.
+ */
+typedef struct tagBUILD_OUTPUT_PATTERN {
+	struct tagBUILD_OUTPUT_PATTERN* cop_next;
 	char cop_name[32];
+	// The regular expression containing at least two capturing groups capturing
+	// file name and the line number in a line of build output.
 	char cop_pattern[200];
+	// A simple pattern for a file name (e.g. ".dart" or ".java") to quickly match file names in the build error text.
+	// This is used to speed up the detection of an output pattern to use to analyze a build log file.
+	char cop_filenamePattern[128];
+	// The index of the capture in the matched expression referring to the filename part.
 	int  cop_filenameCapture;
+	// The index of the capture in the matched expression referring to the line number part.
 	int  cop_lineNumberCapture;
+	// The index of the capture in the matched expression referring to the comment part or 0 if not supported.
 	int  cop_commentCapture;
-} COMPILER_OUTPUT_PATTERN;
+} BUILD_OUTPUT_PATTERN;
 
 typedef struct tagEDITOR_CONFIGURATION {
 	int options;
@@ -107,7 +116,7 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char defaultFontFace[32];
 	char searchEngine[32];						// selected search engine for searching a string on the internet.
 	char soundName[32];							// sound name for playing sounds.
-	COMPILER_OUTPUT_PATTERN* outputPatterns;	// Pre-defined compiler output patterns
+	BUILD_OUTPUT_PATTERN* outputPatterns;	// Pre-defined compiler output patterns
 	void (*autosaveOnExit)();
 } EDITOR_CONFIGURATION;
 

@@ -37,7 +37,8 @@ will read the cross references in this file and will then alllow to use them whe
 
 This menu allows you to read a build log file, which is opened in the navigation pane and analyzed by PKS Edit for the purpose of navigating
 to errors and warnings pointing to problems located in files. PKS Edit supports then to navigate the errors / warnings displayed in
-the build log opened and opens the corresponding files / places, where the error occurred.
+the build log opened and opens the corresponding files / places, where the error occurred. PKS Edit will try to parse the build output
+based on build output patterns as described in the [Configuration Documentation](configuration.md#configuring-build-log-parsing).
 
 ## Settings
 

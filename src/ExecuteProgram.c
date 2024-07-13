@@ -188,7 +188,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR lpWorkingDirectory, LPSTR errfile
 
 	long codePage = bRunInCommandShell ? CP_OEMCP : -1;
 	if (errfile && errfile[0]) {
-		xref_openSearchList(errfile, 1, codePage);
+		xref_openBuildOutputFile(errfile, FALSE, codePage);
 	} else if (wp && bProducer) {
 		if (!bUInited) {
 			undo_startModification(fp);

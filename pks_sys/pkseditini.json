@@ -33,6 +33,7 @@
         {
             "name": "PKSMAKROC",
             "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
+            "filename-pattern": ".pkc",
             "filename-capture": 1,
             "linenumber-capture": 2,
             "comment-capture": 3
@@ -45,11 +46,28 @@
             "comment-capture": 3
         },
         {
-            "name": "BORLAND-C",
-            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
+            "name": "Java",
+            "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
+            "filename-pattern": ".java",
             "filename-capture": 1,
             "linenumber-capture": 2,
             "comment-capture": 3
+        },
+        {
+            "name": "Dart",
+            "pattern": "^ *[a-z]+ - *(.+):([0-9]+):[0-9]+ - (.*)",
+            "filename-pattern": ".dart",
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "comment-capture": 3
+        },
+        {
+          "name": "Typescript",
+          "pattern": "^*[A-Za-z]+: *(.+):([0-9]+):[0-9]+ - (.*)",
+          "filename-pattern": ".ts",
+          "filename-capture": 1,
+          "linenumber-capture": 2,
+          "comment-capture": 3
         }
         ]
     },

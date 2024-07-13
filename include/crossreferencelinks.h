@@ -14,6 +14,10 @@
 
 #ifndef CROSSREFERENCELINKS_H
 
+#ifndef PUBLICAPI_H
+#include "publicapi.h"
+#endif
+
 /*--------------------------------------------------------------------------
  * xref_restoreFromConfigFile()
  * init all compiler types
@@ -44,7 +48,7 @@ extern void xref_openWindowHistory(LINE* lp);
 /*---------------------------------*/
 /* xref_navigateSearchErrorList()				*/
 /*---------------------------------*/
-extern int xref_navigateSearchErrorList(int dir);
+extern int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType);
 
 /*--------------------------------------------------------------------------
  * xref_addSearchListEntry()
@@ -82,7 +86,12 @@ extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned 
 extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbAnalyzer);
 #endif
 
-extern int xref_openSearchList(char* fn, int cmpflg, long codePage);
+/*
+ * Open a build output file with the given  file name and [codePage]. If codePage should be
+ * automatically detected, pass -1. If the output file is the result of a PKSMacroC build, 
+ * pass TRUE for [bMacroCError].
+ */
+extern int xref_openBuildOutputFile(const char* pszFilename, BOOL bMacroCError, long codePage);
 
 extern int EdSearchListRead(void);
 

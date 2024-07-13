@@ -8,12 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.8.0] - 2024-07-05
 
+### Changed
+- The Option Save Settings on Exit was eliminated, as it was useless and even dangerous: settings are already saved 
+  as soon as they were changed in configuration dialog. Saving them again on exit could clobber information manually added to `pkseditini.json`.
+
 ### Improved
 - The Align Text function is more intuitive to use now.
 - Most dialogs support now context sensitive help. The PKS Edit manual was improved to be able to support this.
 - The Markdown Wysiwyg mode supports now caret line highlighting.
 - The Code Evaluation menu is now only enabled, if code evaluation is really supported. Code evaluation of PKSMacroC
   code handles now more szenarios of selected text.
+- When opening compilation or build output files, PKS Edit will now auto-detect the format to extract the information to navigate
+  the problems found in the build output. Additional well known build output formats (Java, Typescript, Dart) have been
+  added to the list of formats supported out of the box.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

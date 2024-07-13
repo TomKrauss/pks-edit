@@ -17,6 +17,10 @@
 
 #ifndef GRAMMAR_H
 
+#ifndef REGEXP_H
+#include "regexp.h"
+#endif
+
 #define	UA_SHOWMATCH	1
 #define	UA_ABBREV		2
 #define	UA_BRINDENT		3
@@ -45,8 +49,6 @@ typedef struct tagLEXICAL_ELEMENT {
 	LEXICAL_STATE le_state;			// the lexical state determined for the next le_length characaters.
 	int le_length;					// the length of the lexical state.
 } LEXICAL_ELEMENT;
-
-typedef struct tagRE_PATTERN RE_PATTERN;
 
 typedef struct tagUC_MATCH_PATTERN {
 	char*	pattern;			// pattern for scanning 
@@ -92,11 +94,14 @@ typedef struct tagNAVIGATION_PATTERN {
 	struct tagNAVIGATION_PATTERN* next;
 	char compiler[32];				// Name of navigation type - was historically the name of the compiler producing an output
 	char* pattern;					// regular expression to match
+	char* filenamePattern;			// An optional filename pattern used to detect the format for parsing build outputs given in the most simple form (e.g. ".dart" or ".java"
 	int filenameCapture;			// which capture group (starting with 1) refers to the filename
 	int lineNumberCapture;			// which capture group is linenumber
 	int commentCapture;				// which capture group is the section describing additional options for navigating - like a search expression
 	int tagCapture;					// for navigation patterns describing a CTAGS tag - the capture group for the described tag - method name / type name / ... itself.
 	int tagExtensionFields;			// for navigation patterns describing a CTAGS tag - the capture group containing tag extension fields
+	char ebuf[ESIZE];				// The buffer for the compiled regular expression.
+	RE_PATTERN rePattern;			// The compiled regular expression pattern.
 } NAVIGATION_PATTERN;
 
 // Describes the primary ways to comment code in the described language
