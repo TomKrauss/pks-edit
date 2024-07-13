@@ -60,7 +60,7 @@ static const char* _grepFileFormat = "\"%s\", line %ld: %s";
 /*
  * Initialize a searchlist file.
  */
-extern void xref_initSearchList(FTABLE* fp);
+extern void xref_initSearchList(WINFO* fp);
 
 /*
  * Returns a compiled RE_PATTERN to scan the lines in a search result list.
@@ -121,12 +121,14 @@ static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* p
  * Add an entry to the "current pSearchExpression list" file in the standard PKS Edit pSearchExpression list
  * navigation format ("filename", line lineNumer: remarks).
  */
-int xref_addSearchListEntry(char* szBuf, char* fn, long line, char* remark) {
+int xref_addSearchListEntry(WINFO* wp, char* szBuf, char* fn, long line, char* remark) {
 
+	if (wp->actionContext != NULL && strcmp(SEARCH_LIST_CONTEXT, wp->actionContext) == 0) {
+		strcat(remark, " sl");
+	}
 	wsprintf(szBuf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
 	return 1;
 }
-
 
 /*--------------------------------------------------------------------------
  * find_inLine()
@@ -401,7 +403,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	// Force reload of file.
 	fp->ti_modified = 0;
 	ft_checkForChangedFiles(FALSE);
-	xref_initSearchList(fp);
+	xref_initSearchList(WIPOI(fp));
 	if (fAction == FIF_SEARCH) {
 		return xref_navigateSearchErrorList(LIST_START);
 	}

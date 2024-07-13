@@ -155,6 +155,7 @@ static JSON_MAPPING_RULE _copRules[] = {
 			sizeof(((BUILD_OUTPUT_PATTERN*)NULL)->cop_filenamePattern)},
 	{	RT_INTEGER, "filename-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_filenameCapture)},
 	{	RT_INTEGER, "linenumber-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_lineNumberCapture)},
+	{	RT_INTEGER, "columnnumber-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_columnNumberCapture)},
 	{	RT_INTEGER, "comment-capture", offsetof(BUILD_OUTPUT_PATTERN, cop_commentCapture)},
 	{	RT_END}
 };

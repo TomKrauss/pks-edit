@@ -93,6 +93,8 @@ typedef struct tagBUILD_OUTPUT_PATTERN {
 	int  cop_filenameCapture;
 	// The index of the capture in the matched expression referring to the line number part.
 	int  cop_lineNumberCapture;
+	// If a column number is present, this is the capture of the column to select - otherwise -1.
+	int cop_columnNumberCapture;
 	// The index of the capture in the matched expression referring to the comment part or 0 if not supported.
 	int  cop_commentCapture;
 } BUILD_OUTPUT_PATTERN;

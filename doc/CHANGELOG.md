@@ -28,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   than the column of the selection start.
 - A potential crash in the MacroC compiler was fixed. Some memory leaks were fixed as well, that occurred if macro
   compilation resulted in one or more errors.
+- Opening build results **and** a PKS Edit search result list at the same time will now work correctly correctly.
+  Pressing `Shift+Ctrl+N` will then navigate the list of results of the corresponding active search
+- list. Search Lists and Build Log Windows are restored, when PKS Edit will be opened again.
 
 ## [2.7.0] - 2024-07-05
 

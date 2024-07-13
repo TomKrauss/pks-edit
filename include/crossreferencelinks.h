@@ -55,7 +55,7 @@ extern int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType);
  * Add an entry to the "current search list" file in the standard PKS Edit search list
  * navigation format ("filename", line lineNumer: remarks).
  */
-extern int xref_addSearchListEntry(char* pszBuf, char* fn, long line, char* remark);
+extern int xref_addSearchListEntry(WINFO* wp, char* pszBuf, char* fn, long line, char* remark);
 
 /*
  * Determine the "identifier" close to the input caret in the current editor window.

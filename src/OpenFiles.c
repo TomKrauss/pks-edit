@@ -59,6 +59,7 @@ extern int 	EdPromptAutosavePath(char *path);
 extern char *	_pksSysFolder;
 
 static	FTABLE 	*_currentFile;
+static	FTABLE* _currentSteplistFile;
 static FTABLE 	*_filelist;
 
 #define HISTORY_FILE_NAME "pkssession.json"
@@ -89,8 +90,12 @@ FTABLE* ft_getCurrentDocument() {
  * Returns the current error document. Should not be used any more to often
  */
 FTABLE* ft_getCurrentErrorDocument() {
+	if (_currentSteplistFile != NULL) {
+		return _currentSteplistFile;
+	}
 	for (FTABLE* fp = _filelist; fp; fp = fp->next) {
 		if (fp->navigationPattern) {
+			_currentSteplistFile = fp;
 			return fp;
 		}
 	}
@@ -305,7 +310,7 @@ void ft_saveWindowStates(void ) {
 				if (nDispmode == fp->documentDescriptor->dispmode) {
 					nDispmode = -1;
 				}
-				xref_addSearchListEntry(szBuff, fp->fname, wp->caret.ln,
+				xref_addSearchListEntry(wp, szBuff, fp->fname, wp->caret.ln,
 					mainframe_getOpenHint(wp, wp == wpActive, nIndex > 0, nDispmode));
 				hist_saveString(OPEN_IN_EDITOR, szBuff);
 			}
@@ -364,6 +369,9 @@ void ft_destroy(FTABLE *fp) {
 
 	ll_delete((void**) & _filelist, fp);
 
+	if (P_EQ(fp, ft_getCurrentErrorDocument())) {
+		_currentSteplistFile = NULL;
+	}
 	if (!_filelist || P_EQ(fp, ft_getCurrentDocument())) {
 		_currentFile = NULL;
 	}
@@ -635,6 +643,9 @@ int ft_selectWindowWithId(int winid) {
  * Make the passed filebuffer the "current" edited file in PKS Edit.
  */
 int ft_currentFileChanged(FTABLE *fp) {
+	if (fp->navigationPattern) {
+		_currentSteplistFile = fp;
+	}
 	if (fp == _currentFile) {
 		return 1;
 	}

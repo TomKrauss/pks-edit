@@ -97,6 +97,7 @@ typedef struct tagNAVIGATION_PATTERN {
 	char* filenamePattern;			// An optional filename pattern used to detect the format for parsing build outputs given in the most simple form (e.g. ".dart" or ".java"
 	int filenameCapture;			// which capture group (starting with 1) refers to the filename
 	int lineNumberCapture;			// which capture group is linenumber
+	int columnNumberCapture;		// If a column number is present, this is the capture of the column to select - otherwise -1.
 	int commentCapture;				// which capture group is the section describing additional options for navigating - like a search expression
 	int tagCapture;					// for navigation patterns describing a CTAGS tag - the capture group for the described tag - method name / type name / ... itself.
 	int tagExtensionFields;			// for navigation patterns describing a CTAGS tag - the capture group containing tag extension fields

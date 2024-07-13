@@ -78,6 +78,7 @@ typedef struct tagTAG {
 typedef struct tagNAVIGATION_SPEC {
 	char filename[EDMAXPATHLEN];
 	long line;
+	long column;
 	char comment[128];
 } NAVIGATION_SPEC;
 
@@ -101,9 +102,11 @@ static NAVIGATION_PATTERN _universalCTagsFileFormat =  {
 static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
 static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
 
-static int xref_destroyCmpTag(NAVIGATION_PATTERN* ct) {
+static int xref_destroyNavigationPattern(NAVIGATION_PATTERN* ct) {
 	free(ct->pattern);
+	ct->pattern = NULL;
 	free(ct->filenamePattern);
+	ct->filenamePattern = NULL;
 	return 1;
 }
 
@@ -145,17 +148,21 @@ static NAVIGATION_PATTERN* xref_getNavigationPatternFor(const char* pszCompiler)
 static NAVIGATION_PATTERN* xref_detectNavigationPattern(FTABLE* fp) {
 	LINE* lp = fp->firstl;
 	int count = 2000;
+	RE_MATCH match;
 
+	LINE* lp2 = lp->next;
+	if (lp2 && (lp2 = lp2->next) != NULL) {
+		NAVIGATION_PATTERN* pPattern = &_pksEditSearchlistFormat;
+		find_regexCompile(&pPattern->rePattern, pPattern->ebuf, pPattern->pattern, RE_DOREX);
+		if (regex_match(&pPattern->rePattern, lp2->lbuf, &lp2->lbuf[lp2->len], &match)) {
+			return pPattern;
+		}
+	}
 	while (lp) {
 		NAVIGATION_PATTERN* pPatterns = _compilerOutputNavigationPatterns;
-		RE_MATCH match;
 		while (pPatterns) {
-			if (pPatterns->filenamePattern != NULL) {
-				if (!strstr(lp->lbuf, pPatterns->filenamePattern)) {
-					continue;
-				}
-			}
-			if (regex_match(&pPatterns->rePattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
+			if ((pPatterns->filenamePattern == NULL || strstr(lp->lbuf, pPatterns->filenamePattern) != NULL) && 
+				regex_match(&pPatterns->rePattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 				return pPatterns;
 			}
 			pPatterns = pPatterns->next;
@@ -172,7 +179,7 @@ static NAVIGATION_PATTERN* xref_detectNavigationPattern(FTABLE* fp) {
  * Free all memory occupied by the cross reference lists.
  */
 void xref_destroyAllCrossReferenceLists() {
-	ll_destroy((LINKED_LIST**)&_compilerOutputNavigationPatterns, xref_destroyCmpTag);
+	ll_destroy((LINKED_LIST**)&_compilerOutputNavigationPatterns, xref_destroyNavigationPattern);
 	xref_destroyTagTable();
 }
 
@@ -184,40 +191,48 @@ static RE_PATTERN* xref_initializeNavigationPattern(NAVIGATION_PATTERN* pNavigat
 }
 
 /*--------------------------------------------------------------------------
- * xref_defineNavigationPattern()
- */
-static NAVIGATION_PATTERN* xref_defineNavigationPattern(void* pHead, int size, char* pszCompiler) {
-	NAVIGATION_PATTERN* pNewPattern;
-
-	if ((pNewPattern = (NAVIGATION_PATTERN * )ll_find(*(void**)pHead, pszCompiler)) == 0) {
-		if ((pNewPattern = (NAVIGATION_PATTERN * )ll_insert(pHead, size)) == 0) {
-			return 0;
-		}
-	}
-	return pNewPattern;
-}
-
-/*--------------------------------------------------------------------------
  * xref_addBuildOutputPattern()
  */
 static int xref_addBuildOutputPattern(BUILD_OUTPUT_PATTERN *pPattern) {
 	NAVIGATION_PATTERN* pNavigationPattern;
+	BOOL bNewPattern = FALSE;
 
-	if ((pNavigationPattern = xref_defineNavigationPattern(&_compilerOutputNavigationPatterns,
-			sizeof *pNavigationPattern, pPattern->cop_name)) == 0) {
-		return 0;
+	if ((pNavigationPattern = (NAVIGATION_PATTERN*)ll_find(_compilerOutputNavigationPatterns, pPattern->cop_name)) == 0) {
+		pNavigationPattern = calloc(1, sizeof * pNavigationPattern);
+		strncpy(pNavigationPattern->compiler, pPattern->cop_name, sizeof(pNavigationPattern->compiler) - 1);
+		if (pNavigationPattern == NULL) {
+			return 0;
+		}
+		bNewPattern = TRUE;
+	} else {
+		xref_destroyNavigationPattern(pNavigationPattern);
 	}
-	strncpy(pNavigationPattern->compiler, pPattern->cop_name, sizeof(pNavigationPattern->compiler) - 1);
 	pNavigationPattern->pattern = _strdup(pPattern->cop_pattern);
+	if (!pNavigationPattern->pattern) {
+		goto failed;
+	}
 	if (pPattern->cop_filenamePattern[0] != 0) {
-
 		pNavigationPattern->filenamePattern = _strdup(pPattern->cop_filenamePattern);
+		if (!pNavigationPattern->filenamePattern) {
+			goto failed;
+		}
 	}
 	pNavigationPattern->filenameCapture = pPattern->cop_filenameCapture;
 	pNavigationPattern->lineNumberCapture = pPattern->cop_lineNumberCapture;
+	pNavigationPattern->columnNumberCapture = pPattern->cop_columnNumberCapture;
 	pNavigationPattern->commentCapture= pPattern->cop_commentCapture;
 	// TODO: Should check, whether compilation is successful.
-	xref_initializeNavigationPattern(pNavigationPattern);
+	if (!xref_initializeNavigationPattern(pNavigationPattern)) {
+failed:
+		if (bNewPattern) {
+			xref_destroyNavigationPattern(pNavigationPattern);
+			free(pNavigationPattern);
+		}
+		return 0;
+	}
+	if (bNewPattern) {
+		ll_add(&_compilerOutputNavigationPatterns, (LINKED_LIST*)pNavigationPattern);
+	}
 	return 1;
 }
 
@@ -760,9 +775,9 @@ static char *xref_saveCrossReferenceWord(WINFO* wp, unsigned char *d,unsigned ch
 	return xref_findIdentifierCloseToCaret(wp, &wp->caret, d,dend,NULL, NULL, FI_COMPLETE_WORD);
 }
 
-/*------------------*/
-/* xref_openFile()	*/
-/*------------------*/
+/*
+ * Open a file with a given name and options and jump to the line specified. 
+ */
 int xref_openFile(const char *name, long line, FT_OPEN_OPTIONS* pOptions) {
 	int ret = 0;
 	FT_OPEN_OPTIONS options = {
@@ -773,13 +788,13 @@ int xref_openFile(const char *name, long line, FT_OPEN_OPTIONS* pOptions) {
 	}
 	if (ft_activateWindowOfFileNamed(name)) {
 		if (line >= 0)
-			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line,0L);
+			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0);
 		else ret = 1;
 	} else {
 		pOptions->fo_isNewFile = -1;
 		ret = ft_openFileWithoutFileselector(name, line, pOptions) != NULL;
 		if (ret && line > 0) {
-			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0L);
+			ret = caret_placeCursorMakeVisibleAndSaveLocation(ww_getCurrentEditorWindow(), line, 0);
 		}
 	}
 	return ret;
@@ -908,6 +923,7 @@ int xref_openCrossReferenceList(WINFO* wp) {
 static BOOL xref_parseNavigationSpec(NAVIGATION_PATTERN* pNavigationPattern, NAVIGATION_SPEC* pSpec, RE_PATTERN* pPattern, LINE* lp) {
 	RE_MATCH match;
 	char lineNumber[20];
+	char columnSpec[20];
 
 	if (regex_match(pPattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
 		regex_getCapturingGroup(&match, pNavigationPattern->filenameCapture - 1, pSpec->filename, sizeof pSpec->filename);
@@ -917,6 +933,12 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_PATTERN* pNavigationPattern, NAV
 		regex_getCapturingGroup(&match, pNavigationPattern->lineNumberCapture - 1, lineNumber, sizeof lineNumber);
 		if (lineNumber[0]) {
 			pSpec->line = atol(lineNumber);
+		}
+		if (pNavigationPattern->columnNumberCapture > 0 && regex_getCapturingGroup(&match, pNavigationPattern->columnNumberCapture - 1, 
+			columnSpec, sizeof columnSpec) == SUCCESS) {
+			pSpec->column = atol(columnSpec);
+		} else {
+			pSpec->column = 0;
 		}
 		return TRUE;
 	}
@@ -932,11 +954,25 @@ static NAVIGATION_PATTERN* xref_getSearchListFormat() {
 
 /*
  * Returns a compiled RE_PATTERN to scan the lines in a search result list.
- * Note, that this method returns the pointer to a shared RE_PATTERN data structure
- * and should therefore only be used, if not in conflicts.
+ * If a File pointer fp is passed, the pattern is assigned as the navigation pattern to that file.
  */
 RE_PATTERN* xref_compileSearchListPattern() {
-	return xref_initializeNavigationPattern(xref_getSearchListFormat());
+	NAVIGATION_PATTERN* pPattern = xref_getSearchListFormat();
+	return xref_initializeNavigationPattern(pPattern);
+}
+
+/*
+ * Initialize a searchlist file.
+ */
+void xref_initSearchList(WINFO* wp) {
+	FTABLE* fp = FTPOI(wp);
+	fp->flags |= F_WATCH_LOGFILE;
+	wp->workmode |= WM_PINNED | WM_LINE_SELECTION;
+	strcpy(wp->actionContext, SEARCH_LIST_CONTEXT);
+	fp->navigationPattern = xref_detectNavigationPattern(fp);
+	if (fp->firstl && fp->firstl->len > 5 && fp->firstl->len < 30) {
+		ft_setTitle(fp, fp->firstl->lbuf);
+	}
 }
 
 /*---------------------------------
@@ -958,7 +994,11 @@ void xref_openWindowHistory(LINE *lp) {
 			int nDisplayMode = -1;
 			BOOL bClone = FALSE;
 			BOOL bLink = FALSE;
+			BOOL bSearchList = FALSE;
 			if (spec.comment[0]) {
+				if (strstr(spec.comment, " sl") != NULL) {
+					bSearchList = TRUE;
+				}
 				OPEN_HINT hHint = mainframe_parseOpenHint(spec.comment, FALSE);
 				bActive = hHint.oh_activate;
 				pszName = spec.comment;
@@ -992,6 +1032,10 @@ void xref_openWindowHistory(LINE *lp) {
 					}
 				}
 			}
+			if (bSearchList) {
+				WINFO* wpThis = ww_getCurrentEditorWindow();
+				xref_initSearchList(wpThis);
+			}
 		}
 		lp = lp->next;
 	}
@@ -1010,7 +1054,11 @@ static void xref_highlightMatch(long ln, int col, int len) {
 	caret_placeCursorInCurrentFile(wpFound, ln, col);
 	bl_hideSelection(wpFound, 1);
 	CARET caret = wpFound->caret;
-	bl_setSelection(wpFound, caret.linePointer, caret.offset, caret.linePointer, len + caret.offset);
+	len += caret.offset;
+	if (len > caret.linePointer->len) {
+		len = caret.linePointer->len;
+	}
+	bl_setSelection(wpFound, caret.linePointer, caret.offset, caret.linePointer, len);
 	render_repaintCurrentLine(wpFound);
 }
 
@@ -1093,11 +1141,17 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 			string_concatPathAndFilename(fullname, fullname, navigationSpec.filename);
 		}
 		if (xref_openFile(fullname, navigationSpec.line - 1L, NULL)) {
+			if (navigationSpec.column > 0) {
+				xref_highlightMatch(navigationSpec.line - 1L, navigationSpec.column - 1, 100);
+			}
 			if (navigationSpec.comment[0]) {
 				int col;
 				int len = 0;
 				if (sscanf(navigationSpec.comment, "%d/%d", &col, &len) == 2 && len > 0) {
+					// Special case: PKS Edit Search List Result
 					xref_highlightMatch(navigationSpec.line - 1L, col, len);
+				} else {
+					error_showMessage(navigationSpec.comment);
 				}
 			}
 			return 1;
@@ -1106,22 +1160,6 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 	}
 	error_showErrorById(compilerError ? IDS_MSGNOMOREERRS : IDS_NO_MATCHES_FOUND);
 	return 0;
-}
-
-/*
- * Initialize a searchlist file.
- */
-void xref_initSearchList(FTABLE* fp) {
-	fp->flags |= F_WATCH_LOGFILE | F_TRANSIENT;
-	WINFO* wp = WIPOI(fp);
-	if (wp) {
-		wp->workmode |= WM_PINNED|WM_LINE_SELECTION;
-		strcpy(wp->actionContext, "search-list");
-	}
-	fp->navigationPattern = xref_getSearchListFormat();
-	if (fp->firstl && fp->firstl->len > 5) {
-		ft_setTitle(fp, fp->firstl->lbuf);
-	}
 }
 
 /*---------------------------------*/
@@ -1150,20 +1188,20 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			}
 			fp = ft_fpbyname(_fseltarget);
 			if (fp) {
-				xref_initSearchList(fp);
-				EdRereadFileFromDisk(WIPOI(fp));
+				WINFO* wp = WIPOI(fp);
+				xref_initSearchList(wp);
+				EdRereadFileFromDisk(wp);
 				if (st_type == ST_MACROC_ERRORS) {
 					// TODO: make this configurable - currently only used by PKSMacroC compiler.
 					fp->navigationPattern = xref_getNavigationPatternFor("PKSMAKROC");
-				} else {
-					fp->navigationPattern = xref_detectNavigationPattern(fp);
 				}
 			}
 			return xref_navigateSearchErrorList(LIST_START);
 		case ST_STEP:
 			fp = ft_openFileWithoutFileselector(_fseltarget, 0, pOptions);
 			if (fp) {
-				xref_initSearchList(fp);
+				WINFO* wp = WIPOI(fp);
+				xref_initSearchList(wp);
 				return xref_navigateSearchErrorList(LIST_START);
 			}
 			return 0;

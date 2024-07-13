@@ -1482,6 +1482,9 @@ HWND mainframe_addWindow(OPEN_HINT* pHint, const char* pszChildWindowClass, cons
 	if (pSlot == NULL) {
 		pSlot = dockingSlots;
 	}
+	if (pSlot == NULL) {
+		return NULL;
+	}
 	HWND hwnd = CreateWindow(pszChildWindowClass, pszTitle, WS_CHILD | WS_CLIPSIBLINGS, 0, 0, 10, 10, pSlot->ds_hwnd, NULL, hInst, lParam);
 	if (hwnd == NULL) {
 		return 0;
@@ -2477,7 +2480,7 @@ char* mainframe_getDockName(HWND hwnd) {
  * Returns a string to be used as an open hint later, when opening the window.
  */
 char* mainframe_getOpenHint(WINFO* wp, BOOL bFocus, BOOL bClone, int nDisplayMode) {
-	static char szHint[100];
+	static char szHint[128];
 	HWND hwnd = wp->edwin_handle;
 	DOCKING_SLOT* pSlot = mainframe_getDockingParent(hwnd);
 	if (pSlot == NULL) {

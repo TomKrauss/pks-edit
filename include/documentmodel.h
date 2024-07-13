@@ -907,4 +907,11 @@ extern BOOL ft_hasView(FTABLE* fp, WINFO* wp);
 #define P_GE(p1,p2)		((void *)(p1) >= (void *)(p2))
 #define P_NE(p1,p2)		((void *)(p1) != (void *)(p2))
 
+/*
+ * Wellknown action context - an action is executed in a PKS Edit `search-list` (result of a find in files or build log output file).
+ */
+#define SEARCH_LIST_CONTEXT		"search-list"
+
+
+
 #endif	/* EDITAB_H */

@@ -69,7 +69,7 @@ static ACTION_CONTEXT_DESCRIPTOR _contextDescriptors[] = {
 	{ "default", 0},
 	{ "editor-tabs", 1},
 	{ "wysiwyg-renderer", 0},
-	{"search-list", 0}
+	{ SEARCH_LIST_CONTEXT, 0}
 };
 
 typedef struct tagJSON_BINDINGS {

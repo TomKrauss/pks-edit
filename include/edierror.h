@@ -11,7 +11,6 @@ extern void error_showError(char* s, va_list ap);
 
 /*
  * Show an error message with a string and optional parameters.
- * If enforceNonBlocking is TRUE, errors are displayed in a non blocking way.
  */
 extern void error_showMessage(char* s, ...);
 
