@@ -272,26 +272,26 @@ found in the build log using a configuration like in the following sample (comme
 for explanation purpos):
 
 ```json
-        "compiler-output-patterns": [
-        {
-            "name": "PKSMAKROC",
-            // The pattern to match one navigatable build result
-            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
-            // An optional file name pattern to file name patterns for quick auto-detection of patterns to use
-            "filename-pattern": ".pkc",
-            // The index of the bracket in pattern to match the file name part
-            "filename-capture": 1,
-            // The index of the bracket in pattern to match the line number part
-            "linenumber-capture": 2,
-            // The index of the bracket in pattern to match the comment part
-            "comment-capture": 3
-        },
-        {
-            "name": "Java",
-            "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
-            "filename-pattern": ".java",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "comment-capture": 3
-        },
+"compiler-output-patterns": [
+  {
+    "name": "PKSMAKROC",
+    // The pattern to match one navigatable build result
+    "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
+    // An optional file name pattern to file name patterns for quick auto-detection of patterns to use
+    "filename-pattern": ".pkc",
+    // The index of the bracket in pattern to match the file name part
+    "filename-capture": 1,
+    // The index of the bracket in pattern to match the line number part
+    "linenumber-capture": 2,
+    // The index of the bracket in pattern to match the comment part
+    "comment-capture": 3
+  },
+  {
+    "name": "Java",
+    "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
+    "filename-pattern": ".java",
+    "filename-capture": 1,
+    "linenumber-capture": 2,
+    "comment-capture": 3
+  },
 ```

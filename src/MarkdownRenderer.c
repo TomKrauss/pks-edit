@@ -615,11 +615,12 @@ static void mdr_paintRule(const RENDER_FLOW_PARAMS* pParams, int left, int right
 }
 
 static MARGINS mdr_getScaledMargins(float zoomFactor, const MARGINS* pMargins) {
-	MARGINS m;
-	m.m_bottom = (int)(pMargins->m_bottom * zoomFactor);
-	m.m_top = (int)(pMargins->m_top * zoomFactor);
-	m.m_left = (int)(pMargins->m_left * zoomFactor);
-	m.m_right = (int)(pMargins->m_right * zoomFactor);
+	MARGINS m = {
+		.m_bottom = (int)(pMargins->m_bottom * zoomFactor),
+		.m_top = (int)(pMargins->m_top * zoomFactor),
+		.m_left = (int)(pMargins->m_left * zoomFactor),
+		.m_right = (int)(pMargins->m_right * zoomFactor)
+	};
 	return m;
 }
 
@@ -682,8 +683,9 @@ static void mdr_renderTable(const RENDER_FLOW_PARAMS* pParams, const RECT* pBoun
 	}
 	int y = pBounds->top + m.m_top;
 	RENDER_TABLE_ROW* pRow = pTable->rt_rows;
-	RECT bounds;
-	bounds.top = y;
+	RECT bounds = { 
+		.top = y
+	};
 	MARGINS mTableMargins = mdr_getScaledMargins(pParams->rfp_zoomFactor, &_tableMargins);
 	while (pRow) {
 		RENDER_TABLE_CELL* pCell = pRow->rtr_cells;
@@ -914,10 +916,11 @@ static void mdr_renderEmoji(HDC hdc, WCHAR* pEmoji, COLORREF cColor, int x, int 
 static void mdr_paintCheckmark(RENDER_FLOW_PARAMS* pParams, int x, int y, float zoomFactor, BOOL bChecked) {
 	HDC hdc = pParams->rfp_hdc;
 	const THEME_DATA* pTheme = pParams->rfp_theme;
-	LOGBRUSH brush;
-	brush.lbColor = pTheme->th_dialogBorder;
-	brush.lbHatch = 0;
-	brush.lbStyle = PS_SOLID;
+	LOGBRUSH brush = {
+		.lbColor = pTheme->th_dialogBorder,
+		.lbHatch = 0,
+		.lbStyle = PS_SOLID
+	};
 	HPEN hPen = ExtCreatePen(PS_SOLID | PS_GEOMETRIC | PS_JOIN_MITER | PS_ENDCAP_SQUARE, 2, &brush, 0, NULL);
 	HPEN hPenOld = SelectObject(hdc, hPen);
 	int nSize = (int)(13 * zoomFactor);
@@ -951,11 +954,12 @@ static void mdr_paintSelection(HDC hdc, int x, int y, const RENDER_FLOW_PARAMS* 
 		20000, &nUnused, 0, &startSize);
 	GetTextExtentExPoint(hdc, &pszText[nOffs + nStart], pRun->tr_selectionLength,
 		2000, &nUnused, 0, &selectionSize);
-	RECT selectionRect;
-	selectionRect.top = y;
-	selectionRect.bottom = selectionRect.top + selectionSize.cy;
-	selectionRect.left = x + startSize.cx;
-	selectionRect.right = selectionRect.left + selectionSize.cx;
+	RECT selectionRect = {
+		.top = y,
+		.bottom = selectionRect.top + selectionSize.cy,
+		.left = x + startSize.cx,
+		.right = selectionRect.left + selectionSize.cx
+	};
 	render_paintSelectionRect(hdc, &selectionRect);
 }
 
@@ -1151,9 +1155,10 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			}
 			if (!pRFP->rfp_measureOnly) {
 				TextOut(hdc, x + nDeltaX, y + nDelta, &pTF->tf_text[nOffs], nFit);
-				RECT r;
-				r.left = x + nDeltaX;
-				r.top = y + nDelta;
+				RECT r = {
+					.left = x + nDeltaX,
+					.top = y + nDelta
+				};
 				if (pTR->tr_selectionLength) {
 					mdr_paintSelection(hdc, r.left, r.top, pRFP, pTR, nOffs, nDeltaPainted, nFit, pTF);
 				}
@@ -1165,9 +1170,10 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 				if (nBlockQuoteLevel) {
 					int blockQuoteDelta = (int)(5 * pRFP->rfp_zoomFactor);
 					int blockQuoteHorizontalDelta = (int)(BLOCK_QUOTE_INDENT * pRFP->rfp_zoomFactor);
-					RECT leftRect;
-					leftRect.top = y - blockQuoteDelta;
-					leftRect.bottom = y + nHeight + blockQuoteDelta;
+					RECT leftRect = {
+						.top = y - blockQuoteDelta,
+						.bottom = y + nHeight + blockQuoteDelta
+					};
 					leftRect.left = pBounds->left + (int)(pRFP->rfp_zoomFactor * _formatText.mef_margins.m_left);
 					leftRect.right = leftRect.left + blockQuoteDelta;
 					for (int i = 0; i < nBlockQuoteLevel; i++) {
@@ -1231,12 +1237,13 @@ static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER
 	int nRight = pBounds->right - m.m_right;
 
 	RENDER_BOX_DECORATION* pDecoration = pPart->rvp_decoration;
-	RECT r;
 	int nWhitespace = m.m_top / 2;
-	r.top = y - m.m_top + nWhitespace;
+	RECT r = {
+		.top = y - m.m_top + nWhitespace,
+		.left = x - (int)(10 * pRFP->rfp_zoomFactor),
+		.right = nRight
+	};
 	r.bottom = r.top + (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) + m.m_bottom + m.m_top - nWhitespace;
-	r.left = x - (int)(10*pRFP->rfp_zoomFactor);
-	r.right = nRight;
 	int nWidth = pDecoration->rbd_strokeWidth;
 	if (!nWidth) {
 		nWidth = 1;
@@ -1718,7 +1725,7 @@ typedef enum LINK_PARSE_STATE {
 static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState) {
 	char szBuf[256];
 	int nUrlPartStart = 0;
-	char c;
+	char c = 0;
 	int state = startState;
 	const char* szLinkEnd = szLinkText + 255;
 	memset(pResult, 0, sizeof(*pResult));
@@ -1791,7 +1798,7 @@ static TEXT_RUN** mdr_getBlockRunsOf(RENDER_VIEW_PART* pPart) {
 static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, BOOL bIndented, const char* pEndTag) {
 	size_t nLastOffset = 0;
 	char c;
-	LINE* lp;
+	LINE* lp = NULL;
 	int bSkipEmptyFirst = 0;
 	char szTag[32];
 
@@ -1873,7 +1880,7 @@ static BOOL mdr_parseAutolinks(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState,
 	STREAM_OFFSET offset = pStream->is_tell(pStream);
 	BOOL bDot = FALSE;
 	char c;
-	LINE* lp;
+	LINE* lp = NULL;
 	int nUrlLen = 0;
 	pStream->is_skip(pStream, 1);
 	int nLineOffset = pStream->is_inputMark(pStream, &lp);
