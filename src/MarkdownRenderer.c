@@ -74,6 +74,7 @@ typedef struct tagRENDER_FLOW_PARAMS {
 	BOOL rfp_measureOnly;
 	BOOL rfp_focus;
 	BOOL rfp_printing;
+	BOOL rfp_isCaret;
 	THEME_DATA* rfp_theme;
 } RENDER_FLOW_PARAMS;
 
@@ -333,6 +334,7 @@ struct tagRENDER_VIEW_PART {
 	MARGINS rvp_margins;
 	RENDER_BOX_DECORATION* rvp_decoration; // optional box decoration for a view
 	RECT rvp_bounds;					// Bounds of an element excluding the margins.
+	RECT rvp_occupiedBounds;			// Bounds occupied by the element painted - this may be bigger then rvp_bounds for some element types (e.g. fenced code blocks).
 	int rvp_height;						// The height in pixels.
 	BOOL rvp_layouted;					// TRUE, if the layout bounds of the view part are valid.
 	MDR_ELEMENT_TYPE rvp_type;
@@ -1228,7 +1230,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	pUsed->bottom = y + nHeight + pMargins->m_bottom;
 }
 
-static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER_VIEW_PART* pPart, const RECT* pBounds) {
+static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER_VIEW_PART* pPart, RECT* pBounds) {
 	HDC hdc = pRFP->rfp_hdc;
 	const THEME_DATA* pData = pRFP->rfp_theme;
 	MARGINS m = mdr_getScaledMargins(pRFP->rfp_zoomFactor, & pPart->rvp_margins);
@@ -1243,6 +1245,7 @@ static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER
 		.left = x - (int)(10 * pRFP->rfp_zoomFactor),
 		.right = nRight
 	};
+	pBounds->left = r.left;
 	r.bottom = r.top + (pPart->rvp_bounds.bottom - pPart->rvp_bounds.top) + m.m_bottom + m.m_top - nWhitespace;
 	int nWidth = pDecoration->rbd_strokeWidth;
 	if (!nWidth) {
@@ -1250,6 +1253,10 @@ static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER
 	}
 	COLORREF cColor = pDecoration->rbd_useThemeStrokeColor ? pData->th_dialogBorder : pDecoration->rbd_strokeColor;
 	COLORREF cFillColor = pDecoration->rbd_useThemeFillColor ? mdr_codeBackgroundColor(pRFP->rfp_theme) : pDecoration->rbd_fillColor;
+	if (pRFP->rfp_isCaret && (pRFP->rfp_wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT)) {
+		cColor = pRFP->rfp_theme->th_caretLineColor;
+		nWidth = 3;
+	}
 	HPEN hPen = cColor == NO_COLOR ? GetStockObject(NULL_PEN) : CreatePen(PS_SOLID, nWidth, cColor);
 	HBRUSH hBrush = cFillColor == NO_COLOR ? GetStockBrush(NULL_BRUSH) : CreateSolidBrush(cFillColor);
 	HBRUSH hBrushOld = SelectObject(hdc, hBrush);
@@ -1302,6 +1309,9 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 				pPart->rvp_type == MET_BLOCK_QUOTE ? pPart->rvp_param.rvp_level : 0, pFlow->tf_align, pParams);
 	} else {
 		pUsed->bottom = y + 10 + m.m_bottom;
+	}
+	if (renderBounds.left < pUsed->left) {
+		pUsed->left = renderBounds.left;
 	}
 	if (!pParams->rfp_measureOnly && pPart->rvp_type == MET_HEADER && pPart->rvp_param.rvp_level < 3) {
 		int nMargin = (int)(DEFAULT_LEFT_MARGIN * pParams->rfp_zoomFactor);
@@ -3932,13 +3942,15 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
 			if (!pPart->rvp_layouted && pPart->rvp_decoration) {
 				rfp.rfp_measureOnly = TRUE;
-				pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
+				pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
 			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
-			if (pData->md_caretView == pPart && !rfp.rfp_measureOnly) {
+			rfp.rfp_isCaret = pData->md_caretView == pPart;
+			if (rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
 				mdr_highlightCaretLine(&rfp, pPart);
 			}
-			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
+			pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
+			occupiedBounds = pPart->rvp_occupiedBounds;
 		}
 		pPart = pPart->rvp_next;
 	}
@@ -4225,9 +4237,7 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 		wp->caret.linePointer = ln_goto(fp, *ln);
 		pData->md_caretPartIndex = 0;
 	}
-	// This is a hack for checking, whether we only scrolled up/down by 1: ideally relative caret positioning should be passed on to the renderer
-	// if we scroll one buffer line up or down we simulate a scroll up/down by markdown paragrah.
-	int dl = offset == wp->caret.offset ? *ln - wp->caret.ln : 0;
+	int dl = xDelta == NULL ? 0 : xDelta->cms_deltaY;
 	RENDER_VIEW_PART* pPart = pData->md_caretView;
 	if (dl < 0 && pData->md_caretPartIndex == 0) {
 		return 0;
@@ -4257,11 +4267,11 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	if (pData->md_caretView != pPart) {
 		BOOL bHighlight = wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT;
 		if (bHighlight && pData->md_caretView && pData->md_caretView->rvp_layouted) {
-			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_bounds, FALSE);
+			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_occupiedBounds, FALSE);
 		}
 		pData->md_caretView = pPart;
 		if (bHighlight && pData->md_caretView && pData->md_caretView->rvp_layouted) {
-			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_bounds, FALSE);
+			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_occupiedBounds, FALSE);
 		}
 	}
 	if (pPart) {

@@ -1,5 +1,4 @@
 # Configuration
-
 The basic PKS Edit configuration of PKS Edit is stored in a file named `pkseditini.json` located in the `pks_sys` directory.
 Note, that all PKS Edit configuration files are placed in the `pks_sys` sub-folder of the PKS Edit installation folder.
 
@@ -21,7 +20,6 @@ Configuration files are looked up in the following directories:
 You may set the overall PKS Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 
 ## Configuration Files of PKS Edit
-
 The following files are loaded by PKS Edit during startup form the 'pks_sys' folder.
 
 |File|Purpose|
@@ -35,7 +33,6 @@ The following files are loaded by PKS Edit during startup form the 'pks_sys' fol
 
 
 ## Save Options
-
 In this section you may configure all actions performed during startup and shutdown and the way files are automatically saved.
 
 PKS Edit supports two _autosave_ modes: it may either save the files directly automatically or it may save them to a temprary directory. 
@@ -52,7 +49,6 @@ PKS Edit supports two _autosave_ modes: it may either save the files directly au
 - _Autosave files to temporary directory or file_ - when set, copies of files are saved during autosave (to a temporary directory), when unset, changed files are automatically saved directly.
 
 ## Notification Options
-
 PKS Edit differentiates between major errors (disk full or the like) and minor errors / hints (search pattern not found). Major errors are always shown in modal message boxes. The way minor errors are shown can be configured
 in this section.
 
@@ -61,7 +57,6 @@ in this section.
 - _Display error in popup window_ - when set, a _toast window_ is opened when an error occurs. Otherwise minor errors are shown less intrusive in the status bar.
 
 ## Layout Options
-
 Layout Options configure the general UI of PKS Edit
 
 - _Show Optionbar_ - when set, the option bar at the bottom of the screen is displayed.
@@ -72,7 +67,6 @@ Layout Options configure the general UI of PKS Edit
 - _Toolbar Icon Size_ - can be used to configure the size of the toolbar icons using 4 predefined sizes.
 
 ## Miscellaneous Options
-
 - _Undo available_ - should be set by default to allow for undo and redo of actions.
 - _Number of undo steps_ - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
 - _Silently reload files changed externally_ - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
@@ -86,7 +80,6 @@ Layout Options configure the general UI of PKS Edit
    style defined in the theme configuration.
 
 ## Configuration of bindings for keyboard, mouse, context menu 
-
 All Action bindings in PKS Edit are defined in the file `pks_sys\pksactionbindings.json`. This will define all user interface elements triggering
 commands in PKS Edit and their binding to a command:
 
@@ -114,7 +107,6 @@ In the following sections, we describe the JSON syntax, which can be used to def
 and you may use Macro->Insert Keycode to insert a keyboard keycode into the file.
 
 ### Binding keyboard shortcuts
-
 The following example binds the key `END` to moving the caret to the end of the line and binds the pressing the Space Bar to opening the 
 error list match under the caret - but only in action context `search-list`. 
 
@@ -144,7 +136,6 @@ Key bindings support the following properties:
 - _context_ the optional action context in which the binding is active.
 
 ### Binding mouse events
-
 The following example binds a single right mouse button click to opening the context menu and pressing Shfit + a single right mouse button to mark
 one line at the same time displaying an info message.
 
@@ -170,7 +161,6 @@ Mouse bindings support the following properties:
 - _message-id_ internal integer value for referring to a PKS Edit string resource.
 
 ### Context menu and menu bar bindings
-
 Using `context-menu` one can define the context menu in editors in PKS Edit and using `menu` one can define the menubar + main menus and their
 respective bindings. The following example defines a context menu with one menu item allowing to select the complete text and a cascading sub-menu
 with a label of "Find" and two sub-menu items to find a string and to replace a string. Note, that labels for menus and items can be defined in 2-3 ways:
@@ -208,7 +198,6 @@ Context menu and menu definitions support the following properties:
   the menu specified using the anchor name.
 
 ### Toolbar definition and bindings
-
 Using `toolbar` one can define the toolbar buttons of PKS Edit. The following example defines a toolbar with two buttons allowing to select 
 the complete text a button replace a string. The icons are named as the corresponding AwesomeFont Version 5 icon (PKS Edit uses Awesome Font icons
 internally wherever appropriate). Toolbar labels can be defined similar to menu item labels, but are used as tooltips in the toolbar.
@@ -238,7 +227,6 @@ Toolbar button definitions support the following properties:
   the button specified using the anchor name.
 
 ## Advanced configuration
-
 Not all configuration options in PKS Edit can be changed yet in the PKS Edit Configuration Dialog. 
 Some configuration options can only be configured in the `pkseditini.json` file directly.
 
@@ -247,7 +235,6 @@ the configuration dialog before closing PKS Edit as closing the configuration di
 the old options from the last session.
 
 ### Configuring Sounds
-
 Put a property named `sound-name` into the configuration section to configure the error sound played upon errors. 
 The following sample selects a high beep tone as the error sound. 
 
@@ -258,15 +245,14 @@ The following sample selects a high beep tone as the error sound.
 
 The following sound names may be used:
 
-- _Beep_ plays a normal beep sound
-- _LowBeep_ plays a low tone beep sound
-- _HighBeep_ plays a high tone beep sound
-- _Asterisk_ plays the windows "Asterisk" sound.
-- _Exclamation_ plays the windows "Exclamation" sound.
-- _Question_ plays the windows "Question" sound.
+- _Beep_ - plays a normal beep sound
+- _LowBeep_ - plays a low tone beep sound
+- _HighBeep_ - plays a high tone beep sound
+- _Asterisk_ - plays the windows "Asterisk" sound.
+- _Exclamation_ - plays the windows "Exclamation" sound.
+- _Question_ - plays the windows "Question" sound.
 
 ### Configuring Build Log Parsing
-
 One can configure formats to be tried, when parsing build output log to let PKS Edit navigate along the errors / warnings
 found in the build log using a configuration like in the following sample (comments must of course be ommitted and exist
 for explanation purpos):
