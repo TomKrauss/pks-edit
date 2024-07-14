@@ -1438,10 +1438,17 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 	if (c == '#') {
 		mType = MET_HEADER;
 		pParam->rvp_level = 1;
-		pStream->is_skip(pStream, 1);
-		while (pStream->is_peekc(pStream, 0) == '#') {
+		BOOL bSpaceFound = FALSE;
+		while ((c = pStream->is_peekc(pStream, 1)) == '#' || c == ' ') {
+			if (c == '#') {
+				if (bSpaceFound) {
+					break;
+				}
+				pParam->rvp_level++;
+			} else {
+				bSpaceFound = TRUE;
+			}
 			pStream->is_skip(pStream, 1);
-			pParam->rvp_level++;
 		}
 	} else if (IS_UNORDERED_LIST_START(c)) {
 		mType = MET_UNORDERED_LIST;
