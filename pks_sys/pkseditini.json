@@ -10,7 +10,6 @@
         "save-clipboards-on-exit": true,
         "maintain-clipboard-history": true,
         "reuse-application-running-instance": true,
-        "save-settings-on-exit": true,
         "show-error-toast": true,
         "silently-reload-changed-files": true,
         "undo-enabled": true,
@@ -24,7 +23,6 @@
         "autosave-time": 10,
         "maximum-open-windows": 15,
         "theme": "system default",
-        "temp-path": "C:\\Users\\tom\\AppData\\Local\\Temp\\pksedit",
         "include-path": "..\\include;include",
         "language": "English",
         "default-font": "Consolas",
@@ -36,6 +34,7 @@
             "filename-pattern": ".pkc",
             "filename-capture": 1,
             "linenumber-capture": 2,
+            "columnnumber-capture": 0,
             "comment-capture": 3
         },
         {
@@ -43,6 +42,7 @@
             "pattern": "^([^(]*)(([0-9]+)) : (.*)",
             "filename-capture": 1,
             "linenumber-capture": 2,
+            "columnnumber-capture": 0,
             "comment-capture": 3
         },
         {
@@ -51,6 +51,7 @@
             "filename-pattern": ".java",
             "filename-capture": 1,
             "linenumber-capture": 2,
+            "columnnumber-capture": 0,
             "comment-capture": 3
         },
         {
@@ -63,12 +64,13 @@
             "comment-capture": 4
         },
         {
-          "name": "Typescript",
-          "pattern": "^*[A-Za-z]+: *(.+):([0-9]+):[0-9]+ - (.*)",
-          "filename-pattern": ".ts",
-          "filename-capture": 1,
-          "linenumber-capture": 2,
-          "comment-capture": 3
+            "name": "Typescript",
+            "pattern": "^*[A-Za-z]+: *(.+):([0-9]+):[0-9]+ - (.*)",
+            "filename-pattern": ".ts",
+            "filename-capture": 1,
+            "linenumber-capture": 2,
+            "columnnumber-capture": 0,
+            "comment-capture": 3
         }
         ]
     },

@@ -56,6 +56,7 @@
 #define IDS_LINE_NUMBER_DOES_NOT_EXIST2 213
 #define IDS_FILE_NOT_FOUND              213
 #define IDS_NO_CROSS_REFERENCES_DEFINED 214
+#define IDS_ERROR_SAVING_CONFIG_FILE    215
 #define IDR_FONT1                       233
 #define IDS_FONT_AWESOME_REGULAR        233
 #define IDB_BROKEN_IMAGE                235

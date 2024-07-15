@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Pressing `Shift+Ctrl+N` will then navigate the list of results of the corresponding active search
 - list. Search Lists and Build Log Windows are restored, when PKS Edit will be opened again.
 - #21: wrong markdown rendering for `#HEADER` fixed.
+- PKS Edit stored the _autosave temp file path_ in `pkseditini.json`, even if that was the default path from the
+  user home directory, which could cause various problems like the failure to edit files
+  without annoying error messages, when different users are working with PKS Edit.
 
 ## [2.7.0] - 2024-07-05
 

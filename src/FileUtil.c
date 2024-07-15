@@ -103,20 +103,22 @@ EXPORT int file_openFile(char *fn, BOOL bBatchMode) {
 	if ((fd = Fopen(fn, OF_READ)) < 0) {
 		if (strlen(fn) >= MAX_PATH) {
 			char* pszTemp = malloc(EDMAXPATHLEN);
-			strcpy(pszTemp, "\\\\?\\");
-			strcat(pszTemp, fn);
-			wchar_t* pszWPath = malloc(EDMAXPATHLEN * 2);
-			MultiByteToWideChar(CP_ACP, 0, pszTemp, (int) strlen(pszTemp), pszWPath, EDMAXPATHLEN);
-			HANDLE hHandle = CreateFile(pszTemp, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
-				OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-			if (hHandle == INVALID_HANDLE_VALUE) {
-				fd = -1;
+			if (pszTemp != NULL) {
+				strcpy(pszTemp, "\\\\?\\");
+				strcat(pszTemp, fn);
+				wchar_t* pszWPath = malloc(EDMAXPATHLEN * 2);
+				MultiByteToWideChar(CP_ACP, 0, pszTemp, (int)strlen(pszTemp), pszWPath, EDMAXPATHLEN);
+				HANDLE hHandle = CreateFile(pszTemp, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, 0,
+					OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+				if (hHandle == INVALID_HANDLE_VALUE) {
+					fd = -1;
+				}
+				else {
+					fd = (int)(long long)hHandle;
+				}
+				free(pszTemp);
+				free(pszWPath);
 			}
-			else {
-				fd = (int)(long long)hHandle;
-			}
-			free(pszTemp);
-			free(pszWPath);
 		}
 		if (fd < 0) {
 			error_openingFileFailed(fn, bBatchMode, fd);

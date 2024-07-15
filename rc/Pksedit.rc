@@ -1850,6 +1850,8 @@ BEGIN
     IDS_FILE_NOT_FOUND      "!Die Datei %s wurde nicht gefunden."
     IDS_NO_CROSS_REFERENCES_DEFINED 
                             "!Für diese Datei sind keine Verweise bekannt."
+    IDS_ERROR_SAVING_CONFIG_FILE 
+                            "!Die Datei %s mit den Konfigurationseinstellungen konnte nicht gesichert werden."
 END
 
 #endif    // Deutsch (Deutschland) resources

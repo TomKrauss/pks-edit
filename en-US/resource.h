@@ -191,6 +191,8 @@
 #define IDM_REDO                        213
 #define IDS_FILE_NOT_FOUND2             214
 #define IDS_NO_CROSS_REFERENCES_DEFINED 214
+#define IDS_NO_CROSS_REFERENCES_DEFINED2 215
+#define IDS_ERROR_SAVING_CONFIG_FILE    215
 #define DLGFINDINFILES                  535
 #define DLG_DEBUG                       561
 #define IDD_ICONLIST2                   801

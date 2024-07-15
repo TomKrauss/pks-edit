@@ -1770,6 +1770,8 @@ BEGIN
     IDS_FILE_NOT_FOUND      "!File %s not found."
     IDS_NO_CROSS_REFERENCES_DEFINED 
                             "!No cross reference (tag) information defined for this file."
+    IDS_ERROR_SAVING_CONFIG_FILE 
+                            "!The configuration file %s could not be saved."
 END
 
 #endif    // Englisch (USA) resources

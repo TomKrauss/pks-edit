@@ -33,6 +33,7 @@
 #include "editorconfiguration.h"
 #include "pksmacro.h"
 #include "stringutil.h"
+#include "resource.h"
 #include "errordialogs.h"
 #include "themes.h"
 #include "fileutil.h"
@@ -218,18 +219,14 @@ int config_save(const char* pszFilename) {
 		.ac_printConfiguration = _prtparams,
 		.ac_editorConfiguration = _configuration
 	};
-
-	char cOld = _configuration.pksEditTempPath[0];
 	if (config_tempPathIsDefault()) {
-		_configuration.pksEditTempPath[0] = 0;
+		// Do not store the default config path to pkseditini.json. 
+		config.ac_editorConfiguration.pksEditTempPath[0] = 0;
 	}
 	if (!json_marshal(pszFilename, &config, _allconfigRules)) {
-		_configuration.pksEditTempPath[0] = cOld;
-		// TODO: I18N
-		error_displayAlertDialog("Error saving config file.");
+		error_showErrorById(IDS_ERROR_SAVING_CONFIG_FILE, pszFilename);
 		return 0;
 	}
-	_configuration.pksEditTempPath[0] = cOld;
 	return 1;
 }
 
@@ -486,7 +483,7 @@ int config_tempPathIsDefault() {
 	if (_configuration.pksEditTempPath[0]) {
 		char szDefault[EDMAXPATHLEN];
 		config_getDefaultTempPath(szDefault);
-		return strcmp(szDefault, _configuration.pksEditTempPath) == 0;
+		return file_fileNamesDiffer(szDefault, _configuration.pksEditTempPath) == FALSE;
 	}
 	return 0;
 }
