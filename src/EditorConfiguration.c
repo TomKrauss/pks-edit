@@ -247,6 +247,21 @@ static void config_autosaveConfiguration() {
 }
 
 /*
+ * Initialize the default options of the configuration - used when no config file can be found.
+ */
+void config_initialize() {
+	_configuration.outputPatterns = calloc(1, sizeof(BUILD_OUTPUT_PATTERN));
+	BUILD_OUTPUT_PATTERN* pBuildPattern = _configuration.outputPatterns;
+	if (pBuildPattern) {
+		strcpy(pBuildPattern->cop_name, "PKSMAKROC");
+		pBuildPattern->cop_filenameCapture = 1;
+		pBuildPattern->cop_lineNumberCapture = 2;
+		pBuildPattern->cop_commentCapture = 3;
+		strcpy(pBuildPattern->cop_pattern, "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)");
+	}
+}
+
+/*
  * Read the configuration file.
  */
 int config_read(const char* pszfilename) {
@@ -266,21 +281,21 @@ int config_read(const char* pszfilename) {
  * The default configuration.  
  */
 static EDITOR_CONFIGURATION _configuration = {
-	(O_UNDOENABLED | O_AUTOSAVE_TO_TEMP | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE),
-	(OL_OPTIONBAR | OL_SHOWSTATUS),
-	ICS_SMALL,
-	1,
-	3,
-	-1,
-	"",
-	"INCLUCDE;INC",
-	"default",
-	"Deutsch",
-	"",
-	"Google",
-	"",
-	0,
-	config_autosaveConfiguration
+	.options = (O_UNDOENABLED | O_AUTOSAVE_TO_TEMP | O_ERROR_TONE | O_HIDE_BLOCK_ON_CARET_MOVE | O_AUTO_OPEN_HISTORY | O_DELETE_AUTOSAVE_FILES),
+	.layoutoptions = (OL_OPTIONBAR | OL_SHOWSTATUS | OL_TOOLBAR | OL_COMPACT_TABS),
+	.iconSize = ICS_SMALL,
+	.nundo = 100,
+	.autosaveSeconds = 10,
+	.maximumNumberOfOpenWindows = -1,
+	.defaultFontFace = "",
+	.includePath = "INCLUCDE;INC",
+	.themeName = "system default",
+	.language = "Deutsch",
+	.soundName = "",
+	.searchEngine = "Google",
+	.outputPatterns = 0,
+	.pksEditTempPath = 0,
+	.autosaveOnExit = config_autosaveConfiguration
 };
 
 static DIALOG_ITEM_DESCRIPTOR _dAutoSave[] = {

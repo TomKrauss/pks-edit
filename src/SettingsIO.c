@@ -75,10 +75,11 @@ void prof_setinifile(char *fn)
  * prof_getstdopt()
  */
 int prof_getstdopt(void) {
-	if (!LocatePksEditIni()) {
+	if (!LocatePksEditIni() || !config_read(_pksEditIniFilename)) {
+		config_initialize();
 		return 0;
 	}
-	return config_read(_pksEditIniFilename);
+	return 1;
 }
 
 /*------------------------------------------------------------

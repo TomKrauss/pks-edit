@@ -307,11 +307,14 @@ static void mainframe_applyDefaultSlotSizes() {
 	DOCKING_SLOT* pBottomSlot = mainframe_getSlot(DOCK_NAME_BOTTOM);
 	BOOL bChangeHSize = !pRightSlot || pRightSlot->ds_xratio != pDefaultSlot->ds_wratio;
 
-	float height = pBottomSlot ? 0.5f : 1.0f;
+	float topHeight = pBottomSlot ? 0.5f : 1.0f;
+	if (pBottomSlot && pDefaultSlot && pDefaultSlot->ds_hratio != 1.0f) {
+		topHeight = pDefaultSlot->ds_hratio;
+	}
 	if (pDefaultSlot != NULL) {
 		pDefaultSlot->ds_xratio = 0;
 		pDefaultSlot->ds_yratio = 0;
-		pDefaultSlot->ds_hratio = height;
+		pDefaultSlot->ds_hratio = topHeight;
 		if (bChangeHSize) {
 			pDefaultSlot->ds_wratio = pRightSlot != NULL ? 0.5f : 1.0f;
 		}
@@ -322,13 +325,13 @@ static void mainframe_applyDefaultSlotSizes() {
 			pRightSlot->ds_xratio = pDefaultSlot != NULL ? 0.5f : 0.0f;
 		}
 		pRightSlot->ds_yratio = 0;
-		pRightSlot->ds_hratio = height;
+		pRightSlot->ds_hratio = topHeight;
 	}
 	if (pBottomSlot != NULL) {
+		pBottomSlot->ds_hratio = 1-topHeight;
+		pBottomSlot->ds_yratio = topHeight;
 		pBottomSlot->ds_wratio = 1;
-		pBottomSlot->ds_hratio = (pDefaultSlot != NULL || pRightSlot != NULL) ? 0.5f : 1.0f;
 		pBottomSlot->ds_xratio = 0;
-		pBottomSlot->ds_yratio = (pDefaultSlot != NULL || pRightSlot != NULL) ? 0.5f : 0.0f;
 	}
 }
 

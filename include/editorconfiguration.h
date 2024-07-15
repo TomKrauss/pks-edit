@@ -160,6 +160,11 @@ extern int config_tempPathIsDefault();
 extern int config_read(const char* pszfilename);
 
 /*
+ * Initialize the default options of the configuration - used when no config file can be found.
+ */
+extern void config_initialize();
+
+/*
  * Save the current configuration to the specified config file.
  */
 extern int config_save(const char* pszFilename);
