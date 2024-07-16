@@ -4289,13 +4289,18 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 		}
 	}
 	if (pPart) {
-		int nStart = xDelta != 0 ? pData->md_caretRunIndex : 0;
-		if (pData->md_caretPartIndex != nMDCaretLine) {
-			pData->md_caretPartIndex = nMDCaretLine;
-			pData->md_caretRunIndex = 0;
-			nStart = -1;
+		if (xDelta) {
+			if (pData->md_caretPartIndex != nMDCaretLine) {
+				pData->md_caretPartIndex = nMDCaretLine;
+				pData->md_caretRunIndex = 0;
+			}
+			else {
+				pData->md_caretRunIndex = mdr_getNextLinkRunOffset(pPart, 0, *col);
+			}
 		}
-		pData->md_caretRunIndex = mdr_getNextLinkRunOffset(pPart, nStart, *col);
+		else {
+			pData->md_caretRunIndex = *col;
+		}
 		if (pData->md_caretRunIndex < 0) {
 			pData->md_caretRunIndex = 0;
 		}
