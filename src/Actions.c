@@ -117,7 +117,7 @@ void action_registerAction(int commandId, int nType, ACTION_BINDING binding, BOO
 					return;
 				}
 			}
-			EdTRACE(log_errorArgs(DEBUG_ERR, "No space left for action binding. Maximum 3 bindings allowed."));
+			EdTRACE(log_message(DEBUG_ERR, "No space left for action binding. Maximum 3 bindings allowed."));
 			return;
 		}
 	}

@@ -74,7 +74,7 @@ static int mouse_selectionDrag(WINFO* wp, int x, int y) {
 	struct tagDRAG_SELECTION_DATA* pData = &_dragSelectionData;
 
 	pData->c2 = wp->caret;
-	log_errorArgs(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
+	log_message(DEBUG_ERR, "x == %d -> offset == %d", x, pData->c2.offset);
 	caret_updateSelection(wp, &pData->c1, &pData->c2, pData->start.y < y);
 	return 1;
 }

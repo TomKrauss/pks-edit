@@ -1010,7 +1010,7 @@ static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
  * Highlight the section where the caret is.
  */
 static void mdr_highlightCaretLine(const RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* pPart) {
-	if (!pRFP->rfp_printing && pPart->rvp_layouted && (pRFP->rfp_wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT)) {
+	if (!pRFP->rfp_printing && pPart->rvp_layouted) {
 		HBRUSH hBrushCaretLine;
 		hBrushCaretLine = CreateSolidBrush(pRFP->rfp_theme->th_caretLineColor);
 		FillRect(pRFP->rfp_hdc, &pPart->rvp_bounds, hBrushCaretLine);
@@ -3918,13 +3918,14 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 	FillRect(hdc, pClip, hBrushBg);
 	DeleteObject(hBrushBg);
 	rect.top -= nTopY;
-	float zoomFactor = pRC->rc_wp ? pRC->rc_wp->zoomFactor : dpisupport_getScalingFactorX();
+	WINFO* wp = pRC->rc_wp;
+	float zoomFactor = wp ? wp->zoomFactor : dpisupport_getScalingFactorX();
 	RENDER_FLOW_PARAMS rfp = {
 		.rfp_focus = GetFocus() == hwnd,
 		.rfp_hdc = hdc,
 		.rfp_theme = pRC->rc_theme,
 		.rfp_zoomFactor = zoomFactor,
-		.rfp_wp = pRC->rc_wp,
+		.rfp_wp = wp,
 		.rfp_printing = pRC->rc_printing
 	};
 	if (GetMapMode(hdc) == MM_ANISOTROPIC) {
@@ -3932,6 +3933,7 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		// 60 lines of text with an average of 12 pixels height
 		rfp.rfp_zoomFactor = (float)HIWORD(ext) / (60 * 12);
 	}
+	BOOL bHighlight = wp == NULL ? 0 : wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT;
 	for (; pPart; rect.top = occupiedBounds.bottom) {
 		int nBottom = rect.top + pPart->rvp_height;
 		if (pPart->rvp_layouted && (nBottom < pClip->top || rect.top>pClip->bottom)) {
@@ -3940,13 +3942,13 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		else {
 			rfp.rfp_part = pPart;
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
-			if (!pPart->rvp_layouted && pPart->rvp_decoration) {
+			if (!pPart->rvp_layouted && pPart->rvp_decoration || pPart->rvp_bounds.top < rect.top) {
 				rfp.rfp_measureOnly = TRUE;
 				pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
 			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
 			rfp.rfp_isCaret = pData->md_caretView == pPart;
-			if (rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
+			if (bHighlight && rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
 				mdr_highlightCaretLine(&rfp, pPart);
 			}
 			pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
@@ -3964,6 +3966,8 @@ static void mdr_renderPage(RENDER_CONTEXT* pCtx, void (*parsePage)(WINFO* wp), R
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData->md_pElements) {
 		parsePage(wp);
+		int nMDCaretLine;
+		pData->md_caretView = mdr_getViewPartForLine(pData->md_pElements, wp->caret.linePointer, &nMDCaretLine);
 	} else if (pData->md_zoomFactor != wp->zoomFactor) {
 		if (pData->md_zoomFactor != 0.0) {
 			mdr_invalidateViewpartsLayout(pData);
@@ -4149,9 +4153,19 @@ static void mdr_destroyData(WINFO* wp) {
  */
 static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
-	if (pData) {
+	if (pData && pData->md_pElements) {
 		if (pData->md_imageCache == NULL) {
 			pData->md_imageCache = hashmap_create(17, 0, 0);
+		}
+		RECT updateRect = { 0 };
+		if (pChanged->type == LINE_MODIFIED && pChanged->lp) {
+			// Try to optimize repaint a little bit if only a line is changed.
+			int unused;
+			RENDER_VIEW_PART* pModifiedPart = mdr_getViewPartForLine(
+				pData->md_caretView != NULL ? pData->md_caretView : pData->md_pElements, pChanged->lp, &unused);
+			if (pModifiedPart != NULL) {
+				updateRect = pModifiedPart->rvp_occupiedBounds;
+			}
 		}
 		for (RENDER_VIEW_PART* pPart = pData->md_pElements; pPart != 0; pPart = pPart->rvp_next) {
 			if (pPart->rvp_type == MET_TABLE) {
@@ -4176,7 +4190,7 @@ static void mdr_modelChanged(WINFO* wp, MODEL_CHANGE* pChanged) {
 		pData->md_focussedPart = NULL;
 		pData->md_focussedRun = NULL;
 		pData->md_previousCaretView = NULL;
-		InvalidateRect(wp->ww_handle, (LPRECT)0, 0);
+		InvalidateRect(wp->ww_handle, updateRect.right != updateRect.left ? &updateRect : (LPRECT)0, 0);
 		// do not: UpdateWindow(wp->ww_handle); at this point the model may not be completely edited - further editing operations
 		// may follow - so invalidate only and paint when really done.
 	}
@@ -4472,7 +4486,7 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 		bShow = FALSE;
 	}
 	if (pData->md_hwndTooltip && !SendMessage(pData->md_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
-		log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
+		log_message(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
 	}
 }
 

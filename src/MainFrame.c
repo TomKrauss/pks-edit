@@ -383,7 +383,7 @@ static void mainframe_closeDock(HWND hwnd) {
 	if (pSlotUpdate == NULL) {
 		return;
 	}
-	EdTRACE(log_errorArgs(DEBUG_TRACE, "Closing dock %s", pSlot->ds_name));
+	EdTRACE(log_message(DEBUG_TRACE, "mainframe_closeDock(name = %s)", pSlot->ds_name));
 	DOCKING_SLOT* pSlotDefault = mainframe_getSlot(szDefaultSlotName);
 	if (pSlotDefault == pSlotUpdate) {
 		pSlot = dockingSlots;
@@ -1190,9 +1190,8 @@ static void tabcontrol_setRollover(HWND hwnd, TAB_CONTROL* pControl, int nIndex,
 			toolinfo.lpszText = szBuffer;
 			SendMessage(pControl->tc_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
 		}
-		EdTRACE(log_errorArgs(DEBUG_TRACE, "Trying to activate tooltip for tab %d.", nTabIndex));
 		if (!SendMessage(pControl->tc_hwndTooltip, TTM_TRACKACTIVATE, (WPARAM)bShow, (LPARAM)&toolinfo)) {
-			log_errorArgs(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
+			log_message(DEBUG_ERR, "Activating tooltip failed. Error %ld.", GetLastError());
 		}
 		RECT r;
 		GetWindowRect(hwnd, &r);

@@ -418,7 +418,7 @@ static void hex_updateCaretUI(WINFO* wp, int* pCX, int* pCY, int* pWidth, int* p
 	HEX_RENDERER_DATA* pData = wp->r_data;
 	int nNewCol = pData->nCaretColumn * 3 * wp->cwidth;
 	int nOldY = *pCY;
-	EdTRACE(log_errorArgs(DEBUG_TRACE, "Setting caret x to %d (cwidth==%d)", *pCX, wp->cwidth));
+	EdTRACE(log_message(DEBUG_TRACE, "hex_updateCaretUI(cx = %d, cwidth = %d)", *pCX, wp->cwidth));
 	*pCY = (pData->nCaretLine - wp->minln) * wp->cheight;
 	if (nNewCol != *pCX) {
 		*pCX = nNewCol;

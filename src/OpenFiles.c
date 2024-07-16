@@ -361,7 +361,7 @@ void ft_deleteautosave(FTABLE *fp) {
  * ft_destroy()
  */
 void ft_destroy(FTABLE *fp) {
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_destroy File 0x%lx (%s)",fp, fp->fname));
+	EdTRACE(log_message(DEBUG_TRACE, "ft_destroy(fp = 0x%lx, name = %s)", fp, fp->fname));
 	ft_deleteautosave(fp);
 	ft_bufdestroy(fp);
 	free(fp->title);
@@ -383,14 +383,16 @@ void ft_destroy(FTABLE *fp) {
 FTABLE *ft_new(void)
 {	FTABLE *fp;
 
-	if ((fp = ll_insert((void**)&_filelist,sizeof *fp)) == 0)
+	if ((fp = ll_insert((void**)&_filelist, sizeof * fp)) == 0) {
+		EdTRACE(log_message(DEBUG_ERR, "ft_new() failed to create FTABLE pointer."));
 		return 0;
+	}
 
 	if (undo_initializeManager(fp) == 0) {
 		ll_delete((void**)&_filelist,fp);
 		return 0;
 	}
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_new File 0x%lx",fp));
+	EdTRACE(log_message(DEBUG_TRACE,"ft_new()->fp = 0x%lx",fp));
 
 	return fp;
 }
@@ -644,12 +646,15 @@ int ft_selectWindowWithId(int winid) {
  */
 int ft_currentFileChanged(FTABLE *fp) {
 	if (fp->navigationPattern) {
-		_currentSteplistFile = fp;
+		if (_currentSteplistFile != fp) {
+			_currentSteplistFile = fp;
+			EdTRACE(log_message(DEBUG_TRACE, "ft_currentErrorListChanged(name = %s)", fp->fname));
+		}
 	}
 	if (fp == _currentFile) {
 		return 1;
 	}
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"ft_select File 0x%lx",fp));
+	EdTRACE(log_message(DEBUG_TRACE,"ft_currentFileChanged(name = %s)", fp -> fname));
 	_currentFile = fp;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ALL);
 	if (fp == 0) {
@@ -724,7 +729,7 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
 		fn = szResultFn;
 	}
-	EdTRACE(log_errorArgs(DEBUG_TRACE, "ft_openFile (%s)", fn));
+	EdTRACE(log_message(DEBUG_TRACE, "ft_openFile(name = %s)", fn));
 	if (fn && ft_editing(fn) != 0) {
 		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileName(fn));
 		if (ret == IDCANCEL) {

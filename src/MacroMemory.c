@@ -205,7 +205,7 @@ void memory_garbaggeCollect(EXECUTION_CONTEXT* pContext) {
 			}
 		}
 	}
-	EdTRACE(log_errorArgs(DEBUG_TRACE, "GC finished: reclaimed %d objects out of %d", nCollected, nObjects));
+	EdTRACE(log_message(DEBUG_TRACE, "GC finished: reclaimed %d objects out of %d", nCollected, nObjects));
 }
 
 /*

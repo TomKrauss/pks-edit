@@ -13,31 +13,31 @@
 # pragma hdrstop
 #include <stdarg.h>
 #include <stdio.h>
+#include <time.h>
 #include "winterf.h"
 #include "fileutil.h"
 #include "stringutil.h"
 #include "trace.h"
 #include "documentmodel.h"
 
-static int _debugmask =
+static LOG_LEVEL _logLevel =
 #ifdef _DEBUG
-DEBUG_ALL;
+DEBUG_TRACE;
 #else
-0;
+DEBUG_WARN;
 #endif
 
 static FILE* _pksEditLogfile;
 
 /*-----------------------------------------------------------
- * vdebug()
+ * log_levelMessageArgs()
  */
-static void vdebug(int logLevel, LPSTR fmt, va_list ap) {
+static void log_levelMessageArgs(LOG_LEVEL logLevel, LPSTR fmt, va_list ap) {
 	char buf[1024];
 	char bufTotal[1024];
+	char szTime[64];
 	char* pszLevel = "TRACE";
-	if (logLevel == DEBUG_ASSERT) {
-		pszLevel = "ASSERT";
-	} else if (logLevel == DEBUG_WARN) {
+	if (logLevel == DEBUG_WARN) {
 		pszLevel = "WARN";
 	} else if (logLevel == DEBUG_INFO) {
 		pszLevel = "INFO";
@@ -45,7 +45,12 @@ static void vdebug(int logLevel, LPSTR fmt, va_list ap) {
 		pszLevel = "ERROR";
 	}
     wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
-	wsprintf(bufTotal, "%s:%s:%s\n", szAppName, pszLevel, buf);
+	time_t rawtime;
+	rawtime = time(NULL);
+	struct tm* tm_info;
+	tm_info = localtime(&rawtime);
+	strftime(szTime, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+	wsprintf(bufTotal, "%s:%s:%s:%s\n", szAppName, pszLevel, szTime, buf);
 	if (_pksEditLogfile == NULL) {
 		char szLogFilename[MAX_PATH];
 		szLogFilename[0] = 0;
@@ -62,21 +67,21 @@ static void vdebug(int logLevel, LPSTR fmt, va_list ap) {
 /*
  * Can be used to put PKS-Edit in verbose mode, having it printing all debug messages to stderr.
  */
-EXPORT void log_setLogLevel(int logLevel) {
-	_debugmask = logLevel;
+EXPORT void log_setLogLevel(LOG_LEVEL logLevel) {
+	_logLevel = logLevel;
 }
 
 /*-----------------------------------------------------------
- * log_errorArgs()
+ * log_message()
  */
-EXPORT void log_errorArgs(int flags, char *fmt, ...)
+EXPORT void log_message(LOG_LEVEL logLevel, char *fmt, ...)
 {
 	va_list ap;
-	if ((_debugmask & flags) == 0) {
+	if (logLevel < _logLevel) {
 		return;
 	}
 	va_start(ap,fmt);
-	vdebug(flags &(DEBUG_ERR|DEBUG_ASSERT|DEBUG_TRACE|DEBUG_WARN|DEBUG_INFO),fmt,ap);
+	log_levelMessageArgs(logLevel,fmt,ap);
 	va_end(ap);
 }
 
@@ -96,7 +101,7 @@ void log_lastWindowsError(const char* lpszFunction) {
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR)&lpMsgBuf,
 		0, NULL);
-	log_errorArgs(DEBUG_ERR, "%s failed with error %d: %s", lpszFunction, dw, lpMsgBuf);
+	log_message(DEBUG_ERR, "%s failed with error %d: %s", lpszFunction, dw, lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
 
@@ -107,7 +112,7 @@ EXPORT void log_vsprintf(char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap,fmt);
-	vdebug(0,fmt,ap);	
+	log_levelMessageArgs(0,fmt,ap);	
 	va_end(ap);
 }
 

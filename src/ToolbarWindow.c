@@ -120,7 +120,7 @@ static void tb_loadFont(int id) {
             return;
         }
     }
-    EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot load Font with id %d.", id));
+    EdTRACE(log_message(DEBUG_ERR, "Cannot load Font with id %d.", id));
 }
 
 /*

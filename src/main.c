@@ -210,7 +210,7 @@ static void checkCommonControlLibraryVersion() {
 		}
 		FreeLibrary(hDll);
 	}
-	EdTRACE(log_errorArgs(DEBUG_INFO, "Common Control Library version is %ld", dwMajorVersion));
+	EdTRACE(log_message(DEBUG_INFO, "Common Control Library version is %ld", dwMajorVersion));
 }
 
 /*------------------------------------------------------------
@@ -375,7 +375,7 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 				DdeNameService(hDDE, hszDDEService, 0, DNS_UNREGISTER);
 				hDDEService = 0;
 				*pDDEOtherInstanceExists = TRUE;
-				EdTRACE(log_errorArgs(DEBUG_TRACE, "There is already a running DDE Server."));
+				EdTRACE(log_message(DEBUG_TRACE, "There is already a running DDE Server."));
 				return 1;
 			}
 		}

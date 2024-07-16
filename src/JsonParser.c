@@ -148,7 +148,7 @@ COLORREF json_convertColor(char* pszString) {
 			return _cssColors[i].cc_color;
 		}
 	}
-	EdTRACE(log_debug1("Cannot convert color %s from config file", pszString));
+	EdTRACE(log_message(DEBUG_WARN, "Cannot convert color %s from config file", pszString));
 	return RGB(0, 0, 0);
 }
 
@@ -435,7 +435,7 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 	if ((fn = file_searchFileInPKSEditLocationFlags(pszFilename, 
 				CFSF_SEARCH_ABSOLUTE | CFSF_SEARCH_APP_PKS_SYS| CFSF_SEARCH_LOCAL_PKS_SYS| CFSF_SEARCH_PKS_SYS_OVERRIDE_DIR)) != 0L
 			&& (fd = file_openFile(fn, FALSE)) > 0) {
-		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading config file %s", fn));
+		EdTRACE(log_message(DEBUG_INFO, "Loading config file %s", fn));
 		ret = json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
 	}
@@ -443,7 +443,7 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 	if (extensionSupported && 
 		(fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && 
 		(fd = file_openFile(fn, FALSE)) > 0) {
-		EdTRACE(log_errorArgs(DEBUG_INFO, "Loading extension file %s", fn));
+		EdTRACE(log_message(DEBUG_INFO, "Loading extension file %s", fn));
 		json_parseFile(fd, pTargetObject, pRules);
 		file_closeFile(&fd);
 	}
@@ -675,7 +675,7 @@ int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE
 		}
 	}
 	if ((fp = fopen(fn, "w")) != NULL) {
-		EdTRACE(log_errorArgs(DEBUG_INFO, "Saving config file %s", fn));
+		EdTRACE(log_message(DEBUG_INFO, "Saving config file %s", fn));
 		fprintf(fp, "{%s", _nl);
 		indent += 4;
 		while (pRules->r_type != RT_END) {

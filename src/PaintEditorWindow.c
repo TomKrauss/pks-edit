@@ -101,7 +101,7 @@ static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
 	}
 	else {
 		if (!wp->blstart || !wp->blend) {
-			EdTRACE(log_errorArgs(DEBUG_ERR, "bad marked line. No start/end selection markers."));
+			EdTRACE(log_message(DEBUG_ERR, "paintSelection: bad marked line. No start/end selection markers."));
 			return;
 		}
 		if (P_EQ(lp, wp->blstart->m_linePointer))

@@ -140,7 +140,7 @@ int render_makeCaretVisible(WINFO* wp, CARET* pCaret) {
 	dx = render_calculateScrollDelta(pCaret->col, wp->mincurscol, wp->maxcurscol, wp->hscroll);
 
 	if (dx || dy) {
-		EdTRACE(log_errorArgs(DEBUG_WINMESS, "render_adjustScrollBounds -> (%ld,%ld)", dx, dy));
+		EdTRACE(log_message(DEBUG_TRACE, "render_makeCaretVisible(scrollDeltaX=%ld,scrollDeltaY=%ld)", dx, dy));
 		if (sl_scrollwinrange(wp, &dy, &dx))
 			sl_winchanged(wp, dy, dx);
 		return 1;

@@ -456,7 +456,7 @@ char* config_getPKSEditTempPath() {
 	}
 	if (file_exists(_configuration.pksEditTempPath) != 0) {
 		if (!_mkdir(_configuration.pksEditTempPath)) {
-			EdTRACE(log_errorArgs(DEBUG_ERR, "Cannot create directory for PKS Edit temp path."));
+			EdTRACE(log_message(DEBUG_ERR, "Cannot create directory for PKS Edit temp path."));
 		}
 	}
 	return _configuration.pksEditTempPath;

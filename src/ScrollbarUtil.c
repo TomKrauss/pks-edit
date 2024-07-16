@@ -102,7 +102,6 @@ int sl_size(WINFO *wp) {
 static long sl_calcnewmin(long da,long max,long val)
 {	register long b;
 
-	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_calcnewmin(%ld,%ld)",da,max));
 	max--;
 	if (da < 0L) {
 		if ((b = val + da) < 0L) {
@@ -130,8 +129,7 @@ int sl_scrollwinrange(WINFO *wp, long *pDeltaY, long *pDeltaX)
 { 	long   dy,dx,val;
 
 	dy = *pDeltaY, dx = *pDeltaX;
-	EdTRACE(log_errorArgs(DEBUG_FUNCS,"sl_scrollwinrange(%ld,%ld) wp = %lx",
-				 dy,dx,(long)(intptr_t)wp));
+	EdTRACE(log_message(DEBUG_TRACE,"sl_scrollwinrange(deltaX=%ld,deltaY=%ld) wp = %lx", dy,dx,(long)(intptr_t)wp));
 	if (dx) {
 		val = sl_calcnewmin(dx,MAXCOL,wp->mincol);
 		*pDeltaX = val-wp->mincol;

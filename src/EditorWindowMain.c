@@ -992,7 +992,7 @@ void ww_destroy(WINFO *wp) {
 	SetWindowLongPtr(wp->ww_handle, GWL_WWPTR, 0);
 	SetWindowLongPtr(wp->edwin_handle, GWL_VIEWPTR, 0);
 	if (!ll_delete(&_winlist,wp)) {
-		EdTRACE(log_errorArgs(DEBUG_ERR,"failed deleting window props"));
+		EdTRACE(log_message(DEBUG_ERR,"Failed to delete window from window list (possibly already removed?)."));
 	}
 
 	/* update window handles */
@@ -1006,7 +1006,7 @@ void ww_destroy(WINFO *wp) {
 	nwindows--;
 	EdTRACE({
 		if (nwindows == 0 && _winlist)
-			log_errorArgs(DEBUG_ERR,"bad winlist");
+			log_message(DEBUG_ERR,"No windows displayed any more, but window list is not NULL.");
 	});
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ENABLEMENT);
 }
@@ -1166,7 +1166,7 @@ WINFUNC EditWndProc(
  */
 static int ww_updateWindowBounds(WINFO *wp) {
 	ww_setScrollCheckBounds(wp);
-	EdTRACE(log_errorArgs(DEBUG_TRACE,"set window scroll bounds to (minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
+	EdTRACE(log_message(DEBUG_TRACE,"ww_updateWindowBounds(minln = %ld, mincol = %ld, maxln = %ld, maxcol = %ld)",
 		   wp->minln,wp->mincol,wp->maxln,wp->maxcol));
 	return 1;
 }
@@ -1383,13 +1383,13 @@ WINFUNC render_defaultWindowProc(
 					break;
 				}
 				nPos = info.nTrackPos;
-				log_debug1("thumbtrack getscrollinfo returns: %d", nPos);
+				EdTRACE(log_message(DEBUG_TRACE, "SB_THUMBTRACK/POSITION scoll event. GetScrollInfo: nTrackPos = %d", nPos));
 			}
 			if (do_slide(wp,message,nCode, nPos) == 0) {
 				break;
 			}
 		} else {
-			EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_SLIDE in WorkWndProc without file"));
+			EdTRACE(log_message(DEBUG_WARN,"WM_SCROLL event in WorkWndProc without WINFO pointer."));
 		}
 		return 0;
 
@@ -1443,8 +1443,7 @@ WINFUNC render_defaultWindowProc(
 			FTABLE* fp = wp->fp;
 			ft_currentFileChanged(fp);
 		} else {
-			EdTRACE(log_errorArgs(DEBUG_TRACE,
-				"WM_SETFOCUS in WorkWndProc without file"));
+			EdTRACE(log_message(DEBUG_WARN, "WM_SETFOCUS event in WorkWndProc without WINFO pointer"));
 		}
 		return 0;
 	}
@@ -1564,7 +1563,7 @@ static WINFUNC RulerWndProc(
 			if ((wp = (WINFO *)GetWindowLongPtr(hwnd,0)) != 0) {
 		   		draw_ruler(wp);
 			} else {
-				EdTRACE(log_errorArgs(DEBUG_TRACE,"WM_PAINT in RulerWndProc without file"));
+				EdTRACE(log_message(DEBUG_TRACE,"WM_PAINT event in WorkWndProc without WINFO pointer."));
 			}
 			break;
 
@@ -1734,7 +1733,7 @@ static WINFUNC LineNumberWndProc(
 			draw_lineNumbers(wp);
 		}
 		else {
-			EdTRACE(log_errorArgs(DEBUG_TRACE, "WM_PAINT in LineNumberProc without WINFO pointer"));
+			EdTRACE(log_message(DEBUG_TRACE, "WM_PAINT event in LineNumberProc without WINFO pointer"));
 		}
 		break;
 

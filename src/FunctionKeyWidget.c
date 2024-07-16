@@ -359,7 +359,7 @@ static void fkey_show(HWND hwndParent) {
 		}
 		hwndFkeys = CreateDialogIndirect(0, pTemplate, hwndParent, NULL);
 		if (!hwndFkeys) {
-			EdTRACE(log_errorArgs(DEBUG_ERR, "Error creating FKEYS %ld. %ld %ld", GetLastError(), hRes, hwndFkeys));
+			EdTRACE(log_message(DEBUG_ERR, "Error %ld showing function key window. hResource=%ld hwndFkeys=%ld", GetLastError(), hRes, hwndFkeys));
 		}
 		fkey_updateTextOfFunctionKeys(-1);
 		FreeResource(hRes);
