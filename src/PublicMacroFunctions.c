@@ -370,7 +370,7 @@ int EdAbout(void)
 /*--------------------------------------------------------------------------
  * dialogGetNumber()
  */
-static long dialogGetNumber(int nDialog, int nInitialNumber)
+static long dialogGetNumber(int nDialog, int nInitialNumber, DIALOG_HELP_DESCRIPTOR* pHelpItems)
 {	static long    num;
 	static ITEMS	_i   =  	{ C_PUSH_LONG_LITERAL,  (unsigned char * ) &num };
 	static PARAMS	_np  = 	{ 1, P_MAYOPEN, _i	  };
@@ -381,7 +381,8 @@ static long dialogGetNumber(int nDialog, int nInitialNumber)
 
 	num = nInitialNumber;
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = pHelpItems
 	};
 	if (!win_callDialog(nDialog,&_np,&dialogDescriptor, NULL))
 		return -1L;
@@ -667,7 +668,7 @@ int EdKeycodeInsert(void)
 extern long _multiplier;
 int EdSetMultiplier(void)
 {
-	if ((_multiplier = dialogGetNumber(DLGMULTI, 2)) > 0L) 
+	if ((_multiplier = dialogGetNumber(DLGMULTI, 2, NULL)) > 0L) 
 		return 1;
 	_multiplier = 1;
 	return 0;
@@ -693,7 +694,11 @@ int EdGotoLine(void) {
 		return 0;
 	}
 	FTABLE* fp = wp->fp;
-	if ((ln = dialogGetNumber(DLGGOTOLINE, wp->caret.ln)) > 0L) {
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\navigate.md#go-to-line"},
+		{.dhd_link = 0}
+	};
+	if ((ln = dialogGetNumber(DLGGOTOLINE, wp->caret.ln, help)) > 0L) {
 		if (ln <= 0 ||ln > fp->nlines) {
 			error_showErrorById(IDS_LINE_NUMBER_DOES_NOT_EXIST);
 		} else {
@@ -786,7 +791,11 @@ static void winlist_lboxfill(HWND hwnd, int nItem, void* selValue) {
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, FALSE, 0L);
 	WINFO* wp = ww_getCurrentEditorWindow();
 	while (wp) {
-		SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM) wp);
+		FTABLE* fp = FTPOI(wp);
+		if (WIPOI(fp) == wp) {
+			// add only the primary window.
+			SendDlgItemMessage(hwnd, nItem, LB_ADDSTRING, 0, (LPARAM)wp);
+		}
 		wp = wp->next;
 	}
 	SendDlgItemMessage(hwnd, nItem, WM_SETREDRAW, (WPARAM)TRUE, 0L);
@@ -969,8 +978,13 @@ int EdFilesCompare(int dir) {
 	FTABLE* fp = _compareFile1->fp;
 	compareDialListPars[0].did_data = fp->fname;
 	compareDialListPars[1].did_listhandler = &dlist;
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\extras.md#compare-files"},
+		{.dhd_link = 0}
+	};
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = compareDialListPars
+		.dd_items = compareDialListPars,
+		.dd_helpItems = help
 	};
 	nRet = DoDialog(DLGCOMPAREFILES, compare_dialogProcedure, &dialogDescriptor, NULL);
 	WINFO* wp = (WINFO*) dlist.li_param;

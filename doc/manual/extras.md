@@ -1,9 +1,7 @@
 # Extras
-
 This chapter describes the extra functions accessible from the _Extras_ menu.
 
 ## Start Command
-
 Supports running a command (either batch or with UI) optionally processing in and outputs of the command.
 
 - _Command_ the command to execute (e.g. `pksedit.exe` or `dir`).
@@ -23,18 +21,15 @@ Supports running a command (either batch or with UI) optionally processing in an
   _PKS Edit Error List_ allowing to navigate potentials problems found running the command (typically a build command - maven or the like).
 
 ## Evaluate Code
-
 Allows the evaluation of code: this is by default the text selected in the current editor window or all text in the current editor window. 
 The Grammar of the file edited must support the evaluation of code (must have a known "evaluator" assigned). Languages, which can be evaluated
 currently are of course PKS Macroc and DOS Commands.
 
 ## Read Tag File
-
 Allows o open a file containing cross reference definitions (e.g. created by [CTAGS](https://docs.ctags.io/en/latest/index.html)). This
 will read the cross references in this file and will then alllow to use them when navigating in PKS Edit.
 
 ## Read output produced by Build
-
 This menu allows you to read a build log file, which is opened in the navigation pane and analyzed by PKS Edit for the purpose of navigating
 to errors and warnings pointing to problems located in files. PKS Edit supports then to navigate the errors / warnings displayed in
 the build log opened and opens the corresponding files / places, where the error occurred. PKS Edit will try to parse the build output
@@ -43,8 +38,14 @@ based on build output patterns as described in the [Configuration Documentation]
 To navigate in the build log (jump from one build log entry to the next or previous), use the same procedure
 as described in [Navigating Find in Files Result](fin_replace.md#navigating-the-find-in-files-result-list).
 
-## Settings
+## Compare Files
+Opens a dialog allowing to start a file comparison with another file currently edited by PKS Edit
+or with a backup of a file (Compare with history...) saved before. Select the file to compare and start 
+the comparison. PKS Edit will highlight modified, inserted and deleted lines and let you navigate now
+for the next or previous difference found using _Next Difference_ and _Previous Difference_ menus and toolbar
+buttons. To end the comparison / remove the highlighting, you may use the _End Comparison_ menu entry.
 
+## Settings
 Opens the PKS Edit Settings Dialog allowing to change the base configuration described in the corresponding 
 [chapter](configuration.md).
 

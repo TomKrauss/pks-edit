@@ -28,3 +28,10 @@ of type 2 only.
 
 Using the "Find->Set Mark" and "Find->Goto Mark" one can set an explicit _named_ bookmark. A named bookmark is named using a single character,
 which one can later specify in "Find->Goto Mark" to navigate to this _named_ bookmark.
+
+## Go to Line
+Using _Find->Goto Line..._ one may jump to a given 1-based line number. This is useful for instance if a compiler prints the line number
+of error in a text. The _Goto Line_ Dialog will by default show the current line number and will reject illegal line numbers.
+
+
+

@@ -147,7 +147,6 @@ By selecting `Right Align Matched Text`, you may format the text this way:
 ```
 
 ### Aligning text dialog options
-
 - <a name="aligning-text-pattern"></a>_Align Text Matching_: The text to look for (typically expressed as
   a regular expression), which is aligned.
 - <a name="aligning-text-caret-position"></a>_Align to current Caret Position_: if checked the column if the current caret is used and applied to all matches. 
@@ -166,7 +165,6 @@ By selecting `Right Align Matched Text`, you may format the text this way:
   - `TO CURSOR`: formats the text from the beginning of the file up to the current cursor position.
 
 ## Options affecting the editing of text
-
 Several options can be enabled to affect the way text is edited.
 
 - _Autoindent_ - when set, PKS Edit will automatically indent new lines the same way, lines above are indented
