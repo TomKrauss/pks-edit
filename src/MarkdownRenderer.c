@@ -1011,6 +1011,7 @@ static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
  */
 static void mdr_highlightCaretLine(const RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* pPart) {
 	if (!pRFP->rfp_printing && pPart->rvp_layouted) {
+		EdTRACE(log_message(DEBUG_TRACE, "mdr_highlightCaretLine()"));
 		HBRUSH hBrushCaretLine;
 		hBrushCaretLine = CreateSolidBrush(pRFP->rfp_theme->th_caretLineColor);
 		FillRect(pRFP->rfp_hdc, &pPart->rvp_bounds, hBrushCaretLine);
@@ -3715,6 +3716,8 @@ static void mdr_updatePartBounds(RENDER_VIEW_PART* pPart, int nDelta) {
 	while (pPart) {
 		pPart->rvp_bounds.top += nDelta;
 		pPart->rvp_bounds.bottom += nDelta;
+		pPart->rvp_occupiedBounds.top += nDelta;
+		pPart->rvp_occupiedBounds.bottom += nDelta;
 		pPart = pPart->rvp_next;
 	}
 }
@@ -3892,12 +3895,18 @@ static void mdr_layout(WINFO* wp) {
 	};
 	RECT rect;
 	GetClientRect(hwnd, &rect);
-	RECT occupiedBounds;
+	SCROLLINFO info = {
+		.cbSize = sizeof info,
+		.fMask = SIF_POS,
+	};
+	GetScrollInfo(wp->ww_handle, SB_VERT, &info);
+	rect.top -= info.nPos;
 	while (pPart) {
 		if (!pPart->rvp_layouted) {
 			rfp.rfp_part = pPart;
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
-			pPart->rvp_paint(&rfp, &rect, &occupiedBounds);
+			pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
+			rect.top += pPart->rvp_height;
 		}
 		pPart = pPart->rvp_next;
 	}
@@ -3943,20 +3952,14 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		else {
 			rfp.rfp_part = pPart;
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
-			if (!pPart->rvp_layouted && pPart->rvp_decoration) {
+			rfp.rfp_isCaret = bHighlight && pData->md_caretView == pPart;
+			if (rfp.rfp_isCaret || (!pPart->rvp_layouted && pPart->rvp_decoration)) {
 				// need extra layout before paint.
 				rfp.rfp_measureOnly = TRUE;
 				pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
 			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
-			rfp.rfp_isCaret = pData->md_caretView == pPart;
-			if (bHighlight && rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
-				if (pPart->rvp_bounds.top < rect.top) {
-					// need to layout first.
-					rfp.rfp_measureOnly = TRUE;
-					pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
-					rfp.rfp_measureOnly = rect.top > pClip->bottom;
-				}
+			if (rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
 				mdr_highlightCaretLine(&rfp, pPart);
 			}
 			pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
