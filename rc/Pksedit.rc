@@ -481,7 +481,7 @@ BEGIN
     LTEXT           "Taste : ",IDD_LOWOPT,10,16,22,8,NOT WS_GROUP
 END
 
-DLGMACROS DIALOGEX 45, 60, 365, 166
+DLGMACROS DIALOGEX 45, 60, 367, 176
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Makroliste"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
@@ -489,7 +489,7 @@ BEGIN
     LTEXT           "&Makro",111,4,8,28,8,NOT WS_GROUP
     CONTROL         "&interne sichtbar",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,56,6,60,12
     EDITTEXT        IDD_STRING1,4,20,114,12
-    LISTBOX         IDD_MACROLIST,4,36,113,125,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDD_MACROLIST,4,36,113,138,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_WANTKEYBOARDINPUT | WS_VSCROLL | WS_TABSTOP
     EDITTEXT        IDD_STRING2,124,36,225,28,ES_MULTILINE | ES_AUTOVSCROLL
     PUSHBUTTON      "B&earbeiten",IDD_MACEDIT,208,68,46,16,WS_GROUP
     PUSHBUTTON      "&Benennen",IDD_MACRENAME,304,68,46,16,NOT WS_TABSTOP
@@ -497,13 +497,13 @@ BEGIN
     DEFPUSHBUTTON   "&Starten",IDD_MACSTART,304,10,46,16,NOT WS_TABSTOP
     LTEXT           "&Tastentabelle",114,124,86,64,8
     LISTBOX         IDD_LISTBOX,124,96,172,34,LBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Auslösetaste",113,124,126,44,8,NOT WS_GROUP
-    LISTBOX         IDD_LISTBOX2,124,140,172,26,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Auslösetaste",113,124,140,44,8,NOT WS_GROUP
+    LISTBOX         IDD_LISTBOX2,124,154,172,20,LBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Zuordnen",IDD_BUT3,303,116,46,15
     PUSHBUTTON      "&Lösen",IDD_MACDELKEY,303,96,46,15,NOT WS_TABSTOP
     PUSHBUTTON      "S&uchen",IDD_MACFINDKEY,303,136,46,15,NOT WS_TABSTOP
-    PUSHBUTTON      "Ende",1,252,10,46,16
-    PUSHBUTTON      "Dis&assemble",IDD_MACPRINTINSTRUCTIONS,125,68,82,16,WS_GROUP
+    PUSHBUTTON      "Abbruch",1,252,10,46,16
+    PUSHBUTTON      "Dis&assemblieren",IDD_MACPRINTINSTRUCTIONS,124,68,82,16,WS_GROUP
 END
 
 DLGFILEFORMAT DIALOGEX 64, 58, 389, 117
@@ -559,14 +559,15 @@ END
 
 DLGDOCTYPES DIALOGEX 13, 39, 343, 297
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Dokument-Arten"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "",IDC_DOCTYPES,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,6,31,325,108
     LTEXT           "Definierte &Typen:",-1,6,20,60,8
-    GROUPBOX        "Editor Konfiguration",IDD_GROUPBOX,6,142,324,48,WS_GROUP
-    LTEXT           "&Name:",126,12,158,32,8,NOT WS_GROUP
-    EDITTEXT        IDD_PATH1,48,156,276,12,ES_AUTOHSCROLL
+    GROUPBOX        "Editor Konfiguration",IDD_GROUPBOX,6,144,324,42,WS_GROUP
+    LTEXT           "&Name:",126,12,165,32,8,NOT WS_GROUP
+    EDITTEXT        IDD_PATH1,48,163,276,12,ES_AUTOHSCROLL
     LTEXT           "&Dateimuster:",226,6,214,52,8
     EDITTEXT        IDD_STRING5,60,212,270,12
     LTEXT           "&Beschreibung:",227,6,232,52,8
@@ -576,7 +577,7 @@ BEGIN
     PUSHBUTTON      "L&öschen",IDD_CALLBACK2,6,274,44,14,WS_GROUP
     PUSHBUTTON      "Ne&u",IDD_NOINITCALLBACK,68,274,48,14
     PUSHBUTTON      "&Anwenden",IDD_CALLBACK3,234,6,44,14
-    DEFPUSHBUTTON   "&Ende",1,284,6,44,14,WS_GROUP
+    DEFPUSHBUTTON   "&Abbruch",IDCANCEL,284,6,44,14,WS_GROUP
     PUSHBUTTON      "&Ändern",IDD_CALLBACK1,134,274,44,14
     LTEXT           "&Syntax:",229,7,249,52,8
     EDITTEXT        IDD_STRING3,60,247,270,12
@@ -989,8 +990,8 @@ BEGIN
 
     DLGMACROS, DIALOG
     BEGIN
-        RIGHTMARGIN, 364
-        BOTTOMMARGIN, 164
+        RIGHTMARGIN, 366
+        BOTTOMMARGIN, 174
     END
 
     DLGFILEFORMAT, DIALOG
@@ -1007,8 +1008,6 @@ BEGIN
 
     DLGDOCTYPES, DIALOG
     BEGIN
-        RIGHTMARGIN, 333
-        BOTTOMMARGIN, 254
     END
 
     DLGCRYPT, DIALOG
@@ -1514,7 +1513,7 @@ END
 STRINGTABLE
 BEGIN
     IDM_FUNCTIONS_MENU      "Funktionen"
-    IDM_MACRO_MENU          "Makro"
+    IDM_MACRO_MENU          "Makros"
     IDM_SETTINGS_MENU       "Einstellungen"
     IDM_EXTRAS_MENU         "Extras"
     IDM_WINDOWS_MENU        "Fenster"
@@ -1621,7 +1620,7 @@ BEGIN
     IDS_COMMAND73           "Liest eine Compiler Fehler Liste;Logausgabe eines Builds lesen..."
     IDS_COMMAND74           "Fügt Dokumenteinstellungen (Abkürzungen, ...) einer Modusdatei hinzu;Erweitere Einstellungen"
     IDS_COMMAND75           "Startet/Stoppt eine Makro Aufnahme;Makro aufnehmen"
-    IDS_COMMAND76           "Editiert Makros und ihre Anbindungen;Makros bearbeiten"
+    IDS_COMMAND76           "Startet, debugged und editiert Makros und ihre Bindungen an Tasten etc...;Makros starten / debuggen..."
     IDS_COMMAND77           "Schreibt eine Makrodatei;Makros speichern..."
     IDS_COMMAND78           "Liest eine Makrodatei;Makros lesen..."
     IDS_COMMAND79           "Sichert alle Einstellungen;Einstellungen sichern..."

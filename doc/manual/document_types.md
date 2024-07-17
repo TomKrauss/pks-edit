@@ -1,5 +1,4 @@
 # Document Types
-
 The document types of PKS Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
 
 A document type is selected by one or more file name patterns (e.g. \*.cpp or \*.cpp;\*.c). Note, that _more specific_ file name patterns are matched first (\*.c matches in preference over \*.\*).
@@ -7,8 +6,9 @@ Each document type may be associated with an editor configuration (also by name)
 a _grammar_ which is referred to by name.
 
 ## Grammar
-
-A grammar is defined by a name and configured in corresponding JSON file name `grammarName`.grammar.json.
+A PKS Edit _grammar_ defines the syntax of a piece of text and defines things like the syntax highlighting, 
+possible templates, that make sense in the context of this text and rules for editing text with this syntax like 
+brackets to be matched etc... A _grammar is defined by a name and configured in corresponding JSON file name `grammarName`.grammar.json.
 
 - Format of [Grammar and Template Files](grammar.md)
 
@@ -55,8 +55,8 @@ The following example defines an editor configuration `default`, which defines s
 ### Editor Configuration Properties
 Here is a description of some of the defined properties of an `editor configuration`.
 
-- `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == ISO8859-1 or 
-   65001 == UTF-8) or -1 to have PKS Edit "guess" the character encoding.
+- `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == `ISO8859-1` or 
+   65001 == `UTF-8`) or -1 to have PKS Edit "guess" the character encoding.
 - `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS Edit action binding (keyboard binding, mouse binding
   menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
   is assumed.
@@ -107,4 +107,23 @@ The following properties describe a document type:
 - `editorConfiguration` refers to a previously defined editor configuration, which describes tab settings etc...
 - `filenamePatterns` used to match a file opened with a document type. For each document type defined the file selector will display an
   entry in the file type selection dropdown list in the file selector.
+
+## Document Types Dialog
+One may change the document type (and grammar) of a file by opening the _Change Document Types_ dialog available from
+the _Settings->Change Document Type..._ menu. In the dialog which comes up in this case, all known document types
+are listed.
+
+Selecting a document type shows the properties of it:
+
+- _Editor Configuration_: this is the name of the defined editor configuration, which defines the default editing flags
+  for the selected document type (e.g. Whether whitespace characters should be dispayed etc... - see below for details).
+- _Name_: this is the name of the document type.
+- _File Name_: this field defines the file name pattern of all files per default associated with this document type. One
+  may specify multiple file name patterns separated by `;` as e.g. `*.html;*.xml`.
+- _Description_: this is a description of the document type describing the purpose of it.
+- _Grammar_: the name of the default _grammar_ associated with this document type.
+
+If you press the <a name="apply>_Apply_</a> button, the document type selected in the document types list
+is applied to the current editor window. This allows you to e.g. change the grammar used and to bypass the
+predefined association between filenames and the corresponding document types.
 

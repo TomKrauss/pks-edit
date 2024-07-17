@@ -3198,7 +3198,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				pStream->is_skip(pStream, 1);
 				c = pStream->is_peekc(pStream, 0);
 			}
-			else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c) {
+			else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) != ' ') {
 				pStream->is_skip(pStream, 1);
 				mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 				pState->hps_currentStyle->fsd_logicalStyles ^= ATTR_HIGHLIGHT;
@@ -3622,9 +3622,42 @@ static int mdr_supportsMode(EDIT_MODE aMode) {
 	return (flag & (SHOW_LINENUMBERS | SHOW_RULER | SHOW_CONTROL_CHARS | SHOW_SYNTAX_HIGHLIGHT)) == 0;
 }
 
+/*
+ * Returns the total extent in pixels of the current layout described by the list
+ * of view parts. If nUpToPart is greater or equals to 0, we will get the extend
+ * up to not including the part with the given index. If -1 is passed we will get
+ * the extent of all viewparts.
+ */
+static void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, RENDER_VIEW_PART* pUpToPart) {
+	if (!pData) {
+		return;
+	}
+	pSize->cx = 10;
+	pSize->cy = 0;
+	int nIndex = 0;
+	RENDER_VIEW_PART* pPart = pData->md_pElements;
+	while (pPart) {
+		if (pPart == pUpToPart) {
+			break;
+		}
+		if (pPart->rvp_layouted) {
+			SIZE sPart;
+			sPart.cy = pPart->rvp_height;
+			// for now - not necessary to calculate the width
+			int nWidth = 100;
+			if (nWidth > pSize->cy) {
+				pSize->cx = nWidth;
+			}
+			pSize->cy += sPart.cy;
+		}
+		pPart = pPart->rvp_next;
+		nIndex++;
+	}
+}
+
 static int mdr_slSize(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {
 	SIZE size;
-	mdr_getViewpartsExtend(pData, &size, -1);
+	mdr_getViewpartsExtend(pData, &size, NULL);
 	if (size.cy == 0) {
 		return 0;
 	}
@@ -3691,7 +3724,7 @@ void mdr_scrolled(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, WPARAM wParam, BOOL 
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	SIZE size;
-	mdr_getViewpartsExtend(pData, &size, -1);
+	mdr_getViewpartsExtend(pData, &size, NULL);
 	SCROLLINFO info = {
 		.cbSize = sizeof info,
 		.fMask = SIF_RANGE | SIF_PAGE | SIF_POS
@@ -3762,7 +3795,7 @@ static int mdr_adjustScrollBoundsOffset(WINFO* wp, BOOL bMiddleOfScreen) {
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
 	RENDER_VIEW_PART* pCaret = pData->md_caretView;
-	mdr_getViewpartsExtend(pData, &size, pData->md_caretPartIndex);
+	mdr_getViewpartsExtend(pData, &size, pCaret);
 	int nNewY;
 	int nScreenHeight = rect.bottom - rect.top;
 	int nUse = pCaret ? pCaret->rvp_height : 10;
@@ -3808,39 +3841,6 @@ void mdr_invalidateViewpartsLayout(MARKDOWN_RENDERER_DATA* pData) {
 		pFirst->rvp_layouted = 0;
 		pFirst->rvp_height = 0;
 		pFirst = pFirst->rvp_next;
-	}
-}
-
-/*
- * Returns the total extent in pixels of the current layout described by the list
- * of view parts. If nUpToPart is greater or equals to 0, we will get the extend
- * up to not including the part with the given index. If -1 is passed we will get
- * the extent of all viewparts.
- */
-void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, int nUpToPart) {
-	if (!pData) {
-		return;
-	}
-	pSize->cx = 10;
-	pSize->cy = 0;
-	int nIndex = 0;
-	RENDER_VIEW_PART* pPart = pData->md_pElements;
-	while (pPart) {
-		if (nUpToPart >= 0 && nUpToPart == nIndex) {
-			break;
-		}
-		if (pPart->rvp_layouted) {
-			SIZE sPart;
-			sPart.cy = pPart->rvp_height;
-			// for now - not necessary to calculate the width
-			int nWidth = 100;
-			if (nWidth > pSize->cy) {
-				pSize->cx = nWidth;
-			}
-			pSize->cy += sPart.cy;
-		}
-		pPart = pPart->rvp_next;
-		nIndex++;
 	}
 }
 
@@ -3942,13 +3942,20 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		else {
 			rfp.rfp_part = pPart;
 			rfp.rfp_skipSpace = pPart->rvp_type != MET_FENCED_CODE_BLOCK;
-			if (!pPart->rvp_layouted && pPart->rvp_decoration || pPart->rvp_bounds.top < rect.top) {
+			if (!pPart->rvp_layouted && pPart->rvp_decoration) {
+				// need extra layout before paint.
 				rfp.rfp_measureOnly = TRUE;
 				pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
 			}
 			rfp.rfp_measureOnly = rect.top > pClip->bottom;
 			rfp.rfp_isCaret = pData->md_caretView == pPart;
 			if (bHighlight && rfp.rfp_isCaret && !rfp.rfp_measureOnly) {
+				if (pPart->rvp_bounds.top < rect.top) {
+					// need to layout first.
+					rfp.rfp_measureOnly = TRUE;
+					pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
+					rfp.rfp_measureOnly = rect.top > pClip->bottom;
+				}
 				mdr_highlightCaretLine(&rfp, pPart);
 			}
 			pPart->rvp_paint(&rfp, &rect, &pPart->rvp_occupiedBounds);
@@ -4052,7 +4059,7 @@ PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintL
 	int nTotal = (int)pPrintLine->yOffset + (rect.bottom - rect.top);
 	pPrintLine->yOffset = nTotal;
 	SIZE size;
-	mdr_getViewpartsExtend(pData, &size, -1);
+	mdr_getViewpartsExtend(pData, &size, NULL);
 	if (nTotal < size.cy) {
 		pPrintLine->pagenumber++;
 	}

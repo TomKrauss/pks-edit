@@ -1196,10 +1196,17 @@ static int doDocumentTypes(int nDlg) {
 
 	_selectedDocType = pConfig != NULL ? pConfig->documentType : NULL;
 	doctypes_fillParameters(docTypePars, (void*)pConfig);
-	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = docTypePars
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = IDD_CALLBACK3, .dhd_link = "manual\\document_types.md#apply"},
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#document-types-dialog"},
+		{.dhd_link = 0}
 	};
-	if (DoDialog(nDlg, doctype_dialogProcedure, &dialogDescriptor, NULL) == IDCANCEL) {
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = docTypePars,
+		.dd_helpItems = dialogHelpDescriptor
+	};
+	int nRet = DoDialog(nDlg, doctype_dialogProcedure, &dialogDescriptor, NULL);
+	if (nRet != IDD_CALLBACK3) {
 		return 0;
 	}
 

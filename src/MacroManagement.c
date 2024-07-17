@@ -1248,8 +1248,19 @@ upd: 				_macrosWereChanged = 1;
  */
 int EdMacrosEdit(void) {
 	int 				ret;
-
-	ret = DoDialog(DLGMACROS, DlgMacEditProc, 0, NULL);
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+	{.dhd_itemNumber = IDD_MACSTART, .dhd_link = "manual\\macro_language.md#run-macro"},
+	{.dhd_itemNumber = IDD_MACPRINTINSTRUCTIONS, .dhd_link = "manual\\macro_language.md#disassamble-macro"},
+	{.dhd_itemNumber = IDD_MACEDIT, .dhd_link = "manual\\macro_language.md#edit-macro"},
+	{.dhd_itemNumber = IDD_MACADDKEY, .dhd_link = "manual\\macro_language.md#assign-key-to-macro"},
+	{.dhd_itemNumber = IDD_OPT1, .dhd_link = "manual\\macro_language.md#show-internal-macros"},
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\macro_language.md#the-run-debug-macro-dialog"},
+	{.dhd_link = 0}
+	};
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_helpItems = dialogHelpDescriptor
+	};
+	ret = DoDialog(DLGMACROS, DlgMacEditProc, &dialogDescriptor, NULL);
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;

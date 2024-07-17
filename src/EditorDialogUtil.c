@@ -518,6 +518,9 @@ static void DlgInit(HWND hDlg, DIALOG_DESCRIPTOR *dpDialog, BOOL initialFlag) {
 	int		nPars;
 
 	DIALOG_ITEM_DESCRIPTOR* dp = dpDialog->dd_items;
+	if (dp == NULL) {
+		return;
+	}
 	for (dp2 = dp, nPars = 0; dp2->did_controlNumber; dp2++) {
 		nPars++;
 	}
@@ -933,11 +936,13 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 	switch(message) {
 		case WM_HELP: {
 			HELPINFO* pInfo = (HELPINFO*)lParam;
-			DIALOG_HELP_DESCRIPTOR* pDhd = dlg_findContextHelp(_dp->dd_helpItems, pInfo == NULL ? 0 : pInfo->iCtrlId);
-			if (pDhd != NULL) {
-				help_open(pDhd->dhd_link);
+			if (_dp) {
+				DIALOG_HELP_DESCRIPTOR* pDhd = dlg_findContextHelp(_dp->dd_helpItems, pInfo == NULL ? 0 : pInfo->iCtrlId);
+				if (pDhd != NULL) {
+					help_open(pDhd->dhd_link);
+				}
+				EndDialog(hDlg, IDCANCEL);
 			}
-			EndDialog(hDlg, IDCANCEL);
 			return TRUE;
 		}
 		case WM_NOTIFY:

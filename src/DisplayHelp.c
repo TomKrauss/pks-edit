@@ -52,9 +52,10 @@ int help_open(char *szFile) {
 		WINFO* wp = fp ? WIPOI(fp) : NULL;
 		if (wp) {
 			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
-			if (pszLink && wp->renderer->r_navigateAnchor) {
-				wp->renderer->r_navigateAnchor(wp, pszLink);
-			}
+		}
+		wp = ww_getCurrentEditorWindow();
+		if (wp &&  pszLink && wp->renderer->r_navigateAnchor) {
+			wp->renderer->r_navigateAnchor(wp, pszLink);
 		}
 		return 1;
 	}

@@ -1,7 +1,6 @@
 # Recording Macros and the PKS Edit Macro Language
 
 ## Macros in PKS Edit
-
 Macros in PKS Edit can be recorded or manually edited using the _PKSMacroC Language_ and compiled inside PKS Edit.
 PKSMacroC compiles files (by default with an extension .pkc) into a binary format, which can be saved and loaded
 by PKS Edit. By default a file called **pksedit.mac** is loaded from the `pks_sys` directory containing the standard
@@ -11,19 +10,33 @@ The standard macro file shipped with PKS Edit currently contains:
 - custom macros performing text operations - for instance used as post-save actions or the like.
 
 ## Recording Macros
-
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
 When PKS Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## The Macro Menu
-
-Allows you to edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
+Allows you to run and edit macros defined. One may add comments / remove macros, decompile a recorded macro, disassemble a macro from here.
 
 Also contains menu entries created from the macros defined allowing to use any defined macro.
 
-## Compiling Macros
+### The Run Debug Macro Dialog
+Pressing _Macros->Run/Debug Macros_ takes you to a dialog which shows the list of macros defined in PKS Edit.
 
+By selecting the <a name="show-internal-macros">_show internal macros_</a> checkbox, you may display all macros, which are defined internally in PKS
+Edit and which can also be bound to keys and exececuted. They can however not be edited or disassembled.
+
+It provides the options to
+- <a name="disassamble-macro"></a>_Dissassemble_ macros. This allows you to look at the internal **byte codes**
+  of a PKS Edit macro. It will show the byte codes in a new editor window for the selected macro.
+- <a name="run-macro"></a>_Run_ a macro. This will execute the selected macro.
+- <a name="edit-macro"></a>_Edit_ a macro. This will open the selected macro in an editor window, where
+  you can edit it. When you are done, use the _Compile Macros_ menu to compile the edited macro.
+- <a name="assign-key-to-macro"></a>_Assign_ a key to a macro. This will open a window allowing you to select the key
+  to associate with the macro. Use _Disconnect_ to disconnect from key bindings.
+
+You may also delete selected macros and rename them from here.
+
+## Compiling Macros
 To compile one or more macros, you open a macro file (see the `macros` sub-directory for samples) and press F10 once the file is loaded and then OK. If the compilation is successful a message is displayed, that no error was found. Otherwise an error log is opened, which can be navigated with Ctrl+N and Ctrl+P to jump to the corresponding line numbers with the erors.
 
 ## The PKSMacroC Language

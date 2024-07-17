@@ -340,7 +340,8 @@ void caret_moveToLine(WINFO* wp, long ln) {
 	codecomplete_hideSuggestionWindow(wp);
 	long oldln = wp->caret.ln;
 	wp->caret.ln = ln;
-	if (wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT && wp->renderer->r_supportsMode((EDIT_MODE) { .em_displayMode = TRUE, .em_flag = SHOW_CARET_LINE_HIGHLIGHT })) {
+	if ((wp->dispmode & (SHOW_CARET_LINE_HIGHLIGHT|SHOW_WYSIWYG_DISPLAY)) == SHOW_CARET_LINE_HIGHLIGHT && 
+			wp->renderer->r_supportsMode((EDIT_MODE) { .em_displayMode = TRUE, .em_flag = SHOW_CARET_LINE_HIGHLIGHT })) {
 		render_repaintWindowLine(wp, oldln);
 		render_repaintWindowLine(wp, ln);
 	}

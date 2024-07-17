@@ -43,14 +43,6 @@ extern void mdr_renderMarkdownData(HWND hwnd, PAINTSTRUCT* ps, int nTopY, MARKDO
 extern void mdr_invalidateViewpartsLayout(MARKDOWN_RENDERER_DATA* pData);
 
 /*
- * Returns the total extent in pixels of the current layout described by the list
- * of view parts. If nUpToPart is greater or equals to 0, we will get the extend
- * up to not including the part with the given index. If -1 is passed we will get
- * the extent of all viewparts.
- */
-extern void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pFirst, SIZE* pSize, int nUpToPart);
-
-/*
  * Can be used to find out, whether a link was clicked in a rich text renderer component given
  * the renderer data hook and the mouse x and y position. If a link was clicked, the target
  * URL is returned.
