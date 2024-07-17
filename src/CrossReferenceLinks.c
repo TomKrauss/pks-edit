@@ -1211,6 +1211,45 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 	return 0;
 }
 
+static BOOL xref_isFileNameCharacter(char c) {
+	return c != ' ' && c != '\t' && c != '(' && c != ')' && c != '[' && c != ']' && c != ';' && c != '*' && c != '?';
+}
+
+static int xref_getFileNameInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT* pResult, char* szFileBuffer, size_t nFileBufferSize) {
+	LINE* lp = wp->caret.linePointer;
+	// Try to locate a filename under the caret.
+	char* pStart = lp->lbuf + wp->caret.offset;
+	char* pIdentifierEnd = pStart;
+	char* pEnd = lp->lbuf + lp->len;
+	while (pStart > lp->lbuf) {
+		char c = pStart[-1];
+		if (!xref_isFileNameCharacter(c)) {
+			break;
+		}
+		pStart--;
+	}
+	while (pIdentifierEnd < pEnd) {
+		char c = *pIdentifierEnd;
+		if (!xref_isFileNameCharacter(c)) {
+			break;
+		}
+		pIdentifierEnd++;
+	}
+	if (pStart != pIdentifierEnd) {
+		pResult->ni_displayMode = -1;
+		size_t nLen = pIdentifierEnd - pStart;
+		if (nLen > nFileBufferSize) {
+			nLen = nFileBufferSize;
+		}
+		strncpy(szFileBuffer, pStart, nLen);
+		szFileBuffer[nLen] = 0;
+		pResult->ni_reference = szFileBuffer;
+		pResult->ni_lineNumber = 0;			// for now - to be initialized from capture group
+		return 1;
+	}
+	return 0;
+}
+
 static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT* pResult, char* szFileBuffer, size_t nFileBufferSize) {
 	LINE* lp = wp->caret.linePointer;
 	FTABLE* fp = wp->fp;
@@ -1246,7 +1285,7 @@ static int xref_determineNavigationInfo(WINFO* wp, NAVIGATION_INFO_PARSE_RESULT*
 		}
 		pPattern = pPattern->next;
 	}
-	return 0;
+	return xref_getFileNameInfo(wp, pResult, szFileBuffer, nFileBufferSize);
 }
 
 /*
@@ -1262,14 +1301,21 @@ static int xref_shellExecute(char* pszCommand) {
 	return 0;
 }
 
+/*
+ * Check, whether a URL can be opened using a browser.
+ */
+static BOOL xref_isUrl(char* pszFileReference) {
+	return strstr(pszFileReference, "://") != NULL;
+}
+
 /*--------------------------------*/
 /* EdFindFileCursor() */
 /*---------------------------------*/
 int EdFindFileCursor(WINFO* wp)
 {	char	*found;
-	char	fselpath[128];
+	char	fselpath[256];
 	char	currentFilePath[512];
-	char	filename[128];
+	char	filename[256];
 	NAVIGATION_INFO_PARSE_RESULT result;
 
 	if (wp == NULL) {
@@ -1283,8 +1329,13 @@ int EdFindFileCursor(WINFO* wp)
 		FTABLE* fp = wp->fp;
 		wp = NULL;
 		string_splitFilename(_fseltarget, fselpath, filename);
+		char* pszAnchor = strchr(filename, '#');
+		if (pszAnchor != NULL) {
+			*pszAnchor = 0;
+		}
 		string_splitFilename(fp->fname, currentFilePath, NULL);
 		if ((found = file_searchFileInPath(filename, GetConfiguration()->includePath)) != 0 ||
+			(found = file_searchFileInPath(filename, currentFilePath)) != 0 ||
 			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||
 			(fselpath[0] && (found = file_searchFileInPath(_fseltarget, fselpath)) != 0)) {
 			fm_savepos(MTE_AUTO_LAST_SEARCH);
@@ -1308,8 +1359,8 @@ int EdFindFileCursor(WINFO* wp)
 		}
 		return 1;
 	}
-	if (_fseltarget[0]) {
-		xref_shellExecute(_fseltarget);
+	if (xref_isUrl(_fseltarget)) {
+		return xref_shellExecute(_fseltarget);
 	}
 	return 0;
 }

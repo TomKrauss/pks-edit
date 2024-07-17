@@ -9,8 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.8.0] - 2024-07-05
 
 ### Changed
-- The Option Save Settings on Exit was eliminated, as it was useless and even dangerous: settings are already saved 
-  as soon as they were changed in configuration dialog. Saving them again on exit could clobber information manually added to `pkseditini.json`.
+- The Option _Save Settings on Exit_ was eliminated, as it was useless and even dangerous: settings are already saved 
+  as soon as they are changed in the configuration dialog. Saving them again on exit could clobber information manually 
+  added to `pkseditini.json`.
 
 ### Improved
 - The Align Text function is more intuitive to use now.
