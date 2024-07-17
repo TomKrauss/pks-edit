@@ -611,6 +611,7 @@ static WINFUNC labeled_windowProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 	case WM_ERASEBKGND:
 		return 0;
 
+	case WM_CTLCOLORSTATIC:
 	case WM_CTLCOLOREDIT: {
 		THEME_DATA* pTheme = theme_getCurrent();
 		HDC hdc = (HDC)wParam;

@@ -1836,6 +1836,10 @@ int EdListBindings(LIST_BINDING_OPTION lWhich)
 	return 1;
 }
 
+static void dlg_initializeRedirectionEnablement(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* pDescriptor) {
+	EnableWindow(GetDlgItem(hDlg, pDescriptor->did_controlNumber), ww_getCurrentEditorWindow() != NULL);
+}
+
 /*--------------------------------------------------------------------------
  * EdCommandExecute()
  */
@@ -1861,7 +1865,10 @@ int EdCommandExecute(void)
 		{IDD_OPT1,		EX_SYMBOL,		&opt},
 		{IDD_OPT2,		EX_WAIT,		&opt},
 		{IDD_OPT3,		EX_RUN_IN_SHELL,&opt},
-		{IDD_RADIO1,		4,			&redir},
+		{IDD_RADIO1,	1,				&redir, .did_initialize = dlg_initializeRedirectionEnablement},
+		{IDD_RADIO2,	2,				&redir, .did_initialize = dlg_initializeRedirectionEnablement},
+		{IDD_RADIO3,	3,				&redir, .did_initialize = dlg_initializeRedirectionEnablement},
+		{IDD_RADIO4,	4,				&redir, .did_initialize = dlg_initializeRedirectionEnablement},
 		{0}
 	};
 	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
