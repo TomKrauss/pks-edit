@@ -3198,7 +3198,8 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 				pStream->is_skip(pStream, 1);
 				c = pStream->is_peekc(pStream, 0);
 			}
-			else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) != ' ') {
+			else if (!bEscaped && c == '=' && pStream->is_peekc(pStream, 1) == c && 
+					((pState->hps_currentStyle->fsd_logicalStyles & ATTR_HIGHLIGHT) || pStream->is_peekc(pStream, 2) != ' ')) {
 				pStream->is_skip(pStream, 1);
 				mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 				pState->hps_currentStyle->fsd_logicalStyles ^= ATTR_HIGHLIGHT;
