@@ -44,13 +44,13 @@ static void log_levelMessageArgs(LOG_LEVEL logLevel, LPSTR fmt, va_list ap) {
 	} else if (logLevel == DEBUG_ERR) {
 		pszLevel = "ERROR";
 	}
-    wvsprintf((LPSTR)buf,(LPSTR)fmt,(LPSTR)ap);
+    vsprintf_s((LPSTR)buf, sizeof buf, (LPSTR)fmt,(LPSTR)ap);
 	time_t rawtime;
 	rawtime = time(NULL);
 	struct tm* tm_info;
 	tm_info = localtime(&rawtime);
 	strftime(szTime, 26, "%Y-%m-%d %H:%M:%S", tm_info);
-	wsprintf(bufTotal, "%s:%s:%s:%s\n", szAppName, pszLevel, szTime, buf);
+	sprintf_s(bufTotal, sizeof bufTotal, "%s:%s:%s:%s\n", szAppName, pszLevel, szTime, buf);
 	if (_pksEditLogfile == NULL) {
 		char szLogFilename[MAX_PATH];
 		szLogFilename[0] = 0;

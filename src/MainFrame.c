@@ -1840,7 +1840,7 @@ static void mainframe_updateTitle() {
 	}
 	lastCount = nCount;
 	if (nCount > 1 && mainWindowIsOther) {
-		wsprintf(szTitle, "* %s * (%d)", _applicationName, nCount);
+		sprintf_s(szTitle, sizeof szTitle, "* %s * (%d)", _applicationName, nCount);
 	}
 	else {
 		lstrcpy(szTitle, _applicationName);

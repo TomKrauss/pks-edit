@@ -14,6 +14,7 @@
  */
 
 #include <windows.h>
+#include <windowsx.h>
 #include <stdio.h>
 #include <CommCtrl.h>
 #include "alloc.h"
@@ -41,25 +42,19 @@
  */
 extern void sound_playChime(void);
 
-static HHOOK hHook;
-
 static BOOL _messagesDisabled;
 
-static LRESULT WINAPI error_messageBoxHook(int nCode, WPARAM wParam, LPARAM lParam) {
-	if (nCode < 0) {
-		return CallNextHookEx(hHook, nCode, wParam, lParam);
+static HRESULT error_taskDialogCallback(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LONG_PTR lpRefData) {
+	if (msg == TDN_DIALOG_CONSTRUCTED) {
+		dlg_defaultWndProc(hwnd, WM_INITDIALOG, wParam, lParam);
 	}
-	CWPSTRUCT* pStruct = (CWPSTRUCT*)lParam;
-	if (pStruct->message == WM_INITDIALOG || pStruct->message == WM_CTLCOLORDLG) {
-		return dlg_defaultWndProc(pStruct->hwnd, pStruct->message, pStruct->wParam, pStruct->lParam);
-	}
-	return 1;
+	return S_OK;
 }
 /*------------------------------------------------------------
  * error_displayAlertBoxWithOptions()
  */
 int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
-	if (!fmt || hHook) {
+	if (!fmt) {
 		return -1;
 	}
 	wchar_t szwAppName[64];
@@ -72,7 +67,6 @@ int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
 	}
 	mbstowcs(szwFmt, fmt, nSize);
 	mbstowcs(szwDetails, "", 1);
-	hHook = SetWindowsHookEx(WH_CALLWNDPROC, error_messageBoxHook, hInst, GetCurrentThreadId());
 	int nButtons = 0;
 	PCWSTR nIcon = TD_INFORMATION_ICON;
 	int nOldButtons = buttons & 0xF;
@@ -100,10 +94,17 @@ int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
 	} else if (nOldIcon == MB_ICONWARNING) {
 		nIcon = TD_WARNING_ICON;
 	}
-	int ret;
-	TaskDialog(hwndMain, hInst, szwAppName, szwFmt, szwDetails, nButtons, nIcon, &ret);
-	UnhookWindowsHookEx(hHook);
-	hHook = NULL;
+	int ret = 0;
+	TASKDIALOGCONFIG config = {
+		.cbSize = sizeof(TASKDIALOGCONFIG),
+		.hwndParent = hwndMain,
+		.pszWindowTitle = szwAppName,
+		.pszContent = szwFmt,
+		.dwCommonButtons = nButtons,
+		.pszMainIcon = nIcon,
+		.pfCallback = error_taskDialogCallback
+	};
+	TaskDialogIndirect(&config, &ret, NULL, NULL);
 	return ret;
 }
 
@@ -114,7 +115,7 @@ static int error_openConfigurableAlert(int buttons, LPSTR fmt, va_list ap)
 {   char szBuf[1024];
 
 	// 1024 == maximum result size for wvsprintf
-    wvsprintf(szBuf,(LPSTR)fmt, ap);
+    vsprintf_s(szBuf, sizeof szBuf, (LPSTR)fmt, ap);
 	int ret = error_displayAlertBoxWithOptions(buttons, szBuf);
 	return ret;
 }
@@ -192,7 +193,7 @@ void error_displayErrorToast(const char* fmt, va_list ap) {
 	if (_messagesDisabled) {
 		return;
 	}
-	wvsprintf(szBuf,bShowToast ? fmt:fmt+1,ap);
+	vsprintf_s(szBuf, sizeof szBuf, bShowToast ? fmt:fmt+1,ap);
 	st_setStatusLineMessage(szBuf);
 
 	if (_startupComplete && bShowToast && (GetConfiguration()->options & O_SHOW_MESSAGES_IN_SNACKBAR) != 0) {

@@ -124,7 +124,7 @@ static void yyreport(const char* s, int bError, va_list ap) {
 	char buf1[512];
 	if (yyerr.errfp != 0 ||
 		(yyerr.errfp = file_createTempFile(yyerr.errname, "pksmacro.err")) != 0) {
-		wvsprintf(buf1, s, ap);
+		vsprintf_s(buf1, sizeof buf1, s, ap);
 		fprintf(yyerr.errfp, "%s %s %d: %s\n", (bError) ? "Error" : "Warning", yy_getCurrentInputFilename(), yylineno, buf1);
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {

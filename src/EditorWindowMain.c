@@ -368,7 +368,7 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 		strcpy(buf, fp->title);
 	} else {
 		char* pName = ft_visibleName(fp);
-		wsprintf(buf, "#%d %s", nr, (LPSTR)pName);
+		sprintf_s(buf, sizeof buf, "#%d %s", nr, (LPSTR)pName);
 		if (ft_isFileModified(fp)) {
 			memmove(buf + 2, buf, sizeof buf - 2);
 			buf[0] = '*';
@@ -1468,7 +1468,7 @@ static int mouse_onRulerClicked(WINFO* wp, int x, int y, int msg, int shift) {
 
 	x -= ruler_getLeft(wp);
 	wp->renderer->r_hitTest(wp, x + wp->cwidth / 2, y, &ln, &col);
-	wsprintf(szBuf, /*STR*/"SPALTE: %4ld", col + 1);
+	wsprintf(szBuf, /*STR*/"column: %4ld", col + 1);
 	st_setStatusLineMessage(szBuf);
 
 	if (msg == WM_RBUTTONDOWN) {

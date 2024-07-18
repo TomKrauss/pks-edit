@@ -16,6 +16,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #if !defined(WIN32)
 #include <toolhelp.h>
 #endif
@@ -113,7 +114,7 @@ int EdExecute(long flags, LPSTR cmdline, LPSTR lpWorkingDirectory, LPSTR errfile
 			lstrcpy(outfile, errfile);
 		}
 		const char* pszInvoker = execute_determineCommandShellCommand(cmdline);
-		wsprintf(szTemp, pszInvoker, cmdline);
+		sprintf_s(szTemp, sizeof szTemp, pszInvoker, cmdline);
 		cmdline = szTemp;
 		dwCreationFlags = CREATE_NO_WINDOW;
 	}

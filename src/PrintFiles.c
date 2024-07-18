@@ -18,6 +18,7 @@
 #include <CommCtrl.h>
 #include <windowsx.h>
 #include <ocidl.h>
+#include <stdio.h>
 
 #include "trace.h"
 #include "caretmovement.h"
@@ -407,14 +408,14 @@ static int print_singleLineOfText(RENDER_CONTEXT* pRC, PRINT_LINE *pLine) {
 	pLine->wrappedLineOffset = 0;
 	nMaxCharsPerLine = 0;
 	if (pParams->options & PRTO_LINE_NUMBERS) {
-		char 	szBuff[80];
-		wsprintf(szBuff, "%3ld: ", pLine->lineNumber);
-		int		nCount = (int)strlen(szBuff);
+		char 	szBuf[80];
+		wsprintf(szBuf, "%3ld: ", pLine->lineNumber);
+		int		nCount = (int)strlen(szBuf);
 		if (printing && nActualLine >= nFirstActualLineToPrint) {
 			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
-			TextOut(hdc, pLine->xPos, pLine->yPos, szBuff, nCount);
+			TextOut(hdc, pLine->xPos, pLine->yPos, szBuf, nCount);
 		}
-		xPos += LOWORD(win_getTextExtent(hdc, szBuff, nCount));
+		xPos += LOWORD(win_getTextExtent(hdc, szBuf, nCount));
 		nMaxCharsPerLine = -nCount;
 	}
 	_currentPrintScope.wp->mincol = pLine->firstc;
@@ -1107,7 +1108,7 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 	_currentPrintScope.nlines = 
 		ln_cnt(_currentPrintScope.lp,_currentPrintScope.lplast);
 	if (what == PRT_CURRBLK) {
-		wsprintf(message, "%s-selection", string_getBaseFilename(ft_visibleName(fp)));
+		sprintf_s(message, sizeof message, "%s-selection", string_getBaseFilename(ft_visibleName(fp)));
 	} else {
 		char* pBasename = string_getBaseFilename(ft_visibleName(fp));
 		strcpy(message, pBasename);

@@ -774,7 +774,7 @@ static void mdr_imageLoaded(HWND hwnd, void* pParam, HBITMAP hBmp, int dwError) 
 			pImage->mdi_image = LoadIcon(hInst, MAKEINTRESOURCE(IDB_BROKEN_IMAGE));
 		}
 		char szTitle[128];
-		wsprintf(szTitle, "Image load error %d", dwError);
+		sprintf_s(szTitle, sizeof szTitle, "Image load error %d", dwError);
 		if (pRun->tr_title) {
 			free(pRun->tr_title);
 		}
