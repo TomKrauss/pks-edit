@@ -217,25 +217,26 @@ BEGIN
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
 END
 
-DLGCURSOROPTIONS DIALOGEX 91, 91, 435, 141
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGCURSOROPTIONS DIALOGEX 91, 91, 430, 129
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Cursor und Rollen"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Verhalten beim Rollen",-1,4,16,182,86,WS_GROUP
-    LTEXT           "&Minimum Cursor-Rand:",-1,8,32,80,10,NOT WS_GROUP
+    GROUPBOX        "Cursor Verhalten beim Scrollen",-1,4,16,182,99,WS_GROUP
+    LTEXT           "&Minimum Cursor-Rand zum Bildschirmende:",-1,8,32,145,10,NOT WS_GROUP
     EDITTEXT        IDD_INT3,165,31,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Scrolle mindestens um:",-1,8,45,78,8,NOT WS_GROUP
+    LTEXT           "Beim Erreichen des Bildschirmendes, &scrolle mindestens um Zeilen:",-1,8,45,141,22,NOT WS_GROUP
     EDITTEXT        IDD_INT4,165,43,12,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Bildschirmupdate",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,59,166,10
-    CONTROL         "Cursor &folgt",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,71,166,10
-    GROUPBOX        "Cursor nach Suchen",-1,195,16,219,86,WS_GROUP
+    CONTROL         "&Bildschirmupdate",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,75,166,10
+    CONTROL         "Cursor &folgt beim Scrollen",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,87,166,10
+    GROUPBOX        "Cursor Position nach der Suche",-1,195,16,219,99,WS_GROUP
     CONTROL         "&Oben am Bildschirm",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,199,28,209,12
     CONTROL         "&Zentriert ",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,42,209,9
     CONTROL         "&Unten am Bildschirm",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,199,53,209,12
-    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,8,121,11,14
-    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,122,11,14
-    CONTROL         "Caret preserves Column",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,83,166,10
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,8,112,11,14
+    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,30,112,11,14
+    CONTROL         "Cursor versucht, Spaltenposition beizubehalten",IDD_OPT3,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,8,99,166,10
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 331, 199
@@ -339,12 +340,13 @@ BEGIN
 END
 
 DLGMULTI DIALOGEX 42, 35, 170, 44
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Multiplikator"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Setze Multiplikator: ",IDD_LOWOPT,8,12,68,8,NOT WS_GROUP
-    EDITTEXT        IDD_LONG1,76,10,32,12,ES_RIGHT | ES_NUMBER,WS_EX_RIGHT
+    LTEXT           "Kommandomultiplikator: ",IDD_LOWOPT,9,12,101,8,NOT WS_GROUP
+    EDITTEXT        IDD_LONG1,9,27,67,12,ES_RIGHT | ES_NUMBER,WS_EX_RIGHT
     DEFPUSHBUTTON   "&OK",1,116,26,48,14
     PUSHBUTTON      "&Abbruch",2,116,8,48,14
 END
@@ -933,7 +935,6 @@ BEGIN
 
     DLGCURSOROPTIONS, DIALOG
     BEGIN
-        BOTTOMMARGIN, 120
     END
 
     DLGDISPMODE, DIALOG
@@ -1259,6 +1260,11 @@ BEGIN
 END
 
 DLGGOTOLINE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGMULTI AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1618,7 +1624,7 @@ BEGIN
     IDS_COMMAND71           "Liest eine Verweisdatei;Verweis lesen"
     IDS_COMMAND72           "Alte Suchergebnisse verwenden;Datei mit Suchergebnissen öffnen..."
     IDS_COMMAND73           "Liest eine Compiler Fehler Liste;Logausgabe eines Builds lesen..."
-    IDS_COMMAND74           "Fügt Dokumenteinstellungen (Abkürzungen, ...) einer Modusdatei hinzu;Erweitere Einstellungen"
+    IDS_COMMAND74           "Speichert die definierten Dokumenttypen und Default Editor Konfigurationen;Dokument-Typ-Einstellungen sichern..."
     IDS_COMMAND75           "Startet/Stoppt eine Makro Aufnahme;Makro aufnehmen"
     IDS_COMMAND76           "Startet, debugged und editiert Makros und ihre Bindungen an Tasten etc...;Makros starten / debuggen..."
     IDS_COMMAND77           "Schreibt eine Makrodatei;Makros speichern..."
@@ -1629,7 +1635,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND80           "Toggled die Hervorhebung des Bildschirmbereichs mit dem Einfügecursor;Cursor hervorheben"
-    IDS_COMMAND81           "Stellt den Anzeige-Modus ein;Anzeigemodus einstellen"
+    IDS_COMMAND81           "Stellt Bearbeitungs- und Anzeige-Modus ein;Einstellungen Bearbeitungen und Anzeige..."
     IDS_COMMAND82           "Stellt den Bearbeitungs-Modus ein;Beabeitungsmodus einstellen"
     IDS_COMMAND83           "Stellt das Verhalten des Textcursors ein;Cursorverhalten einstellen"
     IDS_COMMAND84           "Stellt das Dateiformat ein;Dateiformat einstellen"

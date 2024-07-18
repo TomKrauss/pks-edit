@@ -666,10 +666,15 @@ int EdKeycodeInsert(void)
  * EdSetMultiplier()
  */
 extern long _multiplier;
-int EdSetMultiplier(void)
-{
-	if ((_multiplier = dialogGetNumber(DLGMULTI, 2, NULL)) > 0L) 
+int EdSetMultiplier(void) {
+
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#command-multiplier"},
+		{.dhd_link = 0}
+	};
+	if ((_multiplier = dialogGetNumber(DLGMULTI, 2, help)) > 0L) {
 		return 1;
+	}
 	_multiplier = 1;
 	return 0;
 }

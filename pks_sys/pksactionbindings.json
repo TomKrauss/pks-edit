@@ -489,8 +489,8 @@
       "command": "@remove-secondary-carets"
     },
     {
-      "key": "Alt+ESCAPE",
-      "command": "@set-multiplikator"
+      "key": "Shift+Alt+OEM_PLUS",
+      "command": "@set-multiplier"
     },
     {
       "key": "Alt+LEFT",
@@ -593,7 +593,7 @@
       "command": "@quit-edit"
     },
     {
-      "key": "Alt+MULTIPLY",
+      "key": "Alt+OEM_PLUS",
       "command": "@set-options"
     },
     {
@@ -964,7 +964,8 @@
           "command": "@select-all",
           "icon": "select-all"
         },
-        { "command": "@remove-selection" }
+        { "command": "@remove-selection" },
+        { "command": "@set-multiplier" }
       ]
     },
     {

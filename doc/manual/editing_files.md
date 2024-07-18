@@ -1,7 +1,6 @@
 # Editing Files
 
 ## Selecting text
-
 You may select text in PKS Edit using either the mouse and dragging over a range of text to select 
 or by using the cursor keys in combination with the `Shift` key as in other text editors.
 
@@ -16,7 +15,6 @@ between columns c1 and c2 in a lines exclusively
 The shape of the selection can be selected e.g. in the `Editor Settings` menu.
 
 ## Editing text
-
 PKS Edit supports the most commonly used editing features provided by nowadays code editors:
 
 - inserting text with a selection present, will by default delete the selected text (this behavior 
@@ -33,7 +31,6 @@ PKS Edit supports the most commonly used editing features provided by nowadays c
   to the `Function` menu of PKS Edit.
 
 ## Multi-caret editing
-
 PKS Edit supports the definition of multiple insertion carets where changes can be made in a corresponding
 way on various places in the text/code edited. Multiple carets in PKS Edit can be created by:
 
@@ -45,6 +42,10 @@ with one operation.
 
 Multi caret mode ends, when an operation is performed inside PKS Edit other than inserting characters and deleting characters or
 when the `ESCAPE` key is pressed.
+
+## Command Multiplier
+By using _Edit->Set Command Multiplier_ you can set a multiplier to be used to execute the next command multiple times. Setting the command multiplier to 10 for
+instance and then pressing `Ctrl+DEL` will delete the next 10 words in the text.
 
 ## Sorting text
 
