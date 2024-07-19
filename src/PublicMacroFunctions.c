@@ -1079,16 +1079,16 @@ static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par)
 	char *	pszId;
 	char *	pszDescription;
 	char *	pszMatch;
-	char *	pszFname;
+	char *	pszEditorConfigName;
 	char*	pszGrammar;
 
-	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, & pszFname, & pszGrammar)) {
+	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, & pszEditorConfigName, & pszGrammar)) {
 		return;
 	}
 
 	dp->did_data = pszId;					dp++;
 	dp->did_data = pszDescription;			dp++;
-	_editorConfigurationList.li_param = pszFname;	dp++;
+	_editorConfigurationList.li_param = pszEditorConfigName;	dp++;
 	dp->did_data = pszMatch;				dp++;
 	dp->did_data = pszGrammar;
 }
@@ -1142,11 +1142,11 @@ static void doctypes_getColumnParameters(NMLVDISPINFO* plvdi) {
 	char* pszId;
 	char* pszDescription;
 	char* pszMatch;
-	char* pszFname;
+	char* pszEditorConfigName;
 	char* pszGrammar;
 
 	if (!doctypes_getDocumentTypeDescription((void*)plvdi->item.lParam, &pszId, &pszDescription, &pszMatch,
-		&pszFname, &pszGrammar)) {
+		&pszEditorConfigName, &pszGrammar)) {
 		return;
 	}
 	switch (plvdi->item.iSubItem)

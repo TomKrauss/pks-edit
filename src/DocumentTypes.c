@@ -309,7 +309,7 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
  * it in a UI).
  */
 BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
-	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszFname,
+	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszEditorConfigName,
 	char** ppszGrammar) {
 
 	if (!llp) {
@@ -331,8 +331,8 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	if (ppszMatch) {
 		*ppszMatch = llp->ll_match;
 	}
-	if (ppszFname) {
-		*ppszFname = llp->ll_editorConfigurationName;
+	if (ppszEditorConfigName) {
+		*ppszEditorConfigName = llp->ll_editorConfigurationName;
 	}
 	if (ppszGrammar) {
 		*ppszGrammar = llp->ll_grammarScope;
