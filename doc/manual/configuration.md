@@ -40,7 +40,7 @@ PKS Edit supports two _autosave_ modes: it may either save the files directly au
 - _Autosave time_ - can be used to configure the time period during which all changed editors are automatically saved. Setting the time to 0 will disable autosave.
 - _Automatically delete autosave temporary files_ - if this option is set, PKS Edit will automatically erase all auto-saved files saved to a temporary directory even after crashes when exiting.
 - _Autosave path_ - configures the PKS Edit temporary directory, where it will autosave files.
-- _Reopen previously open file_ - will have PKS Edit maintain the current _editing session_. When PKS Edit exits, it will save the information about all currently open files and windows (in a file named `pksedit.his`) and will
+- _Reopen previously open files_ - will have PKS Edit maintain the current _editing session_. When PKS Edit exits, it will save the information about all currently open files and windows (in a file named `pksedit.his`) and will
   restore these files, when it is restarted.
 - _Save macros on exit_ - when checked all recorded or compiled [macros](macro_language.md) are saved automatically to the compiled macro file (`pksedit.mac`).
 - _Place backup files in temporary directory_ - if this option is set, a copy of a modified file is written to the temporary PKS Edit directory.
@@ -68,16 +68,24 @@ Layout Options configure the general UI of PKS Edit
 
 ## Miscellaneous Options
 - _Undo available_ - should be set by default to allow for undo and redo of actions.
-- _Number of undo steps_ - configures the maximum number of actions which can be undone. Setting this value to high may cause memory problems, so change with care.
-- _Silently reload files changed externally_ - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
-   a confirmation dialog.
+- <a name="number-of-undo-steps">_Number of undo steps_</a> - configures the maximum number of actions which can be undone. Setting this value to an excessive hight value may cause memory problems, so change with care.
+- _Maximum number of open windows_ - configures the maximum number of windows to display at a time. If a new window is opened, causing the number of open windows to
+  exceed the configured maximum, PKS Edit will automatically close one of the open windows. Setting this value to 0 will disable a limit of open
+  windows.
 - _Hide selection on caret movement_ - when the caret is moved and text is selected, the selection "goes away", if this option is set.
 - _Open dialogs close to mouse pointer_ - when opening a dialog (e.g. Find or Replace), the dialog opens close to the current mouse position, when this option is set.
+- _Silently reload files changed externally_ - if set, externally changed files are silently reloaded (unless modified) by PKS Edit without popping up 
+   a confirmation dialog.
 - _Lock edited files_ - when this option is set, files are locked, when they are edited, so they cannot be changed by other applications concurrently.
 - _Theme_ - allows to select one of the pre-defined editor themes defining fonts and colors used in PKS Edit. The available themes are configured in a file named `themeconfig.json`. 
 - _Language_ - allows to select the user interface language of PKS Edit (currently only German and English are available - the manual is only available in English).
 - _Default Font_ - can be used to configure the default text font face used in editing windows, when no explicit font face name is configured in a 
    style defined in the theme configuration.
+- _Reuse running PKS Edit instance_ - if this option is set, opening a file (from the command line or via Windows Explorer) will not
+  start a new PKS Edit application if PKS Edit is running already, but will have the running version open that file.
+- _Default search engine_ - this is used, when the`_Search on the Internet_` function (Find menu) is used. The expression to find
+  will then be delegated to the configured search engine.
+
 
 ## Configuration of bindings for keyboard, mouse, context menu 
 All Action bindings in PKS Edit are defined in the file `pks_sys\pksactionbindings.json`. This will define all user interface elements triggering

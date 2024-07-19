@@ -88,13 +88,13 @@ void render_paintSelectionRect(HDC hdc, RECT* pRect) {
  * markline()
  * Paint the selection in a line.
  */
-static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol)
-{
-	RECT 	r;
+static void paintSelection(HDC hdc, WINFO* wp, LINE* lp, int y, int lastcol) {
+	RECT 	r = {
+		.left = 0,
+		.top = y,
+		.bottom = y + wp->cheight
+	};
 
-	r.top = y;
-	r.bottom = y + wp->cheight;
-	r.left = 0;
 	if (ww_isColumnSelectionMode(wp) != 0) {
 		r.left = wp->blcol1;
 		r.right = wp->blcol2;
@@ -438,12 +438,13 @@ static void render_paintWindowParams(WINFO *wp) {
 	font_selectFontStyle(pTheme, wp, FS_NORMAL, hdc);
 	hBrushBg = CreateSolidBrush(pTheme->th_defaultBackgroundColor);
 	y = calcy(wp, wp->minln);
-	RENDER_CONTEXT renderContext;
+	RENDER_CONTEXT renderContext = {
+		.rc_hdc = hdc,
+		.rc_theme = pTheme,
+		.rc_printing = FALSE,
+		.rc_wp = wp
+	};
 
-	renderContext.rc_hdc = hdc;
-	renderContext.rc_theme = pTheme;
-	renderContext.rc_printing = FALSE;
-	renderContext.rc_wp = wp;
 	wp->renderer->r_renderPage(&renderContext, &ps.rcPaint, hBrushBg, y);
 	DeleteObject(hBrushBg);
 	EndPaint(hwnd,&ps);
@@ -553,13 +554,13 @@ int render_repaintLineNumbers(WINFO* wp, RECT* pRect) {
 /*
  * Redraw part of a line in a window.
  */
-struct tagLINE_REDRAW {
+typedef struct tagLINE_REDRAW {
 	long ln;
 	int col1;
 	int col2;
-};
+} LINE_REDRAW;
 
-static int render_repaintLineForWindow(WINFO* wp, struct tagLINE_REDRAW* pRedraw) {
+static int render_repaintLineForWindow(WINFO* wp, LINE_REDRAW* pRedraw) {
 	RENDERER_REPAINT pFunc = wp->renderer->r_repaint;
 	return pFunc && pFunc(wp, pRedraw->ln, pRedraw->ln, pRedraw->col1, pRedraw->col2);
 }
@@ -610,7 +611,7 @@ int render_repaintDefault(WINFO* wp, int nFirstLine, int nLastLine, int nFirstCo
  */
 EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
 {
-	struct tagLINE_REDRAW param = {ln, col1, col2};
+	LINE_REDRAW param = {ln, col1, col2};
 	ft_forAllViews(fp, render_repaintLineForWindow, &param);
 }
 
@@ -620,7 +621,7 @@ EXPORT void render_repaintLinePart(FTABLE *fp, long ln, int col1, int col2)
  */
 EXPORT void render_repaintWindowLine(WINFO* wp, long ln) {
 	if (wp != 0L) {
-		struct tagLINE_REDRAW redraw = { ln, 0, -1};
+		LINE_REDRAW redraw = { ln, 0, -1};
 		render_repaintLineForWindow(wp, &redraw);
 	}
 }
@@ -641,9 +642,11 @@ EXPORT void render_repaintCurrentLine(WINFO* wp) {
  */
 static int render_repaintLinePointerForWindow(WINFO* wp, LINE* lpWhich) {
 	int idx = wp->minln;
-	struct tagLINE_REDRAW redraw;
-	redraw.col1 = 0;
-	redraw.col2 = -1;
+	LINE_REDRAW redraw = {
+		.col1 = 0,
+		.col2 = -1
+	};
+
 	LINE* lpFirst = ww_getMinLine(wp, idx);
 	while (lpFirst && idx <= wp->maxln) {
 		if (lpFirst == lpWhich) {

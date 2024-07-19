@@ -766,7 +766,8 @@ static int edit_classifyBeginWord(const char* pBuf, int nOffs) {
 			bSpace = TRUE;
 		}
 		if (bSpace && pBuf[nOffs] == '.') {
-			if (nOffs > 0 && pks_isalpha((unsigned char)pBuf[nOffs - 1])) {
+			// Does the sentence before end with a "." - do not treat the dot as a sentence delimiter for cases like "e.g. something"
+			if (nOffs > 0 && pks_isalpha((unsigned char)pBuf[nOffs - 1]) && (nOffs <= 1 || pBuf[nOffs-2] != '.')) {
 				return -1;
 			}
 		}

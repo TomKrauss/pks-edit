@@ -53,23 +53,37 @@ The following example defines an editor configuration `default`, which defines s
 ```
 
 ### Editor Configuration Properties
+One can change the editor configuration editing the JSON files or by opening the _Settings->Change Editor Settings..._ menu. Note,
+that applying the changes in the Change Editor settings dialog will save the editor configuration to the default configuration file.
+Many of the options can also be changed _transiently_ (e.g. by changing them via the option bar or the settings menu), which will not
+update the configuration file.
+
 Here is a description of some of the defined properties of an `editor configuration`.
 
+
+#### <a name="display-options">Display Options</a>
+- `showWhitespace` (_Tabs and Spaces_) - if checked / set to true, spaces and tabs are displayed using control characters
+- `showSyntaxHighlight`- if set to true, will have the text of documents with a defined grammar being colored using the styling rules defined in the grammar.
+- `showLineNumbers` - if set to true, displays the line number area of a editing window. This will (as the name suggests) display the line numbers, but also
+  additional things like the change annotations.
+- `shiftWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
+- `tabSize` - the number of columns defining one `logical visible tab`
+- `highlightCaretLine` - if set to true, displays the line in which the input caret is placed using a slightly different background color making 
+  the input caret easier to detect.
+- `hexMode` - if set to true, the file is edited in hex editing mode.
+- `showWysiwyg` (_Wysiwyg Display) - if set to true, the file is displayed in Wysiwyg mode - this is supported only by documents supporting
+  a Wysiwyg display (e.g. markdown documents, HTML or images).
+- `hideVerticalSlider` (_No vertical slider_) - if checked, no vertical scrollbar is displayed.
+- `hideHorizontalSlider` (_No horizontal slider_) - if checked, no horizontal scrollbar is displayed.
+
+#### <a name="editing">Editing</a>
 - `codepage` - the standard character encoding / code page for documents of this type. Specify either a WIN32 code for the desired encoding (0 == `ISO8859-1` or 
    65001 == `UTF-8`) or -1 to have PKS Edit "guess" the character encoding.
 - `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS Edit action binding (keyboard binding, mouse binding
   menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
   is assumed.
-- `shiftWidth` the number of columns defining one `logical edited tab` - i.e. the number of columns by which a selected range of text is indented, when pressing Tab.
-- `tabSize` - the number of columns defining one `logical visible tab`
-- `showWhitespace` - whether whitespace characters (tab, spaces, line-ends) are displayed during editing.
 - `expandAbbreviations` - if set to true, templates defined in the [grammar](grammar.md) which are marked with `auto-insert=true` will be
   automatically expanded, when a match with the template pattern is encountered during text input.
-- `showSyntaxHighlight`- if set to true, will have the text of documents with a defined grammar being colored using the styling rules defined in the grammar.
-- `showLineNumbers` - if set to true, displays the line number area of a editing window. This will (as the name suggests) display the line numbers, but also
-  additional things like the change annotations.
-- `highlightCaretLine` - if set to true, displays the line in which the input caret is placed using a slightly different background color making 
-  the input caret easier to detect.
 - `smartSpaceDelete` - can be set to true in particular in the case tabs are "emulated" using spaces to have backspace delete multiple spaces at once
   pretending one would delete a tab character.
 - `fillCharacter` - if set to a value != 0, will have all tabs being expanded to the assigned character.
@@ -77,7 +91,34 @@ Here is a description of some of the defined properties of an `editor configurat
   on the number of tabs displayed in the prvious line etc...
 - `tabulatorSizes` - can be assigned to an array of values used as the respective tab stop sizes. If the array size is 1, the single contained 
   element defines the tabstop size.
- 
+- `fixCapitals` (_Correct capitals_) - can be set to true, to have PKS Edit try to correct misspelled upper/lower case (e.g. "this is the end. now we start lower case")
+- `executeOnLoad` (_Life Cycle Action on Start_) - a PKS Edit macro to execute, when a file of this type is loaded.
+- `executeOnSave` (_Life Cycle Action on Save_) - a PKS Edit macro to execute, when a file of this type is saved.
+
+#### <a name="file-format">File Format</a>
+- `newlineCharacter` (_Separator 1_) - configures the regular line delimiter. This will be `\n` in most cases. You may however disable
+  line separators (e.g. to open and save binary files with no line separator handling).
+- `crCharacter` (_Skip before Separator 1_) - configures the existance or the default use of the secondary carriage return line delimiter.
+- `newlineCharacter2` (_Separator 2_) - configures an optional secondary line delimiter character for very advanced use cases.
+- `backupExtension` (_File Suffix Backup Files_) - configures the extension of backup files to create, when saving files (by default '.bak').
+- _Password protected_ - this cannot be configured using JSON, but allows to save a file with password protection. If a password protected
+  file is opened, one needs to provide a password to be allowed to open it and view the contents. The contents will be saved then in an encrypted
+  way.
+
+#### <a name="caret-and-scrolling">Caret and Scrolling</a>
+- `scrollHorizontallyBy` (_Minimum number of columns to scroll..._) - can be used to configure the number of columns to scroll horizontally,
+  when reaching the end of the page. Setting this to a value > 1 will cause PKS Edit to jump scoll every time the right maximum is reached.
+- `scrollVerticallyBy` (_Minimum number of lines to scroll..._) - can be used to configure the number of lines to scroll vertically,
+  when reaching the end of the page. 
+- `scrollVerticalBorder` (_Maximum distance of caret...) - Setting this to a value > 1 will have PKS Edit start to scroll already when
+  the caret is the configured number of lines away from the top or end of screen, when moving the caret vertically.
+- `scrollSupportTrackThumb` (_Update screen during scrolling_) - when this option is set, dragging the scrollbar thumb will at the
+  same time update the screen. If this option is not set, the screen will be updated, when the scrollbar thumb is released.
+- `caretPreserveColumn` (_Keep screen column..._) - when set, moving the caret vertically will cause PKS Edit to try to position
+  in the right most column in which the caret was positioned before.
+- `caretSearchPlacement` (_Caret placement after searching_) - allows to configure the position of the cursor on the screen, when the search
+  would end up on a place not visible on the screen.
+
 ## Example
 Here is an example of a document type descriptor for C and C++ files, which associates the files with a grammar named `cpp` and connects the files with a `default` editor configuration.
 

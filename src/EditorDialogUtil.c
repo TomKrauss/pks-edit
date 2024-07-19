@@ -941,7 +941,6 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 				if (pDhd != NULL) {
 					help_open(pDhd->dhd_link);
 				}
-				EndDialog(hDlg, IDCANCEL);
 			}
 			return TRUE;
 		}

@@ -417,11 +417,40 @@ static DIALOG_ITEM_DESCRIPTOR _dMisc[] = {
 	{0}
 };
 
-static DIALOG_ITEM_DESCRIPTOR* _paramsPerPage[] = {
-	_dAutoSave,
-	_dWarnings,
-	_dLayout,
-	_dMisc
+static DIALOG_HELP_DESCRIPTOR _dAutosaveHelp[] = {
+	{.dhd_itemNumber = IDD_INT1, .dhd_link = "manual\\configuration.md#number-of-undo-steps"},
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\configuration.md#save-options"},
+	{.dhd_link = 0}
+};
+
+static DIALOG_HELP_DESCRIPTOR _dWarningsHelp[] = {
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\configuration.md#notification-options"},
+	{.dhd_link = 0}
+};
+
+static DIALOG_HELP_DESCRIPTOR _dLayoutHelp[] = {
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\configuration.md#layout-options"},
+	{.dhd_link = 0}
+};
+
+static DIALOG_HELP_DESCRIPTOR _dMiscHelp[] = {
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\configuration.md#miscellaneous-options"},
+	{.dhd_link = 0}
+};
+
+static DIALOG_DESCRIPTOR _paramsPerPage[] = {
+	{
+		.dd_items = _dAutoSave, .dd_helpItems = _dAutosaveHelp
+	},
+	{
+		.dd_items = _dWarnings, .dd_helpItems = _dWarningsHelp
+	},
+	{
+		.dd_items = _dLayout, .dd_helpItems = _dLayoutHelp
+	},
+	{
+		.dd_items = _dMisc, .dd_helpItems = _dMiscHelp
+	}
 };
 
 static const char* _tempPathSettingName = "AutosavePath";
@@ -504,10 +533,7 @@ int config_tempPathIsDefault() {
 }
 
 static DIALOG_DESCRIPTOR* _getDialogParsForPage(int pageIndex) {
-	static DIALOG_DESCRIPTOR d;
-
-	d.dd_items = _paramsPerPage[pageIndex];
-	return &d;
+	return &_paramsPerPage[pageIndex];
 }
 
 void EdOptionSet(void) {
@@ -546,7 +572,7 @@ void EdOptionSet(void) {
 	psp[3].pfnDlgProc = dlg_standardDialogProcedure;
 
 	psh.dwSize = sizeof(psh);
-    psh.dwFlags = PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_NOCONTEXTHELP;
+    psh.dwFlags = PSH_PROPSHEETPAGE|PSH_USECALLBACK;
     psh.hwndParent = hwndMain;
     psh.hInstance = ui_getResourceModule();
     psh.pszIcon = 0;

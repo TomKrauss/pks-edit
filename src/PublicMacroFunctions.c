@@ -1346,6 +1346,23 @@ int dlg_configureEditorModes(void) {
 		{IDD_OPT11,		F_WATCH_LOGFILE,&fileflag},
 		{0}
 	};
+	DIALOG_HELP_DESCRIPTOR _dDisplayModeHelp[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#display-options"},
+		{.dhd_link = 0}
+	};
+	DIALOG_HELP_DESCRIPTOR _dWorkModeHelp[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#editing"},
+		{.dhd_link = 0}
+	};
+	DIALOG_HELP_DESCRIPTOR _dFileFormatHelp[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#file-format"},
+		{.dhd_link = 0}
+	};
+	DIALOG_HELP_DESCRIPTOR _dCursorHelp[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#caret-and-scrolling"},
+		{.dhd_link = 0}
+	};
+
 	PROPSHEETPAGE psp[4];
 	PROPSHEETHEADER psh;
 	EDIT_CONFIGURATION *linp;
@@ -1358,16 +1375,20 @@ int dlg_configureEditorModes(void) {
 
 	linp = fp->documentDescriptor;
 	_paramsPerPage[0] = &(DIALOG_DESCRIPTOR) {
-		.dd_items = _dDisplayMode
+		.dd_items = _dDisplayMode,
+		.dd_helpItems = _dDisplayModeHelp
 	};
 	_paramsPerPage[1] = &(DIALOG_DESCRIPTOR) {
-		.dd_items = _dWorkMode
+		.dd_items = _dWorkMode,
+		.dd_helpItems = _dWorkModeHelp
 	};
 	_paramsPerPage[2] = &(DIALOG_DESCRIPTOR) {
-		.dd_items = _dFileFormat
+		.dd_items = _dFileFormat,
+		.dd_helpItems = _dFileFormatHelp
 	};
 	_paramsPerPage[3] = &(DIALOG_DESCRIPTOR) {
-		.dd_items = _dCursorBehavior
+		.dd_items = _dCursorBehavior,
+		.dd_helpItems = _dCursorHelp
 	};
 
 	lstrcpy(backupExtension, linp->backupExtension);

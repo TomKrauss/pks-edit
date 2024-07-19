@@ -325,7 +325,7 @@ BEGIN
     CONTROL         "Bottom of &Page",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,200,55,170,12
     CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,11,120,11,14
     CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,120,11,14
-    CONTROL         "Keep Screen Column while Scrolling",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,104,163,10
+    CONTROL         "Keep Screen Column",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,104,163,10
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 363, 173
@@ -804,7 +804,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Autosave &time [sec]:",-1,12,12,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,186,12,57,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Path &autosave:",-1,12,50,53,8,NOT WS_GROUP
+    LTEXT           "&Autosave path:",-1,12,50,53,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,69,48,174,12,ES_AUTOHSCROLL
     CONTROL         "Automatically delete temporary autosave files",IDD_OPT1,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,231,10

@@ -1131,11 +1131,11 @@ int EdPrint(PRINT_FLAGS what, const char* fname) {
 			_currentPrintScope.lp = wp->blstart->m_linePointer;
 			_currentPrintScope.lplast = wp->blend->m_linePointer;
 		}
-		DOCINFO docinfo;
-		memset(&docinfo, 0, sizeof docinfo);
-		docinfo.cbSize = sizeof docinfo;
-		docinfo.lpszDocName = message;
-		docinfo.lpszDatatype = "Text";
+		DOCINFO docinfo = {
+			.cbSize = sizeof(DOCINFO),
+			.lpszDocName = message,
+			.lpszDatatype = "Text"
+		};
 		progress_startMonitor(IDS_ABRTPRINT, 1000);
 		SetAbortProc(hdcPrn, (ABORTPROC)PrtAbortProc);
 		RENDER_CONTEXT rc = {
