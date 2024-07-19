@@ -414,7 +414,7 @@ EXPORT int bl_readFileIntoPasteBuf(PASTE *pb, FILE_READ_OPTIONS *pOptions) {
  */
 EXPORT int bl_writePasteBufToFile(PASTE *pb, char* fn,  int mode) {	
 	FTABLE rf;
-	LINE	  *lp;
+	LINE  *lp;
 	int    ret = 0;
 
 	memset(&rf, 0, sizeof rf);

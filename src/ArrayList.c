@@ -266,5 +266,8 @@ ARRAY_ITERATOR arraylist_iterator(ARRAY_LIST* pList) {
  * p1.
  */
 void arraylist_sort(ARRAY_LIST* pList, int (*compare)(const void* p1, const void* p2)) {
+	if (compare == NULL) {
+		compare = strcmp;
+	}
 	qsort(*(pList->li_buffer), pList->li_size, sizeof(void*), compare);
 }

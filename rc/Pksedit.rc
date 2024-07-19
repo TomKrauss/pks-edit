@@ -569,7 +569,6 @@ BEGIN
     LTEXT           "Definierte &Typen:",-1,6,20,60,8
     GROUPBOX        "Editor Konfiguration",IDD_GROUPBOX,6,144,324,42,WS_GROUP
     LTEXT           "&Name:",126,12,165,32,8,NOT WS_GROUP
-    EDITTEXT        IDD_PATH1,48,163,276,12,ES_AUTOHSCROLL
     LTEXT           "&Dateimuster:",226,6,214,52,8
     EDITTEXT        IDD_STRING5,60,212,270,12
     LTEXT           "&Beschreibung:",227,6,232,52,8
@@ -583,6 +582,7 @@ BEGIN
     PUSHBUTTON      "&Ändern",IDD_CALLBACK1,134,274,44,14
     LTEXT           "&Syntax:",229,7,249,52,8
     EDITTEXT        IDD_STRING3,60,247,270,12
+    COMBOBOX        IDD_PATH1,61,164,257,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
 END
 
 DLGCRYPT DIALOGEX 27, 67, 276, 39

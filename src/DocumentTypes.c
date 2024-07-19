@@ -683,3 +683,18 @@ int doctypes_saveToFile(void) {
 	return 1;
 }
 
+
+/*
+ * Return a list of all defined editor configuration names sorted. Note, that the returned list must be freed,
+ * when it is not used any more.
+ */
+ARRAY_LIST* doctypes_getEditorConfigurationNamesSorted() {
+	ARRAY_LIST* pResult = arraylist_create(20);
+	EDIT_CONFIGURATION* pConfig = config.dc_editorConfigurations;
+	while (pConfig) {
+		arraylist_add(pResult, pConfig->name);
+		pConfig = pConfig->next;
+	}
+	arraylist_sort(pResult, NULL);
+	return pResult;
+}

@@ -1398,3 +1398,4 @@ const char* grammar_name(GRAMMAR* pGrammar) {
 	}
 	return pGrammar->scopeName;
 }
+

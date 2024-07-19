@@ -111,8 +111,9 @@ static HWND CreateToolTip(int toolID, HWND hDlg, int iTooltipItem) {
 	char szClassname[64];
 	GetClassName(hwndControl, szClassname, sizeof szClassname);
 	if (strcmp(WC_COMBOBOX, szClassname) == 0) {
-		COMBOBOXINFO cbi;
-		cbi.cbSize = sizeof(COMBOBOXINFO);
+		COMBOBOXINFO cbi = {
+			.cbSize = sizeof(COMBOBOXINFO)
+		};
 		if (GetComboBoxInfo(hwndControl, &cbi)) {
 			hwndControl = cbi.hwndItem;
 		}

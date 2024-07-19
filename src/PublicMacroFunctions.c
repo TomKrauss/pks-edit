@@ -25,6 +25,7 @@
 #include "editorconfiguration.h"
 #include "winterf.h"
 #include "winfo.h"
+#include "arraylist.h"
 #include "grammar.h"
 #include "pksedit.h"
 #include "dial2.h"
@@ -67,6 +68,11 @@ extern long long EdCharInsert(WINFO* wp, int c);
 extern int 		undo_lastModification(FTABLE *fp);
 extern int 		compiler_compileCurrentDocument(void);
 extern int		doctypes_addDocumentTypesToListView(HWND hwnd, const void* pSelected);
+/*
+ * Return a list of all defined editor configuration names sorted. Note, that the returned list must be freed,
+ * when it is not used any more.
+ */
+extern ARRAY_LIST* doctypes_getEditorConfigurationNamesSorted();
 
 extern long		_multiplier;
 
@@ -1014,11 +1020,26 @@ static BOOL doctypes_deleteType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_IT
 static BOOL doctypes_apply(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
 static BOOL doctypes_changeType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog);
 static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par);
-static DIALOG_ITEM_DESCRIPTOR docTypePars[] = 
-{
+
+static void doctypes_fillEditorConfigurations(HWND hwnd, int nItem, void* selValue) {
+	SendDlgItemMessage(hwnd, nItem, CB_RESETCONTENT, 0, 0L);
+	ARRAY_LIST* pNames = doctypes_getEditorConfigurationNamesSorted();
+	for (int i = 0; i < arraylist_size(pNames); i++) {
+		SendDlgItemMessage(hwnd, nItem, CB_ADDSTRING, 0, (LPARAM)arraylist_get(pNames, i));
+	}
+	arraylist_destroy(pNames);
+	char* pItem = (char*)selValue;
+	SendDlgItemMessage(hwnd, nItem, CB_SELECTSTRING, (WPARAM)0, (LPARAM)pItem);
+}
+
+static LIST_HANDLER _editorConfigurationList = {
+	NULL, doctypes_fillEditorConfigurations, dlg_getComboBoxSelectedText,
+	NULL, NULL, NULL, 0 };
+
+static DIALOG_ITEM_DESCRIPTOR doctypes_controlDescriptors[] = {
 	{IDD_STRING6,		16,						0},
 	{IDD_STRING4,		50,						0},
-	{IDD_PATH1,		84,							0},
+	{IDD_PATH1,			84,						.did_listhandler = &_editorConfigurationList},
 	{IDD_STRING5,		84,						0},
 	{IDD_STRING3,		32,						0},
 	{IDD_CALLBACK1,		0,						.did_command = doctypes_changeType},
@@ -1027,6 +1048,7 @@ static DIALOG_ITEM_DESCRIPTOR docTypePars[] =
 	{IDD_NOINITCALLBACK,	0,					.did_command = doctypes_newType},
 	{0}
 };
+
 
 /*------------------------------------------------------------
  * doctypes_fillListbox()
@@ -1044,8 +1066,8 @@ static BOOL doctypes_newType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_
 {
 	_selectedDocType = doctypes_createDocumentType(_selectedDocType);
 	doctypes_fillListbox(hDlg, _selectedDocType);
-	doctypes_fillParameters(docTypePars, _selectedDocType);
-	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
+	doctypes_fillParameters(doctypes_controlDescriptors, _selectedDocType);
+	dlg_retrieveParameters(hDlg, doctypes_controlDescriptors, NVDOCTYPEPARS);
 	return FALSE;
 }
 
@@ -1066,7 +1088,7 @@ static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par)
 
 	dp->did_data = pszId;					dp++;
 	dp->did_data = pszDescription;			dp++;
-	dp->did_data = pszFname;				dp++;
+	_editorConfigurationList.li_param = pszFname;	dp++;
 	dp->did_data = pszMatch;				dp++;
 	dp->did_data = pszGrammar;
 }
@@ -1100,7 +1122,7 @@ static BOOL doctypes_deleteType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_IT
 	doctypes_deleteDocumentType(_selectedDocType);
 	_selectedDocType = 0;
 	doctypes_fillListbox(hDlg, _selectedDocType);
-	doctypes_fillParameters(docTypePars, _selectedDocType);
+	doctypes_fillParameters(doctypes_controlDescriptors, _selectedDocType);
 	return FALSE;
 }
 
@@ -1108,7 +1130,7 @@ static BOOL doctypes_deleteType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_IT
  * doctypes_changeType()
  */
 static BOOL doctypes_changeType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog) {
-	dlg_retrieveParameters(hDlg, docTypePars, NVDOCTYPEPARS);
+	dlg_retrieveParameters(hDlg, doctypes_controlDescriptors, NVDOCTYPEPARS);
 	doctypes_fillListbox(hDlg, (void*)_selectedDocType);
 	return FALSE;
 }
@@ -1174,8 +1196,8 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 			LPNMLISTVIEW pActivate = (LPNMLISTVIEW)lParam;
 			if (pActivate->uNewState) {
 				_selectedDocType = (void*)pActivate->lParam;
-				doctypes_fillParameters(docTypePars, (void*)pActivate->lParam);
-				DoDlgInitPars(hwnd, docTypePars, NVDOCTYPEPARS);
+				doctypes_fillParameters(doctypes_controlDescriptors, (void*)pActivate->lParam);
+				DoDlgInitPars(hwnd, doctypes_controlDescriptors, NVDOCTYPEPARS);
 			}
 		} else if (((LPNMHDR)lParam)->code == LVN_GETDISPINFO) {
 			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lParam;
@@ -1191,43 +1213,31 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 	return dlg_standardDialogProcedure(hwnd, message, wParam, lParam);
 }
 
-/*--------------------------------------------------------------------------
- * doDocumentTypes()
- */
-static int doDocumentTypes(int nDlg) {
+ /*--------------------------------------------------------------------------
+  * EdDocTypes()
+  */
+int EdDocTypes(void) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	FTABLE* fp = wp ? wp->fp : NULL;
 	EDIT_CONFIGURATION* pConfig = fp ? fp->documentDescriptor : NULL;
 
 	_selectedDocType = pConfig != NULL ? pConfig->documentType : NULL;
-	doctypes_fillParameters(docTypePars, (void*)pConfig);
+	doctypes_fillParameters(doctypes_controlDescriptors, (void*)pConfig);
 	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
 		{.dhd_itemNumber = IDD_CALLBACK3, .dhd_link = "manual\\document_types.md#apply"},
 		{.dhd_itemNumber = 0, .dhd_link = "manual\\document_types.md#document-types-dialog"},
 		{.dhd_link = 0}
 	};
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = docTypePars,
+		.dd_items = doctypes_controlDescriptors,
 		.dd_helpItems = dialogHelpDescriptor
 	};
-	int nRet = DoDialog(nDlg, doctype_dialogProcedure, &dialogDescriptor, NULL);
+	int nRet = DoDialog(DLGDOCTYPES, doctype_dialogProcedure, &dialogDescriptor, NULL);
 	if (nRet != IDD_CALLBACK3) {
 		return 0;
 	}
-
-	if (nDlg != DLGDOCTYPES) {
-		return TRUE;
-	}
 	doctypes_documentTypeChanged(TRUE);
 	return TRUE;
-}
-
-/*--------------------------------------------------------------------------
- * EdDocTypes()
- */
-int EdDocTypes(void)
-{
-	return doDocumentTypes(DLGDOCTYPES);
 }
 
 /*--------------------------------------------------------------------------

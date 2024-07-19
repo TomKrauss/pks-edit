@@ -206,6 +206,7 @@
 #define IDC_EDIT1                       1010
 #define IDC_CODE                        1010
 #define IDD_I                           1011
+#define IDC_COMBO2                      1014
 #define IDD_GROUPBOX                    1019
 #define IDS_COMMAND251                  2299
 #define IDS_COMMAND252                  2300
@@ -221,7 +222,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        216
 #define _APS_NEXT_COMMAND_VALUE         40010
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
