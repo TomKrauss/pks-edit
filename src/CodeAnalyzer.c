@@ -183,7 +183,7 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 			} else if (pContext->ac_type == XML_ENTITY || pContext->ac_type == XML_END_ENTITY) {
 				stringbuf_appendChar(pToken, c);
 			}
-			if (grammarState != XML_ENTITY && stringbuf_size(pToken) > 0) {
+			if (grammarState != XML_ENTITY && grammarState != XML_END_ENTITY && stringbuf_size(pToken) > 0) {
 				pStream->is_skip(pStream, 1);
 				return grammarState;
 			}
@@ -194,7 +194,7 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 			}
 			if (c == '"') {
 				grammarState = XML_IN_ATTRIBUTE;
-			} else if (pContext->ac_type == XML_ATTRIBUTE && (isalnum(c) || c == '-')) {
+			} else if (pContext->ac_type == XML_ATTRIBUTE && (isalnum(c) || c == '-' || c == ':')) {
 				stringbuf_appendChar(pToken, c);
 			} else if (c == '/' || c == '?') {
 				pStream->is_skip(pStream, 1);
