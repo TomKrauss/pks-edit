@@ -1,4 +1,6 @@
 # Editing Files
+This section describes the features provided by PKS Edit to edit files. Most of the described functions
+are accessible from the _Edit_ and from the _Functions_ menu.
 
 ## Selecting text
 You may select text in PKS Edit using either the mouse and dragging over a range of text to select 
@@ -12,7 +14,7 @@ PKS Edit supports three selection shapes:
 between columns c1 and c2 in a lines exclusively
 - *line selection*, where always complete lines are selected.
 
-The shape of the selection can be selected e.g. in the `Editor Settings` menu.
+The shape of the selection can be selected e.g. using the _Settings->Change Editor Settings..._ menu.
 
 ## Editing text
 PKS Edit supports the most commonly used editing features provided by nowadays code editors:
@@ -47,13 +49,37 @@ when the `ESCAPE` key is pressed.
 By using _Edit->Set Command Multiplier_ you can set a multiplier to be used to execute the next command multiple times. Setting the command multiplier to 10 for
 instance and then pressing `Ctrl+DEL` will delete the next 10 words in the text.
 
-## Sorting text
+## Convert Spaces to Tabs
+Converts all `SPACE` characters to `TAB` (`\t`) characters in the selected _range_ of text if possible.
 
+## Expand Tabs
+Expands all `TAB` (`\t`) characters and converts them to using `SPACE` characters in the selected _range_ of text.
+
+## Shift Range
+Allows you to shift a _range of text_ to the left or to the right inserting the appropriate number of 
+`SPACE` or `TAB` characters or by removing them from begin of the line. Whether only `SPACE` characters 
+or `TAB` characters are used to fill the space to shift to the left, depends on the selected [Text Options](document_types.md#editing) _Expand Tabs_.
+
+## Sorting text
 A selectable range of text can be *sorted* using the `Sort Text...` menu entry from the `Functions` menu. The most
 simple way of sorting text will sort all lines selected in a range alphabetically ascending (no sort fields and no 
 selection criteria specified). Sorting allows however also to sort tabular data containing multiple fields (columns in
 the table), where the sort criteria for the fields can be specified in the `Keyfields` entry field. One may also *select*
 the lines supported by specifying a `Selection Criteria`.
+
+## Insert Keycode
+This function accessible using the menu item _Macros->Insert Keycode..._ is primarily useful, when editing action binding files or macros
+(although code completion exists in that case as well) and inserts _keycode_ in PKS Edit action binding syntax into the text - e.g. `CTRL+K`.
+To insert the keycode, press the key combination of your choice and press then _OK_.
+
+## Insert Special Character
+This utility lets you insert a character not easy accessible from the keyboard by opening a graphical selection of keys available.
+It can also be used to find out the _ASCII_ equivalents of a character in decimal, hexadecimal and octal notation.
+
+## Insert Named Clipboard
+This function lets you insert the contents of a _named clipboard_. You may copy text to a named clipboard using _Copy to named Clipboard..._ (by
+default bound to `Shift+Ctrl+C`. The dialog which is opened to insert a named clipboard shows the list of all available clipboards
+with a preview of the contents of te clipboard.
 
 ### Sorting text dialog options
 

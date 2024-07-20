@@ -828,16 +828,22 @@ char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 	static char selectedTemplate[32];
 	LIST_HANDLER tmplatelist = {
 		selectedTemplate, bl_namedBuffersFillListbox, dlg_getComboBoxSelectedText, 0, 0, bl_namedBuffersOnSelectionChange };
-	DIALOG_ITEM_DESCRIPTOR _d[] = {
+	DIALOG_ITEM_DESCRIPTOR dialogItems[] = {
 		{IDD_POSITIONTCURS,	0,			0},
 		{IDD_ICONLIST,		0,			.did_listhandler = &tmplatelist},
 		{IDD_STRING1,		sizeof selectedTemplate,	selectedTemplate},
 		{0}
 	};
 
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#insert-named-clipboard"},
+		{.dhd_link = 0}
+	};
+
 	bl_namedClipboardDialogAction = bOption;
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = dialogItems,
+		.dd_helpItems = help
 	};
 	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, &dialogDescriptor, NULL, bl_namedClipboardDialogProc);
 	if (!ret) {

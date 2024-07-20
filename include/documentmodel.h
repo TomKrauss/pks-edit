@@ -599,7 +599,7 @@ void ft_destroyCaches();
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file with the given name.
  */
-extern int ft_activateWindowOfFileNamed(const char* fn);
+extern WINFO* ft_activateWindowOfFileNamed(const char* fn);
 
 /*--------------------------------------------------------------------------
  * ln_destroy()

@@ -48,12 +48,14 @@ int help_open(char *szFile) {
 	char szPath[EDMAXPATHLEN];
 	string_concatPathAndFilename(szPath, szHelpDir, szFileName);
 	FTABLE* fp = NULL;
-	if (ft_activateWindowOfFileNamed(szPath) || (fp = ft_openFileWithoutFileselector(szPath, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_RIGHT, -1 })) != NULL) {
-		WINFO* wp = fp ? WIPOI(fp) : NULL;
-		if (wp) {
+	WINFO* wp;
+	if ((wp = ft_activateWindowOfFileNamed(szPath)) != NULL || 
+			(fp = ft_openFileWithoutFileselector(szPath, 0, &(FT_OPEN_OPTIONS) { DOCK_NAME_RIGHT, -1 })) != NULL) {
+		wp = wp ? wp : (fp ? WIPOI(fp) : NULL);
+		if (fp && wp) {
+			// Only if newly opened...
 			ww_changeDisplayMode(wp, wp->dispmode | SHOW_WYSIWYG_DISPLAY);
 		}
-		wp = ww_getCurrentEditorWindow();
 		if (wp &&  pszLink && wp->renderer->r_navigateAnchor) {
 			wp->renderer->r_navigateAnchor(wp, pszLink);
 		}

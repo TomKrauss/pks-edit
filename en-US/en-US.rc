@@ -285,21 +285,23 @@ BEGIN
     LTEXT           "The align function lets you align pieces of text vertically. Examples are comments in source code. You define a pattern of text to match, which is then aligned.",IDC_STATIC,7,50,265,27
 END
 
-DLGCONTROLINS DIALOGEX 11, 19, 317, 166
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION
+DLGCONTROLINS DIALOGEX 11, 19, 337, 172
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Insert Special Character"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "DEZ: 35  HEX: 0x22",IDD_CSELT1,5,124,186,8,NOT WS_GROUP
     DEFPUSHBUTTON   "OK",1,266,141,40,14
     PUSHBUTTON      "Cancel",2,223,141,40,14
-    CONTROL         "Benutzerdefiniert1",IDD_CSEL,"charset",WS_TABSTOP,1,1,312,120
+    CONTROL         "Benutzerdefiniert1",IDD_CSEL,"charset",WS_TABSTOP,1,1,336,121
 END
 
-DLGCONVERT DIALOG 42, 57, 186, 54
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+DLGRANGESELECTION DIALOGEX 42, 57, 186, 54
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Expand Tabs"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "Range:",114,8,14,30,8
     COMBOBOX        IDD_RNGE,8,30,116,56,CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
@@ -528,14 +530,14 @@ CAPTION "Editing"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        " O&ptions",130,5,12,358,98,WS_TABSTOP
-    CONTROL         "Insert Te&xt",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,19,26,152,10
-    CONTROL         "Abbre&viations",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,19,36,152,10
-    CONTROL         "Auto&indent",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,19,71,152,10
-    CONTROL         "&Autowrap",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,19,48,152,10
-    CONTROL         "Auto&format",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,19,59,152,10
+    CONTROL         "Insert te&xt",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,20,26,152,10
+    CONTROL         "Abbre&viations",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,37,152,10
+    CONTROL         "Auto&indent",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,72,152,10
+    CONTROL         "&Automatically wrap long lines",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,49,152,10
+    CONTROL         "&Format text while typing",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,60,152,10
     CONTROL         "&OEM-Text",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,26,152,10
-    CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,36,152,10
-    CONTROL         "&Bracket Checks",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,59,152,10
+    CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,37,152,10
+    CONTROL         "&Bracket Checks",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,60,152,10
     GROUPBOX        "Lifecycle Actions to Execute",-1,5,116,358,42
     LTEXT           "On Creation:",-1,22,130,41,8
     EDITTEXT        IDD_STRING2,75,126,118,13
@@ -543,10 +545,10 @@ BEGIN
     EDITTEXT        IDD_STRING3,75,142,118,12
     LTEXT           "&Expand Tabs:",114,21,165,48,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,74,163,36,12,ES_AUTOHSCROLL
-    CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,48,152,10
-    CONTROL         "Logfile Mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,70,152,10
-    CONTROL         "Correct &Capitals",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,83,151,10
-    LTEXT           "CApitals -> Capitals, ""sold. this"" -> ""sold. This""",IDD_EXPLANATION,20,96,216,10,SS_REALSIZECONTROL | NOT WS_GROUP
+    CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,49,152,10
+    CONTROL         "Logfile Mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,71,152,10
+    CONTROL         "Correct &Capitals",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,84,152,10
+    LTEXT           "CApitals -> Capitals, ""sold. this"" -> ""sold. This""",IDD_EXPLANATION,20,96,314,10,SS_REALSIZECONTROL | NOT WS_GROUP
 END
 
 DLGMACNAME DIALOG 20, 30, 132, 66
@@ -563,8 +565,9 @@ BEGIN
 END
 
 DLGKEYCODE DIALOGEX 45, 61, 147, 56
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-CAPTION "Insert keycode"
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Insert Keycode"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     PUSHBUTTON      "",IDD_KEYCODE,45,12,90,14
@@ -774,16 +777,17 @@ BEGIN
 END
 
 DLGSELTMPLATE DIALOGEX 54, 44, 505, 210
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Clipboardlist"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     LISTBOX         IDD_ICONLIST,10,30,89,154,WS_VSCROLL | WS_GROUP | WS_TABSTOP
     EDITTEXT        IDD_RO1,109,30,379,145,ES_MULTILINE | NOT WS_TABSTOP
-    PUSHBUTTON      "Cancel",IDCANCEL,380,187,52,14,WS_GROUP
-    DEFPUSHBUTTON   "OK",IDOK,443,187,52,14
-    EDITTEXT        IDD_STRING1,10,187,89,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Delete Clipboard",IDD_BUT3,109,187,77,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,436,186,52,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,381,186,52,14
+    EDITTEXT        IDD_STRING1,10,186,89,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Delete Clipboard",IDD_BUT3,109,186,77,14,WS_GROUP
     CONTROL         "Named Clipboards Only",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,12,87,8
 END
 
@@ -918,8 +922,12 @@ BEGIN
 
     DLGCONTROLINS, DIALOG
     BEGIN
-        RIGHTMARGIN, 316
-        BOTTOMMARGIN, 165
+        RIGHTMARGIN, 336
+        BOTTOMMARGIN, 171
+    END
+
+    DLGRANGESELECTION, DIALOG
+    BEGIN
     END
 
     DLGCURSOROPTIONS, DIALOG
@@ -971,7 +979,6 @@ BEGIN
 
     DLGKEYCODE, DIALOG
     BEGIN
-        RIGHTMARGIN, 132
     END
 
     DLGMACROS, DIALOG
@@ -1014,8 +1021,6 @@ BEGIN
 
     DLGSELTMPLATE, DIALOG
     BEGIN
-        RIGHTMARGIN, 495
-        BOTTOMMARGIN, 201
     END
 
     DLG_OPT_WARNINGS, DIALOG
@@ -1206,6 +1211,11 @@ BEGIN
 END
 
 DLGMULTI AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGRANGESELECTION AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -1506,9 +1516,9 @@ BEGIN
     IDS_COMMAND38           "Go to end of text selection;Go to Selection End"
     IDS_COMMAND39           "Copy selection to clipboard;Copy to Clipboard"
     IDS_COMMAND40           "Appends a named buffer to another buffer...;Copy a named Clipboard to other Clipboard.."
-    IDS_COMMAND41           "Append the selection to a named buffer;Copy Selection to named Clipboard"
+    IDS_COMMAND41           "Append the selection to a named buffer;Copy Selection to named Clipboard..."
     IDS_COMMAND42           "Append selection to clipboard;Copy to Clipboard"
-    IDS_COMMAND43           "Inserts named buffer....;Insert named Clipboard"
+    IDS_COMMAND43           "Inserts named buffer....;Insert named Clipboard..."
     IDS_COMMAND44           "Insert the contents of the clipboard;Paste Clipboard"
     IDS_COMMAND45           "Insert the contents of the trashcan;Insert Contents of Trashcan"
     IDS_COMMAND46           "Go to line currently selected in search-result, tagfile or error list;Go to Search Result"
@@ -1618,7 +1628,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMMAND128          "Check bracket matches;Check Braces and Brackets"
-    IDS_COMMAND129          "Shows a form with current character set;Insert Special Character"
+    IDS_COMMAND129          "Shows a form with current character set;Insert Special Character..."
     IDS_COMMAND130          "Shift the text block between brackets to left;Shift {} left"
     IDS_COMMAND131          "Shift the text block between brackets to right;Shift {} right"
     IDS_COMMAND132          "Delete the character under the cursor;Delete Character"

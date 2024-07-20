@@ -960,6 +960,8 @@
         { "separator": true },
         { "command": "@start-selection" },
         { "command": "@end-selection" },
+        { "separator": true },
+        { "command": "@insert-char-with-dialog" },
         {
           "command": "@select-all",
           "icon": "select-all"
@@ -1012,7 +1014,6 @@
             { "command": "@compare-clear" }
           ]
         },
-        { "command": "@insert-char-with-dialog" },
         { "separator": true },
         {
           "label-id": 1910,

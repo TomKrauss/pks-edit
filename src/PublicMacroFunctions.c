@@ -651,15 +651,20 @@ int EdSort(void)
 int EdKeycodeInsert(void)
 {	char 	*visible;
 	static KEYCODE 	 k;
-	static ITEMS		_i   = { C_PUSH_INTEGER_LITERAL,	(unsigned char *)&k };
-	static PARAMS		_sp  = { DIM(_i), P_MAYOPEN, _i };
-	static DIALOG_ITEM_DESCRIPTOR 	_d[] = {
+	ITEMS		_i   = { C_PUSH_INTEGER_LITERAL,	(unsigned char *)&k };
+	PARAMS		_sp  = { DIM(_i), P_MAYOPEN, _i };
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#insert-keycode"},
+		{.dhd_link = 0}
+	};
+	DIALOG_ITEM_DESCRIPTOR 	_d[] = {
 		{IDD_KEYCODE,	sizeof k,	&k},
 		{0}
 	};
 
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	if (!win_callDialog(DLGKEYCODE,&_sp,&dialogDescriptor, NULL))
 		return 0;
@@ -753,22 +758,28 @@ int EdMarkGoto(void)
  * expand = 1 : expand TABS to SPACES
  * expand = 0 : comp SPACES to TABS
  */
-static DIALOG_ITEM_DESCRIPTOR _dconvert[] = {
+static DIALOG_ITEM_DESCRIPTOR rangeSelectionDialogItems[] = {
 	{IDD_WINTITLE,	.did_data = (void*)IDS_COMPRESSTABS, .did_initialize = dlg_initializeWindowTitle},
 	{IDD_RNGE,		RNG_LINE ,		&_scope},
 	{0}
 };
 int EdReplaceTabs(int expand)
-{	static ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
-	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
+{	ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
+	PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
-	_dconvert->did_flagOrSize = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
-
-	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _dconvert
+	rangeSelectionDialogItems->did_flagOrSize = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
+	
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = expand? "manual\\editing_files.md#expand-tabs" : "manual\\editing_files.md#convert-spaces-to-tabs"},
+		{.dhd_link = 0}
 	};
-	if (!win_callDialog(DLGCONVERT,&_tp, &dialogDescriptor, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = rangeSelectionDialogItems,
+		.dd_helpItems = help
+	};
+	if (!win_callDialog(DLGRANGESELECTION, &_tp, &dialogDescriptor, NULL)) {
 		return 0;
+	}
 
 	return find_replaceTabsWithSpaces(_scope,expand);
 }
@@ -1247,11 +1258,16 @@ int EdRangeShift(int dir)
 {	static ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
 	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
 
-	_dconvert->did_flagOrSize = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
-	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _dconvert
+	rangeSelectionDialogItems->did_flagOrSize = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
+	DIALOG_HELP_DESCRIPTOR help[] = {
+		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#shift-range"},
+		{.dhd_link = 0}
 	};
-	if (!win_callDialog(DLGCONVERT,&_tp, &dialogDescriptor, NULL))
+	DIALOG_DESCRIPTOR dialogDescriptor = {
+		.dd_items = rangeSelectionDialogItems,
+		.dd_helpItems = help
+	};
+	if (!win_callDialog(DLGRANGESELECTION,&_tp, &dialogDescriptor, NULL))
 		return 0;
 		
 	return uc_shiftRange(_scope,dir);
@@ -1792,17 +1808,22 @@ static BOOL dlg_displayCharacter(HWND hDialog, int nNotify, LPARAM lParam, DIALO
  */
 long long EdCharControlInsert(void)
 { 	static char c;
-	static ITEMS	 _i   = { C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c	};
-	static PARAMS	 _p  = { 1, P_MAYOPEN, _i };
-	static DIALOG_ITEM_DESCRIPTOR _d[] = { 
+	ITEMS	 _i   = { C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c	};
+	PARAMS	 _p  = { 1, P_MAYOPEN, _i };
+	DIALOG_ITEM_DESCRIPTOR _d[] = { 
 		{IDD_POSITIONTCURS,	0,			0},
 		{IDD_CSEL,			sizeof(c),	&c, .did_initialize = dlg_initializeCharacter, 
 			.did_apply = dlg_applyCharacter, .did_command = dlg_displayCharacter},
 		{0}
 	};
+	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
+	{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#insert-special-character"},
+	{.dhd_link = 0}
+	};
 
 	DIALOG_DESCRIPTOR dialogDescriptor = {
-		.dd_items = _d
+		.dd_items = _d,
+		.dd_helpItems = dialogHelpDescriptor
 	};
 	if (!win_callDialog(DLGCONTROLINS,&_p,&dialogDescriptor, NULL)) {
 		return 0;

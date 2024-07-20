@@ -3643,14 +3643,14 @@ static void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, R
 			break;
 		}
 		if (pPart->rvp_layouted) {
-			SIZE sPart;
-			sPart.cy = pPart->rvp_height;
 			// for now - not necessary to calculate the width
 			int nWidth = 100;
 			if (nWidth > pSize->cy) {
 				pSize->cx = nWidth;
 			}
-			pSize->cy += sPart.cy;
+			pSize->cy += pPart->rvp_height;
+		} else {
+			EdTRACE(log_message(DEBUG_WARN, "mdr_getViewPartsExtend - part not layouted."));
 		}
 		pPart = pPart->rvp_next;
 		nIndex++;
@@ -3807,14 +3807,19 @@ static int mdr_adjustScrollBoundsOffset(WINFO* wp, BOOL bMiddleOfScreen) {
 		nUse = nScreenHeight;
 	}
 	int nMaxY = info.nPos + nScreenHeight - nUse;
+	int s2 = nScreenHeight / 2;
 	if (bMiddleOfScreen) {
-		size.cy += nScreenHeight / 2;
+		nMaxY -= 2;
 	}
 	if (size.cy < info.nPos) {
 		nNewY = size.cy;
 	} else if (size.cy > nMaxY) {
-		int nDelta = nUse;
-		nNewY = size.cy - nScreenHeight + nDelta;
+		nNewY = bMiddleOfScreen ? size.cy - s2 : size.cy - nScreenHeight + nUse;
+		SIZE sizeTotal;
+		mdr_getViewpartsExtend(pData, &sizeTotal, NULL);
+		if (nNewY + nScreenHeight >= sizeTotal.cy) {
+			nNewY = sizeTotal.cy-nScreenHeight;
+		}
 	} else {
 		return 0;
 	}
@@ -4290,7 +4295,7 @@ static int mdr_placeCaret(WINFO* wp, long* ln, long offset, long* col, int updat
 	int nMDCaretLine;
 	pPart = mdr_getViewPartForLine(pData->md_pElements, wp->caret.linePointer, &nMDCaretLine);
 	if (pData->md_caretView != pPart) {
-		BOOL bHighlight = wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT;
+		BOOL bHighlight = (wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT);
 		if (bHighlight && pData->md_caretView && pData->md_caretView->rvp_layouted) {
 			InvalidateRect(wp->ww_handle, &pData->md_caretView->rvp_occupiedBounds, FALSE);
 		}

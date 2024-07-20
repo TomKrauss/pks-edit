@@ -693,7 +693,7 @@ int fsel_selectFileWithTitle(int nCommand, char *result, FILE_SELECT_PARAMS* pFS
  * ft_activateWindowOfFileNamed()
  * Activate the window of the file named 'fn'.
  */
-int ft_activateWindowOfFileNamed(const char *fn) {
+WINFO* ft_activateWindowOfFileNamed(const char *fn) {
 	FTABLE 	*fp;
 	char 	fullname[EDMAXPATHLEN];
 
@@ -707,7 +707,7 @@ int ft_activateWindowOfFileNamed(const char *fn) {
 	if (wp == NULL) {
 		return 0;
 	}
-	return (int)ww_selectWindow(wp);
+	return ww_selectWindow(wp) ? wp : NULL;
 }
 
 /*------------------------------------------------------------

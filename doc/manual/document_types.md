@@ -51,7 +51,7 @@ The following example defines an editor configuration `default`, which defines s
     },
 
 ```
-
+ 
 ### Editor Configuration Properties
 One can change the editor configuration editing the JSON files or by opening the _Settings->Change Editor Settings..._ menu. Note,
 that applying the changes in the Change Editor settings dialog will save the editor configuration to the default configuration file.
@@ -82,15 +82,23 @@ Here is a description of some of the defined properties of an `editor configurat
 - `actionContext` - a context to use for documents of the described types for the bound _actions_. Every PKS Edit action binding (keyboard binding, mouse binding
   menus, ...) can have an _action context_ in which the corresponding binding is active. If no action context is defined explicitly a default action context
   is assumed.
-- `expandAbbreviations` - if set to true, templates defined in the [grammar](grammar.md) which are marked with `auto-insert=true` will be
+- `watchLogfile` (_Log File Mode_) - used for Log Output Files to watch them in the background and automatically reload them
+  if that is the case. If this is options is selected, the file is also displayed read-only and cannot be changed.
+- `expandAbbreviations` (_Abbreviations_) - if set to true, templates defined in the [grammar](grammar.md) which are marked with `auto-insert=true` will be
   automatically expanded, when a match with the template pattern is encountered during text input.
-- `smartSpaceDelete` - can be set to true in particular in the case tabs are "emulated" using spaces to have backspace delete multiple spaces at once
-  pretending one would delete a tab character.
-- `fillCharacter` - if set to a value != 0, will have all tabs being expanded to the assigned character.
+- `fillCharacter` (Fill Tabs with)- if set to a value != 0 (if entering a character into the corresponding input field in the UI), 
+  will have all `TAB` characters being expanded to the assigned character, if `TAB` is pressed or if formatting requires
+  to fill in new tabstop position.
 - `autoIndent` - whether entering a new line should try to automtically insert the "proper number of tabs" at the beginning of the new line depending
   on the number of tabs displayed in the prvious line etc...
+- `autoFormat` (_Format text while typing_) - in particular useful, when editing text files. Will automatically wrap long
+  lines _while you type_ and maintain the proper indents etc...
 - `tabulatorSizes` - can be assigned to an array of values used as the respective tab stop sizes. If the array size is 1, the single contained 
   element defines the tabstop size.
+- `smartSpaceDelete` (_Delete multiple spaces_) - in particular helpful, when working in a mode, where `TAB` characters
+  are always expanded to `SPACE` characters. When pressing the `BACKSPACE` key to delete the previous `SPACE` character, PKS
+  EDIT checkts, whether there are multiple `SPACE` characters originally created to fill up a `TAB` space and will them
+  delete with a single key press, if that is the case.
 - `fixCapitals` (_Correct capitals_) - can be set to true, to have PKS Edit try to correct misspelled upper/lower case (e.g. "this is the end. now we start lower case")
 - `executeOnLoad` (_Life Cycle Action on Start_) - a PKS Edit macro to execute, when a file of this type is loaded.
 - `executeOnSave` (_Life Cycle Action on Save_) - a PKS Edit macro to execute, when a file of this type is saved.
