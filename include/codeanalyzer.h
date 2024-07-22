@@ -37,26 +37,35 @@ typedef struct tagANALYZER_CALLBACK_PARAM {
   */
 typedef void (*ANALYZER_CALLBACK)(ANALYZER_CALLBACK_PARAM* pParam);
 
-typedef struct tagANALYZER_CONTEXT {
+/*
+ * Describes the situation around the input caret, which is used to create potential insertion suggestions.
+ */
+typedef struct tagANALYZER_CARET_CONTEXT {
+	// The type of token found close to the caret.
 	int ac_type;
+	// A name for the token type - depends on the grammar. Can be used
+	char ac_tokenTypeName[32];
+	// The token - typically the word under the caret.
 	char ac_token[128];
-} ANALYZER_CONTEXT;
+	// A second token close to the caret. Example: when suggesting XML this could be the name of an entity, when trying to match an attribute.
+	char ac_token2[128];
+} ANALYZER_CARET_CONTEXT;
 
 /*
  * Function used for matching valid code completion matches during analysis of a file.
  */
-typedef int (*ANALYZER_MATCH)(ANALYZER_CONTEXT* pContext, const char* pszMatch);
+typedef int (*ANALYZER_MATCH)(ANALYZER_CARET_CONTEXT* pContext, const char* pszMatch);
 
 /*
  * The analyzer function to operate on a file referred to by a view pointer 'wp'. Only recommendations
  * matching the match function 'fMatch' are considered and passed to the analyzer callback.
  */
-typedef void (*ANALYZER_FUNCTION)(WINFO* wp, ANALYZER_MATCH fMatcher, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT *pContext);
+typedef void (*ANALYZER_FUNCTION)(WINFO* wp, ANALYZER_MATCH fMatcher, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT *pContext);
 
 /*
  * Callback used to get the analyzer context at the cursor position, where a code completion is requested.
  */
-typedef void (*ANALYZER_GET_CONTEXT)(WINFO* wp, ANALYZER_CONTEXT* pContext);
+typedef void (*ANALYZER_GET_CONTEXT)(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext);
 
 /*
  * Register a new analyzer given the name of the analyzer. If an analyzer with the given name
@@ -69,11 +78,18 @@ extern int analyzer_register(const char* pszName, ANALYZER_FUNCTION f, ANALYZER_
  * Destroy all known analyzers.
  */
 extern void analyzer_destroyAnalyzers();
+
+/*
+ * Calculate the caret context for the given analyzer name and caret position from the window in which a code
+ * completion is request. Return TRUE, if successful.
+ */
+BOOL analyzer_getCaretContext(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext);
+
 /*
  * Extract all recommendations from the file edited in the view identified by 'wp'.
  * Use the analyzer with the given analyzer name. If successful, return 1, otherwise 0.
  */
-extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CALLBACK fCallback);
+extern int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext, ANALYZER_CALLBACK fCallback);
 
 /*
  * Register some "default" analyzers, which can be referenced in grammar files given their respective names.

@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - When opening compilation or build output files, PKS Edit will now auto-detect the format to extract the information to navigate
   the problems found in the build output. Additional well known build output formats (Java, Typescript, Dart) have been
   added to the list of formats supported out of the box.
+- XML code completion was improved: entries are sorted alphabetically, attribute suggestions are provided based on
+  the current entity.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

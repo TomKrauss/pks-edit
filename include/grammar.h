@@ -55,6 +55,7 @@ typedef struct tagUC_MATCH_PATTERN {
 	int		len;				// minimum length of pattern to scan left to the cursor to match 
 	BOOL	ignoreCase;			// whether the input is matched ignore case against the under cursor action
 	BOOL	regex;				// whether the input is to be evaluated as a regular expression
+	char* grammarContext;		// A potential grammar context to be matched (e.g. 'entity' for XML files).
 	int		lexicalContexts;	// if type is UA_ABBREV, a bitwise combination of the lexical context(s) in which the action is performed.
 	RE_PATTERN* rePattern;		// The compile lefthand pattern for patterns
 	char*	helpText;			// an optional help text to be displayed during code completion.

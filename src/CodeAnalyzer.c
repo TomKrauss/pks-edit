@@ -40,9 +40,9 @@
 typedef struct tagANALYZER {
 	struct tagANALYZER* an_next;
 	char an_name[32];
-	ANALYZER_CONTEXT an_sourceContext;
-	ANALYZER_GET_CONTEXT an_getContext;
-	ANALYZER_FUNCTION an_function;
+	ANALYZER_CARET_CONTEXT an_sourceContext;
+	ANALYZER_GET_CONTEXT an_getCaretContext;
+	ANALYZER_FUNCTION an_determineCompletionsFunction;
 } ANALYZER;
 
 static ANALYZER *_analyzers;
@@ -52,7 +52,13 @@ static ANALYZER *_analyzers;
  */
 extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
-typedef int (*ADVANCE_TOKEN)(ANALYZER_CONTEXT* pContext, int grammarState, INPUT_STREAM* pStream, STRING_BUF* pToken);
+typedef struct tagANALYZER_PARSING_CONTEXT {
+	int apc_grammarState;
+	STRING_BUF* apc_token;
+	STRING_BUF* apc_parentToken;
+} ANALYZER_PARSING_CONTEXT;
+
+typedef int (*ADVANCE_TOKEN)(ANALYZER_CARET_CONTEXT* pCaretContext, INPUT_STREAM* pStream, ANALYZER_PARSING_CONTEXT *pParsingContext);
 
 enum XML_GRAMMAR_STATES {
 	XML_INITIAL,
@@ -61,22 +67,27 @@ enum XML_GRAMMAR_STATES {
 	XML_COMMENT,
 	XML_CDATA,
 	XML_ATTRIBUTE,
+	XML_SIMPLE_ATTRIBUTE,
 	XML_IN_ATTRIBUTE,
 };
 
 /*
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
  */
-static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext, 
-		void (*calculateSuggestion)(ANALYZER_CONTEXT* pContext, STRING_BUF* pBuf), ADVANCE_TOKEN fAdvance) {
+static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext, 
+		void (*calculateSuggestion)(ANALYZER_CARET_CONTEXT* pContext, STRING_BUF* pBuf), ADVANCE_TOKEN fAdvance) {
 	FTABLE* fp = wp->fp;
 	INPUT_STREAM* pStream = streams_createLineInputStream(fp->firstl, 0);
 	STRING_BUF* pBuf = stringbuf_create(50);
-	int grammarState = 0;
+	STRING_BUF* pParentToken = stringbuf_create(50);
 	int c;
 
+	ANALYZER_PARSING_CONTEXT parsingContext = {
+		.apc_token = pBuf,
+		.apc_parentToken = pParentToken
+	};
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
-		grammarState = fAdvance(pContext, grammarState, pStream, pBuf);
+		fAdvance(pContext, pStream, &parsingContext);
 		char* pszWord = stringbuf_getString(pBuf);
 		if (*pszWord) {
 			if (fMatch(pContext, pszWord)) {
@@ -97,30 +108,31 @@ static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CA
 	}
 	pStream->is_destroy(pStream);
 	stringbuf_destroy(pBuf);
+	stringbuf_destroy(pParentToken);
 }
 
-static int analyzer_checkWord(ANALYZER_CONTEXT* pContext, int grammarState, INPUT_STREAM* pStream, STRING_BUF* pToken) {
+static int analyzer_checkWord(ANALYZER_CARET_CONTEXT* pCaretContext, INPUT_STREAM* pStream, ANALYZER_PARSING_CONTEXT* pParsingContext) {
 	char c;
 	BOOL bInWord = FALSE;
 	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (char_isIdentifier(c)) {
 			bInWord = TRUE;
-			stringbuf_appendChar(pToken, c);
+			stringbuf_appendChar(pParsingContext->apc_token, c);
 		} else if (bInWord) {
 			break;
 		}
 	}
-	return grammarState;
+	return pParsingContext->apc_grammarState;
 }
 
 /*
  * Extract all identifiers from a file regardless of comments etc ignoring the file syntax.
  */
-static void analyzer_extractWords(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
+static void analyzer_extractWords(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	analyzer_extractTokens(wp, fMatch, fCallback, pContext, 0, analyzer_checkWord);
 }
 
-static void analyzer_calculateXmlSuggestion(ANALYZER_CONTEXT* pContext, STRING_BUF* pToken) {
+static void analyzer_calculateXmlSuggestion(ANALYZER_CARET_CONTEXT* pContext, STRING_BUF* pToken) {
 	char entity[128];
 	strncpy(entity, stringbuf_getString(pToken), 128);
 	if (pContext->ac_type == XML_END_ENTITY || pContext->ac_type == XML_ENTITY) {
@@ -129,12 +141,20 @@ static void analyzer_calculateXmlSuggestion(ANALYZER_CONTEXT* pContext, STRING_B
 			stringbuf_appendString(pToken, "${cursor}</");
 			stringbuf_appendString(pToken, entity);
 			stringbuf_appendChar(pToken, '>');
-		}
+		} 
+	} else if (pContext->ac_type == XML_ATTRIBUTE) {
+		stringbuf_appendString(pToken, "=\"${cursor}\"");
 	}
 }
 
-static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT_STREAM* pStream, STRING_BUF* pToken) {
+static BOOL analyzer_isEntityIdentifier(char c) {
+	return isalnum(c) || c == '-' || c == ':';
+}
+
+static int analyzer_parseXml(ANALYZER_CARET_CONTEXT* pCaretContext, INPUT_STREAM* pStream, ANALYZER_PARSING_CONTEXT* pParsingContext) {
 	char c;
+	int grammarState = pParsingContext->apc_grammarState;
+	STRING_BUF* pToken = pParsingContext->apc_token;
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (grammarState == XML_COMMENT) {
 			if (c == '-' && pStream->is_strncmp(pStream, "-->", 3) == 0) {
@@ -168,9 +188,10 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 				grammarState = XML_ATTRIBUTE;
 			} else if (c == '/') {
 				pStream->is_skip(pStream, 1);
+				stringbuf_reset(pParsingContext->apc_parentToken);
 				grammarState = XML_INITIAL;
-			}
-			else if (c == '>') {
+			} else if (c == '>') {
+				stringbuf_reset(pParsingContext->apc_parentToken);
 				grammarState = XML_INITIAL;
 			} else if (c == '<') {
 				stringbuf_reset(pToken);
@@ -180,11 +201,15 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 					grammarState = XML_END_ENTITY;
 					pStream->is_skip(pStream, 1);
 				}
-			} else if (pContext->ac_type == XML_ENTITY || pContext->ac_type == XML_END_ENTITY) {
+			} else if (pCaretContext->ac_type == XML_ENTITY || pCaretContext->ac_type == XML_END_ENTITY) {
 				stringbuf_appendChar(pToken, c);
+			}
+			else if (pCaretContext->ac_type == XML_ATTRIBUTE) {
+				stringbuf_appendChar(pParsingContext->apc_parentToken, c);
 			}
 			if (grammarState != XML_ENTITY && grammarState != XML_END_ENTITY && stringbuf_size(pToken) > 0) {
 				pStream->is_skip(pStream, 1);
+				pParsingContext->apc_grammarState = grammarState;
 				return grammarState;
 			}
 		} else if (grammarState == XML_ATTRIBUTE) {
@@ -194,37 +219,74 @@ static int analyzer_checkXml(ANALYZER_CONTEXT* pContext, int grammarState, INPUT
 			}
 			if (c == '"') {
 				grammarState = XML_IN_ATTRIBUTE;
-			} else if (pContext->ac_type == XML_ATTRIBUTE && (isalnum(c) || c == '-' || c == ':')) {
+			} else if (pCaretContext->ac_type == XML_ATTRIBUTE && 
+				(pCaretContext->ac_token2[0] == 0 || strcmp(pCaretContext->ac_token2, stringbuf_getString(pParsingContext->apc_parentToken)) == 0) &&
+				analyzer_isEntityIdentifier(c)) {
 				stringbuf_appendChar(pToken, c);
 			} else if (c == '/' || c == '?') {
+				stringbuf_reset(pParsingContext->apc_parentToken);
 				pStream->is_skip(pStream, 1);
 				grammarState = XML_INITIAL;
 			} else if (c == '>') {
+				stringbuf_reset(pParsingContext->apc_parentToken);
 				grammarState = XML_INITIAL;
 			} else if (c == '<') {
 				grammarState = XML_ENTITY;
 			}
 			if ((c == ' ' || c == '\r' || c == '\n' || c == '\t' || grammarState != XML_ATTRIBUTE) && stringbuf_size(pToken) > 0) {
 				pStream->is_skip(pStream, 1);
+				pParsingContext->apc_grammarState = grammarState;
 				return grammarState;
 			}
 		} else if (grammarState == XML_IN_ATTRIBUTE) {
 			if (c == '"' || c == '\r' || c == '\n') {
 				grammarState = XML_ATTRIBUTE;
-			} else if (pContext->ac_type == XML_IN_ATTRIBUTE) {
+			} else if (pCaretContext->ac_type == XML_IN_ATTRIBUTE) {
 				stringbuf_appendChar(pToken, c);
 			}
 			if (grammarState != XML_IN_ATTRIBUTE && stringbuf_size(pToken) > 0) {
 				pStream->is_skip(pStream, 1);
+				pParsingContext->apc_grammarState = grammarState;
 				return grammarState;
 			}
 		}
 		pStream->is_skip(pStream, 1);
 	}
+	pParsingContext->apc_grammarState = XML_INITIAL;
 	return XML_INITIAL;
 }
 
-static void analyzer_getXmlContext(WINFO* wp, ANALYZER_CONTEXT* pContext) {
+static void analyzer_getEntityNameBackward(char* pszDest, char* pBuf, int nStartPos) {
+	int nEnd = nStartPos;
+	char* pEnd = pszDest + 126;
+	while (nStartPos > 0) {
+		if (pBuf[nStartPos - 1] == '<') {
+			while (nStartPos < nEnd) {
+				if (pszDest < pEnd && analyzer_isEntityIdentifier(pBuf[nStartPos])) {
+					*pszDest++ = pBuf[nStartPos];
+					nStartPos++;
+				} else {
+					break;
+				}
+			}
+			*pszDest = 0;
+			return;
+		} else {
+			nStartPos--;
+		}
+	}
+}
+
+static void analyzer_fillXmlTokenType(ANALYZER_CARET_CONTEXT* pContext) {
+	switch (pContext->ac_type) {
+	case XML_ATTRIBUTE: strcpy(pContext->ac_tokenTypeName, "attribute"); break;
+	case XML_END_ENTITY: strcpy(pContext->ac_tokenTypeName, "end-entity"); break;
+	case XML_ENTITY: strcpy(pContext->ac_tokenTypeName, "entity"); break;
+	default: pContext->ac_tokenTypeName[0] = 0; break;
+	}
+}
+
+static void analyzer_getXmlCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
 	int nPos = wp->caret.offset;
 	char* pBuf = wp->caret.linePointer->lbuf;
 	pContext->ac_type = XML_ATTRIBUTE;
@@ -241,20 +303,25 @@ static void analyzer_getXmlContext(WINFO* wp, ANALYZER_CONTEXT* pContext) {
 			break;
 		}
 	}
+	pContext->ac_token2[0] = 0;
+	if (pContext->ac_type == XML_ATTRIBUTE) {
+		analyzer_getEntityNameBackward(pContext->ac_token2, pBuf, nPos);
+	}
 	nPos++;
 	int nSize = wp->caret.offset - nPos;
-	if (nSize > sizeof pContext->ac_token - 2) {
-		nSize = sizeof pContext->ac_token - 2;
+	if (nSize > sizeof pContext->ac_token - 1) {
+		nSize = sizeof pContext->ac_token - 1;
 	}
 	strncpy(pContext->ac_token, &pBuf[nPos], nSize);
 	pContext->ac_token[nSize] = 0;
+	analyzer_fillXmlTokenType(pContext);
 }
 
 /*
  * Extract all entity names and attributes from an XML document.
  */
-static void analyzer_extractTagsAndAttributes(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
-	analyzer_extractTokens(wp, fMatch, fCallback, pContext, analyzer_calculateXmlSuggestion, analyzer_checkXml);
+static void analyzer_extractTagsAndAttributes(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
+	analyzer_extractTokens(wp, fMatch, fCallback, pContext, analyzer_calculateXmlSuggestion, analyzer_parseXml);
 }
 
 static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {
@@ -268,7 +335,7 @@ static void analyzer_getToken(char* pszDest, LINE* lp, int nStart, int nLen) {
 /*
  * Returns a possible macro function names which can be used in PKS Edit macros.
  */
-static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
+static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	char szBuf[256];
 	char szFunction[256];
 	int detectedEnd = 0;
@@ -424,7 +491,7 @@ static void analyzer_addKeycode(const char* pszKeycode) {
  * Returns a possible code completion in a PKS actionbinding file - either the name of a PKS command, the name of a fontawesome icon
  * or the name of a key.
  */
-static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CONTEXT* pContext) {
+static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	if (wp->caret.offset > 0 && wp->caret.linePointer->lbuf[wp->caret.offset - 1] == '+') {
 		_keyAnalyzerCallback = fCallback;
 		bindings_addModifiersAndKeycodes(analyzer_addKeycode);
@@ -461,35 +528,58 @@ int analyzer_register(const char* pszName, ANALYZER_FUNCTION f, ANALYZER_GET_CON
 
 	while (pAnalyzer) {
 		if (strcmp(pszName, pAnalyzer->an_name) == 0) {
-			pAnalyzer->an_function = f;
-			pAnalyzer->an_getContext = fGetContext;
+			pAnalyzer->an_determineCompletionsFunction = f;
+			pAnalyzer->an_getCaretContext = fGetContext;
 			return 0;
 		}
 		pAnalyzer = pAnalyzer->an_next;
 	}
 	ANALYZER* pNew = ll_insert(&_analyzers, sizeof * pNew);
 	strncpy(pNew->an_name, pszName, sizeof pNew->an_name);
-	pNew->an_function = f;
-	pNew->an_getContext = fGetContext;
+	pNew->an_determineCompletionsFunction = f;
+	pNew->an_getCaretContext = fGetContext;
 	return 1;
 }
 
-static int analyzer_matchContext(ANALYZER_CONTEXT* pContext, const char* pszWord) {
+static int analyzer_matchContext(ANALYZER_CARET_CONTEXT* pContext, const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
 	return strcmp(pszWord, pContext->ac_token) != 0 && string_strcasestr(pszWord, pContext->ac_token) != NULL;
 }
 
-static analyzer_getDefaultContext(WINFO* wp, ANALYZER_CONTEXT* pContext) {
+static analyzer_getDefaultCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
 	xref_findIdentifierCloseToCaret(wp, &wp->caret, 
 		pContext->ac_token, pContext->ac_token + sizeof pContext->ac_token, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
 }
 
 /*
+ * Calculate the caret context for the given analyzer name and caret position from the window in which a code
+ * completion is request. Return TRUE, if successful.
+ */
+BOOL analyzer_getCaretContext(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext) {
+	pCaretContext->ac_token[0] = 0;
+	pCaretContext->ac_token2[0] = 0;
+	pCaretContext->ac_type = 0;
+	pCaretContext->ac_tokenTypeName[0] = 0;
+	if (pszAnalyzerName == NULL) {
+		return FALSE;
+	}
+	ANALYZER* pAnalyzer = _analyzers;
+
+	while (pAnalyzer) {
+		if (strcmp(pszAnalyzerName, pAnalyzer->an_name) == 0) {
+			pAnalyzer->an_getCaretContext(wp, pCaretContext);
+			return TRUE;
+		}
+		pAnalyzer = pAnalyzer->an_next;
+	}
+	return FALSE;
+}
+/*
  * Extract all recommendations from the file edited in the view identified by 'wp'.
  * Use the analyzer with the given analyzer name. If successful, return 1, otherwise 0.
  */
-int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CALLBACK fCallback) {
+int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext, ANALYZER_CALLBACK fCallback) {
 	if (pszAnalyzerName == NULL) {
 		return 0;
 	}
@@ -497,9 +587,7 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CA
 
 	while (pAnalyzer) {
 		if (strcmp(pszAnalyzerName, pAnalyzer->an_name) == 0) {
-			ANALYZER_CONTEXT context = { 0 };
-			pAnalyzer->an_getContext(wp, &context);
-			pAnalyzer->an_function(wp, analyzer_matchContext, fCallback, &context);
+			pAnalyzer->an_determineCompletionsFunction(wp, analyzer_matchContext, fCallback, pCaretContext);
 			return 1;
 		}
 		pAnalyzer = pAnalyzer->an_next;
@@ -511,10 +599,10 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CA
  * Register some "default" analyzers, which can be referenced in grammar files given their respective names.
  */
 void analyzer_registerDefaultAnalyzers() {
-	analyzer_register("words", analyzer_extractWords, analyzer_getDefaultContext);
-	analyzer_register("xml", analyzer_extractTagsAndAttributes, analyzer_getXmlContext);
-	analyzer_register("pks-macros", analyzer_getMacrocCompletions, analyzer_getDefaultContext);
-	analyzer_register("action-bindings", analyzer_getBindingCompletions, analyzer_getDefaultContext);
+	analyzer_register("words", analyzer_extractWords, analyzer_getDefaultCaretContext);
+	analyzer_register("xml", analyzer_extractTagsAndAttributes, analyzer_getXmlCaretContext);
+	analyzer_register("pks-macros", analyzer_getMacrocCompletions, analyzer_getDefaultCaretContext);
+	analyzer_register("action-bindings", analyzer_getBindingCompletions, analyzer_getDefaultCaretContext);
 }
 
 /*

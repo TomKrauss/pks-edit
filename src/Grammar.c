@@ -31,6 +31,7 @@
 #include "editorfont.h"
 #include "stringutil.h"
 #include "codeanalyzer.h"
+#include "trace.h"
 
 #define	HAS_CHAR(ep, c)			(ep[(c & 0xff) >> 3] & bittab[c & 07])
 #define PLACE_CHAR(ep, c)		ep[c >> 3] |= bittab[c & 07];
@@ -172,6 +173,7 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 static JSON_MAPPING_RULE _templateRules[] = {
 	{	RT_ALLOC_STRING, "match", offsetof(TEMPLATE, t_pattern.pattern)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
+	{	RT_ALLOC_STRING, "grammar-context", offsetof(TEMPLATE, t_pattern.grammarContext)},
 	{	RT_ALLOC_STRING, "help", offsetof(TEMPLATE, t_pattern.helpText)},
 	{	RT_FLAG, "auto-insert", offsetof(TEMPLATE, t_auto), 1},
 	{	RT_FLAG, "ignore-case-match", offsetof(TEMPLATE, t_pattern.ignoreCase), 1},
@@ -265,6 +267,7 @@ void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern) {
 	}
 	free(pMatchPattern->pattern);
 	free(pMatchPattern->helpText);
+	free(pMatchPattern->grammarContext);
 }
 
 static int grammar_destroyPattern(GRAMMAR_PATTERN* pPattern) {
@@ -446,12 +449,12 @@ static RE_PATTERN* grammar_compileAndCreateRegex(char* pszMatch, char* pszScope,
 	if (pPattern == NULL) {
 		return NULL;
 	}
-	RE_OPTIONS options;
-	memset(&options, 0, sizeof options);
-	options.flags = someFlags;
-	options.patternBuf = malloc(512);
+	RE_OPTIONS options = {
+		.flags = someFlags,
+		.patternBuf = malloc(512),
+		.expression = pszMatch
+	};
 	options.endOfPatternBuf = options.patternBuf + 512;
-	options.expression = pszMatch;
 	if (!regex_compile(&options, pPattern)) {
 		free(pPattern);
 		free(options.patternBuf);
@@ -711,8 +714,12 @@ static void grammar_initialize(GRAMMAR* pGrammar) {
  */
 static int grammar_loadFromFile(const char* pszGrammarName) {
 	GRAMMAR_DEFINITIONS definitions;
-	char szFileName[50];
+	char szFileName[70];
 
+	if (strlen(pszGrammarName) > 55) {
+		EdTRACE(log_message(DEBUG_WARN, "Grammar name %s is too long (more than 50 characters)", pszGrammarName));
+		return 0;
+	}
 	memset(&definitions, 0, sizeof definitions);
 	sprintf(szFileName, "%s.grammar.json", pszGrammarName);
 	if (json_parse(szFileName, TRUE, &definitions, _grammarDefinitionsRules)) {
@@ -1087,9 +1094,10 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 			}
 			else {
 				char szTemp[32];
+				char* pEnd = szTemp + sizeof szTemp - 1;
 				pszInput = pPattern->match;
 				pszOutput = szTemp;
-				while ((c = *pszInput++) != 0) {
+				while ((c = *pszInput++) != 0 && pszOutput < pEnd) {
 					if (c == '.' || c == '[') {
 						break;
 					}

@@ -39,7 +39,7 @@ typedef struct tagMACROREF {
 	MACROREFIDX		index;
 } MACROREF;
 
-#define MACROREF_TO_INTPTR(m)	((intptr_t)((unsigned long)m.typ<<16) + m.index)
+#define MACROREF_TO_INTPTR(m)	((intptr_t)((unsigned long long)m.typ<<16) + m.index)
 #define INTPTR_TO_MACROREF(m)	(MACROREF){.typ = (unsigned char)((unsigned long)m >> 16), .index = (unsigned char)((unsigned long)m&0xFFFF)}
 
 typedef enum { MS_GLOBAL = 0, MS_LOCAL = 1 } MACRO_SCOPE;

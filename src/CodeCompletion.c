@@ -113,7 +113,12 @@ static HASHMAP* _suggestions;
 static ARRAY_LIST* _actionList;
 
 static int codecomplete_compareScore(const CODE_ACTION** p1, const CODE_ACTION** p2) {
-	return (*p2)->ca_score - (*p1)->ca_score;
+	int n = (*p2)->ca_score - (*p1)->ca_score;
+	if (n == 0) {
+		// If same score - sort alphabetically.
+		return strcmp((*p1)->ca_name, (*p2)->ca_name);
+	}
+	return n;
 }
 
 static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bParam, BOOL bAlloc) {
@@ -156,11 +161,11 @@ static void codecomplete_hideWindow(HWND hwnd) {
 /*
  * The current identifier under the cursor.
  */
-static char szIdent[100];
+static ANALYZER_CARET_CONTEXT caretContext;
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
-	return string_strcasestr(pszWord, szIdent) != NULL;
+	return string_strcasestr(pszWord, caretContext.ac_token) != NULL;
 }
 
 /*
@@ -168,6 +173,10 @@ static int codecomplete_matchWord(const char* pszWord) {
  * the word to search, the 'pszFound' variable the recommendation.
  */
 int codecomplete_calculateScore(const char* pszSearch, const char* pszFound) {
+	if (pszSearch[0] == 0) {
+		// If search is empty - standard score, so we can sort suggestions later alphabetically 
+		return 1;
+	}
 	int lFound = (int)strlen(pszFound);
 	if (strstr(pszFound, pszSearch) == pszFound) {
 		return 100 + lFound;
@@ -181,14 +190,14 @@ int codecomplete_calculateScore(const char* pszSearch, const char* pszFound) {
 
 static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {
 	if (bParam->acp_score == 0) {
-		bParam->acp_score = codecomplete_calculateScore(szIdent, bParam->acp_recommendation);
+		bParam->acp_score = codecomplete_calculateScore(caretContext.ac_token, bParam->acp_recommendation);
 	}
 	codecomplete_addTagsWithAlloc(bParam, FALSE);
 }
 
 static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
 	if (bParam->acp_score == 0) {
-		bParam->acp_score = codecomplete_calculateScore(szIdent, bParam->acp_recommendation);
+		bParam->acp_score = codecomplete_calculateScore(caretContext.ac_token, bParam->acp_recommendation);
 	}
 	codecomplete_addTagsWithAlloc(bParam, TRUE);
 }
@@ -217,11 +226,11 @@ static char* codecomplete_helpForTemplate(const char* pszCompletion, void* pText
  */
 static void codecomplete_matchPatterns(WINFO* wp, UCLIST* up) {
 	char matched[128];
-	szIdent[0] = 0;
+	caretContext.ac_token[0] = 0;
 	while (up) {
 		template_matchIdentifier(wp, up->uc_pattern.pattern, matched, sizeof matched);
-		if (strlen(matched) > strlen(szIdent)) {
-			strcpy(szIdent, matched);
+		if (strlen(matched) > strlen(caretContext.ac_token)) {
+			strcpy(caretContext.ac_token, matched);
 		}
 		up = up->next;
 	}
@@ -243,8 +252,12 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	pCC->ccp_topRow = 0;
 	codecomplete_matchPatterns(wp, up);
 	_actionList = arraylist_create(37);
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
+	analyzer_getCaretContext(pszAnalyzer, wp, &caretContext);
 	while (up) {
-		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern)) {
+		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern) && 
+			(up->uc_pattern.grammarContext == NULL || strcmp(up->uc_pattern.grammarContext, caretContext.ac_tokenTypeName) == 0)) {
 			CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
 			if (pAction == NULL) {
 				return;
@@ -261,9 +274,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		up = up->next;
 	}
 	_suggestions = hashmap_create(37, NULL, NULL);
-	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
-	analyzer_performAnalysis(pszAnalyzer, wp, codecomplete_analyzerCallback);
+	analyzer_performAnalysis(pszAnalyzer, wp, &caretContext, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
 	grammar_addSuggestionsMatching(pGrammar, codecomplete_matchWord, codecomplete_addTags);
 	arraylist_sort(_actionList, codecomplete_compareScore);
