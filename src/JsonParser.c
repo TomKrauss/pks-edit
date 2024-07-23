@@ -32,8 +32,6 @@
 #include "pathname.h"
 #include "trace.h"
 
-#define MAX_TOKEN_SIZE		511
-
 static char* _nl = "\n";
 
 /**
@@ -47,7 +45,7 @@ static int json_marshalNode(FILE* fp, int indent, void* pSourceObject, JSON_MAPP
  * Get the actual contents of a JSON token as a zero terminated String. The string
  * must not exceed MAX_TOKEN_SIZE in size.
  */
-static void json_tokenContents(const char* json, jsmntok_t* tok, char* pDest) {
+void json_tokenContents(const char* json, jsmntok_t* tok, char* pDest) {
 	size_t nSize = (size_t) tok->end - tok->start;
 	if (nSize > MAX_TOKEN_SIZE) {
 		nSize = MAX_TOKEN_SIZE;
@@ -394,29 +392,40 @@ static int json_processTokens(JSON_MAPPING_RULE* pRules, void* pTargetObject, ch
 }
 
 /*
+ * Parse a memory space or characters with a given maxInputSize and return the JSON tokens 
+ * and the number of tokens in pNTokens.
+ */
+jsmntok_t* json_parseMemory(char* pszBuf, size_t maxInputSize, int* pNTokens) {
+	int	tokcount = 2048;
+	jsmn_parser parser;
+	jsmn_init(&parser);
+	jsmntok_t* tokens = malloc(sizeof(*tokens) * tokcount);
+	int numberOfTokens = 0;
+	while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
+		tokcount *= 2;
+		jsmntok_t* pszTempTokens = realloc(tokens, sizeof(*tokens) * tokcount);
+		if (pszTempTokens == NULL) {
+			free(tokens);
+			free(pszBuf);
+			return 0;
+		}
+		tokens = pszTempTokens;
+	}
+	*pNTokens = numberOfTokens;
+	return tokens;
+}
+
+/*
  * Parse a JSON file from the file descriptor according to mapping rules passed as an argument
  * into the target object pTargetObject.
  */
 static int json_parseFile(HFILE fd, void* pTargetObject, JSON_MAPPING_RULE* pRules) {
-	int	tokcount = 2048;
 	char* pszBuf;
-	jsmn_parser parser;
-	jsmn_init(&parser);
 	pszBuf = file_readFileAsString(fd);
 	if (pszBuf) {
-		jsmntok_t* tokens = malloc(sizeof(*tokens) * tokcount);
-		int numberOfTokens = 0;
 		size_t maxInputSize = strlen(pszBuf);
-		while (tokens != NULL && (numberOfTokens = jsmn_parse(&parser, pszBuf, maxInputSize, tokens, tokcount)) == JSMN_ERROR_NOMEM) {
-			tokcount *= 2;
-			jsmntok_t* pszTempTokens = realloc(tokens, sizeof(*tokens) * tokcount);
-			if (pszTempTokens == NULL) {
-				free(tokens);
-				free(pszBuf);
-				return 0;
-			}
-			tokens = pszTempTokens;
-		}
+		int numberOfTokens = 0;
+		jsmntok_t* tokens = json_parseMemory(pszBuf, maxInputSize, &numberOfTokens);
 		json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
 		free(tokens);
 		free(pszBuf);

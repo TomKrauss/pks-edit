@@ -195,7 +195,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "captures", offsetof(GRAMMAR_PATTERN, captures),
 			{.r_t_arrayDescriptor = {.ro_nestedRules = _patternGroupRules, .ro_nestedSize = sizeof(PATTERN_GROUP)}}},
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
-	{	RT_FLAG, "keywords-no-identifiers", offsetof(GRAMMAR_PATTERN, keywordsNoIdentifiers)},
+	{	RT_FLAG, "keywords-no-identifiers", offsetof(GRAMMAR_PATTERN, keywordsNoIdentifiers), .r_description = "Set this to true, to specify keywords, which are not identifiers."},
 	{	RT_FLAG, "ignore-case", offsetof(GRAMMAR_PATTERN, ignoreCase)},
 	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
@@ -248,6 +248,13 @@ static JSON_MAPPING_RULE _grammarDefinitionsRules[] = {
 			{.r_t_arrayDescriptor = {.ro_nestedRules = _grammarRules, .ro_nestedSize = sizeof(GRAMMAR)}}},
 	{	RT_END}
 };
+
+/*
+ * Returns the JSON mapping used to parse grammar files.
+ */
+JSON_MAPPING_RULE* grammar_getJsonMapping() {
+	return _grammarDefinitionsRules;
+}
 
 static void grammar_destroyREPattern(RE_PATTERN* pREPattern) {
 	if (pREPattern) {

@@ -158,7 +158,14 @@ static BOOL doctypes_destroySegment(STATUS_LINE_SEGMENT* pSegment) {
 	free(pSegment->sls_text);
 	return TRUE;
 }
- 
+
+/*
+ * Return the mapping rules for the document types and editor configurations.
+ */
+JSON_MAPPING_RULE* doctypes_getJsonMapping() {
+	return _doctypeConfigurationRules;
+}
+
 /*
  * Copy a document descriptor from a source to a target.
  */

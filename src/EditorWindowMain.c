@@ -1468,7 +1468,7 @@ static int mouse_onRulerClicked(WINFO* wp, int x, int y, int msg, int shift) {
 
 	x -= ruler_getLeft(wp);
 	wp->renderer->r_hitTest(wp, x + wp->cwidth / 2, y, &ln, &col);
-	wsprintf(szBuf, /*STR*/"column: %4ld", col + 1);
+	sprintf(szBuf, /*STR*/"column: %4ld", col + 1);
 	st_setStatusLineMessage(szBuf);
 
 	if (msg == WM_RBUTTONDOWN) {

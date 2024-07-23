@@ -86,7 +86,7 @@ static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* p
 
 	_searchContext.sc_matches++;
 	if (nStartCol >= 0) {
-		wsprintf(szBuf, "%d/%d", nStartCol, nLength);
+		sprintf(szBuf, "%d/%d", nStartCol, nLength);
 		if (pszLine) {
 			int nMaxVis = 40;
 			strcat(szBuf, " - ");
@@ -126,7 +126,7 @@ int xref_addSearchListEntry(WINFO* wp, char* szBuf, char* fn, long line, char* r
 	if (wp->actionContext != NULL && strcmp(SEARCH_LIST_CONTEXT, wp->actionContext) == 0) {
 		strcat(remark, " sl");
 	}
-	wsprintf(szBuf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
+	sprintf(szBuf, _grepFileFormat, (LPSTR)fn, line + 1L, (LPSTR)remark);
 	return 1;
 }
 

@@ -3,6 +3,7 @@
     {
       "scopeName": "json",
       "description": "JavaScript Object Notation",
+      "analyzer": "json",
       "patterns": [
         {
           "match": "<\"[A-Za-z0-9_-]+\":",

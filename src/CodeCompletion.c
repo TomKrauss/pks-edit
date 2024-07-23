@@ -224,39 +224,27 @@ static char* codecomplete_helpForTemplate(const char* pszCompletion, void* pText
  * Tries to find the longest matching pattern close to the caret from the list of 
  * patterns to match.
  */
-static void codecomplete_matchPatterns(WINFO* wp, UCLIST* up) {
+static void codecomplete_findLongestTemplateMatch(char* pszMatch, WINFO* wp, UCLIST* up) {
 	char matched[128];
-	caretContext.ac_token[0] = 0;
+	*pszMatch = 0;
 	while (up) {
 		template_matchIdentifier(wp, up->uc_pattern.pattern, matched, sizeof matched);
 		if (strlen(matched) > strlen(caretContext.ac_token)) {
-			strcpy(caretContext.ac_token, matched);
+			strcpy(pszMatch, matched);
 		}
 		up = up->next;
 	}
 }
 
-/*
- * codecomplete_updateCompletionList
- * update the list of completions awailable.
- */
-void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
-	if (!wp->codecomplete_handle || (!IsWindowVisible(wp->codecomplete_handle) && !bForce)) {
+static void codecomplete_addTemplates(WINFO* wp, GRAMMAR* pGrammar) {
+	char szTemplateMatch[128];
+	UCLIST* up = grammar_getUndercursorActions(pGrammar);
+	codecomplete_findLongestTemplateMatch(szTemplateMatch, wp, up);
+	if (!szTemplateMatch[0]) {
 		return;
 	}
-	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(wp->codecomplete_handle, GWL_PARAMS);
-	FTABLE* fp = wp->fp;
-	UCLIST* up = grammar_getUndercursorActions(fp->documentDescriptor->grammar);
-
-	codecomplete_destroyActions(pCC);
-	pCC->ccp_topRow = 0;
-	codecomplete_matchPatterns(wp, up);
-	_actionList = arraylist_create(37);
-	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
-	analyzer_getCaretContext(pszAnalyzer, wp, &caretContext);
 	while (up) {
-		if (up->action == UA_TEMPLATE && codecomplete_matchWord(up->uc_pattern.pattern) && 
+		if (up->action == UA_TEMPLATE && strstr(up->uc_pattern.pattern, szTemplateMatch) == up->uc_pattern.pattern &&
 			(up->uc_pattern.grammarContext == NULL || strcmp(up->uc_pattern.grammarContext, caretContext.ac_tokenTypeName) == 0)) {
 			CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
 			if (pAction == NULL) {
@@ -273,6 +261,27 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 		}
 		up = up->next;
 	}
+}
+
+/*
+ * codecomplete_updateCompletionList
+ * update the list of completions awailable.
+ */
+void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
+	if (!wp->codecomplete_handle || (!IsWindowVisible(wp->codecomplete_handle) && !bForce)) {
+		return;
+	}
+	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS * )GetWindowLongPtr(wp->codecomplete_handle, GWL_PARAMS);
+	FTABLE* fp = wp->fp;
+
+	codecomplete_destroyActions(pCC);
+	pCC->ccp_topRow = 0;
+	_actionList = arraylist_create(37);
+	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
+	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
+	analyzer_getCaretContext(pszAnalyzer, wp, &caretContext);
+
+	codecomplete_addTemplates(wp, pGrammar);
 	_suggestions = hashmap_create(37, NULL, NULL);
 	analyzer_performAnalysis(pszAnalyzer, wp, &caretContext, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);

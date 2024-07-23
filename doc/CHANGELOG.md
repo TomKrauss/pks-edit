@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   added to the list of formats supported out of the box.
 - XML code completion was improved: entries are sorted alphabetically, attribute suggestions are provided based on
   the current entity.
+- JSON Code Completion support was added in particular for PKS Edit configuration files.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

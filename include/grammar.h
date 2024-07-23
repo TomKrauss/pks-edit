@@ -302,5 +302,12 @@ extern void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern);
  */
 extern const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState);
 
+#ifdef JSONPARSER_H
+/*
+ * Returns the JSON mapping used to parse grammar files.
+ */
+extern JSON_MAPPING_RULE* grammar_getJsonMapping();
+#endif
+
 #define GRAMMAR_H
 #endif

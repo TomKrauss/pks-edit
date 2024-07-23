@@ -16,9 +16,9 @@
  */
 
 # if defined( _Windows ) || defined(WIN32)
+#include <stdio.h>
 #include <windows.h>
 #include "winterf.h"
-#define sprintf wsprintf
 # else
 #include <stdio.h>
 #define	hInst		0

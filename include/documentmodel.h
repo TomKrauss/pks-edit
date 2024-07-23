@@ -195,6 +195,13 @@ typedef struct tagEDIT_CONFIGURATION {
  */
 extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
+#ifdef JSONPARSER_H
+/*
+ * Return the mapping rules for the document types and editor configurations.
+ */
+extern JSON_MAPPING_RULE* doctypes_getJsonMapping();
+
+#endif // JSONPARSER_H
 #endif
 
 /* default document descriptor context (Makros are global) */
@@ -429,9 +436,14 @@ extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, const LINE* lpend, int flags
 extern long ln_nBytes(LINE* lp);
 
 /*
+ * Calculates the offset in bytes of the caret to the beginning of the file.
+ */
+extern size_t ln_caretOffset(FTABLE* fp, CARET* pCaret);
+
+/*
  * Calculates the number of bytes in a file.
  */
-extern long long ft_totalBytes(FTABLE* fp);
+extern size_t ft_totalBytes(FTABLE* fp);
 
 /*---------------------------------
  * ln_removeFlag()
@@ -542,11 +554,7 @@ void ft_getBackupFilename(FTABLE* fp, char* pszResult);
 extern BOOL ft_backupFileExists(FTABLE* fp);
 
 extern char* ft_visibleName(FTABLE* fp);
-/*------------------------------------------------------------
- * ft_size()
- * calculate current file size
- */
-extern long ft_size(FTABLE* fp);
+
 /*------------------------------------------------------------
  * ft_fpbyname()
  * Find a filebuffer given the name of the file.
@@ -628,7 +636,14 @@ extern void ft_setTitle(FTABLE* fp, char* pNewName);
  * ln_needbytes()
  * Calculates the number of bytes needed for one line.
  */
-extern long ln_calculateMemorySizeRequired(LINE* lp, int nl, int cr);
+extern size_t ln_calculateMemorySizeRequired(FTABLE* fp, LINE* lp, int nl, int cr);
+
+/*
+ * Convert the lines starting at lp to a string pointed to by lpMem. It is assumed, that lpMem has
+ * a size as described by *pnSize. fp may be NULL.lpMem may also be NULL, in which case the memory is allocated and the actual memory size
+ * is returned in *pnSize. Memory is created in this case and must be freed, once you are done using it.
+ */
+extern char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp);
 
 /*--------------------------------------------------------------------------
  * ln_unhide()

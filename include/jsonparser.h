@@ -70,6 +70,7 @@ typedef struct tagJSON_MAPPING_RULE {
 		struct tagJSON_MAPPING_RULE* r_t_nestedObjectRules;		// currently used in case of type == RT_NESTED_OBJECT. On a long term run, this should be identically to above and nested objects
 																// should be allocated and destroyed as well.
 	} r_descriptor;
+	char* r_description;										// Optional description for help.
 } JSON_MAPPING_RULE;
 
 /*
@@ -95,6 +96,22 @@ int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE
  * Does not free the memory pointed to by pMemory itself.
  */
 void json_destroy(void* pMemory, JSON_MAPPING_RULE* pRules);
+
+#define MAX_TOKEN_SIZE		511
+
+#ifdef JSMN_H
+/*
+ * Get the actual contents of a JSON token as a zero terminated String. The string
+ * must not exceed MAX_TOKEN_SIZE in size.
+ */
+extern void json_tokenContents(const char* json, jsmntok_t* tok, char* pDest);
+
+/*
+ * Parse a memory space or characters with a given maxInputSize and return the JSON tokens
+ * and the number of tokens in pNTokens.
+ */
+extern jsmntok_t* json_parseMemory(char* pszBuf, size_t maxInputSize, int* pNTokens);
+#endif
 
 #define JSONPARSER_H
 #endif // !JSONPARSER_H

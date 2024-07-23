@@ -15,7 +15,7 @@
  */
 
 #include <windows.h>
-
+#include <stdio.h>
 #include "trace.h"
 #include "caretmovement.h"
 #include "edierror.h"
@@ -299,7 +299,7 @@ static void redraw_indirect(HDC hdc, WINFO *wp, int y, LINE *lp)
 	DWORD	dwExtent;
 	char 	buf[100];
 
-	wsprintf(buf," skipped %ld... ", (long)LpIndNTotal(lp));
+	sprintf(buf," skipped %ld... ", (long)LpIndNTotal(lp));
 
 	int nSize = (int)strlen(buf);
 	TextOut(hdc, wp->cwidth, y, buf, nSize);

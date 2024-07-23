@@ -269,16 +269,20 @@ long ln_nBytes(LINE* lp) {
 }
 
 /*
- * Calculates the number of bytes in a file.
+ * Calculates the offset in bytes of the caret to the beginning of the file.
  */
-long long ft_totalBytes(FTABLE* fp) {
-	long long n = 0;
+size_t ln_caretOffset(FTABLE* fp, CARET* pCaret) {
 	LINE* lp = fp->firstl;
-	while (lp && lp != fp->lastl) {
-		n += ln_nBytes(lp);
+	long offset = 0;
+	while (lp) {
+		if (lp == pCaret->linePointer) {
+			offset += pCaret->offset;
+			return offset;
+		}
+		offset += ln_nBytes(lp);
 		lp = lp->next;
 	}
-	return n;
+	return 0;
 }
 
 /*---------------------------------
@@ -852,28 +856,75 @@ void ln_destroy(LINE *lp)
 
 /*------------------------------------------------------------
  * ln_needbytes()
- * Calculates the number of bytes needed for one line.
+ * Calculates the number of bytes needed for a list of lines with the first line
+ * being lp.
  */
-EXPORT long ln_calculateMemorySizeRequired(LINE *lp, int nl, int cr)
-{ 	
-	long fsize = 0L;
-	long ln = 0L;
+EXPORT size_t ln_calculateMemorySizeRequired(FTABLE* fp, LINE *lp, int nl, int cr) { 	
+	size_t fsize = 0L;
 
-	/* test for lp quicker (than for lpnext), subtract len(lastl) */
-	if (lp) do { 
-		fsize += lp->len; 
-		lp = lp->next; 
-		ln++;
-	} while (lp);
-
-	if (nl >= 0) {
-		fsize += ln;
-		if (cr >= 0)
-			fsize += ln;
+	LINE* lpLast = fp != NULL ? fp->lastl : NULL;
+	while(lp && lp != lpLast) { 
+		fsize += ln_nBytes(lp);
+		lp = lp->next;
 	}
 	return fsize;
 }
 
+/*
+ * Calculates the number of bytes in a file.
+ */
+size_t ft_totalBytes(FTABLE* fp) {
+	EDIT_CONFIGURATION* pConf = fp->documentDescriptor;
+	return ln_calculateMemorySizeRequired(fp, fp->firstl, pConf->nl, pConf->cr);
+}
+
+
+/*
+ * Convert the lines starting at lp to a string pointed to by lpMem. It is assumed, that lpMem has
+ * a size of nSize. fp may be NULL.lpMem may also be NULL, in which case the memory is allocated and created
+ * and must be freed, once you are done using it.
+ */
+char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp) {
+	int cr = fp ? fp->documentDescriptor->cr : '\r';
+	int nl = fp ? fp->documentDescriptor->nl : '\n';
+	size_t nSize = *pnSize;
+
+	if (lpMem == NULL) {
+		nSize = ln_calculateMemorySizeRequired(fp, lp, nl, cr);
+		lpMem = malloc(nSize);
+		if (lpMem == NULL) {
+			return NULL;
+		}
+		*pnSize = nSize;
+	}
+	char* pMemStart = lpMem;
+	while (nSize > (DWORD)lp->len) {
+		memcpy(lpMem, lp->lbuf, lp->len);
+		lpMem += lp->len;
+		nSize -= lp->len;
+		if (LINE_HAS_LINE_END(lp) && nl) {
+			if (LINE_HAS_CR(lp) && cr) {
+				if (nSize <= 0) {
+					break;
+				}
+				*lpMem++ = cr;
+				nSize--;
+			}
+			if (nSize <= 0) {
+				break;
+			}
+			*lpMem++ = nl;
+			nSize--;
+		}
+		if ((lp = lp->next) == 0) {
+			break;
+		}
+		if (fp && lp == fp->lastl) {
+			break;
+		}
+	}
+	return pMemStart;
+}
 
 /*---------------------------------
  * ln_createFromBuffer()

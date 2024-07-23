@@ -18,6 +18,7 @@
 #include "customcontrols.h"
 #include <commctrl.h>
 #include <windowsx.h>
+#include <stdio.h>
 
 #include "trace.h"
 #include "documentmodel.h"
@@ -464,7 +465,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 				DlgInitString(hDlg,item,(LPSTR)ip,dp->did_flagOrSize);
 				break;
 			case IDD_LONG1:
-				wsprintf(numbuf,"%ld",*(long*)dp->did_data);
+				sprintf(numbuf,"%ld",*(long*)dp->did_data);
 				goto donum;
 			case IDD_INT1: case IDD_INT2: case IDD_INT3: 
 			case IDD_INT4: case IDD_INT5: case IDD_INT6:
@@ -472,7 +473,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 				if (*ip < 0) {
 					numbuf[0] = 0;
 				} else {
-					wsprintf(numbuf, "%d", *ip);
+					sprintf(numbuf, "%d", *ip);
 				}
 donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;

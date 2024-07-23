@@ -14,6 +14,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+#include <stdio.h>
 #include "customcontrols.h"
 #include <string.h>
 #include <CommCtrl.h>
@@ -81,7 +82,7 @@ static int fkey_setText(KEY_BINDING* kp, void * pParam) {
 	if (k >= 0 && k < MAX_FKEYS) {
 		fk_registerBinding(k, kp->macref.index, kp->macref.typ);
 		command_getTooltipAndLabel(kp->macref, szComment, szKtext);
-		wsprintf(szKey, "F%d %s", k + 1, szKtext);
+		sprintf(szKey, "F%d %s", k + 1, szKtext);
 	}
 	else {
 		return 1;
@@ -112,7 +113,7 @@ void fkey_updateTextOfFunctionKeys(int state) {
 
 	action_deregisterAllActionsWithListener(fk_propertyChanged);
 	for (i = 0; i < MAX_FKEYS; i++) {
-		wsprintf(szKey, "F%d", i + 1);
+		sprintf(szKey, "F%d", i + 1);
 		SetDlgItemText(hwndFkeys, i + IDD_FKFK1, szKey);
 		EnableWindow(GetDlgItem(hwndFkeys, i + IDD_FKFK1), FALSE);
 	}

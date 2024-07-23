@@ -13,15 +13,5 @@
         }
       ]
     }
-  ],
-  "styles": [
-    {
-      "styleName": "default",
-      "patternName": "default"
-    },
-    {
-      "styleName": "control",
-      "patternName": "control"
-    }
   ]
 }

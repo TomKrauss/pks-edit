@@ -53,9 +53,8 @@ static void clp_setclipboarddata(HANDLE hMem)
  * clp_makebufferhandle()
  */
 static HANDLE clp_makebufferhandle(char* whichBuffer) {
-	DWORD 	size;
+	size_t 	size;
 	PASTE *	bp;
-	LINE  *	lp;
 	HANDLE 	hMem;
 	char *	lpMem;
 	int  nl = '\n';
@@ -66,7 +65,7 @@ static HANDLE clp_makebufferhandle(char* whichBuffer) {
 	}
 
 	if (bp->pln == 0 ||
-	    (size = ln_calculateMemorySizeRequired(bp->pln, nl, cr)) == 0) 
+	    (size = ln_calculateMemorySizeRequired(NULL, bp->pln, nl, cr)) == 0) 
 		return 0;
 
 	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
@@ -74,24 +73,8 @@ static HANDLE clp_makebufferhandle(char* whichBuffer) {
 		error_showErrorById(IDS_MSGNOSPCE);
 		return 0;
 	}
-	
-	lp = bp->pln;
+	ft_convertToBuffer(NULL, lpMem, &size, bp->pln);
 
-	while(size > (DWORD)lp->len) {
-		memmove(lpMem,lp->lbuf,lp->len);
-		lpMem += lp->len;
-		size  -= lp->len;
-		if ((lp = lp->next) == 0)
-			break;
-		if (cr >= 0 && size > 0) {
-			*lpMem++ = cr;
-			size --;
-		}
-		if (nl >= 0 && size > 0) {
-			*lpMem++ = nl;
-			size--;
-		}
-	}
 	GlobalUnlock(hMem);
 
 	return hMem;

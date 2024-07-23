@@ -409,7 +409,7 @@ static int print_singleLineOfText(RENDER_CONTEXT* pRC, PRINT_LINE *pLine) {
 	nMaxCharsPerLine = 0;
 	if (pParams->options & PRTO_LINE_NUMBERS) {
 		char 	szBuf[80];
-		wsprintf(szBuf, "%3ld: ", pLine->lineNumber);
+		sprintf(szBuf, "%3ld: ", pLine->lineNumber);
 		int		nCount = (int)strlen(szBuf);
 		if (printing && nActualLine >= nFirstActualLineToPrint) {
 			SetTextColor(hdc, DEFAULT_PRINT_COLOR);
@@ -575,7 +575,7 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 			}
 			printLineParam.produceOutput = printing && !measureOnly;
 			if (!PREVIEWING() && printLineParam.produceOutput) {
-				wsprintf(message,/*STR*/"%s - %s (Seite %ld)",
+				sprintf(message,/*STR*/"%s - %s (Seite %ld)",
 						(LPSTR)szAppName,
 					  	(LPSTR)string_abbreviateFileName(ft_visibleName(fp)),
 						printLineParam.pagenumber);

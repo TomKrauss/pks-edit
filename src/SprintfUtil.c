@@ -73,7 +73,7 @@ static void agettime(char *buf, struct tm *tp)
 	char lim = sTime[0];
 
 	if (tp)
-	wsprintf(buf,"%02d%c%02d%c%02d",
+	sprintf(buf,"%02d%c%02d%c%02d",
 		tp->tm_hour,lim,tp->tm_min,lim,tp->tm_sec);
 }
 
@@ -85,7 +85,7 @@ static void agetdate(char *buf, struct tm *tp)
 	char lim = sDate[0];
 
 	if (tp)
-	wsprintf(buf,"%02d%c%02d%c%02d",
+	sprintf(buf,"%02d%c%02d%c%02d",
 		iDate == 1 ? tp->tm_mday : iDate == 2 ? tp->tm_year : tp->tm_mon,lim,
 		iDate == 0 ? tp->tm_mday : tp->tm_mon,lim,
 		iDate == 2 ? tp->tm_mday : (tp->tm_year+1900));
@@ -104,7 +104,7 @@ void string_formatDate(char *szDbuf, EDTIME *ltime)
 	} else {
 		agetdate(szBdate, tp);
 		agettime(szBtime, tp);
-		wsprintf(szDbuf,"%s   %s",szBdate,szBtime);
+		sprintf(szDbuf,"%s   %s",szBdate,szBtime);
 	}
 }
 

@@ -284,6 +284,13 @@ static JSON_MAPPING_RULE _themeConfigurationRules[] = {
 
 static THEME_CONFIGURATION themeConfiguration;
 
+/*
+ * Returns the mapping rules for the JSON scheme configuration.
+ */
+JSON_MAPPING_RULE* theme_getJsonMapping() {
+	return _themeConfigurationRules;
+}
+
 static char* _styleNames[] = {
 	"default",
 	"control",

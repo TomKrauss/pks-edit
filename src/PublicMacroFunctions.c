@@ -858,9 +858,9 @@ static void infoFillParams(DIALOG_ITEM_DESCRIPTOR *dp, WINFO *wp) {
 	string_formatDate(dp->did_data, &fp->ti_created); 	dp++;
 	string_formatDate(dp->did_data, &fp->ti_modified); 	dp++;
 	string_formatDate(dp->did_data, &fp->ti_saved);  	dp++;
-	wsprintf(dp->did_data,"%ld", ft_size(fp)); 	dp++;
-	wsprintf(dp->did_data, "%ld", fp->nlines); dp++;
-	wsprintf(dp->did_data, "%ld", ft_countWords(fp)); dp++;
+	sprintf(dp->did_data,"%llu", ft_totalBytes(fp)); 	dp++;
+	sprintf(dp->did_data, "%ld", fp->nlines); dp++;
+	sprintf(dp->did_data, "%ld", ft_countWords(fp)); dp++;
 	dp->did_data = szCodePage; dp++;
 	ft_getCodepageName(fp, szCodePage, sizeof szCodePage);
 	dp->did_data = (char*) grammar_name(fp->documentDescriptor->grammar);

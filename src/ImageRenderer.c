@@ -50,7 +50,7 @@ static int image_supportsMode(EDIT_MODE mode) {
 }
 
 static HANDLE image_createHandle(FTABLE* fp) {
-	long long n = ft_totalBytes(fp);
+	size_t n = ft_totalBytes(fp);
 	if (n == 0 || n > 2500000) {
 		return NULL;
 	}

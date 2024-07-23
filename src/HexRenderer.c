@@ -15,6 +15,7 @@
  */
 
 #include "alloc.h"
+#include <stdio.h>
 #include <windows.h>
 #include "caretmovement.h"
 #include "editorfont.h"
@@ -495,7 +496,7 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 }
 
 static void hex_getLineAnnotation(WINFO* wp, long nLine, LINE_ANNOTATION* pAnnotation) {
-	wsprintf(pAnnotation->la_text, "%08x", nLine * HEX_BYTES_PER_LINE);
+	sprintf(pAnnotation->la_text, "%08x", nLine * HEX_BYTES_PER_LINE);
 	pAnnotation->la_lineFlag = 0;
 }
 

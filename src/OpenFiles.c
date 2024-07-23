@@ -409,19 +409,6 @@ char *ft_visibleName(FTABLE *fp) {
 	return buf;
 }
 
-/*------------------------------------------------------------
- * ft_size()
- * calculate current file size
- */
-long ft_size(FTABLE *fp)
-{	
-	long fsize = ln_calculateMemorySizeRequired(fp->firstl,fp->documentDescriptor->nl,fp->documentDescriptor->cr);
-
-	if (fp->lastl) 
-		fsize -= fp->lastl->len;
-	return fsize;
-}
-
 /*---------------------------------
  * ww_hasSelection()
  * Check whether a text selection exists.

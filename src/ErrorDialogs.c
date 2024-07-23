@@ -317,7 +317,7 @@ void error_showErrorById(int nId, ...) {
 void error_displayGenericErrorNumber(int num)
 {	char buf[100];
 
-	wsprintf(buf,/*STR*/"Generic error: %d", num);
+	sprintf(buf,/*STR*/"Generic error: %d", num);
 	error_displayAlertDialog(buf);
 }
 
