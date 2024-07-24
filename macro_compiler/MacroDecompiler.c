@@ -752,7 +752,7 @@ static void decompile_macroInstructions(STRING_BUF* pBuf, DECOMPILE_OPTIONS* pOp
 		case C_DEFINE_VARIABLE: decompile_print(pBuf, "defineVariable %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
 		case C_DEFINE_LOCAL_VARIABLE: decompile_print(pBuf, "defineLocalVariable %s -> %d", ((COM_DEFINE_SYMBOL*)sp)->name, ((COM_DEFINE_SYMBOL*)sp)->heapIndex); break;
 		case C_DEFINE_PARAMETER: decompile_print(pBuf, "defineParameter %s", ((COM_DEFINE_SYMBOL*)sp)->name); break;
-		case C_FORM_START: decompile_print(pBuf, "beginFormParameters"); break;
+		case C_FORM_START: decompile_print(pBuf, "beginFormParameters #fields %d, options 0x%x", ((COM_FORM*)sp)->nfields, ((COM_FORM*)sp)->options); break;
 		case C_SET_STACKFRAME: decompile_print(pBuf, "setStackFrame"); break;
 		case C_POP_STACK: decompile_print(pBuf, "pop"); break;
 		default: decompile_print(pBuf, "opcode 0x%x", t); break;
@@ -789,7 +789,7 @@ static void decompile_printComment(STRING_BUF* pBuf, const char* pszComment) {
  * Flush the current code generation stack. 
  */
 static DECOMPILATION_STACK_ELEMENT* decompile_flushStack(STRING_BUF* pBuf, DECOMPILATION_STACK_ELEMENT* pStackCurrent, DECOMPILATION_STACK_ELEMENT* pStack) {
-	if (pStackCurrent > pStack) {
+	if (pStackCurrent > pStack && pBuf) {
 		stringbuf_appendString(pBuf, pStackCurrent[-1].dse_printed);
 		pStackCurrent = decompile_popStack(pStackCurrent, pStack);
 	}
@@ -999,7 +999,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 	pFlowMarks = decompile_analyseControlFlowMarks(sp, spend, &nMarks);
 
 	sp = decompile_printMacroSignature(mp, pBuf, sp, 0);
-	stringbuf_appendString(pBuf, "{ \n");
+	stringbuf_appendString(pBuf, " {\n");
 	decompile_makeAutoLabels(data, spend, pFlowMarks, nMarks);
 	bytecode_initializeAutoLabels();
 	gop = NULL;
@@ -1020,6 +1020,17 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 			pOptions->do_lineNumberForInstructionPointer = stringbuf_getLineNumber(pBuf);
 		}
 		opCode = ((COM_1FUNC*)sp)->typ;
+		if (opCode == C_FORM_START) {
+			sp += interpreter_getParameterSize(*sp, sp + 1);
+			nParamIndex++;
+			nPreviousOpCode = opCode;
+			if (pStackCurrent > pStack) {
+				decompile_indent(pBuf, nIndent);
+				pStackCurrent = decompile_flushStack(pBuf, pStackCurrent, pStack);
+				decompile_print(pBuf, ";\n");
+			}
+			continue;
+		}
 		if (C_IS_PUSH_OPCODE(opCode)) {
 			if (!pCurrentFunctionDescriptor && nParamIndex == 1) {
 				pCurrentFunctionDescriptor = decompile_findFunctionDescriptor(sp, spend);
@@ -1163,6 +1174,7 @@ static void decompile_macroCode(STRING_BUF* pBuf, DECOMPILE_OPTIONS *pOptions)
 		sp += interpreter_getParameterSize(*sp,sp+1);
 	}
 	free(pFlowMarks);
+	decompile_flushStack(NULL, pStackCurrent, pStack);
 	decompile_print(pBuf,"}\n\n");
 	bytecode_closeAutoLabels();
 }

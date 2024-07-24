@@ -249,7 +249,8 @@ int recorder_toggleRecording(void) {
 			}
 			MACRO_PARAM pParam = { 
 					.mp_name = buf, 
-					.mp_bytecodeLength = _currentRecordingBuffer.bb_current-_currentRecordingBuffer.bb_start, 
+					// +1 - to accomodate for C_STOP byte code
+					.mp_bytecodeLength = _currentRecordingBuffer.bb_current-_currentRecordingBuffer.bb_start+1, 
 					.mp_buffer = _currentRecordingBuffer.bb_start };
 			if ((_lastinsertedmac = macro_insertNewMacro(&pParam)) >= 0) {
 				_macroIndexRecorded++;
