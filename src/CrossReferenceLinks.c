@@ -897,12 +897,32 @@ int xref_navigateCrossReference(char* s) {
  * Determine the "identifier" close to the input caret in the current editor window.
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
+ * 
+ * If pByteOffset != NULL, return the offset in bytes in the line, where the identifier was found.
  */
-int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
+int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars, int* pByteOffset) {
+	int nOffset;
 	*pszText = 0;
 	bl_getSelectedText(wp, pszText, 1, nMaxChars);
 	if (!pszText[0]) {
-		return xref_findIdentifierCloseToCaret(wp, &wp->caret, pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) != NULL;
+		if (xref_findIdentifierCloseToCaret(wp, &wp->caret, pszText, pszText + nMaxChars, NULL, NULL, FI_COMPLETE_WORD) == NULL) {
+			return 0;
+		}
+		size_t nLen = strlen(pszText);
+		nOffset = wp->caret.offset - nLen;
+		if (nOffset < 0) {
+			nOffset = 0;
+		}
+		for (; nOffset < wp->caret.linePointer->len - nLen; nOffset++) {
+			if (memcmp(wp->caret.linePointer->lbuf + nOffset, pszText, nLen) == 0) {
+				break;
+			}
+		}
+	} else {
+		nOffset = wp->blstart->m_column;
+	}
+	if (pByteOffset) {
+		*pByteOffset = nOffset;
 	}
 	return 1;
 }
@@ -912,7 +932,7 @@ int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars) {
  */
 int xref_openCrossReferenceList(WINFO* wp) {
 	char selected[80];
-	xref_getSelectedIdentifier(wp, selected, sizeof selected);
+	xref_getSelectedIdentifier(wp, selected, sizeof selected, NULL);
 	return xref_navigateCrossReferenceForceDialog(wp, selected, TRUE);
 }
 
@@ -1400,7 +1420,7 @@ int EdFindOnInternet(WINFO* wp) {
 	char buf[128];
 	char command[512];
 
-	xref_getSelectedIdentifier(wp, buf, sizeof buf);
+	xref_getSelectedIdentifier(wp, buf, sizeof buf, NULL);
 	if (!*buf) {
 		return 0;
 	}
@@ -1438,7 +1458,7 @@ int EdFindTagCursor(WINFO* wp)
 int EdFindWordCursor(WINFO* wp, int dir)
 {	char buf[256];
 
-	xref_getSelectedIdentifier(wp, buf, sizeof buf);
+	xref_getSelectedIdentifier(wp, buf, sizeof buf, NULL);
 	RE_PATTERN *pPattern = regex_compileWithDefault(buf);
 	return pPattern && find_expressionInCurrentFile(wp, dir, buf, pPattern, _currentSearchAndReplaceParams.options);
 }

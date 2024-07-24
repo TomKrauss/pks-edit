@@ -763,7 +763,7 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 	}
 	if (mType == MSM_WORDS) {
 		char buf[256];
-		if (!xref_getSelectedIdentifier(wp, buf, sizeof buf)) {
+		if (!xref_getSelectedIdentifier(wp, buf, sizeof buf, NULL)) {
 			return 0;
 		}
 		long nLine = wp->minln;

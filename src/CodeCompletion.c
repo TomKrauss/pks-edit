@@ -58,6 +58,7 @@ typedef struct tagCODE_ACTION {
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
 	int  ca_score;
+	int  ca_replacedTextStart;		// The line offset in bytes, where the replacement starts
 	int  ca_replacedTextLength;		// The length of the place (left to the caret) to be replaced in a code completion.
 	const char* (*ca_helpCB)(const char* pszCompletion, void* pParam);	
 									// Callback to return a help text for this action. Note that the returned string must be malloc'd and will be freed after use.
@@ -140,6 +141,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bPara
 	pAction->ca_replaceWord = TRUE;
 	pAction->ca_freeName = bAlloc;
 	pAction->ca_score = bParam->acp_score;
+	pAction->ca_replacedTextStart = bParam->acp_replacedTextStart;
 	pAction->ca_replacedTextLength = bParam->acp_replacedTextLength;
 	pAction->ca_helpCB = fHelpCB;
 	pAction->ca_getHyperlinkHelp = fGetHelpForLinkCB;
@@ -438,11 +440,11 @@ static void codecomplete_invalidateIndex(HWND hwnd, RECT* pRect, const CODE_COMP
  * Creates the help (code completion secondary) window.
  */
 static HWND codecomplete_createHelpWindow(HWND hwndParent) {
-	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX | WS_VSCROLL, 
+	HWND hwnd = CreateWindow(CLASS_CODE_COMPLETION_HELP, NULL, WS_POPUP | WS_SIZEBOX | WS_VSCROLL | WS_BORDER, 
 		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hwndParent, NULL, hInst, 0);
 	if (hwnd) {
 		SetWindowLong(hwnd, GWL_STYLE, WS_BORDER);
-		theme_enableDarkMode(hwnd);
+		//theme_enableDarkMode(hwnd);
 	}
 	return hwnd;
 }
@@ -489,7 +491,7 @@ static void codecomplete_setHelpContents(HWND hwnd, CODE_COMPLETION_PARAMS* pCC,
 /*
  * Update the code completion secondary window and display the help for a selected code action.
  */
-static void codecompletehelp_displayHelpText(HWND hwnd, HWND hwndHelp, CODE_COMPLETION_PARAMS* pParam, const char* pszHelp) {
+static void codecompletehelp_displayHelpText(HWND hwndCodeComplete, HWND hwndHelp, CODE_COMPLETION_PARAMS* pParam, const char* pszHelp) {
 	if (!pszHelp || !*pszHelp) {
 		if (hwndHelp) {
 			codecomplete_setHelpContents(hwndHelp, 0, 0);
@@ -498,16 +500,20 @@ static void codecompletehelp_displayHelpText(HWND hwnd, HWND hwndHelp, CODE_COMP
 		return;
 	}
 	if (!hwndHelp) {
-		if (!hwnd) {
+		if (!hwndCodeComplete) {
 			return;
 		}
-		hwndHelp = codecomplete_createHelpWindow(GetParent(hwnd));
+		HWND hwndParent = GetParent(hwndCodeComplete);
+		if (hwndParent == NULL && ww_getCurrentEditorWindow() != NULL) {
+			hwndParent = ww_getCurrentEditorWindow()->ww_handle;
+		}
+		hwndHelp = codecomplete_createHelpWindow(hwndParent);
 		if (!hwndHelp) {
 			return;
 		}
-		SetWindowLongPtr(hwnd, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndHelp);
+		SetWindowLongPtr(hwndCodeComplete, GWL_SECONDARY_WINDOW, (LONG_PTR)hwndHelp);
 	}
-	codecomplete_updateHelpWindowPosition(hwnd);
+	codecomplete_updateHelpWindowPosition(hwndCodeComplete);
 	codecomplete_setHelpContents(hwndHelp, pParam, pszHelp);
 	InvalidateRect(hwndHelp, NULL, FALSE);
 
@@ -611,13 +617,13 @@ static void codecomplete_action(HWND hwnd) {
 	cap = (CODE_ACTION*) ll_at((LINKED_LIST*)cap, nSelectedIndex);
 	if (cap) {
 		if (cap->ca_type == CA_TEMPLATE) {
-			template_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replacedTextLength, TRUE);
+			template_insertCodeTemplate(wp, cap->ca_param.template, cap->ca_replacedTextStart, cap->ca_replacedTextLength, TRUE);
 		} else {
 			UCLIST uclTemp = {
 				.action = UA_ABBREV,
 				.p.uc_template = cap->ca_param.text
 			};
-			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replacedTextLength, cap->ca_replaceWord);
+			template_insertCodeTemplate(wp, &uclTemp, cap->ca_replacedTextStart, cap->ca_replacedTextLength, cap->ca_replaceWord);
 		}
 	}
 	codecomplete_hideWindow(hwnd);

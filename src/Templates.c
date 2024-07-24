@@ -166,16 +166,16 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 /*
  * Delete the current identifier left to or under the cursor for the purpose of being replaced by a macro. 
  */
-static void template_replaceCurrentWord(WINFO* wp, char* pszIdentifier) {
+static void template_replaceCurrentWord(WINFO* wp, int nStart, char* pszIdentifier) {
 	if (ww_hasSelection(wp)) {
 		EdBlockDelete(wp, 0);
 	} else {
 		size_t len = strlen(pszIdentifier);
-		if (len > wp->caret.offset) {
-			len = wp->caret.offset;
+		size_t o1 = nStart;
+		size_t o2 = nStart+len;
+		if (o2 > wp->caret.linePointer->len) {
+			o2 = wp->caret.linePointer->len;
 		}
-		size_t o1 = wp->caret.offset - len;
-		size_t o2 = wp->caret.offset;
 		ln_modify(wp->fp, wp->caret.linePointer, (int)o2, (int)o1);
 		wp->caret.offset = (long)o1;
 		wp->caret.col = caret_lineOffset2screen(wp, &wp->caret);
@@ -195,7 +195,7 @@ char* template_expandCodeTemplateFor(UCLIST* up) {
 	if (wp == NULL) {
 		return NULL;
 	}
-	xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+	xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier, NULL);
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF * pBuf = template_expandCodeTemplate(wp, &action, nIndent, szIdentifier, up->p.uc_template);
 	char* pResult = _strdup(stringbuf_getString(pBuf));
@@ -209,7 +209,7 @@ char* template_expandCodeTemplateFor(UCLIST* up) {
  * is positioned like this ":1|+" the matched part to return in szIdentifier is ":1". nMatchedSize is the space available in
  * szIdentifier.
  */
-void template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size_t nMatchedSize) {
+int template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size_t nMatchedSize) {
 	size_t nPatternLength;
 	*szIdentifier = 0;
 	if (pPattern && (nPatternLength = strlen(pPattern)) != 0) {
@@ -222,22 +222,27 @@ void template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, siz
 				}
 				strncpy(szIdentifier, pPattern, nLen);
 				szIdentifier[nLen] = 0;
-				break;
+				return i;
 			}
 		}
 	} else {
-		xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier);
+		int nOffset = 0;
+		xref_getSelectedIdentifier(wp, szIdentifier, sizeof szIdentifier, &nOffset);
+		return nOffset;
 	}
+	return 0;
 }
 
 /*
  * Insert a selected code template 'up'. 
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
+ * If 'nReplacedTextStart' > 0, it is assumed, this is the byte offset in the line, where the
+ * replacements starts.
  * If 'nReplacedTextLength' > 0, it is assumed, that this is the number of characters left
  * to the caret to be replaced.
  */
-int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, BOOL bReplaceCurrentWord) {
+int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextStart, int nReplacedTextLength, BOOL bReplaceCurrentWord) {
 	char szIdentifier[100];
 	FTABLE* fp = wp->fp;
 	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
@@ -245,14 +250,23 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, 
 	int ret = 0;
 	memset(&templateAction, 0, sizeof templateAction);
 	char* pPattern = up->uc_pattern.pattern;
-	if (nReplacedTextLength > 0 && nReplacedTextLength <= wp->caret.offset) {
+	if (nReplacedTextStart <= 0 && nReplacedTextLength > 0) {
+		nReplacedTextStart = wp->caret.offset - nReplacedTextLength;
+		if (nReplacedTextStart < 0) {
+			nReplacedTextStart = 0;
+		}
+	}
+	if (nReplacedTextLength > 0) {
 		if (nReplacedTextLength > sizeof szIdentifier - 1) {
 			nReplacedTextLength = (int)sizeof szIdentifier - 1;
 		}
-		strncpy(szIdentifier, &wp->caret.linePointer->lbuf[wp->caret.offset-nReplacedTextLength], nReplacedTextLength);
+		strncpy(szIdentifier, &wp->caret.linePointer->lbuf[nReplacedTextStart], nReplacedTextLength);
 		szIdentifier[nReplacedTextLength] = 0;
 	} else {
-		template_matchIdentifier(wp, pPattern, szIdentifier, sizeof szIdentifier);
+		int nOffset = template_matchIdentifier(wp, pPattern, szIdentifier, sizeof szIdentifier);
+		if (nReplacedTextStart <= 0) {
+			nReplacedTextStart = nOffset;
+		}
 	}
 	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
 	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
@@ -261,7 +275,7 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextLength, 
 	unsigned char* pszText = stringbuf_getString(pSB);
 	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
 		if (bReplaceCurrentWord) {
-			template_replaceCurrentWord(wp, szIdentifier);
+			template_replaceCurrentWord(wp, nReplacedTextStart, szIdentifier);
 		}
 		CARET oldCaret = wp->caret;
 		int firstLineCol = oldCaret.col;
@@ -344,7 +358,7 @@ int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 	}
 	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
 	if (!domacro) {
-		return template_insertCodeTemplate(wp, up, -1, FALSE);
+		return template_insertCodeTemplate(wp, up, -1, -1, FALSE);
 	}
 	render_repaintCurrentLine(wp); 
 	return macro_executeByName(up->p.uc_macro);

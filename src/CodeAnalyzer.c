@@ -113,6 +113,7 @@ static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CA
 					calculateSuggestion(pCaretContext, &parsingContext, pBuf);
 				}
 				fCallback(&(ANALYZER_CALLBACK_PARAM) {
+					.acp_replacedTextStart = pCaretContext->ac_tokenOffset,
 					.acp_replacedTextLength = (int)strlen(pCaretContext->ac_token),
 					.acp_recommendation = stringbuf_getString(pBuf),
 					.acp_score = nScore
@@ -302,49 +303,56 @@ static void analyzer_getEntityNameBackward(char* pszDest, char* pBuf, int nStart
 	}
 }
 
-static void analyzer_fillXmlTokenType(ANALYZER_CARET_CONTEXT* pContext) {
-	switch (pContext->ac_type) {
-	case XML_ATTRIBUTE: strcpy(pContext->ac_tokenTypeName, "attribute"); break;
-	case XML_END_ENTITY: strcpy(pContext->ac_tokenTypeName, "end-entity"); break;
-	case XML_ENTITY: strcpy(pContext->ac_tokenTypeName, "entity"); break;
-	default: pContext->ac_tokenTypeName[0] = 0; break;
+static void analyzer_fillXmlTokenType(ANALYZER_CARET_CONTEXT* pCaretContext) {
+	switch (pCaretContext->ac_type) {
+	case XML_ATTRIBUTE: strcpy(pCaretContext->ac_tokenTypeName, "attribute"); break;
+	case XML_END_ENTITY: strcpy(pCaretContext->ac_tokenTypeName, "end-entity"); break;
+	case XML_ENTITY: strcpy(pCaretContext->ac_tokenTypeName, "entity"); break;
+	default: pCaretContext->ac_tokenTypeName[0] = 0; break;
 	}
 }
 
-static void analyzer_getXmlCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
+static void analyzer_getXmlCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext) {
 	int nPos = wp->caret.offset;
 	char* pBuf = wp->caret.linePointer->lbuf;
-	pContext->ac_type = XML_ATTRIBUTE;
+	pCaretContext->ac_type = XML_ATTRIBUTE;
 	while (--nPos >= 0) {
 		unsigned char c = pBuf[nPos];
 		if (!analyzer_isEntityIdentifier(c)) {
 			if (c == '<') {
-				pContext->ac_type = XML_ENTITY;
+				pCaretContext->ac_type = XML_ENTITY;
 			}
 			else if (c == '/') {
-				pContext->ac_type = XML_END_ENTITY;
+				pCaretContext->ac_type = XML_END_ENTITY;
 			}
 			else if (c == '"' && (nPos == 0 || pBuf[nPos - 1] == '=')) {
-				pContext->ac_type = XML_IN_ATTRIBUTE_VALUE;
+				pCaretContext->ac_type = XML_IN_ATTRIBUTE_VALUE;
 			}
 			break;
 		}
 	}
-	pContext->ac_token2[0] = 0;
-	if (pContext->ac_type == XML_ATTRIBUTE) {
-		analyzer_getEntityNameBackward(pContext->ac_token2, pBuf, nPos);
-		if (pContext->ac_token2[0] == 0) {
-			pContext->ac_type = XML_INITIAL;
+	pCaretContext->ac_token2[0] = 0;
+	if (pCaretContext->ac_type == XML_ATTRIBUTE) {
+		analyzer_getEntityNameBackward(pCaretContext->ac_token2, pBuf, nPos);
+		if (pCaretContext->ac_token2[0] == 0) {
+			pCaretContext->ac_type = XML_INITIAL;
 		}
 	}
 	nPos++;
-	int nSize = wp->caret.offset - nPos;
-	if (nSize > sizeof pContext->ac_token - 1) {
-		nSize = sizeof pContext->ac_token - 1;
+	int nOffset;
+	for (nOffset = wp->caret.offset; nOffset < wp->caret.linePointer->len; nOffset++) {
+		if (!analyzer_isEntityIdentifier(pBuf[nOffset])) {
+			break;
+		}
 	}
-	strncpy(pContext->ac_token, &pBuf[nPos], nSize);
-	pContext->ac_token[nSize] = 0;
-	analyzer_fillXmlTokenType(pContext);
+	int nSize = nOffset - nPos;
+	if (nSize > sizeof pCaretContext->ac_token - 1) {
+		nSize = sizeof pCaretContext->ac_token - 1;
+	}
+	strncpy(pCaretContext->ac_token, &pBuf[nPos], nSize);
+	pCaretContext->ac_token[nSize] = 0;
+	pCaretContext->ac_tokenOffset = nPos;
+	analyzer_fillXmlTokenType(pCaretContext);
 }
 
 /*
@@ -587,10 +595,7 @@ static analyzer_getDefaultCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pConte
  * completion is request. Return TRUE, if successful.
  */
 BOOL analyzer_getCaretContext(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext) {
-	pCaretContext->ac_token[0] = 0;
-	pCaretContext->ac_token2[0] = 0;
-	pCaretContext->ac_type = 0;
-	pCaretContext->ac_tokenTypeName[0] = 0;
+	memset(pCaretContext, 0, sizeof * pCaretContext);
 	if (pszAnalyzerName == NULL) {
 		return FALSE;
 	}
@@ -656,6 +661,7 @@ static void analyzer_getJsonCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCar
 				if (pMem[tokens[nFound].end + 1] == ':') {
 					json_tokenContents(pMem, &tokens[nFound], szToken);
 					strncpy(pCaretContext->ac_token, szToken, sizeof(pCaretContext->ac_token) - 1);
+					pCaretContext->ac_tokenOffset = wp->caret.offset + (int)(tokens[nFound].start - offset);
 					pCaretContext->ac_token[sizeof(pCaretContext->ac_token) - 1] = 0;
 					pCaretContext->ac_type = JSON_KEY;
 					strcpy(pCaretContext->ac_tokenTypeName, "key");
@@ -724,6 +730,7 @@ static void analyzer_provideJsonSuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_
 	while (pRules && pRules->r_type != RT_END) {
 		if (fMatch(pContext, pRules->r_name)) {
 			fCallback(&(ANALYZER_CALLBACK_PARAM) {
+				.acp_replacedTextStart = pContext->ac_tokenOffset,
 				.acp_replacedTextLength = (int)strlen(pContext->ac_token),
 				.acp_recommendation = pRules->r_name,
 				.acp_object = (void*)pRules,

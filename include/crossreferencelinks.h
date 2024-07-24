@@ -61,8 +61,9 @@ extern int xref_addSearchListEntry(WINFO* wp, char* pszBuf, char* fn, long line,
  * Determine the "identifier" close to the input caret in the current editor window.
  * If text is selected, use that as the identifier, otherwise try to identify the close
  * by identifier.
+ * If pByteOffset != NULL, return the offset in bytes in the line, where the identifier was found.
  */
-extern int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars);
+extern int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars, int* pByteOffset);
 
 extern int EdFindTagCursor(WINFO* wp);
 

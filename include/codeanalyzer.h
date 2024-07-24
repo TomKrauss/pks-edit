@@ -20,6 +20,7 @@
 typedef struct tagANALYZER_CALLBACK_PARAM {
 	const char* acp_recommendation;									// The text to be displayed to the user as recommended by the code completion window
 	int			acp_score;											// A score for sorting the recommendation
+	int			acp_replacedTextStart;								// The line offset in bytes, where the replacement starts.
 	int			acp_replacedTextLength;								// The length of the original text matched - to be potentially replaced.
 	const char* (*acp_help)(const char* pszText, void* pObject);	// Callback for determining a help text for the recommendation and the acp_object representing
 																	// the object for which a recommendation is provided (e.g. a native function or macro or the like).
@@ -45,6 +46,8 @@ typedef struct tagANALYZER_CARET_CONTEXT {
 	int ac_type;
 	// A name for the token type - depends on the grammar. Can be used
 	char ac_tokenTypeName[32];
+	// The line offset in bytes, where the start of the token to replace starts.
+	int ac_tokenOffset;
 	// The token - typically the word under the caret.
 	char ac_token[128];
 	// A second token close to the caret. Example: when suggesting XML this could be the name of an entity, when trying to match an attribute.
