@@ -909,7 +909,7 @@ int xref_getSelectedIdentifier(WINFO* wp, char* pszText, size_t nMaxChars, int* 
 			return 0;
 		}
 		size_t nLen = strlen(pszText);
-		nOffset = wp->caret.offset - nLen;
+		nOffset = (int)(wp->caret.offset - nLen);
 		if (nOffset < 0) {
 			nOffset = 0;
 		}
