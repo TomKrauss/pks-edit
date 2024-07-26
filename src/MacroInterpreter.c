@@ -1066,9 +1066,17 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_BINOP:
 			interpreter_evaluateBinaryExpression(pContext, (COM_BINOP*)cp);
 			break;
-		case C_FORM_START:
-			_currentFormInstruction = (COM_FORM*)pInstr;
-			break;
+		case C_FORM_START: {
+			COM_FORM* pForm = (COM_FORM*)pInstr;
+			pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+			cp = (COM_1FUNC*)pInstr;
+			for (int i = 0; i < pForm->nfields; i++) {
+				// Skip the pushed form fields.
+				pInstr += interpreter_getParameterSize(cp->typ, pInstr + 1);
+				cp = (COM_1FUNC*)pInstr;
+			}
+			continue;
+		}
 		case C_PUSH_BOOLEAN_LITERAL:
 		case C_PUSH_LONG_LITERAL:
 		case C_PUSH_LOCAL_VARIABLE:

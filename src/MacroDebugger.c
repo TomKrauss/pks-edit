@@ -215,7 +215,7 @@ static INT_PTR debugger_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, 
 DEBUG_ACTION debugger_open(EXECUTION_CONTEXT* pContext, char* pszError) {
 	_stackTopContext = pContext;
 	_debugErrorMessage = pszError;
-	int nRet = DoDialog(DLG_DEBUG, debugger_dialogProcedure, 0, 0);
+	int nRet = DoDialog(DLG_DEBUG, debugger_dialogProcedure, 0);
 	switch (nRet) {
 	case IDD_STEP: return DA_STEP;
 	case IDD_CONTINUE: return DA_CONTINUE;

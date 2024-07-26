@@ -65,15 +65,16 @@ typedef struct tagDIALOG_HELP_DESCRIPTOR {
 	int   dhd_itemNumber;
 } DIALOG_HELP_DESCRIPTOR;
 
-typedef struct tagDIALOG_DESCRIPTOR {
-	DIALOG_ITEM_DESCRIPTOR* dd_items;
-	DIALOG_HELP_DESCRIPTOR* dd_helpItems;
-} DIALOG_DESCRIPTOR;
-
 typedef struct tagITEM_TOOLTIP_MAPPING {
 	int			m_itemId;
 	int			m_tooltipStringId;
 } DLG_ITEM_TOOLTIP_MAPPING;
+
+typedef struct tagDIALOG_DESCRIPTOR {
+	DIALOG_ITEM_DESCRIPTOR* dd_items;
+	DIALOG_HELP_DESCRIPTOR* dd_helpItems;
+	DLG_ITEM_TOOLTIP_MAPPING* dd_tooltips;
+} DIALOG_DESCRIPTOR;
 
 /*-----------------------------------------------
  * assigns a callback to be invoked to return the DIALOGPARS for a page (in a property sheet)
@@ -83,7 +84,7 @@ typedef struct tagITEM_TOOLTIP_MAPPING {
 extern void			dlg_setXDialogParams(DIALOG_DESCRIPTOR* (*func)(int pageIndex), boolean propertySheetFlag);
 
 extern BOOL			DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams);
-extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING *pTooltips);
+extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_DESCRIPTOR *dp);
 extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 /*
@@ -92,14 +93,14 @@ extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 # if defined(_EDFUNCS_H)
-extern int 			win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+extern int 			win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *dp);
 /*--------------------------------------------------------------------------
  * win_callDialogCB()
  * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-extern int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
+extern int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp, DLGPROC pCallback);
 # endif
 extern void 		dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax);
 /*--------------------------------------------------------------------------

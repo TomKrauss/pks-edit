@@ -845,7 +845,7 @@ char* bl_showClipboardList(SELECT_NAMED_CLIPBOARD_ACTION bOption) {
 		.dd_items = dialogItems,
 		.dd_helpItems = help
 	};
-	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, &dialogDescriptor, NULL, bl_namedClipboardDialogProc);
+	int ret = win_callDialogCB(DLGSELTMPLATE, NULL, &dialogDescriptor, bl_namedClipboardDialogProc);
 	if (!ret) {
 		return 0;
 	}

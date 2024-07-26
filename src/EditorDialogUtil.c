@@ -51,7 +51,6 @@ extern int 		_translatekeys;
 
 extern BOOL 	DlgChooseFont(HWND hWnd, char* pszFontName, BOOL bPrinter);
 
-static DLG_ITEM_TOOLTIP_MAPPING* _dtoolTips;
 static DIALOG_DESCRIPTOR* _dp;
 static DIALOG_DESCRIPTOR* (*_dialogInitParameterCallback)(int pageIndex);
 static boolean		bInPropertySheet;
@@ -159,7 +158,7 @@ static void applyRadioButtons(int idCtrl, DIALOG_ITEM_DESCRIPTOR* dp) {
 /*--------------------------------------------------------------------------
  * DoDialog()
  */
-int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
+int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_DESCRIPTOR *dp) {
 	int 		nSave;
 	HWND		hwnd;
 	INT_PTR		ret;
@@ -167,7 +166,6 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOO
 
 	bInPropertySheet = FALSE;
 	_dp = dp;
-	_dtoolTips = pTooltips;
 	hwnd = GetFocus();
 	nSave = nCurrentDialog;
 	nCurrentDialog = nIdDialog;
@@ -957,9 +955,9 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			} else if (_dp != NULL) {
 				DlgInit(hDlg, _dp, TRUE);
 			}
-			if (_dtoolTips != NULL) {
-				for (int i = 0; _dtoolTips[i].m_itemId > 0; i++) {
-					CreateToolTip(_dtoolTips[i].m_itemId, hDlg, _dtoolTips[i].m_tooltipStringId);
+			if (_dp->dd_tooltips != NULL) {
+				for (int i = 0; _dp->dd_tooltips[i].m_itemId > 0; i++) {
+					CreateToolTip(_dp->dd_tooltips[i].m_itemId, hDlg, _dp->dd_tooltips[i].m_tooltipStringId);
 				}
 			}
 			break;
@@ -1016,11 +1014,11 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback)
+int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *dp, DLGPROC pCallback)
 { 	int ret = 1;
 
 	if (interpreter_openDialog(pp)) {
-		ret = DoDialog(nId, pCallback,dp, pTooltips);
+		ret = DoDialog(nId, pCallback,dp);
 		recorder_recordOperation(pp);
 		if (ret == IDCANCEL || ret == -1)
 			return 0;
@@ -1031,8 +1029,8 @@ int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *d
 /*--------------------------------------------------------------------------
  * win_callDialog()
  */
-int win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips) {
-	return win_callDialogCB(nId, pp, dp, pTooltips, dlg_standardDialogProcedure);
+int win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp) {
+	return win_callDialogCB(nId, pp, dp, dlg_standardDialogProcedure);
 }
 
 /*--------------------------------------------------------------------------

@@ -12,6 +12,19 @@ The standard macro file shipped with PKS Edit currently contains:
 ## Recording Macros
 To record a macro, use "Macro->Record" and start doing some actions (e.g. move the cursor, insert text, etc...). When done press "Macro->Record" again. This will open a little dialog
 allowing to "name" the macro and bind it to a keyboard key so it can be used subsequently. Note, that in order to make the macro persistent, you must save the the current set of macros.
+
+If a function is executed opening a dialog such as _Find_, the macro recorder opens an option dialog after values
+have been entered into the dialog, allowing to customomize what will happen, if you are playing the macro later.
+
+- _Open the dialog_ - if you place a checkmark here, the dialog opened (e.g. _Find_) will also be opened during
+  playback of the recorded macro.
+- _Use the values..._ if you check this option, all values entered during recording the macro into the opened dialog
+  will be restored and either the dialog opened during playback (see above) will be equipped with the values stored
+  when recording the macro or - if no dialog opens - they will be used to execute the following function.
+- _Repaint the current editor..._ - when macros are played, PKS Edit avoids frequent screen repaints. By checking
+  this option, you can have PKS Edit to repaint the current editor window to see the changes applied by playing
+  the macro "so far".
+
 When PKS Edit exits and there are unsaved macros, it warns about that and asks the user to save the macros now.
 
 ## The Macro Menu

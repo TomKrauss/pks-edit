@@ -239,8 +239,15 @@ int recorder_toggleRecording(void) {
 
 	if (recorder_isRecording()) {		// STOP RECORDING
 		if (_cmdfuncp && _currentRecordingBuffer.bb_current !=_currentRecordingBuffer.bb_start) {
-			static  int _macroIndexRecorded = 1;
-			sprintf(buf, "RecordedMacro_%d", _macroIndexRecorded);
+			static int _macroIndexRecorded = 1;
+			while(TRUE) {
+				sprintf(buf, "RecordedMacro_%d", _macroIndexRecorded);
+				if (macro_getInternalIndexByName(buf) >= 0) {
+					_macroIndexRecorded++;
+				} else {
+					break;
+				}
+			}
 			if (!macro_getIndexForKeycode(&scan, buf, -1)) {
 				recorder_setRecording(FALSE);
 				return 0;

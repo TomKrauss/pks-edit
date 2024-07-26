@@ -484,16 +484,19 @@ BEGIN
     PUSHBUTTON      "&End",2,287,40,32,12
 END
 
-DLGRECORDER DIALOG 28, 87, 213, 49
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Options for playbacks"
-FONT 8, "MS Shell Dlg"
+DLGRECORDER DIALOGEX 28, 87, 305, 70
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTEXTHELP
+CAPTION "Macro Playback Options"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "&Dialog will be opened",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,10,102,10
-    CONTROL         "&Parameter defined",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,20,102,10
-    CONTROL         "&Redraw when opening",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,30,102,10
-    PUSHBUTTON      "&Reset",2,132,28,60,14
-    DEFPUSHBUTTON   "OK",1,132,10,60,14
+    CONTROL         "Open the &dialog",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,26,197,10
+    CONTROL         "Use the values &input into the dialog",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,36,197,10
+    CONTROL         "&Repaint the current editor before opening the dialog",IDD_OPT3,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,46,197,10
+    PUSHBUTTON      "&Stop Recording",2,234,44,60,14
+    DEFPUSHBUTTON   "OK",1,234,26,60,14
+    LTEXT           "When the recorded macro will be played, apply the following options:",IDC_STATIC,14,9,219,8
 END
 
 DLGSORT DIALOGEX 9, 51, 329, 145
@@ -968,6 +971,10 @@ BEGIN
         RIGHTMARGIN, 204
     END
 
+    DLGRECORDER, DIALOG
+    BEGIN
+    END
+
     DLGSORT, DIALOG
     BEGIN
     END
@@ -1216,6 +1223,11 @@ BEGIN
 END
 
 DLGRANGESELECTION AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+DLGRECORDER AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

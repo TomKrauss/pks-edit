@@ -1012,7 +1012,7 @@ static KEYCODE macro_getCurrentKeycode(void)
 	DIALOG_DESCRIPTOR dialogDescriptor = {
 		.dd_items = dialogItems
 	};
-	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure, &dialogDescriptor, NULL) == IDCANCEL || k == 0) {
+	if (DoDialog(DLGKEYCODE, dlg_standardDialogProcedure, &dialogDescriptor) == IDCANCEL || k == 0) {
 		return K_DELETED;
 	}
 	return k;
@@ -1260,7 +1260,7 @@ int EdMacrosEdit(void) {
 	DIALOG_DESCRIPTOR dialogDescriptor = {
 		.dd_helpItems = dialogHelpDescriptor
 	};
-	ret = DoDialog(DLGMACROS, DlgMacEditProc, &dialogDescriptor, NULL);
+	ret = DoDialog(DLGMACROS, DlgMacEditProc, &dialogDescriptor);
 
 	if (ret == IDD_MACSTART) {
 		long m = _multiplier;
