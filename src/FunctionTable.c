@@ -77,6 +77,12 @@ EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFin
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_createArray(), interpreter_createMap(), interpreter_registerType(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
 macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
 
+/*
+ * Used for testing themes: can be used to reload the theme definitions from the
+ * themeconfig file.
+ */
+extern void theme_reloadThemes();
+
 extern FTABLE* ft_getCurrentErrorDocument();
 
 static const char* ww_getFilename(WINFO* wp) {
@@ -306,8 +312,9 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*166*/edit_replaceSpacesWithTabs, -1, 0, "EditorReplaceSpacesWithTabs", NULL, "sWs" },
 {/*167*/edit_replaceTabsWithSpaces, -1, 0, "EditorReplaceTabsWithSpaces", NULL, "sWs" },
 {/*168*/interpreter_createMap, -1, 0, "CreateMap", NULL, "P" },
-{/*170*/(long long (*)())interpreter_registerType, -1, 0, "RegisterType", NULL, "P" },
-{/*171*/(long long (*)())op_changeEditorOption, -1, 0, "EditorChangeOption", NULL, "iWeOP_ii" },
+{/*169*/(long long (*)())interpreter_registerType, -1, 0, "RegisterType", NULL, "P" },
+{/*170*/(long long (*)())op_changeEditorOption, -1, 0, "EditorChangeOption", NULL, "iWeOP_ii" },
+{/*171*/(long long (*)())theme_reloadThemes, -1, 0, "ReloadThemes", NULL, "i" },
 0
 };
 
@@ -385,7 +392,7 @@ COMMAND _commandTable[] = {
 24, C_1FUNC, 84 /* EdFindWordCursor */, 					1, -1 , "find-word-back",
 25, C_0FUNC, 81 /* EdFindFileCursor */, 					1, 0 , "find-file-under-cursor",
 26, C_0FUNC, 46 /* EdFindInFileList */, 					1, 0 , "find-in-filelist",
-27, C_1FUNC, 80 /* xref_openCrossReferenceList */, 							1, 0 , "find-tag",
+27, C_1FUNC, 80 /* xref_openCrossReferenceList */, 			1, 0 , "find-tag",
 28, C_0FUNC, 54 /* EdMarkSet */, 							1, 0 , "set-mark",
 29, C_0FUNC, 55 /* EdMarkGoto */, 							1, 0 , "goto-mark",
 30, C_0FUNC, 53 /* EdGotoLine */, 							1, 0 , "goto-line",
@@ -447,7 +454,7 @@ COMMAND _commandTable[] = {
 86, C_1FUNC, 23 /* doctypes_readWriteDocumentDescriptor */, 1, 0 , "read-ruler",
 87, C_0FUNC, 71 /* EdInfoFiles */, 							1, 0 , "info-to-file",
 88, C_1FUNC, 63 /* mainframe_closeChildWindows */, 			1, CWF_ALL, "close-all-windows",
-89, C_1FUNC, 85 /* EdWinArrange */, 						1, WIN_ICONARRANGE, "arrange-icons",
+89, C_0FUNC, 171 /* ReloadThemes */, 						1, 0, "reload-themes",
 90, C_1FUNC, 78 /* EdOptionToggle */, 						1, OPT_WMODE | WM_PINNED, "toggle-pin-window",
 91, C_1FUNC, 85 /* EdWinArrange */, 						1, WIN_TILE , "tile-windows",
 CMD_HELP_README, C_1FUNC, 110 /* EdHelpContext */, 			1, IDM_HLPREADME, "help-readme",

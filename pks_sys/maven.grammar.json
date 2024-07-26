@@ -21,12 +21,12 @@
       "patterns": [
         {
           "match": "\\$\\{[.a-zA-Z0-9_-]+\\}",
-          "style": "classname",
+          "style": "constant",
           "name": "maven.variable"
         },
 		{
           "match": "(\\<|\\</)(properties|parent|build|dependency|repositories|project|modelVersion|plugins?|dependencies|modules?|distributionManagement|artifactId|name|groupId|version|packaging|description)[ >]",
-          "style": "regexp",
+          "style": "expression",
           "name": "keyword.cpp"
         }
       ]

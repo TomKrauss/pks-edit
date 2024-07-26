@@ -68,7 +68,7 @@
         },
         {
           "name": "assigning_expression",
-          "style": "classname"
+          "style": "constant"
         },
         {
           "name": "task",

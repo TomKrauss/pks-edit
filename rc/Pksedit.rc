@@ -1657,7 +1657,7 @@ BEGIN
     IDS_COMMAND86           "Liest die Dokument-Einstellungen aus einer Datei;Dokument-Einstellungen aus Datei lesen"
     IDS_COMMAND87           "Zeigt Informationen zu bearbeiteten Dateien;Fensterliste anzeigen"
     IDS_COMMAND88           "Schlieﬂt alle Bearbeitungs-Fenster;Alle Fenster schlieﬂen"
-    IDS_COMMAND89           "Ordnet die Symbole auf dem Desktop an;Symbole anordnen"
+    IDS_COMMAND89           "L‰dt die Theme-Konfiguration neu aus der Datei;Theme neu laden"
     IDS_COMMAND90           "Fenster anheften"
     IDS_COMMAND91           "Legt alle Bearbeitungsfenster nebeneinander;Fenster Neben."
     IDS_COMMAND92           "Zeigt Anweisungen zum Gebrauch des Hilfesystems an;Gebrauch Hilfe"

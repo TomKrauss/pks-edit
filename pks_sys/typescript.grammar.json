@@ -17,8 +17,8 @@
         },
         {
           "match": "/[^/]+/",
-          "style": "regexp",
-          "name": "regexp"
+          "style": "expression",
+          "name": "expression"
         },
         {
           "match": "r?[\"'`](?:\\\"|[^\"`'])+[\"'`]",

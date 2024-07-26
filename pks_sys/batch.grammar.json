@@ -43,7 +43,7 @@
         },
         {
           "match": " /[a-zA-Z]",
-          "style": "regexp",
+          "style": "expression",
           "name": "batch.option"
         },
         {

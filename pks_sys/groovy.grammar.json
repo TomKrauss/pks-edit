@@ -30,7 +30,7 @@
         },
         {
           "match": "<[A-Z_][a-zA-Z_0-9]+>",
-          "style": "classname",
+          "style": "constant",
           "name": "constant.className"
         },
         {

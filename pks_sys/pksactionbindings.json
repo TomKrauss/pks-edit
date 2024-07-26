@@ -93,6 +93,10 @@
       "command": "@open-context-menu"
     },
     {
+      "key": "Ctrl+F10",
+      "command": "@reload-themes"
+    },
+    {
       "key": "F10",
       "command": "@compile-macros"
     },

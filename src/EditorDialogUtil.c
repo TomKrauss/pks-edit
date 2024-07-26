@@ -955,7 +955,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			} else if (_dp != NULL) {
 				DlgInit(hDlg, _dp, TRUE);
 			}
-			if (_dp->dd_tooltips != NULL) {
+			if (_dp && _dp->dd_tooltips != NULL) {
 				for (int i = 0; _dp->dd_tooltips[i].m_itemId > 0; i++) {
 					CreateToolTip(_dp->dd_tooltips[i].m_itemId, hDlg, _dp->dd_tooltips[i].m_tooltipStringId);
 				}

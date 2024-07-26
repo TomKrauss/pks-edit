@@ -58,7 +58,7 @@
 
 extern HDC print_getPrinterDC(void);
 // forward decl.
-extern int theme_initThemes(void);
+extern int theme_initThemes(BOOL bSetDefault);
 
 static const char* DEFAULT = "default";
 
@@ -95,7 +95,7 @@ static EDTEXTSTYLE defaultTextStyle = {
  * Returns the text style for a given style class.
  */
 EDTEXTSTYLE* font_getTextStyleForIndex(THEME_DATA* pTheme, int nIndex) {
-	theme_initThemes();
+	theme_initThemes(TRUE);
 	EDTEXTSTYLE* pStyle;
 	if (nIndex < DIM(pTheme->th_styleLookup)) {
 		pStyle = pTheme->th_styleLookup[nIndex];
@@ -318,12 +318,13 @@ static void theme_initSingle(THEME_DATA* pTheme) {
 	}
 }
 
+static int initialized;
+
 /*--------------------------------------------------------------------------
  * theme_initThemes()
  * init the theme definitions by reading our JSON config file.
  */
-int theme_initThemes(void) {
-	static int initialized;
+int theme_initThemes(BOOL bSetDefault) {
 
 	if (initialized) {
 		return 1;
@@ -340,17 +341,38 @@ int theme_initThemes(void) {
 			theme_initSingle(pTheme);
 			pTheme = pTheme->th_next;
 		}
-		theme_setCurrent((char*)DEFAULT);
+		if (bSetDefault) {
+			theme_setCurrent((char*)DEFAULT);
+		}
 		return 1;
 	}
 	return 0;
 }
 
 /*
+ * Used for testing themes: can be used to reload the theme definitions from the 
+ * themeconfig file.
+ */
+void theme_reloadThemes() {
+	char szCurrent[32];
+	szCurrent[0] = 0;
+	if (initialized) {
+		strcpy(szCurrent, theme_getCurrent()->th_name);
+		initialized = FALSE;
+		theme_destroyAllThemeData();
+	}
+	theme_initThemes(FALSE);
+	if (szCurrent[0]) {
+		theme_setCurrent(szCurrent);
+	}
+	ww_redrawAllWindows(TRUE);
+}
+
+/*
  * Determine the logical style class index for a style name.
  */
 FONT_STYLE_CLASS font_getStyleClassIndexFor(char* pszStyleName) {
-	theme_initThemes();
+	theme_initThemes(TRUE);
 	THEME_DATA* pTheme = theme_getCurrent();
 	for (int i = 0; i < DIM(pTheme->th_styleLookup); i++) {
 		EDTEXTSTYLE* pStyle = pTheme->th_styleLookup[i];
@@ -554,7 +576,7 @@ BOOL DlgChooseFont(HWND hwnd, char* pszFontName, BOOL bPrinter) {
  * Returns the theme with the given name. If not found, a default theme is returned.
  */
 static THEME_DATA* theme_getByName(unsigned char* pThemeName) {
-	theme_initThemes();
+	theme_initThemes(TRUE);
 	THEME_DATA* pTheme = themeConfiguration.th_themes;
 	if (strcmp(SYSTEM_DEFAULT_THEME, (char*) pThemeName) == 0) {
 		pThemeName = (unsigned char*)(darkmode_isSelectedByDefault() ? "dark" : DEFAULT);

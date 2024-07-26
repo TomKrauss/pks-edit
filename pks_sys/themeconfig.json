@@ -40,7 +40,7 @@
           "foregroundColor": "#777722"
         },
         {
-          "styleName": "classname",
+          "styleName": "constant",
           "foregroundColor": "#aaaa22"
         },
         {
@@ -73,7 +73,7 @@
           "weight": 700
         },
         {
-          "styleName": "regexp",
+          "styleName": "expression",
           "foregroundColor": "#AA4444",
           "weight": 700
         },
@@ -174,7 +174,7 @@
           "foregroundColor": "#777722"
         },
         {
-          "styleName": "classname",
+          "styleName": "constant",
           "foregroundColor": "#aaaa22"
         },
         {
@@ -207,7 +207,7 @@
           "weight": 700
         },
         {
-          "styleName": "regexp",
+          "styleName": "expression",
           "foregroundColor": "#AA4444",
           "weight": 700
         },
@@ -313,7 +313,7 @@
           "foregroundColor": "#777722"
         },
         {
-          "styleName": "classname",
+          "styleName": "constant",
           "foregroundColor": "#aaaa22"
         },
         {
@@ -347,7 +347,7 @@
           "foregroundColor": "#222206"
         },
         {
-          "styleName": "regexp",
+          "styleName": "expression",
           "foregroundColor": "#664444",
           "weight": 700
         },
@@ -455,7 +455,7 @@
           "foregroundColor": "#777722"
         },
         {
-          "styleName": "classname",
+          "styleName": "constant",
           "foregroundColor": "#aaaa22"
         },
         {
@@ -489,7 +489,7 @@
           "foregroundColor": "#222206"
         },
         {
-          "styleName": "regexp",
+          "styleName": "expression",
           "foregroundColor": "#664444",
           "weight": 700
         },
@@ -593,16 +593,16 @@
         },
         {
           "styleName": "identifier",
-          "foregroundColor": "#aaaa77"
+          "foregroundColor": "#ffee77"
         },
         {
-          "styleName": "classname",
+          "styleName": "constant",
           "foregroundColor": "#eeeeaa"
         },
         {
           "styleName": "keyword",
           "weight": 700,
-          "foregroundColor": "#61afef"
+          "foregroundColor": "lightblue"
         },
         {
           "styleName": "error",
@@ -617,12 +617,12 @@
         {
           "styleName": "operator",
           "weight": 700,
-          "foregroundColor": "#e06c75"
+          "foregroundColor": "lightcoral"
         },
         {
           "styleName": "annotation",
           "weight": 800,
-          "foregroundColor": "#00bbbb"
+          "foregroundColor": "darkseagreen"
         },
         {
           "styleName": "bold",
@@ -630,7 +630,7 @@
           "foregroundColor": "#efefef"
         },
         {
-          "styleName": "regexp",
+          "styleName": "expression",
           "foregroundColor": "#AA4444",
           "weight": 700
         },
@@ -659,7 +659,7 @@
         {
           "styleName": "literal",
           "weight": 700,
-          "foregroundColor": "#c678dd"
+          "foregroundColor": "darksalmon"
         },
         {
           "styleName": "hyperlink",
@@ -668,7 +668,7 @@
         },
         {
           "styleName": "string",
-          "foregroundColor": "#44aaaa"
+          "foregroundColor": "goldenrod"
         },
         {
           "styleName": "sl-comment",

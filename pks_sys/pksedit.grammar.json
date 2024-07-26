@@ -14,7 +14,7 @@
       ],
       "analyzer": "pks-macros",
       "evaluator": "pks-macros",
-      "wordCharacterClass": "a-z���=A-Z����_0-9@-",
+      "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
       "patterns": [
         {
           "begin": "/*",
@@ -128,7 +128,7 @@
         {
           "match": "[(),]+",
           "name": "keyword.function.delimiter",
-          "style": "regexp"
+          "style": "expression"
         }
       ]
     }

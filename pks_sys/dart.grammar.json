@@ -36,7 +36,7 @@
         },
         {
           "match": "<[A-Z][a-zA-Z_0-9]*>",
-          "style": "classname",
+          "style": "constant",
           "name": "class.identifier"
         },
         {
