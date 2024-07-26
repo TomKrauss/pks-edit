@@ -474,6 +474,9 @@ int edit_getLineLen(WINFO* wp, long nLine) {
  * Returns the string representing the contents of the specified line.
  */
 char* edit_getLineText(WINFO* wp, long nLine) {
+	if (wp == NULL) {
+		return NULL;
+	}
 	FTABLE* fp = wp->fp;
 	LINE* lp = ln_goto(fp, nLine);
 	if (!lp) {

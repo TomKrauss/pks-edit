@@ -436,8 +436,7 @@ int find_expressionAgainInCurrentFile(WINFO* wp, int dir) {
 			return 0;
 		}
 	}
-	pPattern = _currentSearchAndReplaceParams.compiled.compiledExpression ? &_currentSearchAndReplaceParams.compiled : 
-		regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
+	pPattern = regex_compileWithDefault(_currentSearchAndReplaceParams.searchPattern);
 	return pPattern && find_expressionInCurrentFile(wp, dir, _currentSearchAndReplaceParams.searchPattern, pPattern, _currentSearchAndReplaceParams.options);
 }
 

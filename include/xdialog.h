@@ -92,14 +92,14 @@ extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 extern INT_PTR CALLBACK dlg_defaultWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 # if defined(_EDFUNCS_H)
-extern int 			win_callDialog(int nId, PARAMS *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
+extern int 			win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCRIPTOR *dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips);
 /*--------------------------------------------------------------------------
  * win_callDialogCB()
  * Standard dialog handling in PKS edit allowing to pass a custom dialog procedure.
  * The passed dialog procedure should invoke dlg_standardDialogProcedure for all non
  * custom dialog processing.
  */
-extern int win_callDialogCB(int nId, PARAMS* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
+extern int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp, DLG_ITEM_TOOLTIP_MAPPING* pTooltips, DLGPROC pCallback);
 # endif
 extern void 		dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax);
 /*--------------------------------------------------------------------------

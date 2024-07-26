@@ -104,7 +104,7 @@ extern int			_commandTableSize;
 #define	P_MAYOPEN				0x1
 #define	P_MAYPRE				0x2
 
-typedef struct des {
+typedef struct tagRECORDED_FORM_ITEM_DESCRIPTOR {
 	char		cmd_type;
 	union {
 		unsigned char  *s;
@@ -113,15 +113,15 @@ typedef struct des {
 		unsigned int	*i;
 		long			*l;
 	} p;
-} ITEMS[];
+} RECORDED_FORM_ITEM_DESCRIPTOR;
 
-typedef struct params {
+typedef struct tagRECORDED_FORM_DESCRIPTOR {
 	int		nel;
 	int		flags;
-	struct	des *el;
-} PARAMS;
+	RECORDED_FORM_ITEM_DESCRIPTOR *el;
+} RECORDED_FORM_DESCRIPTOR;
 
-extern int interpreter_openDialog(PARAMS *p);
+extern int interpreter_openDialog(RECORDED_FORM_DESCRIPTOR *p);
 extern long long cdecl interpreter_executeFunction(int num, intptr_t* pStack);
 extern int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn);
 extern int interpreter_canExecuteMacro(int num, int warn);
@@ -329,7 +329,7 @@ extern char* macro_getKeyText(const char* pszActionContext, int nCmd);
 /*---------------------------------*/
 /* recorder_recordOperation()				*/
 /*---------------------------------*/
-extern int recorder_recordOperation(PARAMS* pp);
+extern int recorder_recordOperation(RECORDED_FORM_DESCRIPTOR* pp);
 
 #ifdef _WINFO_H
 /*

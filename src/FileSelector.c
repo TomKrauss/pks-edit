@@ -161,8 +161,8 @@ static int SelectFile(int nCommand, char *baseDirectory, char *filename, char *p
  *---------------------------------*/
 char *fsel_selectFileWithOptions(FSELINFO *fp, int nCommand, FILE_SELECT_PARAMS* pFSP)
 {
-	static ITEMS	_i = { C_PUSH_STRING_LITERAL, _fseltarget };
-	static PARAMS	_p = { DIM(_i), P_MAYOPEN, _i	};
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_STRING_LITERAL, _fseltarget};
+	static RECORDED_FORM_DESCRIPTOR	_p = { DIM(_i), P_MAYOPEN, _i	};
 
 	if (interpreter_openDialog(&_p)) {
 

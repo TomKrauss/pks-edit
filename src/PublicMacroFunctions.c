@@ -215,8 +215,8 @@ int bl_hideSelectionInCurrentWindow(WINFO* wp)	 {
  */
 int DialogCharInput(int promptfield, unsigned char c)
 { 	static unsigned char _c;
-	static ITEMS	_i   =  	{ C_PUSH_CHARACTER_LITERAL, &_c 		};
-	static PARAMS	_bgc = 	{ DIM(_i), P_MAYOPEN, _i	};
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_CHARACTER_LITERAL, &_c};
+	static RECORDED_FORM_DESCRIPTOR	_bgc = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_WINTITLE,		0,			0, .did_initialize = dlg_initializeWindowTitle},
 		{IDD_POSITIONTCURS,	0,			0},
@@ -378,8 +378,8 @@ int EdAbout(void)
  */
 static long dialogGetNumber(int nDialog, int nInitialNumber, DIALOG_HELP_DESCRIPTOR* pHelpItems)
 {	static long    num;
-	static ITEMS	_i   =  	{ C_PUSH_LONG_LITERAL,  (unsigned char * ) &num };
-	static PARAMS	_np  = 	{ 1, P_MAYOPEN, _i	  };
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_LONG_LITERAL,  (unsigned char*)&num};
+	static RECORDED_FORM_DESCRIPTOR	_np  = 	{ 1, P_MAYOPEN, _i	  };
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_LONG1,	sizeof num,		&num},
 		{0}
@@ -439,14 +439,14 @@ int EdAlignText(void)
 		{IDD_OPT2,		AL_END,				&_alflags},
 		{0}
 	};
-	static ITEMS	_i   =  	{ 
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern	 				},
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_alfiller 	},
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope	 	},
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options 	},
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_alflags	}
 	};
-	static PARAMS	_fp = { DIM(_i), P_MAYOPEN, _i	};
+	static RECORDED_FORM_DESCRIPTOR	_fp = { DIM(_i), P_MAYOPEN, _i	};
 	static DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_REGEXP,	IDS_TT_REGULAR_EXPRESSION,
 		0
@@ -486,7 +486,7 @@ int EdFormatText(void)
 		{IDD_RADIO1,	FMT_JUSTIFIED - FMT_LEFT,&alignment},
 		{0}
 	};
-	ITEMS _i = { 
+	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &alignment     },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope	}
 	};
@@ -496,7 +496,7 @@ int EdFormatText(void)
 		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#formatting-text"},
 		{.dhd_link = 0}
 	};
-	PARAMS _fp = 	{ DIM(_i), P_MAYOPEN, _i   };
+	RECORDED_FORM_DESCRIPTOR _fp = 	{ DIM(_i), P_MAYOPEN, _i   };
 
 
 	DIALOG_DESCRIPTOR dialogDescriptor = {
@@ -612,14 +612,14 @@ int EdSort(void)
 		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#sorting-text"},
 		{.dhd_link = 0}
 	};
-	ITEMS	_i   = {
+	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL,_currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL,fs },
 		{ C_PUSH_STRING_LITERAL,key },
 		{ C_PUSH_INTEGER_LITERAL,	(unsigned char *)&flags },
 		{ C_PUSH_INTEGER_LITERAL,	(unsigned char *)&_scope }
 	};
-	PARAMS	_sp = { DIM(_i), P_MAYOPEN, _i };
+	RECORDED_FORM_DESCRIPTOR	_sp = { DIM(_i), P_MAYOPEN, _i };
 	DLG_ITEM_TOOLTIP_MAPPING _tt[] = {
 		IDD_FINDS2,		IDS_TT_REGULAR_EXPRESSION,
 		IDD_STRING1,	IDS_TT_SORT_FIELD_SEPARATOR,
@@ -651,8 +651,8 @@ int EdSort(void)
 int EdKeycodeInsert(void)
 {	char 	*visible;
 	static KEYCODE 	 k;
-	ITEMS		_i   = { C_PUSH_INTEGER_LITERAL,	(unsigned char *)&k };
-	PARAMS		_sp  = { DIM(_i), P_MAYOPEN, _i };
+	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_INTEGER_LITERAL,	(unsigned char*)&k};
+	RECORDED_FORM_DESCRIPTOR		_sp  = { DIM(_i), P_MAYOPEN, _i };
 	DIALOG_HELP_DESCRIPTOR dialogHelpDescriptor[] = {
 		{.dhd_itemNumber = 0, .dhd_link = "manual\\editing_files.md#insert-keycode"},
 		{.dhd_link = 0}
@@ -764,8 +764,8 @@ static DIALOG_ITEM_DESCRIPTOR rangeSelectionDialogItems[] = {
 	{0}
 };
 int EdReplaceTabs(int expand)
-{	ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
-	PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
+{	RECORDED_FORM_ITEM_DESCRIPTOR  _i[] = {C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope};
+	RECORDED_FORM_DESCRIPTOR	 _tp  = { 1, P_MAYOPEN, _i };
 
 	rangeSelectionDialogItems->did_flagOrSize = expand ? IDS_EXPANDTABS : IDS_COMPRESSTABS;
 	
@@ -1255,8 +1255,8 @@ int EdDocTypes(void) {
  * EdRangeShift()
  */
 int EdRangeShift(int dir)
-{	static ITEMS	 _i   = { C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope	};
-	static PARAMS	 _tp  = { 1, P_MAYOPEN, _i };
+{	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_INTEGER_LITERAL,  (unsigned char*)&_scope};
+	static RECORDED_FORM_DESCRIPTOR	 _tp  = { 1, P_MAYOPEN, _i };
 
 	rangeSelectionDialogItems->did_flagOrSize = dir < 0 ? IDS_SHIFTLEFT : IDS_SHIFTRIGHT;
 	DIALOG_HELP_DESCRIPTOR help[] = {
@@ -1539,13 +1539,13 @@ static int replace_getReplaceActionForControlId(HWND hDialog, struct tagDIALOG_I
  * EdReplace()
  */
 int EdReplace(void) {
-	static ITEMS	_i   =  	{ 
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.replaceWith },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   },
 	};
-	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	static RECORDED_FORM_DESCRIPTOR	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_RNGE,		RNG_ONCE,			&_scope},
 		{IDD_REGEXP,		RE_DOREX,			&_currentSearchAndReplaceParams.options},
@@ -1597,13 +1597,13 @@ int EdReplace(void) {
  */
 static int _dir = 1;
 int EdFind(void)
-{	ITEMS	_i   =  	{ 
+{	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_dir   },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_scope },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options   }
 	};
-	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	RECORDED_FORM_DESCRIPTOR	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_RADIO1,	1,				&_dir},
 		{IDD_REGEXP,	RE_DOREX,			&_currentSearchAndReplaceParams.options},
@@ -1682,13 +1682,13 @@ static BOOL dlg_selectPath(HWND hwnDialog, int nNotify, LPARAM lParam, DIALOG_IT
  * EdFindInFileList()
  */
 int EdFindInFileList(void)
-{	ITEMS	_i   =  	{ 
+{	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.searchPattern },
 		{ C_PUSH_STRING_LITERAL, _currentSearchAndReplaceParams.pathlist },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.fileScanDepth },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &_currentSearchAndReplaceParams.options }
 	};
-	PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	RECORDED_FORM_DESCRIPTOR	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_PATH1SEL,	.did_command = dlg_selectPath},
 		{IDD_REGEXP,	RE_DOREX,					&_currentSearchAndReplaceParams.options},
@@ -1808,8 +1808,8 @@ static BOOL dlg_displayCharacter(HWND hDialog, int nNotify, LPARAM lParam, DIALO
  */
 long long EdCharControlInsert(void)
 { 	static char c;
-	ITEMS	 _i   = { C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c	};
-	PARAMS	 _p  = { 1, P_MAYOPEN, _i };
+	RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_CHARACTER_LITERAL,  (unsigned char*)&c};
+	RECORDED_FORM_DESCRIPTOR	 _p  = { 1, P_MAYOPEN, _i };
 	DIALOG_ITEM_DESCRIPTOR _d[] = { 
 		{IDD_POSITIONTCURS,	0,			0},
 		{IDD_CSEL,			sizeof(c),	&c, .did_initialize = dlg_initializeCharacter, 
@@ -1907,13 +1907,13 @@ int EdCommandExecute(void)
 	static char	errlist[64];
 	static int  opt;
 	static int	redir;
-	static ITEMS	_i   =  	{ 
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {
 		{ C_PUSH_STRING_LITERAL, 	cmd }, 
 		{ C_PUSH_STRING_LITERAL, 	workingDirectory }, 
 		{ C_PUSH_STRING_LITERAL, 	errlist },
 		{ C_PUSH_INTEGER_LITERAL, (unsigned char *) &opt }
 	};
-	static PARAMS	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
+	static RECORDED_FORM_DESCRIPTOR	_fp = 	{ DIM(_i), P_MAYOPEN, _i	};
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_PATH1SEL,	.did_command = dlg_selectPath},
 		{IDD_STRING1,	sizeof cmd,		cmd},
@@ -2058,8 +2058,8 @@ int EdIsDefined(long what)
  */
 char* EdPromptAssign(char* prompt, char* init) {
 	static char buf[128];
-	static ITEMS	_i = { C_PUSH_STRING_LITERAL,  (unsigned char*)0 };
-	static PARAMS	_np = { 1, P_MAYOPEN, _i };
+	static RECORDED_FORM_ITEM_DESCRIPTOR _i[] = {C_PUSH_STRING_LITERAL,  (unsigned char*)0};
+	static RECORDED_FORM_DESCRIPTOR	_np = { 1, P_MAYOPEN, _i };
 	static DIALOG_ITEM_DESCRIPTOR _d[] = {
 		{IDD_RO1,		.did_initialize = dlg_initializeLabel},
 		{IDD_STRING1,	128, 		0},

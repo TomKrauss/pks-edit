@@ -508,14 +508,14 @@ int interpreter_getParameterSize(unsigned char typ, const char *s)
 /*---------------------------------*/
 /* interpreter_openDialog()				*/
 /*---------------------------------*/
-int interpreter_openDialog(PARAMS *pp)
+int interpreter_openDialog(RECORDED_FORM_DESCRIPTOR *pp)
 {	int 		i;
-	struct des 	*dp;
-	GENERIC_DATA	par;
+	struct tagRECORDED_FORM_ITEM_DESCRIPTOR *dp;
 	COM_FORM	*cp;
 
-	if (!_playing || !_currentFormInstruction || !_currentExecutionContext)
+	if (!_playing || !_currentFormInstruction || !_currentExecutionContext) {
 		return FORM_SHOW;
+	}
 
 	cp = _currentFormInstruction;
 	_currentFormInstruction = 0;
@@ -524,30 +524,28 @@ int interpreter_openDialog(PARAMS *pp)
 		ww_redrawAllWindows(1);
 	}
 
-	PKS_VALUE* pParams = _currentExecutionContext->ec_stackCurrent-cp->nfields;
+	char* pInstructionPointer = (char*)(cp+1);
 	/*
 	 * use form, if no fields known
 	 */
 	for (i = cp->nfields, dp = pp->el; i > 0; i--, dp++) {
-		PKS_VALUE v = *pParams++;
-		par = v.pkv_data;
 		if (cp->options & FORM_INIT) {
+			if (*pInstructionPointer != dp->cmd_type) {
+				error_showErrorById(IDS_MSGMACFORMATERR, _currentExecutionContext->ec_currentFunction);
+				return 0;
+			}
 		   switch(dp->cmd_type) {
-			case C_PUSH_INTEGER_LITERAL:  *dp->p.i = par.intValue; break;
+		   case C_PUSH_INTEGER_LITERAL:  *dp->p.i = ((COM_INT1*)pInstructionPointer)->val; break;
 			case C_PUSH_SMALL_INT_LITERAL:
-			case C_PUSH_CHARACTER_LITERAL: *dp->p.c = par.uchar; break;
-			case C_PUSH_FLOAT_LITERAL: *dp->p.d = par.doubleValue; break;
-			case C_PUSH_LONG_LITERAL: *dp->p.l = (long)par.longValue; break;
+			case C_PUSH_CHARACTER_LITERAL: *dp->p.c = ((COM_CHAR1*)pInstructionPointer)->val; break;
+			case C_PUSH_FLOAT_LITERAL: *dp->p.d = ((COM_FLOAT1*)pInstructionPointer)->val; break;
+			case C_PUSH_LONG_LITERAL: *dp->p.l = (long)((COM_LONG1*)pInstructionPointer)->val; ; break;
 			case C_PUSH_STRING_LITERAL:
-				if ((v.pkv_type == VT_STRING) && par.string) {
-					strcpy(dp->p.s, memory_accessString(v));
-				}
-				else {
-					error_showErrorById(IDS_MSGMACFORMATERR, _currentExecutionContext->ec_currentFunction);
-				}
+				strcpy(dp->p.s, ((COM_STRING1*)pInstructionPointer)->s);
 				break;
 		   }
 		}
+		pInstructionPointer += interpreter_getParameterSize(*pInstructionPointer, pInstructionPointer + 1);
 	}
 
 	recorder_recordOperation(pp);
@@ -818,7 +816,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	}
 
 	if (bNativeCall && !_currentFormInstruction) {
-		NATIVE_FUNCTION* fup = &_functionTable[funcnum];
+		fup = &_functionTable[funcnum];
 		int i;
 		if (nParametersPassed > DIM(tempStack)) {
 			nParametersPassed = DIM(tempStack);
@@ -854,7 +852,12 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		}
 	}
 	if (bNativeCall) {
-		NATIVE_FUNCTION* fup = &_functionTable[funcnum];
+		fup = &_functionTable[funcnum];
+		char* sp = (char*)pInstructionPointer;
+		char* sp2 = sp + interpreter_getParameterSize(typ, sp + 1);
+		if (*sp2 == C_FORM_START) {
+			_currentFormInstruction = (COM_FORM*)sp2;
+		}
 		rc = interpreter_executeFunction(funcnum, nativeStack);
 		PARAMETER_TYPE pReturnType = function_getParameterTypeDescriptor(fup, 0).pt_type;
 		interpreter_returnNativeFunctionResult(pContext, pReturnType, rc);

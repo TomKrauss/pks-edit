@@ -169,10 +169,10 @@ void recorder_recordFunctionWithParameters(int fnum, intptr_t p, intptr_t p2, ch
 /*---------------------------------*/
 /* recorder_recordOperation()				*/
 /*---------------------------------*/
-int recorder_recordOperation(PARAMS* pp)
+int recorder_recordOperation(RECORDED_FORM_DESCRIPTOR* pp)
 {
 	int 		i, opt;
-	struct 	des* dp;
+	RECORDED_FORM_ITEM_DESCRIPTOR* dp;
 	char* savepos;
 	COM_FORM	cf;
 
@@ -196,8 +196,9 @@ int recorder_recordOperation(PARAMS* pp)
 	 * slight optimization: if form should be opened uninitialized,
 	 * dont EdMacroRecord the parameters
 	 */
-	if ((opt & FORM_INIT) == 0)
+	if ((opt & FORM_INIT) == 0) {
 		cf.nfields = 0;
+	}
 
 	recorder_pushSequence(C_FORM_START, &cf);
 
