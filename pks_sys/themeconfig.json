@@ -74,7 +74,7 @@
         },
         {
           "styleName": "expression",
-          "foregroundColor": "#AA4444",
+          "foregroundColor": "rosybrown",
           "weight": 700
         },
         {
@@ -593,7 +593,7 @@
         },
         {
           "styleName": "identifier",
-          "foregroundColor": "#ffee77"
+          "foregroundColor": "palegoldenrod"
         },
         {
           "styleName": "constant",
@@ -602,7 +602,7 @@
         {
           "styleName": "keyword",
           "weight": 700,
-          "foregroundColor": "lightblue"
+          "foregroundColor": "skyblue"
         },
         {
           "styleName": "error",
@@ -631,7 +631,7 @@
         },
         {
           "styleName": "expression",
-          "foregroundColor": "#AA4444",
+          "foregroundColor": "rosybrown",
           "weight": 700
         },
         {

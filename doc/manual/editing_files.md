@@ -117,7 +117,7 @@ formatted in a right-, center-, left-aligned fashion. Text files can also be aut
 
 To enable code formatting for a grammar, add the following line
 
-```
+```json
       "formatter": "code"
 ```
 
@@ -140,7 +140,7 @@ Options in the `Formatting text...` dialog:
 The `Align Text...` menu entry from the `Functions` menu allows to align text matched by patterns by inserting
 fill characters. Let´s assume a text fragment like the following one:
 
-```
+```json
         "name": "default",
         "id": 1,
         "leftMargin": 0,
@@ -152,7 +152,7 @@ Let´s assume, you would like to align the String in this fragment left-aligned. 
 use a pattern of `"[^"]+"`, select the option `Align to column of 1st match found` to have the 
 text being formatted in the following way:
 
-```
+```json
         "name": "default",
         "id": 1,
         "leftMargin": 0,
@@ -165,7 +165,7 @@ right aligned matched text is used (`"rightMargin"` in our example).
 
 By selecting `Right Align Matched Text`, you may format the text this way:
 
-```
+```json
               "name": "default",
                 "id": 1,
         "leftMargin": 0,

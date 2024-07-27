@@ -1,19 +1,19 @@
 The document types of PKS Edit are configured in a file named `pkseditconfig.json` located in the `pks_sys` directory.
 
 A document type is selected by one or more file name patterns (e.g. \*.cpp or \*.cpp;\*.c). Note, that _more specific_ file name patterns are matched first (\*.c matches in preference over \*.\*).
-Each document type may be associated with an editor configuration (also by name) defining things like the standard display mode or tabstops, [insertion options](editing_files.md#editing-text) and
+Each document type may be associated with an editor configuration (also by name) defining things like the standard display mode or tabstops, [insertion options](manual/editing_files.md#editing-text) and
 a _grammar_ which is referred to be name.
 
 ## Grammar
 
 A grammar is defined by a name and configured in corresponding JSON file name `grammarName`.grammar.json.
 
-- Format of [Grammar and Template Files](grammar.md)
+- Format of [Grammar and Template Files](manual/grammar.md)
 
 ## Editor Configuration
 The following example defines an editor configuration `default`, which defines some standard tabstops, margins, tabsizes, and options for editing and displaying text.
 
-```
+```json
     "editorConfigurations": [
     {
         "name": "default",
@@ -53,7 +53,7 @@ The following example defines an editor configuration `default`, which defines s
 ## Example
 Here is an example of a document type descriptor for C and C++ files, which associates the files with a grammar named `cpp` and connects the files with a `default` editor configuration.
 
-```
+```json
 {
     "documentTypes": [
     {

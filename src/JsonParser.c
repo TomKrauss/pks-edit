@@ -111,45 +111,81 @@ static struct tagCSS_COLOR {
 	const char* cc_name;
 	COLORREF    cc_color;
 } _cssColors[] = {
-	{"white", RGB(255,255,255)},
-	{"red", RGB(255,0,0)},
-	{"green", RGB(0,128,0)},
-	{"blue", RGB(0,0,255)},
-	{"silver", RGB(192,192,192)},
-	{"gray", RGB(128,128,128)},
-	{"yellow", RGB(255,255,0)},
-	{"maroon", RGB(128,0,0)},
-	{"orange", RGB(230,145,56)},
-	{"silver", RGB(192,192,192)},
-	{"crimson", RGB(220,20,60)},
-	{"brown", RGB(165,42,42)},
-	{"coral", RGB(255,127,80)},
-	{"cyan", RGB(0,255,255)},
-	{"lime", RGB(0,255,0)},
-	{"navy", RGB(0,0,128)},
+	// Must be sorted alphabetically
+	{"aliceblue", RGB(240,248,255)},
+	{"antiquewhite", RGB(250,235,215)},
 	{"aqua", RGB(0,255,255)},
-	{"teal", RGB(0,128,128)},
-	{"mintcream", RGB(245,255,250)},
-	{"mistyrose", RGB(255,228,225)},
-	{"navajowhite", RGB(255,222,173)},
+	{"aquamarine", RGB(127,255,212)},
+	{"azure", RGB(240,255,255)},
+	{"beige", RGB(245,245,220)},
+	{"blanchedalmond", RGB(255,235,205)},
+	{"blue", RGB(0,0,255)},
+	{"brown", RGB(165,42,42)},
+	{"burlywood", RGB(222,184,135)},
+	{"cadetblue", RGB(95,158,160)},
+	{"chartreuse", RGB(127,255,0)},
+	{"chocolate", RGB(210,105,30)},
+	{"coral", RGB(255,127,80)},
+	{"cornflowerblue", RGB(100,149,237)},
+	{"cornsilk", RGB(255,248,220)},
+	{"crimson", RGB(220,20,60)},
+	{"cyan", RGB(0,255,255)},
+	{"darkgoldenrod", RGB(184,134,11)},
+	{"darkgreen", RGB(0,100,0)},
 	{"darkkhaki", RGB(189,183,107)},
+	{"darkorange", RGB(255,140,0)},
 	{"darkorchid", RGB(153,50,204)},
 	{"darksalmon", RGB(233,150,122)},
 	{"darkseagreen", RGB(143,188,143)},
+	{"deepskyblue", RGB(0,191,255)},
+	{"fuchsia", RGB(255,0,255)},
+	{"gainsboro", RGB(220,220,220)},
+	{"gold", RGB(255,215,0)},
 	{"goldenrod", RGB(218,165,32)},
+	{"gray", RGB(128,128,128)},
+	{"green", RGB(0,128,0)},
+	{"greenyellow", RGB(173,255,47)},
+	{"honeydew", RGB(240,255,240)},
+	{"indianred", RGB(205,92,92)},
 	{"ivory", RGB(255,255,240)},
 	{"khaki", RGB(240,230,140)},
 	{"lavender", RGB(230,230,250)},
 	{"lavenderblush", RGB(255,240,245)},
+	{"lawngreen", RGB(124,252,0)},
 	{"lightblue", RGB(173,216,230)},
 	{"lightcoral", RGB(240,128,128)},
+	{"lightcyan", RGB(224,255,255)},
 	{"lightsteelblue", RGB(176,196,222)},
 	{"lightslategray", RGB(119,136,153)},
+	{"lime", RGB(0,255,0)},
 	{"limegreen", RGB(50,205,50)},
+	{"maroon", RGB(128,0,0)},
 	{"mediumorchid", RGB(186,85,211)},
 	{"mediumturquoise", RGB(72,209,204)},
-	{"fuchsia", RGB(255,0,255)},
-	{"purple", RGB(128,0,128)}
+	{"mintcream", RGB(245,255,250)},
+	{"mistyrose", RGB(255,228,225)},
+	{"navajowhite", RGB(255,222,173)},
+	{"navy", RGB(0,0,128)},
+	{"orange", RGB(230,145,56)},
+	{"palegoldenrod", RGB(238,232,170)},
+	{"palegreen", RGB(152,251,152)},
+	{"paleturquoise", RGB(175,238,238)},
+	{"palevioletred", RGB(219,112,147)},
+	{"powderblue", RGB(176,224,230)},
+	{"purple", RGB(128,0,128)},
+	{"red", RGB(255,0,0)},
+	{"rosybrown", RGB(188,143,143)},
+	{"silver", RGB(192,192,192)},
+	{"skyblue", RGB(135,206,235)},
+	{"springgreen", RGB(0,255,127)},
+	{"steelblue", RGB(70,130,180)},
+	{"teal", RGB(0,128,128)},
+	{"thistle", RGB(216,191,216)},
+	{"tomato", RGB(255,99,71)},
+	{"violet", RGB(238,130,238)},
+	{"yellow", RGB(255,255,0)},
+	{"wheat", RGB(245,222,179)},
+	{"white", RGB(255,255,255)}
 };
 
 /*
@@ -160,9 +196,22 @@ COLORREF json_convertColor(char* pszString) {
 		long l = (long)string_convertToLongBase16(pszString + 1);
 		return RGB((l >> 16) & 0xFF, (l >> 8) & 0xFF, l & 0xFF);
 	}
-	for (int i = 0; i < DIM(_cssColors); i++) {
-		if (strcmp(_cssColors[i].cc_name, pszString) == 0) {
+	int upper = DIM(_cssColors);
+	int lower = 0;
+	while (TRUE) {
+		int i = lower + (upper - lower) / 2;
+		int nResult = strcmp(pszString, _cssColors[i].cc_name);
+		if (nResult == 0) {
 			return _cssColors[i].cc_color;
+		}
+		if (upper <= lower) {
+			break;
+		}
+		if (nResult > 0) {
+			lower = i + 1;
+		}
+		else {
+			upper = i - 1;
 		}
 	}
 	EdTRACE(log_message(DEBUG_WARN, "Cannot convert color %s from config file", pszString));
