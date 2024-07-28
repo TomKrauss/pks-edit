@@ -354,6 +354,24 @@ static void bl_resetCurrentLine(WINFO* wp) {
 	caret_moveToLine(wp, ln);
 }
 
+static BOOL blk_isBadMove(LINE* pSelectionStart, int nStartOffset, LINE* pSelectionEnd, int nEndOffset, CARET* pDestination) {
+	if (pSelectionStart == pDestination->linePointer) {
+		return pDestination->offset >= nStartOffset && (pSelectionEnd != pDestination->linePointer || pDestination->offset <= nEndOffset);
+	}
+	if (pSelectionEnd == pDestination->linePointer) {
+		return pDestination->offset <= nEndOffset;
+	}
+	if (pSelectionStart == pSelectionEnd) {
+		return FALSE;
+	}
+	for (LINE* lp = pSelectionStart->next; lp && lp != pSelectionEnd; lp = lp->next) {
+		if (lp == pDestination->linePointer) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 /*------------------------------
  * EdBlockCopyOrMove()
  * PKS Edit command to copy or move a block.
@@ -395,7 +413,7 @@ EXPORT int EdBlockCopyOrMove(WINFO* wp, BOOL move) {
 	ls = bstart->m_linePointer, cs = bstart->m_column;
 	le = bend->m_linePointer,   ce = bend->m_column;
 	if (move_nocolblk) {			/* valid move ??	*/
-		if (wp->caret.linePointer == ls && wp->caret.col == cs) {
+		if (blk_isBadMove(ls, cs, le, ce, &wp->caret)) {
 			error_showErrorById(IDS_MSGBADBLOCKMOVE);
 			return 0;
 		}

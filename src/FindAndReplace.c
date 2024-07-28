@@ -532,8 +532,8 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 		if (c == '\t') {
 			col = nextTabStop;
 		} else if (c == chSpace) {
+			int nCol = col + 1;
 			int startCol = col;
-			int nCol = col;
 			const char* sSpace = s;
 			while (sSpace < pszEnd && *sSpace == chSpace) {
 				sSpace++;
@@ -546,6 +546,7 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 				*pszDest++ = '\t';
 				s = sSpace;
 				col = nCol;
+				*nt += 1;
 				continue;
 			}
 		}

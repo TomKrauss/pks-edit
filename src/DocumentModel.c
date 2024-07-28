@@ -476,8 +476,9 @@ LINE *ln_break(FTABLE *fp, LINE *linep, int col) {
 		change.lp = linep;
 		change.lpNew = nlp;
 		ft_forAllViews(fp, ln_modelChanged, &change);
-		ln_insert(fp,linep->next,nlp);
-
+		if (linep->next) {
+			ln_insert(fp, linep->next, nlp);
+		}
 		if ((linep = ln_modify(fp,linep,linep->len,col)) != 0L) {
 			return linep->next;
 		}

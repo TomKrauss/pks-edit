@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PKS Edit stored the _autosave temp file path_ in `pkseditini.json`, even if that was the default path from the
   user home directory, which could cause various problems like the failure to edit files
   without annoying error messages, when different users are working with PKS Edit.
+- A potential crash was fixed, when trying to move a selected piece of text to a target position
+  being inside the selected text to move.
 
 ## [2.7.0] - 2024-07-05
 
