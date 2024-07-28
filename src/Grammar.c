@@ -45,6 +45,9 @@
 // Code template definition.
 typedef struct tagTEMPLATE {
 	struct tagTEMPLATE* next;
+	// An optional name of a template used for template references and to identify special templates such
+	// as `file` or `copyright`.
+	char t_name[32];
 	UC_MATCH_PATTERN t_pattern;
 	unsigned char* t_contents;
 	BOOL t_auto;
@@ -171,6 +174,7 @@ static JSON_MAPPING_RULE _navigationPatternRules[] = {
 };
 
 static JSON_MAPPING_RULE _templateRules[] = {
+	{	RT_CHAR_ARRAY, "name", offsetof(TEMPLATE, t_name), sizeof(((TEMPLATE*)NULL)->t_name)},
 	{	RT_ALLOC_STRING, "match", offsetof(TEMPLATE, t_pattern.pattern)},
 	{	RT_ALLOC_STRING, "contents", offsetof(TEMPLATE, t_contents)},
 	{	RT_ALLOC_STRING, "grammar-context", offsetof(TEMPLATE, t_pattern.grammarContext)},
@@ -1414,3 +1418,13 @@ const char* grammar_name(GRAMMAR* pGrammar) {
 	return pGrammar->scopeName;
 }
 
+/*
+ * Returns the contents of a template with a given name or NULL if not found.
+ */
+const char* grammar_getTemplate(GRAMMAR* pGrammar, const char* pszTemplateName) {
+	if (pGrammar == NULL) {
+		return NULL;
+	}
+	TEMPLATE* pTemplate = ll_find(pGrammar->templates, pszTemplateName);
+	return pTemplate ? pTemplate->t_contents : NULL;
+}

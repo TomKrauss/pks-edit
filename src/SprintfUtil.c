@@ -535,7 +535,9 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		return;
 	}
 	if (strcmp("cwd", pVar) == 0) {
-		_getcwd(pResult, (int)nSize);
+		if (_getcwd(pResult, (int)nSize) == NULL) {
+			*pResult = 0;
+		}
 		return;
 	}
 	if (strcmp("pks_tmp", pVar) == 0) {
@@ -563,6 +565,10 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 	unsigned char* pFormat = "%s$F";
 	if (strcmp("file_name", pVar) == 0) {
 		pFormat = "%s$f";
+	}else if (strcmp("file_name_no_suffix", pVar) == 0) {
+		pFormat = "%s$b";
+	} else if (strcmp("full_file_name", pVar) == 0) {
+		pFormat = "%s$F";
 	} else if (strcmp("date", pVar) == 0) {
 		pFormat = "%D";
 	} else if (strcmp("time", pVar) == 0) {

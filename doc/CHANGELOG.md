@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the current entity.
 - JSON Code Completion support was added in particular for PKS Edit configuration files.
 - The new function `reload-themes` (by default bound to `Ctrl+F10`) makes theme updates and editing easier.
+- Added support for inserting `copyright` templates. One may define copyright templates in a file named `copyright_profiles.json`
+  along with options, how they should be formatted (using single line or multiple line comments). Copyrights are
+  currently only supported in files having a grammar defining a language supporting comments.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

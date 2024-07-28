@@ -532,35 +532,24 @@ int ft_compressSpacesToTabs(WINFO* wp, char* pszDest, size_t nDestLen, const cha
 		if (c == '\t') {
 			col = nextTabStop;
 		} else if (c == chSpace) {
-			s--;
-			BOOL bModified = FALSE;
-			for (int i = 0; s + i < pszEnd; i++) {
-				// i>1: do not convert single spaces to tab.
-				if (i > 1 && i + col == nextTabStop) {
-					*pszDest++ = '\t';
-					s += i;
-					col = nextTabStop;
-					(* nt)++;
-					bModified = TRUE;
-					break;
-				}
-				if (s[i] != chSpace) {
-					// Cannot compress
-					while (--i >= 0) {
-						*pszDest++ = *s++;
-						col++;
-					}
-					bModified = TRUE;
+			int startCol = col;
+			int nCol = col;
+			char* sSpace = s;
+			while (sSpace < pszEnd && *sSpace == chSpace) {
+				sSpace++;
+				nCol++;
+				if (nCol >= nextTabStop) {
 					break;
 				}
 			}
-			if (!bModified) {
-				s++;
+			if (nCol >= nextTabStop && nCol-startCol > 1) {
+				*pszDest++ = '\t';
+				s = sSpace;
+				col = nCol;
+				continue;
 			}
-			continue;
-		} else {
-			col++;
 		}
+		col++;
 		*pszDest++ = c;
 	}
 	return (int)(pszDest - pszDestStart);

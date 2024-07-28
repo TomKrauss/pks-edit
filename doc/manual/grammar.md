@@ -68,20 +68,25 @@ The following variables are supported:
 - `${user}` - name of the current logged in user
 - `${time}` - the current time
 - `${cwd}` - the current working directory
-- `${time_long_}` - the current time including milliseconds
+- `${time_long}` - the current time including milliseconds
 - `${date}` - the current date (by default in format dd.mm.yyyy)
 - `${year}` - the current year (e.g. 2021)
-- `${pks_sys}` - the PKS_SYS directory**
-- `${pks_tmp}` - the temporary directory for PKS Edit.
-- `${pks_executable}` - the PKS Edit executable full path.
+- `${year2}` - the last two digits of the current year (e.g. 24)
+- `${pks_sys}` - the PKS_SYS directory
+- `${copyright}` - currently active copyright profile template
+- `${pks_tmp}` - the temporary directory for PKS Edit
+- `${pks_executable}` - the PKS Edit executable full path
 - `${indent}` - insert the number of spaces matching the indent of the line from which the template is inserted
-- `${tab}` - insert the number of spaces to fill up one tab position.
+- `${tab}` - the number of spaces to fill up one tab position
 - `${cursor}` - after inserting the template, place the cursor here
 - `${secondary}` - after inserting the template, place a secondary cursor here (up to 6 secondary carets are supported). This
--    can be used to edit multiple places in the code concurrently / to start multi-caret input.
-- `${file_name}` - base name of the current file
-- `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template.
-- `${word_selection}` - the "word/identifier" close to the input caret or text currently selected.
+   can be used to edit multiple places in the code concurrently / to start multi-caret input.
+- `${file_name}` - base name of the current file (directory part removed)
+- `${full_file_name}` - full file name of the current file
+- `${file_name_no_suffix}` - base name of the current file with the suffix removed
+- `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template
+- `${word_selection}` - the "word/identifier" close to the input caret or text currently selected
+- `${template.name}` - nested template named _name_
 
 ### Bracket matching
 PKS Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single

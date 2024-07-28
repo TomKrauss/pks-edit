@@ -28,6 +28,7 @@
 #include "syntaxhighlighting.h"
 #include "stringutil.h"
 #include "fileutil.h"
+#include "trace.h"
 #include "textblocks.h"
 #include "regexp.h"
 #include "formatting.h"
@@ -35,6 +36,8 @@
 #include "crossreferencelinks.h"
 #include "editorconfiguration.h"
 #include "brackets.h"
+#include "stringutil.h"
+#include "copyright.h"
 
 #define	MAX_CONTEXT	32
 #define MAX_SECONDARY 6
@@ -58,11 +61,52 @@ typedef struct tagTEMPLATE_ACTION {
  */
 extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
+// forward declaration.
+static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION* pTAction, int nIndent, unsigned char* pszSelected, 
+	const unsigned char* pszSource);
+
+/*
+ * Append a nested template.
+ */
+static void template_appendTemplate(STRING_BUF* pDest, WINFO* wp, int nIndent, const char* pszTemplateName) {
+	FTABLE* fp = FTPOI(wp);
+	const char* pszSource = grammar_getTemplate(fp->documentDescriptor->grammar, pszTemplateName);
+	if (pszSource == NULL) {
+		EdTRACE(log_message(DEBUG_WARN, "Cannot find nested template %s", pszTemplateName));
+		return;
+	}
+	TEMPLATE_ACTION action;
+	STRING_BUF* pszExpanded = template_expandCodeTemplate(wp, &action, nIndent, NULL, pszSource);
+	if (pszExpanded != NULL) {
+		stringbuf_appendString(pDest, stringbuf_getString(pszExpanded));
+		stringbuf_destroy(pszExpanded);
+	}
+}
+
+/*
+ * Append the copyright formatted according to the grammar of the document.
+ */
+static void template_appendCopyright(STRING_BUF* pDest, WINFO* wp, TEMPLATE_ACTION* pAction, int nIndent) {
+	FTABLE* fp = FTPOI(wp);
+	STRING_BUF *pCopyright = copyright_getFormatted(fp->documentDescriptor);
+	if (pCopyright == NULL) {
+		EdTRACE(log_message(DEBUG_WARN, "Cannot format copyright or no copyrights defined."));
+		return;
+	}
+	STRING_BUF* pszExpanded = template_expandCodeTemplate(wp, pAction, nIndent, NULL, stringbuf_getString(pCopyright));
+	if (pszExpanded != NULL) {
+		stringbuf_appendString(pDest, stringbuf_getString(pszExpanded));
+		stringbuf_destroy(pszExpanded);
+	}
+	stringbuf_destroy(pCopyright);
+}
+
 /*
  * Expand a code template optionally containing ${....} references and return
  * the expanded text.
  */
-static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, unsigned char* pszSource) {
+static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, 
+		const unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
 	size_t nLineBegin = 0;
 	STRING_BUF* pResult = stringbuf_create(nInitialSize);
@@ -75,6 +119,7 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 	char chSpace = ft_getSpaceFillCharacter(wp);
 	FTABLE* fp = wp->fp;
 	BOOL bUseTabs = fp->documentDescriptor->expandTabsWith == 0;
+	char cr = fp->documentDescriptor->cr;
 	BOOL bBreak = FALSE;
 
 	while (!bBreak) {
@@ -117,8 +162,11 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 				}
 				else if (strcmp("word_selection", variable) == 0) {
 					strcpy(expandedVariable, pszSelected);
-				}
-				else {
+				} else if (strcmp(variable, "copyright") == 0) {
+					template_appendCopyright(pResult, wp, pTAction, nIndent);
+				} else if (strstr(variable, "template.") == variable) {
+					template_appendTemplate(pResult, wp, nIndent, variable + 9);
+				} else {
 					string_getVariable(wp, variable, expandedVariable, sizeof expandedVariable);
 				}
 				stringbuf_appendString(pResult, expandedVariable);
@@ -138,6 +186,9 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 		} else {
 		normalText:
 			if (c == '\n') {
+				if (cr) {
+					stringbuf_appendChar(pResult, cr);
+				}
 				ln++;
 				col = 0;
 			} else {

@@ -28,6 +28,10 @@
           "auto-insert": true
         },
         {
+          "match": "copyright",
+          "contents": "${copyright}"
+        },
+        {
           "match": "(",
           "contents": "${cursor})",
           "auto-insert": true

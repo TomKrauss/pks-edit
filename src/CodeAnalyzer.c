@@ -46,6 +46,11 @@
   */
 extern JSON_MAPPING_RULE* theme_getJsonMapping();
 
+/*
+ * Returns the JSON mapping for the copyright_profiles.json config file.
+ */
+extern JSON_MAPPING_RULE * copyright_getJsonMapping();
+
 typedef struct tagANALYZER_SCHEMA {
 	struct tagANALYZER_SCHEMA* as_next;
 	const char * as_fileNamePattern;
@@ -780,6 +785,7 @@ void analyzer_registerDefaultAnalyzers() {
 	analyzer_registerSchema("*.grammar.json", grammar_getJsonMapping());
 	analyzer_registerSchema("pkseditconfig.json", doctypes_getJsonMapping());
 	analyzer_registerSchema("themeconfig.json", theme_getJsonMapping());
+	analyzer_registerSchema("copyright_profiles.json", copyright_getJsonMapping());
 }
 
 /*

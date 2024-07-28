@@ -304,6 +304,11 @@ extern void grammar_destroyUCMatchPattern(UC_MATCH_PATTERN* pMatchPattern);
  */
 extern const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState);
 
+/*
+ * Returns the contents of a template with a given name or NULL if not found.
+ */
+extern const char* grammar_getTemplate(GRAMMAR* pGrammar, const char* pszTemplateName);
+
 #ifdef JSONPARSER_H
 /*
  * Returns the JSON mapping used to parse grammar files.

@@ -30,6 +30,7 @@
 #include "printing.h"
 #include "fileselector.h"
 #include "winterf.h"
+#include "copyright.h"
 
 #undef DELIVER
 
@@ -146,6 +147,7 @@ EXPORT void init_readConfigFiles(void)
 	macro_readCompiledMacroFile((char *)0);
 	doctypes_initAllDocumentTypes();
 	xref_restoreFromConfigFile();
+	copyright_loadProfiles();
 	regex_compileCharacterClasses((char *) 0);
 }
 

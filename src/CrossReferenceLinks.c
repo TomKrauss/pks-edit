@@ -199,10 +199,10 @@ static int xref_addBuildOutputPattern(BUILD_OUTPUT_PATTERN *pPattern) {
 
 	if ((pNavigationPattern = (NAVIGATION_PATTERN*)ll_find(_compilerOutputNavigationPatterns, pPattern->cop_name)) == 0) {
 		pNavigationPattern = calloc(1, sizeof * pNavigationPattern);
-		strncpy(pNavigationPattern->compiler, pPattern->cop_name, sizeof(pNavigationPattern->compiler) - 1);
 		if (pNavigationPattern == NULL) {
 			return 0;
 		}
+		strncpy(pNavigationPattern->compiler, pPattern->cop_name, sizeof(pNavigationPattern->compiler) - 1);
 		bNewPattern = TRUE;
 	} else {
 		xref_destroyNavigationPattern(pNavigationPattern);

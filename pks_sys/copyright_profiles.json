@@ -1,0 +1,15 @@
+{
+  "default": "pks-edit",
+  "profiles": [
+	  {
+	  	"name": "pks-edit",
+			"notice": "${file_name}\n\n${cursor}DESCRIPTION${selection_end}\n\nauthor: ${user}\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at https://mozilla.org/MPL/2.0/.\n\n"
+	  }
+  ],
+  "language-options": [
+	  {
+			"language": "dart",
+			"single-line-comments": true
+	  }
+  ]
+}

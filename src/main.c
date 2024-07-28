@@ -50,6 +50,7 @@
 #include "textblocks.h"
 #include "menu.h"
 #include "gitintegration.h"
+#include "copyright.h"
 
 #define	PROF_OFFSET	1
 
@@ -429,6 +430,7 @@ void main_cleanup(void) {
 	doctypes_destroyAllDocumentTypes();
 	theme_destroyAllThemeData();
 	grammar_destroyAll();
+	copyright_destroyProfiles();
 	xref_destroyAllCrossReferenceLists();
 	ft_destroyCaches();
 	hist_destroy();

@@ -339,6 +339,9 @@
     <ClCompile Include="src\Globals.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Copyright.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -581,6 +584,9 @@
     <ClInclude Include="include\gitintegration.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\copyright.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -737,6 +743,7 @@
     <None Include="pks_sys\typescript.grammar.json" />
     <None Include="pks_sys\xml.grammar.json" />
     <None Include="pks_sys\yaml.grammar.json" />
+    <None Include="pks_sys\copyright_profiles.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">

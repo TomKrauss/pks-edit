@@ -446,6 +446,7 @@
   <ItemGroup>
     <ClCompile Include="src\Actions.c" />
     <ClCompile Include="src\CodeAnalyzer.c" />
+    <ClCompile Include="src\Copyright.c" />
     <ClCompile Include="src\Darkmode.c" />
     <ClCompile Include="src\EditorDocumentModel.c" />
     <ClCompile Include="src\ArrayList.c" />
@@ -1590,6 +1591,7 @@
     <ClInclude Include="include\codeanalyzer.h" />
     <ClInclude Include="include\codecompletion.h" />
     <ClInclude Include="include\comparefiles.h" />
+    <ClInclude Include="include\copyright.h" />
     <ClInclude Include="include\crossreferencelinks.h" />
     <ClInclude Include="include\customcontrols.h" />
     <ClInclude Include="include\darkmode.h" />
@@ -1696,6 +1698,7 @@
     <None Include="pks_sys\batch.grammar.json" />
     <None Include="pks_sys\commonc.grammar.json" />
     <None Include="pks_sys\commonmarkup.grammar.json" />
+    <None Include="pks_sys\copyright_profiles.json" />
     <None Include="pks_sys\cpp.grammar.json" />
     <None Include="pks_sys\cs.grammar.json" />
     <None Include="pks_sys\css.grammar.json" />
