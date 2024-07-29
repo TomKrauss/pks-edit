@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for inserting `copyright` templates. One may define copyright templates in a file named `copyright_profiles.json`
   along with options, how they should be formatted (using single line or multiple line comments). Copyrights are
   currently only supported in files having a grammar defining a language supporting comments.
+- The new function "New File - Select Name..." allows to select the file name when creating a file. 
+- File Templates: when creating files with a grammar defining a `file` - template will have the template being inserted, when the new file is created.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

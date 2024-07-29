@@ -581,7 +581,7 @@ int macro_onMenuAction(WINFO* wp, int menunum, POINT* aPositionClicked) {
 		}
 	}
 	if (menunum >= IDM_HISTORY && menunum <= IDM_HISTORY + 30) {
-		return (int)EdEditFile(OPEN_NOFN|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
+		return (int)EdEditFile(OPEN_FILE_NO_FILE_SELECTION|OPEN_HISTORY | (menunum - IDM_HISTORY) << 12, 0);
 	}
 	return 0;
 }

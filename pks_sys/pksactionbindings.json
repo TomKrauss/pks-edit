@@ -306,7 +306,7 @@
     },
     {
       "key": "Ctrl+N",
-      "command": "@open-new-file"
+      "command": "@open-new-file-named"
     },
     {
       "key": "Shift+Ctrl+N",
@@ -891,6 +891,7 @@
       "label-id": 1901,
       "sub-menu": [
         { "command": "@open-new-file" },
+        { "command": "@open-new-file-named" },
         { "command": "@open-file" },
         { "command": "@clone-window" },
         { "command": "@clone-window-for-wysiwyg" },

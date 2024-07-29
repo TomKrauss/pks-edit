@@ -198,6 +198,15 @@ extern void grammar_documentTypeChanged(GRAMMAR* pGrammar);
 extern int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextStart, int nReplacedTextLength, BOOL bReplaceCurrentWord);
 
 /*
+ * Insert a code template defined by pszBuffer.
+ *
+ * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
+ * cursor is replaced by the inserted template.
+ * If szIdentifier is not empty, it is the identifier, which will be replaced.
+ */
+extern int template_insertCodeTemplateBuffer(WINFO* wp, const char* pszTemplate, const char* szIdentifier, BOOL bReplaceCurrentWord, int nReplacedTextStart);
+
+/*
  * Creates a String Buffer containing an expanded code template. The returned string buffer must be destroyed by the caller.
  * If an error occurs or there is no current window, this will return NULL.
  */
@@ -308,6 +317,11 @@ extern const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aStat
  * Returns the contents of a template with a given name or NULL if not found.
  */
 extern const char* grammar_getTemplate(GRAMMAR* pGrammar, const char* pszTemplateName);
+
+/*
+ * Returns the contents of the "file" template for a file with the given grammar and file name.
+ */
+extern const char* grammar_getFileTemplate(GRAMMAR* pGrammar, const char* pszFilename);
 
 #ifdef JSONPARSER_H
 /*

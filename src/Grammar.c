@@ -605,7 +605,7 @@ void grammar_processMatchPattern(UC_MATCH_PATTERN* pPattern, char* pScopeName) {
 		pPattern->rePattern = grammar_compileAndCreateRegex(pPattern->pattern, pScopeName, flags);
 		pPattern->len = regex_getMinimumMatchLength(pPattern->rePattern);
 	} else {
-		pPattern->len = (int)strlen(pPattern->pattern);
+		pPattern->len = pPattern->pattern == NULL ? 0 : (int)strlen(pPattern->pattern);
 	}
 }
 
@@ -1428,3 +1428,28 @@ const char* grammar_getTemplate(GRAMMAR* pGrammar, const char* pszTemplateName) 
 	TEMPLATE* pTemplate = ll_find(pGrammar->templates, pszTemplateName);
 	return pTemplate ? pTemplate->t_contents : NULL;
 }
+
+/*
+ * Returns the contents of a template with a given name or NULL if not found.
+ */
+const char* grammar_getFileTemplate(GRAMMAR* pGrammar, const char* pszFilename) {
+	if (pGrammar == NULL) {
+		return NULL;
+	}
+	char* pszBase = string_getBaseFilename(pszFilename);
+	if (pszBase == NULL) {
+		return NULL;
+	}
+	char* pszExt = strrchr(pszBase, '.');
+	if (pszExt != NULL) {
+		char szTemplateName[40];
+		snprintf(szTemplateName, sizeof szTemplateName, "file_%s", pszExt+1);
+		const char* pszResult = grammar_getTemplate(pGrammar, szTemplateName);
+		if (pszResult != NULL) {
+			return pszResult;
+		}
+	}
+	return grammar_getTemplate(pGrammar, "file");
+}
+
+

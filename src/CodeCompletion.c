@@ -231,7 +231,8 @@ static void codecomplete_findLongestTemplateMatch(char* pszMatch, WINFO* wp, UCL
 	*pszMatch = 0;
 	while (up) {
 		template_matchIdentifier(wp, up->uc_pattern.pattern, matched, sizeof matched);
-		if (strlen(matched) > strlen(caretContext.ac_token)) {
+		size_t nMatchLen = strlen(matched);
+		if (nMatchLen > strlen(caretContext.ac_token) && nMatchLen > strlen(pszMatch)) {
 			strcpy(pszMatch, matched);
 		}
 		up = up->next;

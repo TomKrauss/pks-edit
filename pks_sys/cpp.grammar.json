@@ -32,6 +32,16 @@
           "contents": "${copyright}"
         },
         {
+          "name": "file",
+          "match": "file",
+          "contents": "${copyright}"
+        },
+        {
+          "name": "file_h",
+          "match": "include_file",
+          "contents": "${copyright}\n#ifndef ${file_name_no_suffix.toUpper()}_H\n\n#define ${file_name_no_suffix.toUpper()}_H\n#endif\n"
+        },
+        {
           "match": "(",
           "contents": "${cursor})",
           "auto-insert": true

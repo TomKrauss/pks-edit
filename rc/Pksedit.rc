@@ -1551,7 +1551,7 @@ BEGIN
     IDS_COMMAND0            "Öffnet eine Datei in einem Bearbeitungsfenster;Datei öffnen..."
     IDS_COMMAND1            "Öffnet eine neue Datei;Neue Datei anlegen"
     IDS_COMMAND2            "Öffnet eine Datei - der voreingestellte Pfad der Dateiauswahl wird als Parameter übergeben;Öffnen mit Pfad..."
-    IDS_COMMAND3            "Öffnet eine Datei mit besonderem Format;Öffnen Spezial..."
+    IDS_COMMAND3            "Öffnet eine neue Datei mit Auswahl des Dateinamens;Neue Datei mit Namen anlegen..."
     IDS_COMMAND4            "Öffnet die zuletzt geschlossene Datei;Öffnen letzte Datei 1"
     IDS_COMMAND5            "Öffnet die vorletzte geschlossene Datei;Öffnen letzte Datei 2"
     IDS_COMMAND6            "Öffnet die vorvorletzte geschlossene Datei;Öffnen letzte Datei 3"

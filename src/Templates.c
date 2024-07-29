@@ -62,7 +62,7 @@ typedef struct tagTEMPLATE_ACTION {
 extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 // forward declaration.
-static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION* pTAction, int nIndent, unsigned char* pszSelected, 
+static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION* pTAction, int nIndent, const unsigned char* pszSelected, 
 	const unsigned char* pszSource);
 
 /*
@@ -105,7 +105,7 @@ static void template_appendCopyright(STRING_BUF* pDest, WINFO* wp, TEMPLATE_ACTI
  * Expand a code template optionally containing ${....} references and return
  * the expanded text.
  */
-static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, unsigned char* pszSelected, 
+static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAction, int nIndent, const unsigned char* pszSelected, 
 		const unsigned char* pszSource) {
 	size_t nInitialSize = strlen(pszSource);
 	size_t nLineBegin = 0;
@@ -217,7 +217,7 @@ static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION *pTAct
 /*
  * Delete the current identifier left to or under the cursor for the purpose of being replaced by a macro. 
  */
-static void template_replaceCurrentWord(WINFO* wp, int nStart, char* pszIdentifier) {
+static void template_replaceCurrentWord(WINFO* wp, int nStart, const char* pszIdentifier) {
 	if (ww_hasSelection(wp)) {
 		EdBlockDelete(wp, 0);
 	} else {
@@ -285,6 +285,71 @@ int template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size
 }
 
 /*
+ * Insert a code template defined by pszBuffer.
+ *
+ * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
+ * cursor is replaced by the inserted template.
+ * If szIdentifier is not empty, it is the identifier, which will be replaced.
+ */
+int template_insertCodeTemplateBuffer(WINFO* wp, const char* pszTemplate, const char* szIdentifier, BOOL bReplaceCurrentWord, int nReplacedTextStart) {
+	FTABLE* fp = wp->fp;
+	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
+	TEMPLATE_ACTION templateAction;
+	int ret = 0;
+	memset(&templateAction, 0, sizeof templateAction);
+	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
+	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, pszTemplate);
+	PASTE pasteBuffer;
+	memset(&pasteBuffer, 0, sizeof pasteBuffer);
+	unsigned char* pszText = stringbuf_getString(pSB);
+	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
+		if (bReplaceCurrentWord) {
+			template_replaceCurrentWord(wp, nReplacedTextStart, szIdentifier);
+		}
+		CARET oldCaret = wp->caret;
+		int firstLineCol = oldCaret.col;
+		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
+		if (templateAction.ta_positionCursor) {
+			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol :
+				templateAction.ta_cursorDelta.cd_deltaCol + firstLineCol;
+			long ln = templateAction.ta_cursorDelta.cd_deltaLn + oldCaret.ln;
+			col = caret_screen2lineOffset(wp, &(CARET) {
+				.ln = ln,
+					.offset = col
+			});
+			caret_placeCursorInCurrentFile(wp, ln, col);
+			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
+				bl_hideSelection(wp, 0);
+				EdSyncSelectionWithCaret(wp, MARK_START);
+				col += templateAction.ta_selectionDeltaCol;
+				ln += templateAction.ta_selectionDeltaLn;
+				col = caret_screen2lineOffset(wp, &(CARET) {
+					.ln = ln,
+						.offset = col
+				});
+				caret_placeCursorInCurrentFile(wp, ln, col);
+				EdSyncSelectionWithCaret(wp, MARK_END);
+			}
+			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
+				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];
+				int secondaryCol = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : firstLineCol + pDelta->cd_deltaCol;
+				ln = oldCaret.ln + pDelta->cd_deltaLn;
+				secondaryCol = caret_screen2lineOffset(wp, &(CARET) {
+					.ln = ln,
+						.offset = secondaryCol
+				});
+				caret_addSecondary(wp, ln, secondaryCol);
+			}
+		}
+		ln_listfree(pasteBuffer.pln);
+		ret = 1;
+	}
+	stringbuf_destroy(pSB);
+	return ret;
+
+}
+
+/*
  * Insert a selected code template 'up'. 
  * If 'bReplaceCurrentWord' is TRUE, the currently selected word / identifier close to the
  * cursor is replaced by the inserted template.
@@ -295,11 +360,7 @@ int template_matchIdentifier(WINFO* wp, char* pPattern, char* szIdentifier, size
  */
 int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextStart, int nReplacedTextLength, BOOL bReplaceCurrentWord) {
 	char szIdentifier[100];
-	FTABLE* fp = wp->fp;
-	EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
-	TEMPLATE_ACTION templateAction;
 	int ret = 0;
-	memset(&templateAction, 0, sizeof templateAction);
 	char* pPattern = up->uc_pattern.pattern;
 	if (nReplacedTextStart <= 0 && nReplacedTextLength > 0) {
 		nReplacedTextStart = wp->caret.offset - nReplacedTextLength;
@@ -319,63 +380,14 @@ int template_insertCodeTemplate(WINFO* wp, UCLIST* up, int nReplacedTextStart, i
 			nReplacedTextStart = nOffset;
 		}
 	}
-	int nIndent = format_calculateScreenIndent(wp, wp->caret.linePointer);
-	STRING_BUF* pSB = template_expandCodeTemplate(wp, &templateAction, nIndent, szIdentifier, up->p.uc_template);
-	PASTE pasteBuffer;
-	memset(&pasteBuffer, 0, sizeof pasteBuffer);
-	unsigned char* pszText = stringbuf_getString(pSB);
-	if (bl_convertTextToPasteBuffer(&pasteBuffer, pszText, pszText + strlen(pszText), pConfig->nl, pConfig->nl2, pConfig->cr)) {
-		if (bReplaceCurrentWord) {
-			template_replaceCurrentWord(wp, nReplacedTextStart, szIdentifier);
-		}
-		CARET oldCaret = wp->caret;
-		int firstLineCol = oldCaret.col;
-		bl_pasteBlock(wp, &pasteBuffer, 0, oldCaret.offset, 0);
-		if (templateAction.ta_positionCursor) {
-			long col = templateAction.ta_cursorDelta.cd_deltaLn ? templateAction.ta_cursorDelta.cd_deltaCol : 
-				templateAction.ta_cursorDelta.cd_deltaCol + firstLineCol;
-			long ln = templateAction.ta_cursorDelta.cd_deltaLn + oldCaret.ln;
-			col = caret_screen2lineOffset(wp, &(CARET) {
-				.ln = ln,
-				.offset = col
-			});
-			caret_placeCursorInCurrentFile(wp, ln, col);
-			if (templateAction.ta_selectionDeltaCol || templateAction.ta_selectionDeltaLn) {
-				bl_hideSelection(wp, 0);
-				EdSyncSelectionWithCaret(wp, MARK_START);
-				col += templateAction.ta_selectionDeltaCol;
-				ln += templateAction.ta_selectionDeltaLn;
-				col = caret_screen2lineOffset(wp, &(CARET) {
-					.ln = ln,
-					.offset = col
-				});
-				caret_placeCursorInCurrentFile(wp, ln, col);
-				EdSyncSelectionWithCaret(wp, MARK_END);
-			}
-			for (int i = 0; i < templateAction.ta_secondaryCarets; i++) {
-				CARET_DELTA* pDelta = &templateAction.ta_secondary[i];
-				int secondaryCol = pDelta->cd_deltaLn ? pDelta->cd_deltaCol : firstLineCol + pDelta->cd_deltaCol;
-				ln = oldCaret.ln + pDelta->cd_deltaLn;
-				secondaryCol = caret_screen2lineOffset(wp, &(CARET) {
-					.ln = ln,
-					.offset = secondaryCol
-				});
-				caret_addSecondary(wp, ln, secondaryCol);
-			}
-		}
-		ln_listfree(pasteBuffer.pln);
-		ret = 1;
-	}
-	stringbuf_destroy(pSB);
-	return ret;
-
+	return template_insertCodeTemplateBuffer(wp, up->p.uc_template, szIdentifier, bReplaceCurrentWord, nReplacedTextStart);
 }
 
 /*--------------------------------------------------------------------------
  * template_expandAbbreviation()
  */
-int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
-	UCLIST *up;
+int template_expandAbbreviation(WINFO* wp, LINE* lp, int offs) {
+	UCLIST* up;
 	long 		o2;
 	int			domacro = 0;
 	FTABLE* fp = wp->fp;
@@ -394,9 +406,11 @@ int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 			}
 		}
 		domacro = 0;
-	} else if (up->action == UA_UCMACRO) {
+	}
+	else if (up->action == UA_UCMACRO) {
 		domacro = 1;
-	} else {
+	}
+	else {
 		return 0;
 	}
 
@@ -404,15 +418,17 @@ int template_expandAbbreviation(WINFO *wp, LINE *lp,int offs) {
 		o2 = offs - up->uc_pattern.len;
 		if (ln_modify(fp, lp, offs, o2) == 0L)
 			return 0;
-	} else {
+	}
+	else {
 		o2 = offs;
 	}
-	caret_placeCursorInCurrentFile(wp, wp->caret.ln,o2);
+	caret_placeCursorInCurrentFile(wp, wp->caret.ln, o2);
 	if (!domacro) {
 		return template_insertCodeTemplate(wp, up, -1, -1, FALSE);
 	}
-	render_repaintCurrentLine(wp); 
+	render_repaintCurrentLine(wp);
 	return macro_executeByName(up->p.uc_macro);
 }
+
 
 

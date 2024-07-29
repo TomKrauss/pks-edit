@@ -732,10 +732,14 @@ extern void string_formatDate(char* szDbuf, EDTIME* ltime);
 
 /* Flags for EdEditFile */
 typedef enum {
-	OPEN_LINEAL = 0x1,
-	OPEN_NOLINFN = 0x20,
+	// Create a new file asking for a file name
+	OPEN_NEW_WITH_FILE_SELECTION = 0x1,
+	// Use the directory of the 
 	OPEN_DIRGIVEN = 0x40,
-	OPEN_NOFN = 0x80,
+	// Do not ask for a filename when opening existing files.
+	OPEN_FILE_NO_FILE_SELECTION = 0x80,
+	// Open a file from the history list. The flag will be shifted to the right by 12 in this case to retrieve the index of
+	// the file from the history list to open
 	OPEN_HISTORY = 0x100
 } OPEN_WINDOW_FLAGS;
 

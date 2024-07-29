@@ -52,6 +52,12 @@ and grammar.
 Templates are defined with a pattern `match` using to "select the template" and the actual `contents` of the template to be inserted. 
 The contents of the template may contain variables enclosed in `${ }` - e.g. `${user}`.
 
+Templates may have a `name` to be referred to by other templates. Special templates named `file` or `file_suffix` are used as file
+templates and are applied, when a new file is created. Naming a template `file_suffix` can be used in situations, where files with
+different extensions share the same grammar (e.g. `*.c` and include files `*.h`), if one wants to use as file templates depending
+on the file extension. One would create a template named `file_h` to be applied to all files named `*.h` and a template named `file` 
+to be used for all other files sharing the grammar containing the template.
+
 Templates may be defined as `auto-insert` true, in which case the `match` pattern is matched against the currently typed input and
 if a match occurs the template is automatically inserted. This auto-insertion behavior may be switched off for one document by
 setting the `expandAbbreviations` option for the current editor tab to false [see configuring documents](document_types.md#editor_configuration_properties).
@@ -87,6 +93,15 @@ The following variables are supported:
 - `${selection_end}` - used in combination with ${cursor} to select a range of text after inserting the template
 - `${word_selection}` - the "word/identifier" close to the input caret or text currently selected
 - `${template.name}` - nested template named _name_
+
+One can apply functions on an expanded variable by adding a _function suffix_. Currently two functions are supported:
+
+- `.toUpper()` - converts the expanded text to upper case
+- `.toLowere()` - converts the exanded text to lower case
+
+Example: `${file_name.toUpper()}` applied in a file named `c:\temp\myfile.txt` will evaluate to `MYFILE.TXT`.
+
+Applying functions is currently not supported for `${template.name}`, `${copyright}`, `${word_selection}`.
 
 ### Bracket matching
 PKS Edit supports navigation to `matching brackets` in source code. Matching brackets are typically defined as single

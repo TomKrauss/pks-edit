@@ -12,6 +12,10 @@
           "help": "Properties are the last required piece to understand POM basics. Maven properties are value placeholders, like properties in Ant."
         },
         {
+          "name": "file",
+          "contents": "<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n${tab}xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n<modelVersion>4.0.0</modelVersion>\n<groupId>com.mycompany.app</groupId>\n<artifactId>my-app</artifactId>\n<version>1.0-SNAPSHOT</version>\n<properties>\n${tab}<maven.compiler.source>17</maven.compiler.source>\n${tab}<maven.compiler.target>17</maven.compiler.target>\n</properties>\n<dependencies>\n${tab}<dependency>\n${tab}${tab}<groupId>junit</groupId>\n${tab}${tab}<artifactId>junit</artifactId>\n${tab}${tab}<version>4.12</version>\n${tab}${tab}<scope>test</scope>\n${tab}</dependency>\n</dependencies>\n</project>"
+        },
+        {
           "match": "<dependency",
           "grammar-context": "entity",
           "contents": "<dependency>\n${indent}${tab}<groupId>mygroup</groupId>\n${indent}${tab}<artifactId>artifact${cursor}<artifactId/>\n${indent}${tab}<version>\\${artifact${secondary}.version}<version/>\n${indent}</dependency>",

@@ -97,7 +97,7 @@ int json_marshal(const char* pszFilename, void* pSourceObject, JSON_MAPPING_RULE
  */
 void json_destroy(void* pMemory, JSON_MAPPING_RULE* pRules);
 
-#define MAX_TOKEN_SIZE		511
+#define MAX_TOKEN_SIZE		1023
 
 #ifdef JSMN_H
 /*

@@ -29,6 +29,7 @@ typedef struct tagFILE_SELECT_PARAMS {
 	BOOL  fsp_multiSelect;		// Allow to select multiple files
 	BOOL  fsp_optionsAvailable; // Whether the encryption checkbox and or the encoding drop-down should be shown.
 	BOOL  fsp_encrypted;		// in and out parameter - whether the file should be saved using encryption. Only applicable to save as
+	BOOL  fsp_createNewFile;	// Input parameter: TRUE, if one creates a new file.
 	long  fsp_codepage;			// the code page with the character encoding.
 } FILE_SELECT_PARAMS;
 

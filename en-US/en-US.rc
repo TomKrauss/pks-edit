@@ -1482,7 +1482,7 @@ BEGIN
     IDS_COMMAND0            "Opens one file in an editor;Open File..."
     IDS_COMMAND1            "Creates and opens a new file;New File"
     IDS_COMMAND2            "Open a file with given path;Open with Path..."
-    IDS_COMMAND3            "Open file with special format;Open Special..."
+    IDS_COMMAND3            "New File with File Selection;New File - Select Name..."
     IDS_COMMAND4            "Opens the last file closed;Open last file 1"
     IDS_COMMAND5            "Opens the second last file closed;Open last file 2"
     IDS_COMMAND6            "Opens the third last file closed;Open last file 3"

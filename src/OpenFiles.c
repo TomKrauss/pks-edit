@@ -792,6 +792,11 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 
 	if (nFileCreationFlags != 0 && fp->documentDescriptor) {
 		macro_executeByName(fp->documentDescriptor->createActionName);
+		const char* pszTemplate = grammar_getFileTemplate(fp->documentDescriptor->grammar, fp->fname);
+		if (pszTemplate) {
+			undo_startModification(fp);
+			template_insertCodeTemplateBuffer(WIPOI(fp), pszTemplate, "", FALSE, 0);
+		}
 	}
 
 	return fp;
@@ -873,14 +878,27 @@ long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 		}
 	}
 	long codepage = -1;
-	if ((editflags & OPEN_NOFN) == 0) {
-		FILE_SELECT_PARAMS fsp;
+	if (editflags & OPEN_NEW_WITH_FILE_SELECTION) {
+		FILE_SELECT_PARAMS fsp = {
+			.fsp_saveAs = FALSE,
+			.fsp_codepage = -1,
+			.fsp_createNewFile = TRUE,
+			.fsp_optionsAvailable = FALSE,
+			.fsp_multiSelect = FALSE
+		};
 		memset(_fseltarget, 0, EDMAXPATHLEN);
-		memset(&fsp, 0, sizeof fsp);
-		fsp.fsp_saveAs = FALSE;
-		fsp.fsp_codepage = -1;
-		fsp.fsp_optionsAvailable = TRUE;
-		fsp.fsp_multiSelect = TRUE;
+		if (!fsel_selectFileWithTitle(CMD_OPEN_NEW_FILE, _fseltarget, &fsp)) {
+			return 0;
+		}
+		filename = _fseltarget;
+	} else if ((editflags & OPEN_FILE_NO_FILE_SELECTION) == 0) {
+		FILE_SELECT_PARAMS fsp = {
+			.fsp_saveAs = FALSE,
+			.fsp_codepage = -1,
+			.fsp_optionsAvailable = TRUE,
+			.fsp_multiSelect = TRUE
+		};
+		memset(_fseltarget, 0, EDMAXPATHLEN);
 		if (!fsel_selectFileWithTitle(CMD_OPEN_FILE, _fseltarget, &fsp)) {
 			return 0;
 		}
@@ -891,7 +909,8 @@ long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 		}
 		filename = _fseltarget;
 	}
-	return ft_openFileWithoutFileselector(filename, 0L, &(FT_OPEN_OPTIONS) { NULL, codepage }) != NULL ? 1 : 0;
+	return ft_openFileWithoutFileselector(filename, 0L, &(FT_OPEN_OPTIONS) { .fo_dockName = NULL, .fo_codePage = codepage, 
+		.fo_isNewFile = (editflags & OPEN_NEW_WITH_FILE_SELECTION) != 0 }) != NULL ? 1 : 0;
 }
 
 /*------------------------------------------------------------
@@ -1156,7 +1175,7 @@ void EditDroppedFiles(HDROP hDrop)
 		nFileLength  = DragQueryFile( hDrop , i , NULL, 0 );
 		pszFileName = malloc((size_t)nFileLength + 1);
 		DragQueryFile( hDrop , i, pszFileName, nFileLength + 1 );
-		long long nSuccess = EdEditFile(OPEN_NOFN, pszFileName);
+		long long nSuccess = EdEditFile(OPEN_FILE_NO_FILE_SELECTION, pszFileName);
 		free(pszFileName);
 		if (!nSuccess) {
 			break;

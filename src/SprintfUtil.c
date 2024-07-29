@@ -25,6 +25,7 @@
 
 #include "winterf.h"
 #include "edierror.h"
+#include "edctype.h"
 #include "documentmodel.h"
 #include "winfo.h"
 #include "pksmacro.h"
@@ -518,10 +519,35 @@ cpyout:			d = string_formatWithPadding(d, dend, x, nWidth, cFiller, bLeftJustify
 }
 
 /*
+ * Convert a string "in-place" to upper or lower case depending on the 'bUpper' flag.
+ */
+void string_convertUpperLower(char* pszString, BOOL bUpper) {
+	char c;
+	while ((c = *pszString) != 0) {
+		if (bUpper) {
+			c = _l2uset[c];
+		} else {
+			c = _u2lset[c];
+		}
+		*pszString++ = c;
+	}
+}
+
+/*
  * Return a PKS Edit variable to be used e.g. in code templates or to be used in 
  * PKSMacroC scripts.
  */
 void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, size_t nSize) {
+	char szVar[100];
+	char* pFunction = NULL;
+	if (strlen(pVar) < sizeof szVar) {
+		strcpy(szVar, pVar);
+		pVar = szVar;
+		pFunction = strchr(pVar, '.');
+		if (pFunction) {
+			*pFunction++ = 0;
+		}
+	}
 	if (strcmp("year2", pVar) == 0) {
 		SYSTEMTIME time;
 		GetLocalTime(&time);
@@ -538,49 +564,50 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		if (_getcwd(pResult, (int)nSize) == NULL) {
 			*pResult = 0;
 		}
-		return;
-	}
-	if (strcmp("pks_tmp", pVar) == 0) {
+	} else if (strcmp("pks_tmp", pVar) == 0) {
 		strcpy(pResult, GetConfiguration()->pksEditTempPath);
-		return;
-	}
-	if (_strcmpi(PKS_SYS, pVar) == 0) {
+	} else if (_strcmpi(PKS_SYS, pVar) == 0) {
 		strcpy(pResult, _pksSysFolder);
-		return;
-	}
-	if (strcmp("pks_version", pVar) == 0) {
+	} else if (strcmp("pks_version", pVar) == 0) {
 		strcpy(pResult, _pksVersion);
-		return;
-	}
-	if (strcmp("pks_executable", pVar) == 0) {
+	} else if (strcmp("pks_executable", pVar) == 0) {
 		DWORD dLen = GetModuleFileName(NULL, pResult, (DWORD)nSize);
 		pResult[dLen] = 0;
-		return;
-	}
-	if (strcmp("user", pVar) == 0) {
+	} else if (strcmp("user", pVar) == 0) {
 		DWORD nBytes = (DWORD)nSize;
 		GetUserName(pResult, &nBytes);
-		return;
-	}
-	unsigned char* pFormat = "%s$F";
-	if (strcmp("file_name", pVar) == 0) {
-		pFormat = "%s$f";
-	}else if (strcmp("file_name_no_suffix", pVar) == 0) {
-		pFormat = "%s$b";
-	} else if (strcmp("full_file_name", pVar) == 0) {
-		pFormat = "%s$F";
-	} else if (strcmp("date", pVar) == 0) {
-		pFormat = "%D";
-	} else if (strcmp("time", pVar) == 0) {
-		pFormat = "%T";
-	}
-	else if (strcmp("time_long", pVar) == 0) {
-		pFormat = "%t";
 	} else {
-		strcpy(pResult, pVar);
-		return;
+		unsigned char* pFormat = "%s$F";
+		if (strcmp("file_name", pVar) == 0) {
+			pFormat = "%s$f";
+		}
+		else if (strcmp("file_name_no_suffix", pVar) == 0) {
+			pFormat = "%s$b";
+		}
+		else if (strcmp("full_file_name", pVar) == 0) {
+			pFormat = "%s$F";
+		}
+		else if (strcmp("date", pVar) == 0) {
+			pFormat = "%D";
+		}
+		else if (strcmp("time", pVar) == 0) {
+			pFormat = "%T";
+		}
+		else if (strcmp("time_long", pVar) == 0) {
+			pFormat = "%t";
+		} else {
+			strcpy(pResult, pVar);
+			return;
+		}
+		mysprintf(pResult, pFormat, &(SPRINTF_ARGS){.sa_wp = wp});
 	}
-	mysprintf(pResult, pFormat, &(SPRINTF_ARGS){.sa_wp = wp});
+	if (pFunction) {
+		if (strcmp(pFunction, "toUpper()") == 0) {
+			string_convertUpperLower(pResult, TRUE);
+		} else if (strcmp(pFunction, "toLower()") == 0) {
+			string_convertUpperLower(pFunction, FALSE);
+		}
+	}
 }
 
 /*
