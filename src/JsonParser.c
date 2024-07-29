@@ -177,15 +177,22 @@ static struct tagCSS_COLOR {
 	{"rosybrown", RGB(188,143,143)},
 	{"silver", RGB(192,192,192)},
 	{"skyblue", RGB(135,206,235)},
+	{"slateblue", RGB(106,90,205)},
+	{"slategrey", RGB(112,128,144)},
+	{"snow", RGB(255,250,250)},
 	{"springgreen", RGB(0,255,127)},
 	{"steelblue", RGB(70,130,180)},
+	{"tan", RGB(210,180,140)},
 	{"teal", RGB(0,128,128)},
 	{"thistle", RGB(216,191,216)},
 	{"tomato", RGB(255,99,71)},
+	{"turquoise", RGB(64,224,208)},
 	{"violet", RGB(238,130,238)},
-	{"yellow", RGB(255,255,0)},
 	{"wheat", RGB(245,222,179)},
-	{"white", RGB(255,255,255)}
+	{"white", RGB(255,255,255)},
+	{"whitesmoke", RGB(245,245,245)},
+	{"yellow", RGB(255,255,0)},
+	{"yellowgreen", RGB(154,205,50)}
 };
 
 /*

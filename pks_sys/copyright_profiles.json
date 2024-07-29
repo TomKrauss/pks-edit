@@ -7,9 +7,10 @@
 	  }
   ],
   "language-options": [
-	  {
+		{
 			"language": "dart",
+			"add-blank-line-before": true,
 			"single-line-comments": true
-	  }
+		}
   ]
 }

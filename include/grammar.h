@@ -150,6 +150,11 @@ extern void grammar_destroyAll();
 extern GRAMMAR* grammar_findNamed(const char* pszGrammarName);
 
 /*
+ * Returns the user readable name / description of a grammar.
+ */
+extern const char* grammar_description(GRAMMAR* pGrammar);
+
+/*
  * Returns the name of a grammar.
  */
 extern const char* grammar_name(GRAMMAR* pGrammar);

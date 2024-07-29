@@ -34,6 +34,10 @@ typedef struct tagCOPYRIGHT_LANGUAGE_OPTION {
 	char clo_language[32];
 	// Whether we should use single line comments to insert a template.
 	int  clo_useSingleLineComments;
+	// Wether a blank line should be added in front of the copyright
+	int  clo_addBlankLineBefore;
+	// Wether a blank line should be added at the end of the copyright
+	int  clo_addBlankLineAfter;
 } COPYRIGHT_LANGUAGE_OPTION;
 
 typedef struct tagCOPYRIGHT_MANAGER {
@@ -53,6 +57,8 @@ static JSON_MAPPING_RULE _copyrightRules[] = {
 
 static JSON_MAPPING_RULE _languageOptionRules[] = {
 	{	RT_FLAG, "single-line-comments", offsetof(COPYRIGHT_LANGUAGE_OPTION, clo_useSingleLineComments), 1},
+	{	RT_FLAG, "add-blank-line-before", offsetof(COPYRIGHT_LANGUAGE_OPTION, clo_addBlankLineBefore), 1},
+	{	RT_FLAG, "add-blank-line-after", offsetof(COPYRIGHT_LANGUAGE_OPTION, clo_addBlankLineAfter), 1},
 	{	RT_CHAR_ARRAY, "language", offsetof(COPYRIGHT_LANGUAGE_OPTION, clo_language), sizeof(((COPYRIGHT_LANGUAGE_OPTION*)NULL)->clo_language)},
 	{	RT_END}
 };
@@ -136,6 +142,10 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 		strcpy(linePrefix, commentDescriptor.comment_single);
 		strcat(linePrefix, " ");
 	}
+	if (pOptions != NULL && pOptions->clo_addBlankLineBefore) {
+		stringbuf_appendString(pResult, linePrefix);
+		stringbuf_appendChar(pResult, '\n');
+	}
 	stringbuf_appendString(pResult, linePrefix);
 	while (*pszSource) {
 		char c = *pszSource++;
@@ -143,6 +153,10 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 		if (*pszSource && c == '\n') {
 			stringbuf_appendString(pResult, linePrefix);
 		}
+	}
+	if (pOptions != NULL && pOptions->clo_addBlankLineAfter) {
+		stringbuf_appendString(pResult, linePrefix);
+		stringbuf_appendChar(pResult, '\n');
 	}
 	if (!bSingleLineComment) {
 		if (bLinePrefixed) {

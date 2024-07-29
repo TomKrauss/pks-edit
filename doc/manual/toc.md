@@ -22,6 +22,7 @@ simply navigate over the link and click it.
   - [Miscellaneous Options](configuration.md#Miscellaneous-Options)
   - [Configuration of bindings for keyboard, mouse, context menu ](configuration.md#Configuration-of-bindings-for-keyboard,-mouse,-context-menu-)
   - [Advanced configuration](configuration.md#Advanced-configuration)
+  - [Configuring Copyright Profiles](configuration.md#Configuring-Copyright-Profiles)
 - [Document Types](document_types.md)
   - [Grammar](document_types.md#Grammar)
   - [Editor Configuration](document_types.md#Editor-Configuration)

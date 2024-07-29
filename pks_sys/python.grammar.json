@@ -19,6 +19,15 @@
       ],
       "templates": [
         {
+          "match": "copyright",
+          "contents": "${copyright}"
+        },
+        {
+          "name": "file",
+          "match": "file",
+          "contents": "${copyright}"
+        },
+        {
           "match": "for_loop",
           "contents": "for char${cursor} in [1,2,3]:\n${indent}${tab}print(char${secondary})\n"
         },

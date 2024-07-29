@@ -13,6 +13,7 @@ installation. Note, that in the later case, you should review overridden files, 
 ## Configuration File Search PATH
 Configuration files are looked up in the following directories:
 - _.\PKS_SYS_
+- _%user.home\.pksedit\config_
 - _%user.home\.pksedit\PKS_SYS_
 - _%appinstalldir%\PKS_SYS_
 
@@ -20,7 +21,7 @@ Configuration files are looked up in the following directories:
 You may set the overall PKS Edit options by pressing the COG icon in the toolbar or via menu "Extra->Settings".
 
 ## Configuration Files of PKS Edit
-The following files are loaded by PKS Edit during startup form the 'pks_sys' folder.
+The following files are loaded by PKS Edit during startup from the `pks_sys` folders (see above).
 
 |File|Purpose|
 |----|----|
@@ -30,7 +31,7 @@ The following files are loaded by PKS Edit during startup form the 'pks_sys' fol
 |`pksactionbinding.json`|Contains action binding definitions (keyboard, mouse, menu, context menu) and the associated commands / macros to execute|
 |`mylang.grammar.json`|Contains the grammar rules (syntax highlighting, formatting, code completion etc...) for one grammar representing a code language|
 |`pksedit.mac`|Contains a binary / compiled version of macros defined. Note, that one may refer to a macro by name from this file e.g. in a save action or an action binding|
-
+|`copyright_profiles.json`|Defines optional copyright profiles|
 
 ## Save Options
 In this section you may configure all actions performed during startup and shutdown and the way files are automatically saved.
@@ -288,4 +289,31 @@ for explanation purpos):
     "linenumber-capture": 2,
     "comment-capture": 3
   },
+```
+
+## Configuring Copyright Profiles
+_Copyright Profiles_ allow to define copyrights to be inserted either using a template (press copyright and Ctrl+SPACE to expand in files supporting copyrights) 
+or to be inserted, when a new file of type supporting a file template is being created.
+
+Copyrights are configured in a file named `copyright_profiles.json`. One may define different copyright headers and
+set options for inserting the copyright headers into a file in a language specific way. Here is a sample defining
+one profile named `pks-edit` - setting that as the default profile and defining, that in `Dart` files copyrights are
+inserted using single line comments.
+
+```json
+{
+  "default": "pks-edit",
+  "profiles": [
+	  {
+	  	"name": "pks-edit",
+			"notice": "${file_name}\n\n${cursor}DESCRIPTION${selection_end}\n\nauthor: ${user}\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at https://mozilla.org/MPL/2.0/.\n\n"
+	  }
+  ],
+  "language-options": [
+	  {
+			"language": "dart",
+			"single-line-comments": true
+	  }
+  ]
+}
 ```

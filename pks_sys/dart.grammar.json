@@ -4,6 +4,17 @@
       "scopeName": "dart",
       "description": "Dart Programming Language",
       "import": [ "commonc" ],
+      "templates": [
+        {
+          "match": "copyright",
+          "contents": "${copyright}"
+        },
+        {
+          "name": "file",
+          "match": "file",
+          "contents": "${copyright}"
+        }
+      ],
       "patterns": [
         {
           "match": "///.*",

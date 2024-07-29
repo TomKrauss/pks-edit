@@ -1409,12 +1409,19 @@ const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
 }
 
 /*
- * Returns the name of a grammar.
+ * Returns the user readable name / description of a grammar.
  */
-const char* grammar_name(GRAMMAR* pGrammar) {
+const char* grammar_description(GRAMMAR* pGrammar) {
 	if (pGrammar->description[0]) {
 		return pGrammar->description;
 	}
+	return pGrammar->scopeName;
+}
+
+/*
+ * Returns the name of a grammar.
+ */
+const char* grammar_name(GRAMMAR* pGrammar) {
 	return pGrammar->scopeName;
 }
 

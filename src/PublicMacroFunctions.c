@@ -868,7 +868,7 @@ static void infoFillParams(DIALOG_ITEM_DESCRIPTOR *dp, WINFO *wp) {
 	sprintf(dp->did_data, "%ld", ft_countWords(fp)); dp++;
 	dp->did_data = szCodePage; dp++;
 	ft_getCodepageName(fp, szCodePage, sizeof szCodePage);
-	dp->did_data = (char*) grammar_name(fp->documentDescriptor->grammar);
+	dp->did_data = (char*) grammar_description(fp->documentDescriptor->grammar);
 }
 
 /*--------------------------------------------------------------------------
