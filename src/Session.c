@@ -164,7 +164,7 @@ static ARRAY_LIST* hist_getOpenFilePathes() {
 	while (wp) {
 		char szPath[1024];
 		FTABLE* fp = wp->fp;
-		string_splitFilename(fp->fname, szPath, 0);
+		string_splitFilename(fp->fname, szPath, 0, 0);
 		if (arraylist_indexOfComparing(pArray, szPath, strcmp) < 0) {
 			arraylist_insertAt(pArray, _strdup(szPath), 0);
 		}

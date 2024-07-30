@@ -7,9 +7,8 @@
 #ifndef PATHNAME_H
 
 // this is for allocating filename buffers
-#define EDMAXPATHLEN		1024
+#define EDMAXPATHLEN		2048
 #define EDMAXFNLEN			256
-#define EDMAXEXTLEN			32
 #define EDMAXSUFFIXLEN		64
 #define EDMAXDIRLEN			(EDMAXPATHLEN-EDMAXFNLEN)
 

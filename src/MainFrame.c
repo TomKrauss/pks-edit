@@ -255,7 +255,14 @@ static char* tabcontrol_getTitle(HWND hwnd, char* szBuffer, size_t nSize) {
 						break;
 					}
 				}
-				strcat(szTitle, pszLast + 1);
+				pszLast++;
+				size_t nLen = strlen(pszLast);
+				if (nLen > 100) {
+					strcat(szTitle, "...");
+					strcat(szTitle, pszLast + nLen - 100);
+				} else {
+					strcat(szTitle, pszLast);
+				}
 				return szTitle;
 			}
 		}

@@ -260,7 +260,7 @@ EXPORT char *file_searchFileInPath(char *fn,char *path) {
 	if ((path = strtok(p,",;")) != 0)
 	for (;;) {	
 		if (strchr(path,'*')) {
-			string_splitFilename(path,p2,(char *)0);
+			string_splitFilename(path,p2,(char *)0, 0);
 			path = p2;
 		}
 		if (pathstat(path,fn)) {
@@ -319,7 +319,7 @@ EXPORT void file_clearTempFiles(void)
 
 	file_getTempFilename(tmpname,'!');
 	fn[0] = 0;
-	string_splitFilename(tmpname,pathname,fn);
+	string_splitFilename(tmpname,pathname,fn,sizeof fn);
 	if ((szBang = strchr(fn, '!')) != 0) {
 		*szBang = '?';
 		_ftw(pathname, file_removeCb,1,fn,0xFF);

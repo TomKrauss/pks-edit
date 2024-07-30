@@ -72,7 +72,7 @@ static int ft_generateAutosavePathname(char *destinationName, const char *fname)
 {	char fn[EDMAXPATHLEN];
 	char szBuff[EDMAXPATHLEN];
 
-	string_splitFilename(fname,(char *)0,fn);
+	string_splitFilename(fname,(char *)0,fn,sizeof fn);
 	string_concatPathAndFilename(szBuff, config_getPKSEditTempPath(),fn);
 	*destinationName = 0;
 	string_getFullPathName(destinationName,szBuff,EDMAXPATHLEN);
@@ -320,7 +320,7 @@ void ft_saveWindowStates(void ) {
 	if (pszFilename == NULL) {
 		string_concatPathAndFilename(szBuff, _pksSysOverrideFolder[0] ? _pksSysOverrideFolder : _pksSysFolder, HISTORY_FILE_NAME);
 	} else {
-		GetFullPathName(pszFilename, sizeof szBuff, szBuff, NULL);
+		string_getFullPathName(szBuff, pszFilename, sizeof szBuff);
 	}
 	pszFilename = szBuff;
 	hist_saveSession(pszFilename);
@@ -666,7 +666,7 @@ int fsel_selectFileWithTitle(int nCommand, char *result, FILE_SELECT_PARAMS* pFS
 	WINFO* wp = ww_getCurrentEditorWindow();
 	if (wp) {
 		FTABLE* fp = wp->fp;
-		string_splitFilename(fp->fname, _txtfninfo.path, 0);
+		string_splitFilename(fp->fname, _txtfninfo.path, 0, sizeof _txtfninfo.path);
 	}
 	if ((fn = fsel_selectFileWithOptions(&_txtfninfo, nCommand, pFSP)) != 0) {
 		strcpy(result,fn);
@@ -714,9 +714,12 @@ FTABLE* ft_openFileWithoutFileselector(const char *fn, long line, FT_OPEN_OPTION
 	memset(szAsPath, 0, sizeof szAsPath);
 	if (fn) {
 		string_getFullPathName(szResultFn,fn, sizeof szResultFn);
+		if (!szResultFn[0]) {
+			strcpy(szResultFn, "file_name_too_long");
+		}
 		fn = szResultFn;
 	}
-	EdTRACE(log_message(DEBUG_TRACE, "ft_openFile(name = %s)", fn));
+	EdTRACE(log_message(DEBUG_TRACE, "ft_openFile(name = %s)", fn == NULL ? "no file name" : fn));
 	if (fn && ft_editing(fn) != 0) {
 		ret = error_displayYesNoCancelConfirmation(IDS_MSGINWORK,string_abbreviateFileName(fn));
 		if (ret == IDCANCEL) {
@@ -868,7 +871,7 @@ long long EdEditFile(OPEN_WINDOW_FLAGS editflags, char *filename) {
 	int		nEntry;
 
 	if ((editflags & OPEN_DIRGIVEN) && filename) {
-		string_splitFilename(filename,_txtfninfo.path,_txtfninfo.search);
+		string_splitFilename(filename,_txtfninfo.path,_txtfninfo.search, sizeof _txtfninfo.search);
 		filename = 0;
 	}
 	if (editflags & OPEN_HISTORY) {
@@ -1042,7 +1045,7 @@ long long EdSaveFile(SAVE_WINDOW_FLAGS flags) {
 	if ((flags & SAV_AS) || (fp->flags & (F_NAME_INPUT_REQUIRED|F_MODIFIED)) == (F_NAME_INPUT_REQUIRED | F_MODIFIED)) {
 		char newname[EDMAXPATHLEN];
 		EDIT_CONFIGURATION* pConfig = fp->documentDescriptor;
-		string_splitFilename(fp->fname,newname,_txtfninfo.fname);
+		string_splitFilename(fp->fname,newname,_txtfninfo.fname, sizeof _txtfninfo.fname);
 		if (newname[0]) {
 			strcpy(_txtfninfo.path, newname);
 		}

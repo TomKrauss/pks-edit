@@ -103,7 +103,7 @@ static GIT_REPO_DIR* gi_tryOpenRepo(const char* pszFilename) {
 	if (pszDirectory == NULL) {
 		return NULL;
 	}
-	string_splitFilename(pszFilename, pszDirectory, NULL);
+	string_splitFilename(pszFilename, pszDirectory, NULL, 0);
 	GIT_REPO_DIR* pRepository = calloc(sizeof(GIT_REPO_DIR), 1);
 	if (pRepository == NULL) {
 		free(pszDirectory);
@@ -169,10 +169,13 @@ static void gi_updateVersionInfo(VC_INFO* pInfo, const char* pszFilename) {
 	GIT_REPO_DIR* pDir = gitRepositories;
 	while (pDir) {
 		if (pDir->gr_repository == pInfo->vci_repository) {
-			char szRelative[MAX_PATH];
-			strcpy(szRelative, pszFilename + strlen(pDir->gr_path));
-			gi_normalizePath(szRelative);
-			gi_updateStatus(pDir->gr_repository, szRelative, pInfo);
+			char* pszRelative = _strdup(pszFilename + strlen(pDir->gr_path));
+			if (pszRelative == NULL) {
+				return;
+			}
+			gi_normalizePath(pszRelative);
+			gi_updateStatus(pDir->gr_repository, pszRelative, pInfo);
+			free(pszRelative);
 			return;
 		}
 		pDir = pDir->gr_next;
@@ -192,20 +195,20 @@ VC_INFO* gi_getVersionInfo(const char* pszFilename) {
 	if (!pDir->gr_repository) {
 		return NULL;
 	}
-	char szRelative[MAX_PATH];
-	strcpy(szRelative, pszFilename + strlen(pDir->gr_path));
-	gi_normalizePath(szRelative);
+	char *pszRelative = _strdup(pszFilename + strlen(pDir->gr_path));
+	gi_normalizePath(pszRelative);
 	git_tree_entry* entry;
 	VC_INFO* vcInfo = (VC_INFO*) calloc(sizeof *vcInfo, 1);
 	if (vcInfo == NULL) {
 		return NULL;
 	}
 	vcInfo->vci_repository = pDir->gr_repository;
-	if (git_tree_entry_bypath(&entry, pDir->gr_root, szRelative) == 0) {
+	if (git_tree_entry_bypath(&entry, pDir->gr_root, pszRelative) == 0) {
 		vcInfo->vci_id = *git_tree_entry_id(entry);
 		git_tree_entry_free(entry);
 	}
-	gi_updateStatus(pDir->gr_repository, szRelative, vcInfo);
+	gi_updateStatus(pDir->gr_repository, pszRelative, vcInfo);
+	free(pszRelative);
 	return vcInfo;
 }
 

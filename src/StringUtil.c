@@ -121,7 +121,7 @@ char *string_getBaseFilename(const char *fullname)
  * string_splitFilename()
  * split a pathname in pathName and filename components
  */
-void string_splitFilename(const char *completeFileName, char *pathName, char *fileName) {
+void string_splitFilename(const char *completeFileName, char *pathName, char *fileName, size_t maxFilenameLength) {
 	char *fname = string_getBaseFilename(completeFileName);
 
 	if (pathName != NULL) {
@@ -133,7 +133,7 @@ void string_splitFilename(const char *completeFileName, char *pathName, char *fi
 		/*
 		 * avoid overruns
 		 */
-		completeFileName = &fileName[256];
+		completeFileName = &fileName[maxFilenameLength];
 		while(fileName < completeFileName && *fname)
 			*fileName++ = *fname++;
 		*fileName = 0;
@@ -144,12 +144,20 @@ void string_splitFilename(const char *completeFileName, char *pathName, char *fi
  * string_getFullPathName()
  * make full pathname
  */
-char *string_getFullPathName(const char *path, const char *fn, size_t maxPathLen) {
-	char *		pszFn;
+char *string_getFullPathName(const char *fullPath, const char *fn, size_t maxPathLen) {
+	wchar_t *		pszFn;
+	size_t fnSize = strlen(fn) + 1;
+	wchar_t* pszwOrigin = calloc(sizeof(wchar_t), fnSize);
+	wchar_t* pszwFull = calloc(sizeof(wchar_t), maxPathLen);
+	size_t converted;
 
+	mbstowcs_s(&converted, pszwOrigin, fnSize, fn, fnSize);
+	GetFullPathNameW(pszwOrigin, (DWORD)maxPathLen, pszwFull, &pszFn);
+	wcstombs((char*) fullPath, pszwFull, maxPathLen);
 
-	GetFullPathName(fn, (DWORD)maxPathLen, (char *)path, &pszFn);
-	return (char*)path;
+	free(pszwOrigin);
+	free(pszwFull);
+	return (char*)fullPath;
 }
 
 /*------------------------------------------------------------

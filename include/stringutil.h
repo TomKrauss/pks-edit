@@ -70,7 +70,7 @@ extern char stringbuf_lastChar(STRING_BUF* pBuf);
  * string_splitFilename()
  * split a pathname in pathName and filename components
  */
-extern void string_splitFilename(const char* completeFileName, char* pathName, char* fileName);
+extern void string_splitFilename(const char* completeFileName, char* pathName, char* fileName, size_t maxFilenameLength);
 
 /*------------------------------------------------------------
  * string_abbreviateFileName()

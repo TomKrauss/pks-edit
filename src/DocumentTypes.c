@@ -379,7 +379,7 @@ static BOOL doctypes_matchLine(const char* pszFirstLine, size_t nFirstLineLen, c
  */
 static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION* pEditConfiguration, char*pDocumentTypeName, 
 			char * filename, const char* pszFirstLine, size_t nFirstLineLen) {
-	char 	fname[MAX_PATH];
+	char 	fname[EDMAXPATHLEN];
 	DOCUMENT_TYPE* pDocumentType;
 	EDIT_CONFIGURATION* lp;
 
@@ -395,7 +395,7 @@ static BOOL doctypes_getFileDocumentType(EDIT_CONFIGURATION* pEditConfiguration,
 		}
 	}
 	if (pFound == NULL) {
-		string_splitFilename(filename, (char*)0, fname);
+		string_splitFilename(filename, (char*)0, fname, sizeof fname);
 		for (pDocumentType = config.dc_types, lp = 0; pDocumentType != 0 && lp == 0; pDocumentType = pDocumentType->ll_next) {
 			if (pszFirstLine && doctypes_matchLine(pszFirstLine, nFirstLineLen, pDocumentType->ll_firstlineMatch)) {
 				// prefer over file name matching

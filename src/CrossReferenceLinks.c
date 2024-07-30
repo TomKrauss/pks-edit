@@ -274,7 +274,7 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 
 	if (sourceFile) {
 		// tries to locate a tag file relative to a source file name (parent folder).
-		string_splitFilename(sourceFile, dirname, NULL);
+		string_splitFilename(sourceFile, dirname, NULL, 0);
 		while(dirname[0]) {
 			size_t len = strlen(dirname);
 			if (dirname[len - 1] == '\\' || dirname[len - 1] == '/') {
@@ -284,13 +284,13 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 			if (fn) {
 				break;
 			}
-			string_splitFilename(dirname, dirname, NULL);
+			string_splitFilename(dirname, dirname, NULL, 0);
 		}
 	}
 	if (fn == NULL && (fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
 		return 0;
 	}
-	string_splitFilename(fn, dirname, NULL);
+	string_splitFilename(fn, dirname, NULL, 0);
 	if (_allTags.tt_directory != NULL && strcmp(dirname, _allTags.tt_directory) == 0) {
 		return 1;
 	}
@@ -1157,7 +1157,7 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 			lstrcpy(fullname, navigationSpec.filename);
 		}
 		else {
-			string_splitFilename(fp->fname, fullname, (char*)0);
+			string_splitFilename(fp->fname, fullname, NULL, 0);
 			string_concatPathAndFilename(fullname, fullname, navigationSpec.filename);
 		}
 		if (xref_openFile(fullname, navigationSpec.line - 1L, NULL)) {
@@ -1348,12 +1348,12 @@ int EdFindFileCursor(WINFO* wp)
 	if (_fseltarget[0]) {
 		FTABLE* fp = wp->fp;
 		wp = NULL;
-		string_splitFilename(_fseltarget, fselpath, filename);
+		string_splitFilename(_fseltarget, fselpath, filename, sizeof filename);
 		char* pszAnchor = strchr(filename, '#');
 		if (pszAnchor != NULL) {
 			*pszAnchor = 0;
 		}
-		string_splitFilename(fp->fname, currentFilePath, NULL);
+		string_splitFilename(fp->fname, currentFilePath, NULL, 0);
 		if ((found = file_searchFileInPath(filename, GetConfiguration()->includePath)) != 0 ||
 			(found = file_searchFileInPath(filename, currentFilePath)) != 0 ||
 			(found = file_searchFileInPath(_fseltarget, currentFilePath)) != 0 ||

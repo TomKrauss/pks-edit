@@ -188,7 +188,7 @@ char *fsel_initPathes(FSELINFO *fp)
 {	char *fn;
 
 	if ((fn = file_searchFileInPKSEditLocation(fp->fname)) != 0) {
-		string_splitFilename(fn,fp->path,fp->fname);
+		string_splitFilename(fn,fp->path,fp->fname, sizeof fp->fname);
 		if (fp->path[0] == 0)
 			lstrcpy(fp->path,_pksSysFolder);
 		lstrcpy(_fseltarget,fn);
@@ -229,7 +229,7 @@ int fsel_selectFile(FILE_SELECT_PARAMS* pFSParams) {
 	}
 
 	// remember where we started
-	string_splitFilename(szFileNameIn, pszPath, pszFileName);
+	string_splitFilename(szFileNameIn, pszPath, pszFileName, EDMAXPATHLEN);
 	strcpy(pszExt, pFSParams->fsp_namePatterns);
 	//fsel_changeDirectory(pszPath);
 

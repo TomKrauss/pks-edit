@@ -341,7 +341,7 @@ int compiler_requireNamespaceOrFilename(ARRAY_LIST* pDependentFiles, int nIndex,
 		if (macro_hasNamespace(szNamespacename)) {
 			return 1;
 		}
-		string_splitFilename(pszSourcefile, szPath, 0);
+		string_splitFilename(pszSourcefile, szPath, 0, 0);
 		string_concatPathAndFilename(szBuf, szPath, szFilename);
 	}
 	if (arraylist_indexOfComparing(pDependentFiles, szBuf, _stricmp) >= 0) {

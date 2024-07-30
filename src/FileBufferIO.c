@@ -841,7 +841,7 @@ EXPORT int ft_writeFileWithAlternateName(FTABLE *fp)
 	int  ret;
 
 	strcpy(savefn,fp->fname);
-	string_splitFilename(savefn,dirname,fname);
+	string_splitFilename(savefn,dirname,fname, sizeof fname);
 
 	EDIT_CONFIGURATION* pDocumentDescriptor = fp->documentDescriptor;
 	if (pDocumentDescriptor && pDocumentDescriptor->saveActionName[0]) {

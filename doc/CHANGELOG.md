@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   without annoying error messages, when different users are working with PKS Edit.
 - A potential crash was fixed, when trying to move a selected piece of text to a target position
   being inside the selected text to move.
+- Files with very long file names (excluding directory name) could not be opened / displayed correctly and could
+  cause the GIT integration to crash. This is fixed.
 
 ## [2.7.0] - 2024-07-05
 

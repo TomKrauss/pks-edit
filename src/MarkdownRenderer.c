@@ -1612,7 +1612,7 @@ static char* mdr_processUrlWithBase(const char* pszBaseURL, char* pszLink, BOOL 
 		if (file_exists(szLink) == 0) {
 			return _strdup(szLink);
 		}
-		string_splitFilename(pszBaseURL, szFullURL, NULL);
+		string_splitFilename(pszBaseURL, szFullURL, NULL, 0);
 		string_concatPathAndFilename(szFullURL, szFullURL, szLink);
 		return _strdup(szFullURL);
 	}
