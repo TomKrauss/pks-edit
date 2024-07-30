@@ -1083,6 +1083,9 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		return 1;
 	}
 	memset(pDescriptor, 0, sizeof * pDescriptor);
+	GRAMMAR_PATTERN* pSingleLineCommentPattern = NULL;
+	GRAMMAR_PATTERN* pBlockCommentPattern = NULL;
+	GRAMMAR_PATTERN* pOtherBlockCommentPattern = NULL;
 	for (int i = CUSTOM_STATE; i < DIM(pGrammar->patternsByState); i++) {
 		GRAMMAR_PATTERN* pPattern = pGrammar->patternsByState[i];
 		if (!pPattern) {
@@ -1092,34 +1095,44 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		if (lcContext == LC_MULTILINE_COMMENT || lcContext == LC_SINGLE_LINE_COMMENT) {
 			nRet = 1;
 			if (pPattern->begin[0] && pPattern->end[0]) {
-				if (pDescriptor->comment_start) {
-					if (!pDescriptor->comment2_start) {
-						pDescriptor->comment2_start = _strdup(pPattern->begin);
-						pDescriptor->comment2_end = _strdup(pPattern->end);
-					}
+				BOOL bDefault = strcmp(pPattern->name, "comment.multiLine") == 0;
+				if (bDefault || pBlockCommentPattern == NULL) {
+					pBlockCommentPattern = pPattern;
 				}
-				else {
-					pDescriptor->comment_start = _strdup(pPattern->begin);
-					pDescriptor->comment_end = _strdup(pPattern->end);
+				if (!bDefault) {
+					pOtherBlockCommentPattern = pPattern;
 				}
 			}
 			else {
-				char szTemp[32];
-				char* pEnd = szTemp + sizeof szTemp - 1;
-				pszInput = pPattern->match;
-				pszOutput = szTemp;
-				while ((c = *pszInput++) != 0 && pszOutput < pEnd) {
-					if (c == '.' || c == '[') {
-						break;
-					}
-					*pszOutput++ = c;
-				}
-				*pszOutput = 0;
-				if (szTemp[0] && !pDescriptor->comment_single) {
-					pDescriptor->comment_single = _strdup(szTemp);
+				if (strcmp(pPattern->name, "comment.singleLine") == 0 || pSingleLineCommentPattern == NULL) {
+					pSingleLineCommentPattern = pPattern;
 				}
 			}
 		}
+	}
+	if (pSingleLineCommentPattern) {
+		char szTemp[32];
+		char* pEnd = szTemp + sizeof szTemp - 1;
+		pszInput = pSingleLineCommentPattern->match;
+		pszOutput = szTemp;
+		while ((c = *pszInput++) != 0 && pszOutput < pEnd) {
+			if (c == '.' || c == '[') {
+				break;
+			}
+			*pszOutput++ = c;
+		}
+		*pszOutput = 0;
+		if (szTemp[0]) {
+			pDescriptor->comment_single = _strdup(szTemp);
+		}
+	}
+	if (pBlockCommentPattern) {
+		pDescriptor->comment_start = _strdup(pBlockCommentPattern->begin);
+		pDescriptor->comment_end = _strdup(pBlockCommentPattern->end);
+	}
+	if (pOtherBlockCommentPattern) {
+		pDescriptor->comment2_start = _strdup(pOtherBlockCommentPattern->begin);
+		pDescriptor->comment2_end = _strdup(pOtherBlockCommentPattern->end);
 	}
 	pGrammar->commentDescriptorInitialized = TRUE;
 	memcpy(&pGrammar->commentDescriptor, pDescriptor, sizeof * pDescriptor);

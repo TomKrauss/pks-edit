@@ -14,6 +14,17 @@
           "type": "url"
         }
       ],
+      "templates": [
+        {
+          "match": "copyright",
+          "contents": "${copyright}"
+        },
+        {
+          "name": "file",
+          "match": "file",
+          "contents": "${copyright}\nclass ${file_name_no_suffix} {\n\n}\n"
+        }
+      ],
       "patterns": [
         {
           "begin": "/**",

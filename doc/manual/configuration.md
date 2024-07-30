@@ -300,6 +300,8 @@ set options for inserting the copyright headers into a file in a language specif
 one profile named `pks-edit` - setting that as the default profile and defining, that in `Dart` files copyrights are
 inserted using single line comments.
 
+In the copyright text you may use [template variables](grammar.md#template-variables).
+
 ```json
 {
   "default": "pks-edit",

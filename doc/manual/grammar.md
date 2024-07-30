@@ -68,16 +68,23 @@ is performed:
 - `lexical-context-initial` - the automatic insertion is not performed inside strings, character literals and comments.
 - `lexical-context-comment` - the automatic insertion is only performed inside comments.
 
-#### Supported Template Variables
+#### <a name="template-variables">Supported Template Variables</a>
 The following variables are supported:
 
 - `${user}` - name of the current logged in user
-- `${time}` - the current time
 - `${cwd}` - the current working directory
-- `${time_long}` - the current time including milliseconds
-- `${date}` - the current date (by default in format dd.mm.yyyy)
-- `${year}` - the current year (e.g. 2021)
-- `${year2}` - the last two digits of the current year (e.g. 24)
+- `${today}` - the current date and time
+- `${file_created}` - the current file creation time
+- `${file_modified}` - the current file modification time
+- `${file_saved}` - the most recent time, when the current file was saved
+- The following modifiers can be applied to all date types (today, file_created, ...)
+  - `${date.date}` - the date part of the date (by default in format dd.mm.yyyy)
+  - `${date.time}` - the current time
+  - `${date.year}` - the current year (e.g. 2021)
+  - `${date.year2}` - the last two digits of the current year (e.g. 24)
+  - `${date.month}` - the current month as a number
+  - `${date.month_name}` - the current month as a name
+  - `${date.month_abbr}` - the current month as a abbreviated name
 - `${pks_sys}` - the PKS_SYS directory
 - `${copyright}` - currently active copyright profile template
 - `${pks_tmp}` - the temporary directory for PKS Edit
@@ -97,7 +104,9 @@ The following variables are supported:
 One can apply functions on an expanded variable by adding a _function suffix_. Currently two functions are supported:
 
 - `.toUpper()` - converts the expanded text to upper case
-- `.toLowere()` - converts the exanded text to lower case
+- `.toLower()` - converts the exanded text to lower case
+- `.camelCase()` - converts the expanded text to camel case eliminating all spaces, `-` and `_` characters and starting
+  with an upper case character after they have been found. `my_file` and `my file` and `my-file` are converted to `Myfile` for instance.
 
 Example: `${file_name.toUpper()}` applied in a file named `c:\temp\myfile.txt` will evaluate to `MYFILE.TXT`.
 

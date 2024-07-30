@@ -128,9 +128,10 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 	if (!bSingleLineComment) {
 		stringbuf_appendString(pResult, commentDescriptor.comment_start);
 		stringbuf_appendChar(pResult, '\n');
-		if (strlen(commentDescriptor.comment_start) == 2) {
+		const char* pStart = commentDescriptor.comment_start;
+		if (strlen(pStart) >= 2 && (pStart[1] == '*' || pStart[1] == '-')) {
 			linePrefix[0] = ' ';
-			linePrefix[1] = commentDescriptor.comment_start[1];
+			linePrefix[1] = pStart[1];
 			linePrefix[2] = ' ';
 			linePrefix[3] = 0;
 			bLinePrefixed = TRUE;

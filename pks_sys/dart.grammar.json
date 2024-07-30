@@ -12,7 +12,7 @@
         {
           "name": "file",
           "match": "file",
-          "contents": "${copyright}"
+          "contents": "${copyright}\nclass ${file_name_no_suffix.camelCase()} {\n\n}\n"
         }
       ],
       "patterns": [

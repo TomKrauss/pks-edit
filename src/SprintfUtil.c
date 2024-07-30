@@ -534,6 +534,29 @@ void string_convertUpperLower(char* pszString, BOOL bUpper) {
 }
 
 /*
+ * Convert a string "in-place" to camel case. "hello world" => "HelloWorld".
+ */
+void string_convertCamelCase(char* pszString) {
+	BOOL bUp = TRUE;
+	char c;
+	char* pszDest = pszString;
+	while ((c = *pszString++) != 0) {
+		if (c == ' ' || c == '_' || c == '-') {
+			bUp = TRUE;
+			continue;
+		}
+		if (bUp) {
+			c = _l2uset[c];
+			bUp = FALSE;
+		} else {
+			c = _u2lset[c];
+		}
+		*pszDest++ = c;
+	}
+	*pszDest = 0;
+}
+
+/*
  * Return a PKS Edit variable to be used e.g. in code templates or to be used in 
  * PKSMacroC scripts.
  */
@@ -548,16 +571,61 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 			*pFunction++ = 0;
 		}
 	}
-	if (strcmp("year2", pVar) == 0) {
-		SYSTEMTIME time;
-		GetLocalTime(&time);
-		sprintf(pResult, "%d", (int)(time.wYear % 100));
-		return;
+	time_t rawtime;
+	BOOL bTime = FALSE;
+	FTABLE* fp = FTPOI(wp);
+	if (strcmp(pVar, "file_modified") == 0) {
+		rawtime = fp->ti_modified;
+		bTime = TRUE;
 	}
-	if (strcmp("year", pVar) == 0) {
-		SYSTEMTIME time;
-		GetLocalTime(&time);
-		sprintf(pResult, "%d", (int)time.wYear);
+	if (strcmp(pVar, "file_created") == 0) {
+		rawtime = fp->ti_created;
+		bTime = TRUE;
+	}
+	if (strcmp(pVar, "file_saved") == 0) {
+		rawtime = fp->ti_saved;
+		bTime = TRUE;
+	}
+	if (strcmp(pVar, "today") == 0) {
+		time(&rawtime);
+		bTime = TRUE;
+	}
+	if (bTime) {
+		struct tm* tp;
+		if ((tp = localtime(&rawtime)) == 0) {
+			return;
+		}
+		if (pFunction) {
+			if (strcmp("year2", pFunction) == 0) {
+				sprintf(pResult, "%d", (int)(tp->tm_year % 100));
+				return;
+			}
+			if (strcmp("year", pFunction) == 0) {
+				sprintf(pResult, "%d", (int)tp->tm_year + 1900);
+				return;
+			}
+			if (strcmp("month", pFunction) == 0) {
+				strftime(pResult, nSize, "%m", tp);
+				return;
+			}
+			if (strcmp("month_name", pFunction) == 0) {
+				strftime(pResult, nSize, "%B", tp);
+				return;
+			}
+			if (strcmp("month_abbr", pFunction) == 0) {
+				strftime(pResult, nSize, "%B", tp);
+				return;
+			}
+			if (strcmp("date", pFunction) == 0) {
+				agetdate(pResult, tp);
+				return;
+			}
+			if (strcmp("time", pFunction) == 0) {
+				agettime(pResult, tp);
+				return;
+			}
+		}
+		strftime(pResult, nSize, "%c", tp);
 		return;
 	}
 	if (strcmp("cwd", pVar) == 0) {
@@ -586,15 +654,6 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		}
 		else if (strcmp("full_file_name", pVar) == 0) {
 			pFormat = "%s$F";
-		}
-		else if (strcmp("date", pVar) == 0) {
-			pFormat = "%D";
-		}
-		else if (strcmp("time", pVar) == 0) {
-			pFormat = "%T";
-		}
-		else if (strcmp("time_long", pVar) == 0) {
-			pFormat = "%t";
 		} else {
 			strcpy(pResult, pVar);
 			return;
@@ -605,7 +664,9 @@ void string_getVariable(WINFO* wp, const char* pVar, unsigned char* pResult, siz
 		if (strcmp(pFunction, "toUpper()") == 0) {
 			string_convertUpperLower(pResult, TRUE);
 		} else if (strcmp(pFunction, "toLower()") == 0) {
-			string_convertUpperLower(pFunction, FALSE);
+			string_convertUpperLower(pResult, FALSE);
+		} else if (strcmp(pFunction, "camelCase()") == 0) {
+			string_convertCamelCase(pResult);
 		}
 	}
 }

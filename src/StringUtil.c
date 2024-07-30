@@ -244,6 +244,9 @@ BOOL char_isNospace(unsigned char c) {
  */
 STRING_BUF* stringbuf_create(size_t nDefaultSize) {
 	STRING_BUF* pResult = calloc(1, sizeof * pResult);
+	if (pResult == NULL) {
+		return NULL;
+	}
 	pResult->sb_capacity = nDefaultSize;
 	pResult->sb_string = calloc(1, nDefaultSize + 1);
 	pResult->sb_current = pResult->sb_string;
