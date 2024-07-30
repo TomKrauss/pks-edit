@@ -91,6 +91,8 @@ int error_displayAlertBoxWithOptions(long buttons, const char* fmt) {
 		nIcon = TD_ERROR_ICON;
 	} else if (nOldIcon == MB_ICONEXCLAMATION) {
 		nIcon = TD_ERROR_ICON;
+	} else if (nOldIcon == MB_ICONHAND) {
+		nIcon = TD_SHIELD_ICON;
 	} else if (nOldIcon == MB_ICONWARNING) {
 		nIcon = TD_WARNING_ICON;
 	}
@@ -303,7 +305,13 @@ void error_showErrorById(int nId, ...) {
 	va_start(ap,nId);
 
 	if (*s == '!') {
-	    (void)error_openConfigurableAlert(MB_OK|MB_ICONHAND,s+1,ap);
+		s++;
+		int nFlag = MB_ICONHAND;
+		if (*s == '!') {
+			s++;
+			nFlag = MB_ICONEXCLAMATION;
+		}
+	    (void)error_openConfigurableAlert(MB_OK|nFlag,s,ap);
 	} else {
 		error_showError(s, ap);
 	}

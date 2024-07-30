@@ -13,10 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as soon as they are changed in the configuration dialog. Saving them again on exit could clobber information manually 
   added to `pkseditini.json`.
 
+### Added
+- JSON Code Completion support was added in particular for PKS Edit configuration files.
+- The new function `reload-themes` (by default bound to `Ctrl+F10`) makes theme updates and editing easier.
+- File Templates: when creating files with a grammar defining a `file` - template will have the template being inserted, when the new file is created.
+- The Markdown Wysiwyg mode supports now caret line highlighting.
+- Added support for inserting `copyright` templates. One may define copyright templates in a file named `copyright_profiles.json`
+  along with options, how they should be formatted (using single line or multiple line comments). Copyrights are
+  currently only supported in files having a grammar defining a language supporting comments.
+- A generic exception handler will now catch errors, which occur in editing functions and allow to more gracefully
+  exit PKS Edit in case of an internal error.
+
 ### Improved
 - The Align Text function is more intuitive to use now.
 - Most dialogs support now context sensitive help. The PKS Edit manual was improved to be able to support this.
-- The Markdown Wysiwyg mode supports now caret line highlighting.
 - The Code Evaluation menu is now only enabled, if code evaluation is really supported. Code evaluation of PKSMacroC
   code handles now more szenarios of selected text.
 - When opening compilation or build output files, PKS Edit will now auto-detect the format to extract the information to navigate
@@ -24,13 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   added to the list of formats supported out of the box.
 - XML code completion was improved: entries are sorted alphabetically, attribute suggestions are provided based on
   the current entity.
-- JSON Code Completion support was added in particular for PKS Edit configuration files.
-- The new function `reload-themes` (by default bound to `Ctrl+F10`) makes theme updates and editing easier.
-- Added support for inserting `copyright` templates. One may define copyright templates in a file named `copyright_profiles.json`
-  along with options, how they should be formatted (using single line or multiple line comments). Copyrights are
-  currently only supported in files having a grammar defining a language supporting comments.
 - The new function "New File - Select Name..." allows to select the file name when creating a file. 
-- File Templates: when creating files with a grammar defining a `file` - template will have the template being inserted, when the new file is created.
 
 ### Fixed
 - A potential crash was fixed, which occurred, when opening a dialog displaying the *currently selected text* (e.g.

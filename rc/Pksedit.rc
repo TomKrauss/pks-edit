@@ -1862,7 +1862,7 @@ BEGIN
     IDS_COMMAND251          "Toggle zeilenweise Selektion"
     IDS_COMMAND252          "Toggle Syntax Highlighting"
     IDS_COMMAND253          "Selektion oder Zeile nach oben schieben;Selektion+ verschieben"
-    IDS_COMMAND254          "Selektion oder Zeile nach unten schieben;Selektion- verschieben"
+    IDS_COMMAND254          "!Segmentation Fault beim Ausführen des Makros '%s'. Wir empfehlen die Arbeit zu speichern und PKS Edit neu zu starten."
 END
 
 STRINGTABLE
@@ -1878,6 +1878,8 @@ BEGIN
                             "!Für diese Datei sind keine Verweise bekannt."
     IDS_ERROR_SAVING_CONFIG_FILE 
                             "!Die Datei %s mit den Konfigurationseinstellungen konnte nicht gesichert werden."
+    IDS_SEGMENTATION_FAULT_EXECUTING_MACRO 
+                            "!!Segmentation Fault bei der Ausführung von Makro '%s'. Wir empfehlen, die Arbeit zu sichern und PKS Edit zu schließen. Wenn der Fehler reproduzierbar ist, bitte erstelle einen Fehlerbericht unter https://github.com/TomKrauss/pks-edit."
 END
 
 #endif    // Deutsch (Deutschland) resources

@@ -23,6 +23,7 @@
 #include "publicapi.h"
 #include "errordialogs.h"
 #include "stringutil.h"
+#include "pksrc.h"
 
 #include "pksedit.h"
 #include "pksmacro.h"
@@ -1143,6 +1144,13 @@ end:
 	return (int)1;
 }
 
+static int macro_filterException(int code) {
+	if (code == EXCEPTION_ACCESS_VIOLATION) {
+		return EXCEPTION_EXECUTE_HANDLER;
+	}
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
 /*---------------------------------*/
 /* macro_interpretByteCodes()      */
 /*---------------------------------*/
@@ -1151,23 +1159,28 @@ static int macro_interpretByteCodes(MACRO* mp) {
 	EXECUTION_CONTEXT* pOld = _currentExecutionContext;
 	EXECUTION_CONTEXT* pContext = interpreter_pushExecutionContext(mp);
 
-	if (level == 0 && setjmp(_currentJumpBuffer)) {
-		// TODO: more cleanup!
-		interpreter_cleanupContextStacks();
-		level = 0;
-		_playing = 0;
-		_currentExecutionContext = 0;
-		progress_closeMonitor(0);
-		return -1;
+	__try {
+		if (level == 0 && setjmp(_currentJumpBuffer)) {
+			// TODO: more cleanup!
+			interpreter_cleanupContextStacks();
+			level = 0;
+			_playing = 0;
+			_currentExecutionContext = 0;
+			progress_closeMonitor(0);
+			return -1;
+		}
+		level++;
+		macro_interpretByteCodesContext(pContext, mp);
+		level--;
+		if (level == 0) {
+			error_setShowMessages(TRUE);
+		}
+		interpreter_popExecutionContext(pContext, pOld);
+		return 1;
+	} __except(macro_filterException(GetExceptionCode())) {
+		error_showErrorById(IDS_SEGMENTATION_FAULT_EXECUTING_MACRO, mp->mc_name);
+		return 0;
 	}
-	level++;
-	macro_interpretByteCodesContext(pContext, mp);
-	level--;
-	if (level == 0) {
-		error_setShowMessages(TRUE);
-	}
-	interpreter_popExecutionContext(pContext, pOld);
-	return (int)1;
 }
 
 /*

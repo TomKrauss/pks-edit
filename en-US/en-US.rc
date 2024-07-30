@@ -1809,6 +1809,8 @@ BEGIN
                             "!No cross reference (tag) information defined for this file."
     IDS_ERROR_SAVING_CONFIG_FILE 
                             "!The configuration file %s could not be saved."
+    IDS_SEGMENTATION_FAULT_EXECUTING_MACRO 
+                            "!!Segmentation Fault when executing the macro named '%s'. We recommend to save your work and to exit PKS Edit. If you can reproduce the error, please report it to https://github.com/TomKrauss/pks-edit."
 END
 
 #endif    // Englisch (USA) resources

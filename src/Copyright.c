@@ -123,7 +123,7 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 	}
 	char* pszSource = pCopyright->co_notice;
 	STRING_BUF* pResult = stringbuf_create(128);
-	char linePrefix[32];
+	char linePrefix[32] = { 0 };
 	BOOL bLinePrefixed = FALSE;
 	if (!bSingleLineComment) {
 		stringbuf_appendString(pResult, commentDescriptor.comment_start);
@@ -133,11 +133,9 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 			linePrefix[0] = ' ';
 			linePrefix[1] = pStart[1];
 			linePrefix[2] = ' ';
-			linePrefix[3] = 0;
 			bLinePrefixed = TRUE;
 		} else {
 			linePrefix[0] = ' ';
-			linePrefix[1] = 0;
 		}
 	} else {
 		strcpy(linePrefix, commentDescriptor.comment_single);
