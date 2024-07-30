@@ -163,8 +163,8 @@ static int file_getResults(IFileOpenDialog* pFileOpenDialog, char* pszResult) {
     if (!SUCCEEDED(hr)) {
         return 0;
     }
-    char fullPath[MAX_PATH];
-    char fileName[MAX_PATH];
+    char fullPath[1024];
+    char fileName[1024];
     DWORD nCount;
     char* pEnd = pszResult + 4095;
     int bFirst = 1;
@@ -178,18 +178,18 @@ static int file_getResults(IFileOpenDialog* pFileOpenDialog, char* pszResult) {
             continue;
         }
         WideCharToMultiByte(CP_ACP, 0, pszFilePath, -1, fullPath, sizeof(fullPath), 0, 0);
-        strcpy_s(fileName, MAX_PATH, fullPath);
+        strcpy_s(fileName, sizeof fullPath, fullPath);
         PathStripPathA(fileName);
         if (bFirst) {
             fullPath[strlen(fullPath) - 1 - strlen(fileName)] = 0;
-            strcpy_s(pszResult, MAX_PATH, fullPath);
+            strcpy_s(pszResult, sizeof fullPath, fullPath);
             pszResult += strlen(pszResult) + 1;
             bFirst = 0;
         }
         if (pszResult + strlen(fileName) + 1 > pEnd) {
             break;
         }
-        strcpy_s(pszResult, MAX_PATH, fileName);
+        strcpy_s(pszResult, sizeof fullPath, fileName);
         pszResult += strlen(pszResult) + 1;
         *pszResult = 0;
         CoTaskMemFree(pszFilePath);

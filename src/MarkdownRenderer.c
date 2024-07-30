@@ -1011,7 +1011,7 @@ static void mdr_updateHorizontalPartBounds(RECT* pPartBounds, int x, int x2) {
  */
 static void mdr_highlightCaretLine(const RENDER_FLOW_PARAMS* pRFP, RENDER_VIEW_PART* pPart) {
 	if (!pRFP->rfp_printing && pPart->rvp_layouted) {
-		EdTRACE(log_message(DEBUG_TRACE, "mdr_highlightCaretLine()"));
+		EdTRACE(log_message(DEBUG_TRACE, "mdr_highlightCaretLine(0x%x)", pPart->rvp_lpStart));
 		HBRUSH hBrushCaretLine;
 		hBrushCaretLine = CreateSolidBrush(pRFP->rfp_theme->th_caretLineColor);
 		FillRect(pRFP->rfp_hdc, &pPart->rvp_bounds, hBrushCaretLine);
@@ -3416,7 +3416,7 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
 	RENDER_TABLE_ROW row;
 	char c;
 	STRING_BUF* pBuf = stringbuf_create(128);
-	LINE* lp;
+	LINE* lp = NULL;
 	STREAM_OFFSET offset = pStream->is_tell(pStream);
 
 	memset(&row, 0, sizeof row);
@@ -3650,7 +3650,7 @@ static void mdr_getViewpartsExtend(MARKDOWN_RENDERER_DATA* pData, SIZE* pSize, R
 			}
 			pSize->cy += pPart->rvp_height;
 		} else {
-			EdTRACE(log_message(DEBUG_WARN, "mdr_getViewPartsExtend - part not layouted."));
+			EdTRACE(log_message(DEBUG_INFO, "mdr_getViewPartsExtend - part not layouted."));
 		}
 		pPart = pPart->rvp_next;
 		nIndex++;
@@ -3920,7 +3920,6 @@ static void mdr_layout(WINFO* wp) {
 
 static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA* pData, RECT* pClip, int nTopY) {
 	RECT rect;
-	RECT occupiedBounds;
 	HDC hdc = pRC->rc_hdc;
 	if (pRC->rc_printing) {
 		// hack: when printing - printable area is passed here.
@@ -3949,6 +3948,9 @@ static void mdr_renderAll(HWND hwnd, RENDER_CONTEXT* pRC, MARKDOWN_RENDERER_DATA
 		rfp.rfp_zoomFactor = (float)HIWORD(ext) / (60 * 12);
 	}
 	BOOL bHighlight = wp == NULL ? 0 : wp->dispmode & SHOW_CARET_LINE_HIGHLIGHT;
+	RECT occupiedBounds = {
+		.top = 0
+	};
 	for (; pPart; rect.top = occupiedBounds.bottom) {
 		int nBottom = rect.top + pPart->rvp_height;
 		if (pPart->rvp_layouted && (nBottom < pClip->top || rect.top>pClip->bottom)) {
@@ -4032,11 +4034,12 @@ PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintL
 		mdr_invalidateViewpartsLayout(pData);
 		pData->md_printing = TRUE;
 	}
-	RECT rect;
-	rect.left = pExtents->xLMargin;
-	rect.right = pExtents->xRMargin;
-	rect.top = pExtents->yTop;
-	rect.bottom = pExtents->yBottom;
+	RECT rect = {
+		.left = pExtents->xLMargin,
+		.right = pExtents->xRMargin,
+		.top = pExtents->yTop,
+		.bottom = pExtents->yBottom
+	};
 	int nYBottom = (int)pPrintLine->yOffset + rect.bottom - rect.top;
 	int nBottomIdx = mdr_getViewpartAtY(pData->md_pElements, nYBottom);
 	if (nBottomIdx >= 0) {
@@ -4497,10 +4500,11 @@ void mdr_mouseMove(HWND hwnd, MARKDOWN_RENDERER_DATA* pData, int x, int y) {
 		// Activate the tooltip.
 		toolinfo.lpszText = pMatchR->tr_title;
 		SendMessage(pData->md_hwndTooltip, TTM_UPDATETIPTEXT, (WPARAM)0, (LPARAM)&toolinfo);
-		POINT pt;
 		RUN_BOUNDS rb = mdr_getRunBounds(pData->md_caretView != NULL ? pData->md_caretView : pMatchP, pMatchR);
-		pt.x = rb.left1;
-		pt.y = y - 20;
+		POINT pt = {
+			.x = rb.left1,
+			.y = y - 20
+		};
 		ClientToScreen(hwnd, &pt);
 		SendMessage(pData->md_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(pt.x, pt.y));
 	} else {

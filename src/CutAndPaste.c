@@ -314,7 +314,7 @@ EXPORT int bl_cutOrCopy(WINFO* wp, int flg,PASTE *pp)
  *---------------------------------*/
 EXPORT int bl_writeToFile(WINFO* wp, char *fn)
 {	PASTE  pbuf;
-	char   fname[MAX_PATH];
+	char   fname[EDMAXPATHLEN];
 	int	  ret;
 	int   mode;
 
@@ -324,9 +324,10 @@ EXPORT int bl_writeToFile(WINFO* wp, char *fn)
 			mode = F_NORMOPEN;
 		} else {
 			mode = F_NEWFILE;
-			FILE_SELECT_PARAMS fsp;
-			fsp.fsp_optionsAvailable = FALSE;
-			fsp.fsp_saveAs = TRUE;
+			FILE_SELECT_PARAMS fsp = {
+				.fsp_optionsAvailable = FALSE,
+				.fsp_saveAs = TRUE
+			};
 			ret = fsel_selectFileWithTitle(CMD_SAVE_FILE_AS,fname,&fsp);
 			fn  = fname;
 		}
@@ -380,7 +381,6 @@ EXPORT int EdBlockCopyOrMove(WINFO* wp, BOOL move) {
 	LINE   *ls,*le;
 	int	  cs,ce,offs;
 	long   delta,dln;
-	PASTE  pbuf;
 	FTABLE *fp;
 	MARK   *bstart,*bend;
 	int	  move_nocolblk,ret,colflg;
@@ -435,7 +435,9 @@ EXPORT int EdBlockCopyOrMove(WINFO* wp, BOOL move) {
 		}
 	}
 
-	pbuf.pln = 0;
+	PASTE  pbuf = {
+		.pln = 0
+	};
 	if ((ret = bl_cut(wp, &pbuf,ls,le,cs,ce,move,colflg)) != 0) {
 		if (move_nocolblk) {
 			caret_placeCursorInCurrentFile(wp, (long)(wp->caret.ln+dln),(long)(offs + delta));
@@ -795,12 +797,12 @@ EXPORT int EdMouseMarkParts(WINFO* wp, int type)
 	o1 = 0;
 	o2 = 0;
 	if (type == MOT_SPACE || type == MOT_WORD) {
-		LINE *(*func)() = (type == MOT_SPACE) ? 
+		LINE *(*func)(LINE * lp, long* ln, long* col, DIRECTION_OPTION dir, unsigned char unused) = (type == MOT_SPACE) ?
 			caret_advanceWordOnly : caret_gotoIdentifierEnd;
 		o2 = col;
-		lp2 = (*func)(lp,&ln,&o2,1);
+		lp2 = (*func)(lp,&ln,&o2,1,0);
 		o1  = o2;
-		lp  = (*func)(lp,&ln,&o1,-1);
+		lp  = (*func)(lp,&ln,&o1,-1,0);
 	} else if (type == MOT_PGRPH) {
 		col = caret_advanceParagraph(wp, ln,1,1);
 		ln  = caret_advanceParagraph(wp, col,-1,1);

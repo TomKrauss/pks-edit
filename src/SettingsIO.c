@@ -99,9 +99,10 @@ long long config_saveConfiguration(int bInteractive) {
 	} else {
 		LocatePksEditIni();
 		string_splitFilename(_pksEditIniFilename, _setfselinfo.path, _setfselinfo.fname, sizeof _setfselinfo.fname);
-		FILE_SELECT_PARAMS params;
-		params.fsp_saveAs = TRUE;
-		params.fsp_optionsAvailable = FALSE;
+		FILE_SELECT_PARAMS params = {
+			.fsp_saveAs = TRUE,
+			.fsp_optionsAvailable = FALSE
+		};
 		if ((fn = fsel_selectFileWithOptions(&_setfselinfo, CMD_SAVE_OPTIONS, &params)) == 0) {
 			return 0;
 		}

@@ -52,7 +52,7 @@ static void log_levelMessageArgs(LOG_LEVEL logLevel, LPSTR fmt, va_list ap) {
 	strftime(szTime, 26, "%Y-%m-%d %H:%M:%S", tm_info);
 	sprintf_s(bufTotal, sizeof bufTotal, "%s:%s:%s:%s\n", szAppName, pszLevel, szTime, buf);
 	if (_pksEditLogfile == NULL) {
-		char szLogFilename[MAX_PATH];
+		char szLogFilename[1024];
 		szLogFilename[0] = 0;
 		string_concatPathAndFilename(szLogFilename, _pksSysFolder, "pksedit.log");
 		_pksEditLogfile = fopen(szLogFilename, "w");
