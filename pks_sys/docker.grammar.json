@@ -7,6 +7,10 @@
         {
           "match": "copyright",
           "contents": "${copyright}"
+        },
+        {
+          "name": "file",
+          "contents": "${copyright}FROM openjdk:17-jdk-slim AS build,\n\nCOPY pom.xml mvnw ./\nCOPY .mvn .mvn\nRUN ./mvnw package dependency:resolve\n\nCOPY src src\nRUN ./mvnw package\nFROM openjdk:17-jdk-slim\nWORKDIR demo\nCOPY --from=build target/*.jar demo.jar\nENTRYPOINT [\"java\", \"-jar\", \"demo.jar\"]"
         }
       ],
       "patterns": [
@@ -26,6 +30,7 @@
             "USER",
             "WORKDIR",
             "STOPSIGNAL",
+            "ENTRYPOINT",
             "EXPOSE",
             "ONBUILD"
           ],

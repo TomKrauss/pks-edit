@@ -1116,6 +1116,9 @@ int grammar_getCommentDescriptor(GRAMMAR* pGrammar, COMMENT_DESCRIPTOR* pDescrip
 		pszInput = pSingleLineCommentPattern->match;
 		pszOutput = szTemp;
 		while ((c = *pszInput++) != 0 && pszOutput < pEnd) {
+			if (c == '^') {
+				continue;
+			}
 			if (c == '.' || c == '[') {
 				break;
 			}

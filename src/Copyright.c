@@ -125,7 +125,7 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 	STRING_BUF* pResult = stringbuf_create(128);
 	char linePrefix[32] = { 0 };
 	BOOL bLinePrefixed = FALSE;
-	if (!bSingleLineComment) {
+	if (!bSingleLineComment && commentDescriptor.comment_start) {
 		stringbuf_appendString(pResult, commentDescriptor.comment_start);
 		stringbuf_appendChar(pResult, '\n');
 		const char* pStart = commentDescriptor.comment_start;
@@ -138,6 +138,10 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 			linePrefix[0] = ' ';
 		}
 	} else {
+		if (!commentDescriptor.comment_single) {
+			stringbuf_destroy(pResult);
+			return 0;
+		}
 		strcpy(linePrefix, commentDescriptor.comment_single);
 		strcat(linePrefix, " ");
 	}
@@ -157,7 +161,7 @@ STRING_BUF* copyright_getFormatted(EDIT_CONFIGURATION* pConfiguration) {
 		stringbuf_appendString(pResult, linePrefix);
 		stringbuf_appendChar(pResult, '\n');
 	}
-	if (!bSingleLineComment) {
+	if (!bSingleLineComment && commentDescriptor.comment_end) {
 		if (bLinePrefixed) {
 			stringbuf_appendChar(pResult, ' ');
 		}
