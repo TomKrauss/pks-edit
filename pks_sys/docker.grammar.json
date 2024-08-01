@@ -1,0 +1,53 @@
+{
+  "grammars": [
+    {
+      "scopeName": "docker",
+      "description": "Dart Programming Language",
+      "templates": [
+        {
+          "match": "copyright",
+          "contents": "${copyright}"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "^#.*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "keywords": [
+            "FROM",
+            "ADD",
+            "RUN",
+            "COPY",
+            "ENV",
+            "VOLUME",
+            "USER",
+            "WORKDIR",
+            "STOPSIGNAL",
+            "EXPOSE",
+            "ONBUILD"
+          ],
+          "style": "keyword",
+          "name": "keyword.dart"
+        },
+        {
+          "match": "<[-+]?[0-9.:]+>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "\"[^\"]+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "[&>|]{1,2}",
+          "style": "operator",
+          "name": "redirect.operators"
+        }
+      ]
+    }
+  ]
+}

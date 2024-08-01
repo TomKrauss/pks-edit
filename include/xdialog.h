@@ -102,7 +102,7 @@ extern int 			win_callDialog(int nId, RECORDED_FORM_DESCRIPTOR *pp, DIALOG_DESCR
  */
 extern int win_callDialogCB(int nId, RECORDED_FORM_DESCRIPTOR* pp, DIALOG_DESCRIPTOR* dp, DLGPROC pCallback);
 # endif
-extern void 		dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax);
+
 /*--------------------------------------------------------------------------
  * dlg_getListboxText()
  */

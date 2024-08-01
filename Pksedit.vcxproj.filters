@@ -744,6 +744,7 @@
     <None Include="pks_sys\xml.grammar.json" />
     <None Include="pks_sys\yaml.grammar.json" />
     <None Include="pks_sys\copyright_profiles.json" />
+    <None Include="pks_sys\docker.grammar.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">

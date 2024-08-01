@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   currently only supported in files having a grammar defining a language supporting comments.
 - A generic exception handler will now catch errors, which occur in editing functions and allow to more gracefully
   exit PKS Edit in case of an internal error.
+- Document Types may be hidden now in the file selector. This will cause the extension of the corresponding document
+  type not being added to the list of selectable file extensions in file dialogs (to keep this list clear).
+- Dockerfile syntax support was added.
 
 ### Improved
 - The Align Text function is more intuitive to use now.

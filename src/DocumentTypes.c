@@ -57,6 +57,7 @@ typedef struct tagDOCUMENT_TYPE {
 	char				ll_description[80];					// Description for file selector.
 	char				ll_editorConfigurationName[32];		// Editor configuration name
 	char   				ll_match[64];						// file name pattern to match
+	BOOL				ll_hideInFileSelector;				// Do not display file name pattern in list of file types in files selector.
 	char				ll_firstlineMatch[64];				// Can be used to match a file by parsing the 1st line contained in that file.
 	EDIT_CONFIGURATION* ll_documentDescriptor;
 } DOCUMENT_TYPE;
@@ -72,6 +73,7 @@ static JSON_MAPPING_RULE _documentTypeRules[] = {
 	{	RT_STRING_ARRAY, "languages", offsetof(DOCUMENT_TYPE, ll_languages), sizeof(((DOCUMENT_TYPE*)NULL)->ll_languages)},
 	{	RT_CHAR_ARRAY, "description", offsetof(DOCUMENT_TYPE, ll_description), sizeof(((DOCUMENT_TYPE*)NULL)->ll_description)},
 	{	RT_CHAR_ARRAY, "grammar", offsetof(DOCUMENT_TYPE, ll_grammarScope), sizeof(((DOCUMENT_TYPE*)NULL)->ll_grammarScope)},
+	{	RT_FLAG, "hideInFileSelector", offsetof(DOCUMENT_TYPE, ll_hideInFileSelector), 1},
 	{	RT_CHAR_ARRAY, "editorConfiguration", offsetof(DOCUMENT_TYPE, ll_editorConfigurationName), sizeof(((DOCUMENT_TYPE*)NULL)->ll_editorConfigurationName)},
 	{	RT_CHAR_ARRAY, "filenamePatterns", offsetof(DOCUMENT_TYPE, ll_match), sizeof(((DOCUMENT_TYPE*)NULL)->ll_match)},
 	{	RT_CHAR_ARRAY, "firstlineMatch", offsetof(DOCUMENT_TYPE, ll_firstlineMatch), sizeof(((DOCUMENT_TYPE*)NULL)->ll_firstlineMatch)},
@@ -239,6 +241,9 @@ void doctypes_getSelectableDocumentFileTypes(char* pszDest, int nMax) {
 
 	pszEnd = pszDest + nMax - 2;
 	for (nCopied = 0, llp = config.dc_types; llp != 0; llp = llp->ll_next) {
+		if (llp->ll_hideInFileSelector) {
+			continue;
+		}
 		if (llp->ll_match[0]) {
 			if (nCopied > 0) {
 				*pszDest++ = 0;
@@ -317,7 +322,7 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
  */
 BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszEditorConfigName,
-	char** ppszGrammar) {
+	char** ppszGrammar, BOOL** bHideInFileSelector) {
 
 	if (!llp) {
 		llp = config.dc_types;
@@ -343,6 +348,9 @@ BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	}
 	if (ppszGrammar) {
 		*ppszGrammar = llp->ll_grammarScope;
+	}
+	if (bHideInFileSelector) {
+		*bHideInFileSelector = &llp->ll_hideInFileSelector;
 	}
 	return TRUE;
 }

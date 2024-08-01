@@ -1058,6 +1058,7 @@ static DIALOG_ITEM_DESCRIPTOR doctypes_controlDescriptors[] = {
 	{IDD_PATH1,			84,						.did_listhandler = &_editorConfigurationList},
 	{IDD_STRING5,		84,						0},
 	{IDD_STRING3,		32,						0},
+	{IDD_OPT1,			1,						0},
 	{IDD_CALLBACK1,		0,						.did_command = doctypes_changeType},
 	{IDD_CALLBACK2,		0,						.did_command = doctypes_deleteType},
 	{IDD_CALLBACK3,		0,						.did_command = doctypes_apply},
@@ -1077,7 +1078,35 @@ static void doctypes_fillListbox(HWND hwnd, void* selValue) {
 /*--------------------------------------------------------------------------
  * doctypes_newType()
  */
-#define	  NVDOCTYPEPARS						5
+#define	  NVDOCTYPEPARS		6
+ /*--------------------------------------------------------------------------
+  * dlg_retrieveParameters()
+  */
+static void dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR* dp, int nMax)
+{
+	while (--nMax >= 0 && dp->did_controlNumber) {
+		switch (dp->did_controlNumber) {
+
+		case IDD_STRING1:
+		case IDD_STRING2:
+		case IDD_STRING3:
+		case IDD_STRING4:
+		case IDD_STRING5:
+		case IDD_STRING6:
+		case IDD_STRING7:
+		case IDD_FILE_PATTERN:
+		case IDD_PATH1:
+			GetDlgItemText(hDlg, dp->did_controlNumber, (LPSTR)dp->did_data,
+				dp->did_flagOrSize);
+			break;
+		case IDD_OPT1:
+			if (dp->did_data) {
+				*(int*)dp->did_data = IsDlgButtonChecked(hDlg, dp->did_controlNumber);
+			}
+		}
+		dp++;
+	}
+}
 static BOOL doctypes_newType(HWND hDlg, int nNotify, LPARAM lParam, DIALOG_ITEM_DESCRIPTOR* pDescriptor, DIALOG_DESCRIPTOR* pDialog)
 {
 	_selectedDocType = doctypes_createDocumentType(_selectedDocType);
@@ -1097,8 +1126,9 @@ static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par)
 	char *	pszMatch;
 	char *	pszEditorConfigName;
 	char*	pszGrammar;
+	BOOL* bHideInFileSelector;
 
-	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, & pszEditorConfigName, & pszGrammar)) {
+	if (!doctypes_getDocumentTypeDescription(par, &pszId, &pszDescription, &pszMatch, & pszEditorConfigName, & pszGrammar, &bHideInFileSelector)) {
 		return;
 	}
 
@@ -1106,7 +1136,8 @@ static void doctypes_fillParameters(DIALOG_ITEM_DESCRIPTOR *dp, void *par)
 	dp->did_data = pszDescription;			dp++;
 	_editorConfigurationList.li_param = pszEditorConfigName;	dp++;
 	dp->did_data = pszMatch;				dp++;
-	dp->did_data = pszGrammar;
+	dp->did_data = pszGrammar;				dp++;
+	dp->did_data = bHideInFileSelector;
 }
 
 /*--------------------------------------------------------------------------
@@ -1162,7 +1193,7 @@ static void doctypes_getColumnParameters(NMLVDISPINFO* plvdi) {
 	char* pszGrammar;
 
 	if (!doctypes_getDocumentTypeDescription((void*)plvdi->item.lParam, &pszId, &pszDescription, &pszMatch,
-		&pszEditorConfigName, &pszGrammar)) {
+		&pszEditorConfigName, &pszGrammar, NULL)) {
 		return;
 	}
 	switch (plvdi->item.iSubItem)

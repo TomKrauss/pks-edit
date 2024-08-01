@@ -587,32 +587,6 @@ static DIALOG_ITEM_DESCRIPTOR *dlg_itemDescriptorForControl(DIALOG_DESCRIPTOR *d
 }
 
 /*--------------------------------------------------------------------------
- * dlg_retrieveParameters()
- */
-void dlg_retrieveParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nMax)
-{
-	while(--nMax >= 0 && dp->did_controlNumber) {
-		switch(dp->did_controlNumber) {
-
-		case IDD_STRING1:
-		case IDD_STRING2:
-		case IDD_STRING3:
-		case IDD_STRING4:
-		case IDD_STRING5:
-		case IDD_STRING6:
-		case IDD_STRING7:
-		case IDD_FILE_PATTERN:
-		case IDD_PATH1:
-			GetDlgItemText(hDlg, dp->did_controlNumber, (LPSTR)dp->did_data, 
-				dp->did_flagOrSize);
-			break;
-
-		}
-		dp++;
-	}
-}
-
-/*--------------------------------------------------------------------------
  * Applies the changes in a dialog. idCtrl is the ID of the item leading to the confirmation of the dialog.
  * The list of item descriptors must be 0-terminated.
  */

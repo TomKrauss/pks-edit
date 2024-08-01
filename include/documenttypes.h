@@ -43,7 +43,7 @@ extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
  */
 extern BOOL doctypes_getDocumentTypeDescription(DOCUMENT_TYPE* llp,
 	char** ppszId, char** ppszDescription, char** ppszMatch, char** ppszEditorConfigName,
-	char** ppszGrammar);
+	char** ppszGrammar, BOOL** bHideInFileSelector);
 
 /*--------------------------------------------------------------------------
  * doctypes_createDocumentType()
