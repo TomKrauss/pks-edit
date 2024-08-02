@@ -244,7 +244,7 @@ static int sort_compareDate(const char *s1, const char *s2) {
 /*--------------------------------------------------------------------------
  * sort_tokenize()
  */
-static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *fs_set, int skipseps, char cQuote) {	
+static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, int nLen, unsigned char *fs_set, int skipseps, char cQuote) {	
 	int  i,i1;
 	int  nColumns;
 	int  bInQuote = 0;
@@ -252,7 +252,7 @@ static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *
 	int bBackslash = _sortflags & SO_BACKSLASH_QUOTING;
 
 	vec->stl_source = s;
-	vec->stl_numberOfTokens= 0;
+	vec->stl_numberOfTokens = 0;
 	i 	  = 0;
 	nColumns = 0;
 	for (; ; ) {
@@ -270,10 +270,12 @@ static int sort_tokenize(SORT_TOKEN_LIST *vec, unsigned char *s, unsigned char *
 			if (c == cQuote) {
 				if (s[i + 1] == cQuote) {
 					i++;
-				} else {
+				}
+				else {
 					bInQuote = !bInQuote;
 				}
-			} else if (bBackslash && c == '\\' && s[i + 1]) {
+			}
+			else if (bBackslash && c == '\\' && s[i + 1]) {
 				i++;
 			}
 			i++;
@@ -447,8 +449,8 @@ static int sort_compareRecords(const RECORD *rp1, const RECORD *rp2) {
 	/* evtl. split the lines according to IFS */
 		if (_keytab.kt_tokenizeForComparison) {
 			if (i == 0 || kp[-1].k_clusterLineIndex != kp->k_clusterLineIndex) {
-				sort_tokenize(&v1, lp1->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
-				sort_tokenize(&v2, lp2->lbuf, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
+				sort_tokenize(&v1, lp1->lbuf, lp1->len, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
+				sort_tokenize(&v2, lp2->lbuf, lp2->len, _keytab.kt_fieldSeparators, _sortflags & SO_SKIPSEPARATORS, cQuoteChar);
 			}
 		}
 		nFieldIndex = kp->k_fieldIndex;
@@ -551,6 +553,7 @@ static int sort_createRecordsFromLines(LINE *lpfirst, LINE *lplast,
 	memset(&match, 0, sizeof match);
 	for (nrec = 0;;) {
 		if ((sortflags & SO_NOSELECT) || 
+			!pPattern ||
 			regex_match(pPattern, lpfirst->lbuf,&lpfirst->lbuf[lpfirst->len], &match)) {
 			rectab[nrec].lp = lpfirst;
 			nl = 1;
@@ -687,7 +690,7 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 	long  	l1;
 	LINE 	*lpfirst, *lplast;
 	MARK		*mps,*mpe;
-	RE_PATTERN* pattern;
+	RE_PATTERN* pattern = NULL;
 	WINFO* wp = WIPOI(fp);
 	RECORD* rectab;
 
@@ -714,6 +717,9 @@ int ft_sortFile(FTABLE* fp, int scope, char *fs, char *pszKeySpecification, char
 
 	sort_initializeKeyList(pszKeySpecification);
 	sort_initializeFieldSeparators(fs_set, fs);
+	if (!*fs_set) {
+		_keytab.kt_tokenizeForComparison = 0;
+	}
 	_keytab.kt_fieldSeparators = fs_set;
 	_sortflags = sortflags;
 	l1 = wp->caret.ln;

@@ -14,7 +14,7 @@
       "patterns": [
         {
           "match": "%.*",
-          "style": "sl-comment",
+          "style": "single-line-comment",
           "name": "comment.singleLine"
         },
         {

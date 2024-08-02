@@ -11,7 +11,7 @@
           "style": "identifier"
         },
         {
-          "match": "\"(?:\\\"|[^\"])+?\"",
+          "match": "\"(?:\\.|[^\"])+\"",
           "name": "string.json.value",
           "style": "literal"
         },

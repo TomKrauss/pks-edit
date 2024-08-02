@@ -1,0 +1,69 @@
+{
+  "grammars": [
+    {
+      "scopeName": "swift",
+      "description": "Swift Programming Language",
+      "import": [ "commonc" ],
+      "patterns": [
+        {
+          "begin": "/**",
+          "end": "*/",
+          "style": "comment",
+          "patterns": [
+            {
+              "match": "@[a-zA-Z]+",
+              "style": "bold-comment",
+              "name": "javadoc.tags"
+            }
+          ],
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "[a-zA-Z_0-9]+:",
+          "style": "italic",
+          "name": "type.swift.parameter"
+        },
+        {
+          "match": "<[A-Z_][a-zA-Z_0-9]*>",
+          "style": "identifier",
+          "name": "type.swift.identifier"
+        },
+        {
+          "keywords": [
+            "associatedtype",
+            "class",
+            "deinit",
+            "enum",
+            "extension",
+            "fileprivate",
+            "func",
+            "import",
+            "imit",
+            "inout",
+            "internal",
+            "let",
+            "open",
+            "operator",
+            "private",
+            "precedencegroup",
+            "protocol",
+            "public",
+            "rethrows",
+            "static",
+            "struct",
+            "subscript",
+            "typealias",
+            "var"
+          ],
+          "style": "keyword",
+          "name": "keyword.scala"
+        },
+        {
+          "match": "<@[A-Za-z][A-Za-z0-9]*>",
+          "style": "annotation",
+          "name": "annotation.identifier"
+        }
+      ]
+    }
+  ]
+}

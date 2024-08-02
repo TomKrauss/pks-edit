@@ -111,7 +111,7 @@
           "foregroundColor": "#44aaaa"
         },
         {
-          "styleName": "sl-comment",
+          "styleName": "single-line-comment",
           "foregroundColor": "#229922"
         },
         {
@@ -245,7 +245,7 @@
           "foregroundColor": "#44aaaa"
         },
         {
-          "styleName": "sl-comment",
+          "styleName": "single-line-comment",
           "foregroundColor": "#229922"
         },
         {
@@ -387,7 +387,7 @@
           "foregroundColor": "#44aaaa"
         },
         {
-          "styleName": "sl-comment",
+          "styleName": "single-line-comment",
           "foregroundColor": "#386319"
         },
         {
@@ -529,7 +529,7 @@
           "foregroundColor": "#aa44aa"
         },
         {
-          "styleName": "sl-comment",
+          "styleName": "single-line-comment",
           "foregroundColor": "#386319"
         },
         {
@@ -671,7 +671,7 @@
           "foregroundColor": "goldenrod"
         },
         {
-          "styleName": "sl-comment",
+          "styleName": "single-line-comment",
           "foregroundColor": "#589339"
         },
         {

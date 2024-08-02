@@ -1,0 +1,107 @@
+{
+  "grammars": [
+    {
+      "scopeName": "julia",
+      "description": "Julia Programming Language",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
+      "templates": [
+        {
+          "name": "file",
+          "contents": "${copyright}"
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "# .*",
+          "style": "sl-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "@[a-zA-Z_0-9]+",
+          "style": "annotation",
+          "name": "annotation"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "keywords": [
+            "baremodule",
+            "begin",
+            "break",
+            "catch",
+            "const",
+            "continue",
+            "do",
+            "else",
+            "elseif",
+            "end",
+            "export",
+            "false",
+            "finally",
+            "for",
+            "function",
+            "global",
+            "import",
+            "let",
+            "local",
+            "macro",
+            "module",
+            "quote",
+            "return",
+            "struct",
+            "true",
+            "try",
+            "using",
+            "using",
+            "while"
+          ],
+          "style": "keyword",
+          "name": "keyword.julia"
+        },
+        {
+          "match": "[\\]\\[-+&|<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

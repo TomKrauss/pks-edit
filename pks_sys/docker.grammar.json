@@ -2,7 +2,7 @@
   "grammars": [
     {
       "scopeName": "docker",
-      "description": "Dart Programming Language",
+      "description": "Docker File Syntax",
       "templates": [
         {
           "match": "copyright",
@@ -16,7 +16,7 @@
       "patterns": [
         {
           "match": "^#.*",
-          "style": "sl-comment",
+          "style": "single-line-comment",
           "name": "comment.singleLine"
         },
         {
@@ -35,7 +35,7 @@
             "ONBUILD"
           ],
           "style": "keyword",
-          "name": "keyword.dart"
+          "name": "keyword.docker"
         },
         {
           "match": "<[-+]?[0-9.:]+>",

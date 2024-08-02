@@ -39,6 +39,13 @@
       "filenamePatterns": "*.py"
     },
     {
+      "name": "swift",
+      "description": "Swift Files (*.swift)",
+      "grammar": "swift",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.swift"
+    },
+    {
       "name": "xmlmarkup",
       "description": "XML Files (*.xml, *.xsd)",
       "grammar": "xml",
@@ -130,6 +137,14 @@
       "grammar": "smalltalk",
       "editorConfiguration": "default",
       "filenamePatterns": "*.st;*.cls"
+    },
+    {
+      "name": "julia",
+      "hideInFileSelector": true,
+      "description": "Juloa Files (*.jl)",
+      "grammar": "julia",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.jl"
     },
     {
       "name": "properties",

@@ -33,12 +33,12 @@
         },
         {
           "match": "//.*",
-          "style": "sl-comment",
+          "style": "single-line-comment",
           "name": "comment.singleLine"
         },
         {
           "match": "--.*",
-          "style": "sl-comment2",
+          "style": "single-line-comment2",
           "name": "comment.singleLine"
         },
         {
