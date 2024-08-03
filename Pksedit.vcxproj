@@ -1707,6 +1707,7 @@
     <None Include="pks_sys\default.grammar.json" />
     <None Include="pks_sys\docker.grammar.json" />
     <None Include="pks_sys\fitnesse.grammar.json" />
+    <None Include="pks_sys\fortran.grammar.json" />
     <None Include="pks_sys\go.grammar.json" />
     <None Include="pks_sys\groovy.grammar.json" />
     <None Include="pks_sys\html.grammar.json" />
@@ -1716,6 +1717,7 @@
     <None Include="pks_sys\java.grammar.json" />
     <None Include="pks_sys\javascript.grammar.json" />
     <None Include="pks_sys\json.grammar.json" />
+    <None Include="pks_sys\julia.grammar.json" />
     <None Include="pks_sys\latex.grammar.json" />
     <None Include="pks_sys\logfile.grammar.json" />
     <None Include="pks_sys\makefile.grammar.json" />

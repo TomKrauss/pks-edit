@@ -1,0 +1,153 @@
+{
+  "grammars": [
+    {
+      "scopeName": "fortran",
+      "description": "Fortran programming language (.f95, .f90, .f03, .f, .for)",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "{",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "\"",
+          "contents": "${cursor}\"",
+          "auto-insert": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n${indent} * ${cursor}\n${indent} */",
+          "auto-insert": true
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "^!.*",
+          "style": "single-line-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "^C .*",
+          "style": "single-line-comment",
+          "name": "comment.singleLinef4"
+        },
+        {
+          "match": "^\\* .*",
+          "style": "single-line-comment",
+          "name": "comment.singleLinef95"
+        },
+        {
+          "match": "'(?:\\\\.|[^'])+?'",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "^ +[0-9]+",
+          "style": "annotation",
+          "name": "line.number"
+        },
+        {
+          "match": "^ +[a-z_A-Z0-9]+:",
+          "style": "annotation",
+          "name": "control.label"
+        },
+        {
+          "keywords": [
+            "assign",
+            "backspace",
+            "block",
+            "call",
+            "close",
+            "common",
+            "continue",
+            "data",
+            "dimension",
+            "do",
+            "else",
+            "end",
+            "endfile",
+            "entry",
+            "equivalence",
+            "external",
+            "format",
+            "function",
+            "goto",
+            "if",
+            "implicit",
+            "inquire",
+            "intrinsic",
+            "open",
+            "parameter",
+            "pause",
+            "print",
+            "program",
+            "read",
+            "return",
+            "rewrite",
+            "rewind",
+            "save",
+            "stop",
+            "subroutine",
+            "then",
+            "write"
+          ],
+          "ignore-case": true,
+          "style": "keyword",
+          "name": "keyword.fortran"
+        },
+        {
+          "keywords": [
+            "integer",
+            "character",
+            "logical",
+            "real"
+          ],
+          "ignore-case": true,
+          "style": "identifier",
+          "name": "types.fortran"
+        },
+        {
+          "match": "[-+&|<>=~?/]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

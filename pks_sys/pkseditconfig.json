@@ -46,6 +46,14 @@
       "filenamePatterns": "*.swift"
     },
     {
+      "name": "fortran",
+      "description": "Fortran Files (*.f, *.for, *.f90, *.f95, *.f03)",
+      "hideInFileSelector": true,
+      "grammar": "fortran",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.f;*.for;*.f90;*.f95;*.f03"
+    },
+    {
       "name": "xmlmarkup",
       "description": "XML Files (*.xml, *.xsd)",
       "grammar": "xml",

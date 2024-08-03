@@ -318,7 +318,7 @@ namespace pkseditTests
 			Assert::AreEqual(1, regex_match(&pattern, (unsigned char*)"\"abc\"", NULL, &match));
 			options = createOptions("'(?:[^']|\\')+?'", RE_DOREX);
 			Assert::AreEqual(1, regex_compile(options, &pattern));
-			int ret = regex_match(&pattern, (unsigned char*)"'abc' xxx 'cc'", NULL, &match);
+			const int ret = regex_match(&pattern, (unsigned char*)"'abc' xxx 'cc'", NULL, &match);
 			Assert::AreEqual(1, ret);
 			Assert::AreEqual(5, (int)(match.loc2 - match.loc1));
 			options = createOptions("\"(?:[^a-zX?]){3,}?\"", RE_DOREX);

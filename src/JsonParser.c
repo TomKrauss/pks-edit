@@ -504,8 +504,9 @@ static int json_parseFile(HFILE fd, void* pTargetObject, JSON_MAPPING_RULE* pRul
 		json_processTokens(pRules, pTargetObject, pszBuf, 0, maxInputSize, tokens, 0, numberOfTokens);
 		free(tokens);
 		free(pszBuf);
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
 /*
@@ -528,7 +529,9 @@ int json_parse(const char* pszFilename, BOOL extensionSupported, void* pTargetOb
 		(fn = file_searchFileInPKSEditLocationFlags(pszFilename, CFSF_SEARCH_PKS_SYS_EXTENSION_DIR)) != 0L && 
 		(fd = file_openFile(fn, FALSE)) > 0) {
 		EdTRACE(log_message(DEBUG_INFO, "Loading extension file %s", fn));
-		json_parseFile(fd, pTargetObject, pRules);
+		if (!json_parseFile(fd, pTargetObject, pRules)) {
+			EdTRACE(log_message(DEBUG_WARN, "Error loading/parsing extension %s", fn));
+		}
 		file_closeFile(&fd);
 	}
 	return ret;

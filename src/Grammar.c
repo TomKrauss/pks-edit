@@ -737,6 +737,9 @@ static int grammar_loadFromFile(const char* pszGrammarName) {
 		if (definitions.gd_grammars != NULL) {
 			grammar_initialize(definitions.gd_grammars);
 			ll_add(&_grammarDefinitions.gd_grammars, (LINKED_LIST*)definitions.gd_grammars);
+		} else {
+			EdTRACE(log_message(DEBUG_WARN, "Grammar name %s: no grammar rules defined", pszGrammarName));
+			return 0;
 		}
 		return 1;
 	}
@@ -761,6 +764,7 @@ GRAMMAR* grammar_findNamed(const char* pszGrammarName) {
 		}
 		bFirstTry--;
 		if (!grammar_loadFromFile(pszGrammarName)) {
+			EdTRACE(log_message(DEBUG_WARN, "Grammar %s: no grammar found", pszGrammarName));
 			break;
 		}
 	}
