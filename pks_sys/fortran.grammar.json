@@ -16,25 +16,8 @@
       ],
       "templates": [
         {
-          "match": "'",
-          "contents": "${cursor}'",
-          "auto-insert": true
-        },
-        {
-          "match": "{",
-          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
-          "auto-insert": true,
-          "lexical-context-initial": true
-        },
-        {
-          "match": "\"",
-          "contents": "${cursor}\"",
-          "auto-insert": true
-        },
-        {
-          "match": "/*",
-          "contents": "\n${indent} * ${cursor}\n${indent} */",
-          "auto-insert": true
+          "name": "file",
+          "contents": "${copyright}"
         }
       ],
       "highlightBrackets": [

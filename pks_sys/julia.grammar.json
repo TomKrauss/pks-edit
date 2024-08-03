@@ -42,8 +42,8 @@
           "name": "comment.multiLine"
         },
         {
-          "match": "# .*",
-          "style": "sl-comment",
+          "match": "^# .*",
+          "style": "single-line-comment",
           "name": "comment.singleLine"
         },
         {

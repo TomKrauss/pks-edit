@@ -16,6 +16,7 @@ p22 = heatmap(I1, c=:bone, title="Thresholded", clims=(0,1))
 l = @layout [a b; c d]
 plot(p11, p12, p21, p22, layout=l, size=(800,600))
 
+# This is a single line comment
 function mandelbrot(a)
     z = 0
     for i=1:50

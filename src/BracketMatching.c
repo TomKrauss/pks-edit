@@ -55,7 +55,7 @@ extern PASTELIST 	*_esclist[];
  * uc_matchBracket()
  */
 static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATCH_PATTERN* pPattern, MATCHED_BRACKET* pMatched) {
-	if (nOffset < 0 || !pPattern->pattern[0]) {
+	if (nOffset < 0 || !pPattern->pattern || !pPattern->pattern[0]) {
 		return FALSE;
 	}
 	const char* pBuffer = &pLine->lbuf[nOffset];
