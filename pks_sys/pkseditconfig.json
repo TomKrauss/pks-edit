@@ -32,6 +32,13 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "kotlin",
+      "description": "Kotlin Files (*.kt)",
+      "grammar": "kotlin",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.kt"
+    },
+    {
       "name": "python",
       "description": "Python Files (*.py)",
       "grammar": "python",

@@ -1,19 +1,9 @@
 {
   "grammars": [
     {
-      "scopeName": "java",
-      "description": "Java Programming Language",
+      "scopeName": "kotlin",
+      "description": "Kotlin Programming Language",
       "import": [ "commonc" ],
-      "tagSources": [
-        {
-          "filename": "tags",
-          "type": "tags"
-        },
-        {
-          "filename": "https://www.google.com/search?q=javadoc+$1",
-          "type": "url"
-        }
-      ],
       "templates": [
         {
           "match": "copyright",
@@ -50,7 +40,21 @@
           "name": "constant.className"
         },
         {
+          "match": "\"(?:\\\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string",
+          "patterns": [
+            {
+              "match": "\\$[a-z_A-Z09]+",
+              "style": "bold-comment",
+              "name": "string.variable"
+            }
+          ],
+        },
+        {
           "keywords": [
+	     	"as",
+	     	"as?",
             "break",
             "byte",
             "catch",
@@ -68,7 +72,10 @@
             "finally",
             "float",
             "for",
+            "fun",
             "if",
+            "is",
+            "is!",
             "import",
             "int",
             "interface",
@@ -95,9 +102,13 @@
             "transient",
             "true",
             "try",
+            "typeof",
+            "typealias",
             "var",
+            "val",
             "void",
             "volatile",
+            "when",
             "while"
           ],
           "style": "keyword",

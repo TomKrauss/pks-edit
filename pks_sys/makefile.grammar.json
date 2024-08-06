@@ -24,7 +24,7 @@
           "name": "comment.singleLine"
         },
         {
-          "match": "^[.a-zA-Z0-9]+\\s*:",
+          "match": "^[.a-z_A-Z0-9]+:",
           "style": "annotation",
           "name": "makefile.target"
         },
@@ -39,7 +39,7 @@
           "name": "makefile.variable"
         },
         {
-          "match": "[%@$<>]+",
+          "match": "[%@$<>=:]+",
           "style": "operator",
           "name": "makefile.references"
         },
@@ -79,7 +79,13 @@
         {
           "keywords": [
             "export",
+            "ifeq",
+            "ifneq",
+            "define",
+            "endef",
+            "endif",
             "include",
+			"vpath",
             "override",
             "private"
           ],

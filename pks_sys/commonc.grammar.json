@@ -92,7 +92,7 @@
           "name": "literal.char"
         },
         {
-          "match": "[-+&|<>=~?]{1,2}",
+          "match": "[%-+&|<>=~?]{1,2}",
           "style": "operator",
           "name": "keyword.operator"
         }

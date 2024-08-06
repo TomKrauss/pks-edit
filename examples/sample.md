@@ -25,6 +25,7 @@ Shift and click on the link to navigate to the sample:
 - [sample.jl](sample.jl)
 - [sample.js](sample.js)
 - [sample.json](sample.json)
+- [sample.kt](sample.kt)
 - [sample.log](sample.log)
 - [sample.mak](sample.mak)
 - [sample.pas](sample.pas)
