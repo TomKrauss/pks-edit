@@ -32,6 +32,14 @@
       "filenamePatterns": "*.java"
     },
     {
+      "name": "asm",
+      "description": "Assembly Language Files (*.asm)",
+      "hideInFileSelector": true,
+      "grammar": "assembly",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.asm"
+    },
+    {
       "name": "kotlin",
       "description": "Kotlin Files (*.kt)",
       "grammar": "kotlin",

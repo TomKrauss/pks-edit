@@ -1,0 +1,107 @@
+{
+  "grammars": [
+    {
+      "scopeName": "assembly",
+      "description": "Assembly Programming Language",
+      "templates": [
+        {
+          "match": "copyright",
+          "contents": "${copyright}"
+        },
+        {
+          "name": "file",
+          "match": "file",
+          "contents": "${copyright}"
+        }
+      ],
+      "patterns": [
+        {
+          "match": ";.*",
+          "style": "single-line-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "match": "\"(?:\\\"|[^\"])+\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "\"(?:\\\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "keywords": [
+            "aaa",
+            "aad",
+            "add",
+            "and",
+            "bound",
+            "daa",
+            "dec",
+            "div",
+            "enter",
+            "inc",
+            "ins",
+            "int",
+            "imul",
+            "idiv",
+            "lock",
+            "mov",
+            "neg",
+            "or",
+            "out",
+            "nop",
+            "not",
+            "pop",
+            "push",
+            "pusha",
+            "pushf",
+            "rol",
+            "rcl",
+            "ror",
+            "rcr",
+            "syscall",
+            "trap",
+            "wait",
+			"xadd",
+			"xchg",
+            "xor"
+          ],
+          "style": "keyword",
+          "name": "keyword.assembly"
+        },
+        {
+          "keywords": [
+            "eax",
+            "ecx",
+            "esp",
+            "rax",
+            "rdi",
+            "rdx",
+            "rsi",
+            "bx",
+            "cx",
+            "dx",
+            "sb",
+            "bp",
+            "si",
+            "di"
+          ],
+          "style": "annotation",
+          "name": "keyword.memory"
+        },
+        {
+          "match": "<%[A-Z_a-z][A-Z_0-9a-z]*",
+          "style": "identifier",
+          "name": "identifier.qualifier"
+        },
+        {
+          "match": "\\.<[a-zA-Z_0-9]+>",
+          "style": "literal",
+          "name": "label.address"
+        }
+      ]
+    }
+  ]
+}

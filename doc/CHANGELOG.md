@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   exit PKS Edit in case of an internal error.
 - Document Types may be hidden now in the file selector. This will cause the extension of the corresponding document
   type not being added to the list of selectable file extensions in file dialogs (to keep this list clear).
-- Grammars for Docker (Dockerfile) and the Julia, Rust, Cobol, Kotlin, Fortran, PHP and Swift Programming Languages were added.
+- Grammars for Docker (Dockerfile) and the Assembly, Julia, Rust, Cobol, Kotlin, Fortran, PHP and Swift Programming Languages were added.
 
 ### Improved
 - The Align Text function is more intuitive to use now.

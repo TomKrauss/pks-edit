@@ -9,6 +9,7 @@ Shift and click on the link to navigate to the sample:
 
 - [Dockerfile](Dockerfile)
 - [FitNesse Example](content.txt)
+- [sample.asm](sample.asm)
 - [sample.bat](sample.bat)
 - [sample.c](sample.c)
 - [sample.cbl](sample.cbl)
