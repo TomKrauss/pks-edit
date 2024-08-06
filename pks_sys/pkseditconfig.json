@@ -39,6 +39,13 @@
       "filenamePatterns": "*.py"
     },
     {
+      "name": "php",
+      "description": "PHP Files (*.php)",
+      "grammar": "php",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.php"
+    },
+    {
       "name": "swift",
       "description": "Swift Files (*.swift)",
       "grammar": "swift",

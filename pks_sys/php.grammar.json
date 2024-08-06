@@ -1,0 +1,168 @@
+{
+  "grammars": [
+    {
+      "scopeName": "php",
+      "description": "PHP Programming Language",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "{",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "\"",
+          "contents": "${cursor}\"",
+          "auto-insert": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n${indent} * ${cursor}\n${indent} */",
+          "auto-insert": true
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//.*",
+          "style": "single-line-comment",
+          "name": "comment.singleLine"
+        },
+        {
+          "keywords": [
+            "as",
+            "abstract",
+            "and",
+            "break",
+            "callable",
+            "case",
+            "catch",
+            "class",
+            "clone",
+            "const",
+            "continue",
+            "declare",
+            "default",
+            "do",
+            "echo",
+            "else",
+            "elseif",
+            "empty",
+            "enddeclare",
+            "endfor",
+            "endforeach",
+            "endif",
+            "endswitch",
+            "endwhile",
+            "extends",
+            "final",
+            "finally",
+            "fn",
+            "for",
+            "foreach",
+            "function",
+            "global",
+            "goto",
+            "if",
+            "implements",
+            "include",
+            "includeonce",
+            "interface",
+            "isset",
+            "list",
+            "namespace",
+            "new",
+            "or",
+            "print",
+            "private",
+            "protected",
+            "public",
+            "require",
+            "require_once",
+            "return",
+            "static",
+            "switch",
+            "throw",
+            "trait",
+            "try",
+            "unset",
+            "use",
+            "var",
+            "while",
+            "xor",
+            "yield",
+            "yield_from"
+          ],
+          "style": "keyword",
+          "name": "keyword.php",
+		  "ignore-case": true
+        },
+        {
+          "match": "# .*",
+          "style": "single-line-comment",
+          "name": "comment.singleLine2"
+        },
+        {
+          "match": "\"(?:\\\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        },
+        {
+          "match": "\\$[a-zA.Z_0-9]+",
+          "style": "identifier",
+          "name": "identifier.variable"
+        },
+        {
+          "match": "[-+&|<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}
