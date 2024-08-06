@@ -686,7 +686,7 @@
         {
           "styleName": "task",
           "weight": 800,
-          "foregroundColor": "#FF7777"
+          "foregroundColor": "lightsalmon"
         }
       ]
     }

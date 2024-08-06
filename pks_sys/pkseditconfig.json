@@ -177,6 +177,22 @@
       "filenamePatterns": "pom.xml"
     },
     {
+      "name": "rust",
+      "hideInFileSelector": true,
+      "description": "Rust Files (*.rs)",
+      "grammar": "rust",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*.rs"
+    },
+    {
+      "name": "cobol",
+      "hideInFileSelector": true,
+      "description": "Cobol Files (*.cbl, *cob)",
+      "grammar": "cobol",
+      "editorConfiguration": "default",
+      "filenamePatterns": "*cbl;*.cob"
+    },
+    {
       "name": "fitnesse",
       "hideInFileSelector": true,
       "description": "Fitnesse Files (content.txt)",

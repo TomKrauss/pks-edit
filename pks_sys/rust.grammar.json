@@ -1,0 +1,153 @@
+{
+  "grammars": [
+    {
+      "scopeName": "rust",
+      "description": "Rust programminglanguage",
+      "formatter": "code",
+      "increaseIndentPatterns": [
+        { "pattern": "{" },
+        { "pattern": "(" },
+        { "pattern": "[" }
+      ],
+      "decreaseIndentPatterns": [
+        { "pattern": "}" },
+        { "pattern": ")" },
+        { "pattern": "]" }
+      ],
+      "templates": [
+        {
+          "match": "'",
+          "contents": "${cursor}'",
+          "auto-insert": true
+        },
+        {
+          "match": "{",
+          "contents": "\n${indent}${tab}${cursor}\n${indent}}",
+          "auto-insert": true,
+          "lexical-context-initial": true
+        },
+        {
+          "match": "file",
+          "contents": "${copyright}",
+          "auto-insert": true
+        },
+        {
+          "match": "/*",
+          "contents": "\n${indent} * ${cursor}\n${indent} */",
+          "auto-insert": true
+        }
+      ],
+      "highlightBrackets": [
+        {
+          "left": "{",
+          "right": "}"
+        },
+        {
+          "left": "(",
+          "right": ")"
+        },
+        {
+          "left": "[",
+          "right": "]"
+        }
+      ],
+      "patterns": [
+        {
+          "begin": "/*",
+          "end": "*/",
+          "style": "comment",
+          "name": "comment.multiLine"
+        },
+        {
+          "match": "//!.*",
+          "style": "bold-comment",
+          "name": "comment.innerLineDocumentation"
+        },
+        {
+          "match": "//.*",
+          "style": "single-line-comment",
+          "name": "comment.singleLine"
+        },
+		{
+			"keywords": [
+				"as",
+				"async",
+				"await",
+				"break",
+				"const",
+				"continue",
+				"crate",
+				"dyn",
+				"else",
+				"enum",
+				"extern",
+				"false",
+				"fn",
+				"for",
+				"if",
+				"impl",
+				"in",
+				"let",
+				"loop",
+				"match",
+				"mod",
+				"move",
+				"mut",
+				"pub",
+				"ref",
+				"return",
+				"self",
+				"Self",
+				"static",
+				"struct",
+				"super",
+				"trait",
+				"true",
+				"type",
+				"unsafe",
+				"use",
+				"where",
+				"while"
+			],
+            "style": "keyword",
+            "name": "keyword.rust"
+		},
+        {
+          "match": "r#\"(?:\\\\\"|[^\"])+?\"#",
+          "style": "task",
+          "name": "string.raw"
+        },
+        {
+          "match": "#\\[[^\\]]+?\\]",
+          "style": "annotation",
+          "name": "annotation.rust"
+        },
+        {
+          "match": "[a-zA-Z_0-9]+::[a-zA-Z_0-9]+",
+          "style": "constant",
+          "name": "identifier.namespace"
+        },
+        {
+          "match": "\"(?:\\\\\"|[^\"])+?\"",
+          "style": "string",
+          "name": "string"
+        },
+        {
+          "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",
+          "style": "literal",
+          "name": "literal.numeric"
+        },
+        {
+          "match": "'(?:\\\\'|\\\\u\\\\d+|[^'])'",
+          "style": "literal",
+          "name": "literal.char"
+        },
+        {
+          "match": "[-+&|<>=~?]{1,2}",
+          "style": "operator",
+          "name": "keyword.operator"
+        }
+      ]
+    }
+  ]
+}

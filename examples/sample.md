@@ -7,11 +7,14 @@ programming languages and file formats supported by PKS-Edit, such as `syntax hi
 
 Shift and click on the link to navigate to the sample:
 
+- [Dockerfile](Dockerfile)
 - [sample.c](sample.c)
+- [sample.cbl](sample.cbl)
 - [sample.java](sample.java)
 - [sample.ts](sample.ts)
 - [sample.js](sample.js)
 - [sample.cs](sample.cs)
+- [sample.jl](sample.jl)
 - [sample.py](sample.py)
 - [sample.go](sample.go)
 - [sample.pas](sample.pas)
@@ -30,6 +33,10 @@ Shift and click on the link to navigate to the sample:
 - [FitNesse Example](content.txt)
 - [sample.integrity](sample.integrity)
 - [sample.txt](sample.txt)
+- [sample.tex](sample.tex)
+- [sample.tf](sample.tf)
+- [sample.swift](sample.swift)
+- [sample.rs](sample.rs)
 - [sample.log](sample.log)
 - [sample.properties](sample.properties)
 - [sample.scala](sample.scala)
