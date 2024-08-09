@@ -766,23 +766,51 @@ static void analyzer_provideJsonKeySuggestions(JSON_MAPPING_RULE* pRules, ANALYZ
 
 static void analyzer_provideJsonValueSuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	pRules = analyzer_findJsonRules(pRules, pContext->ac_token2, FALSE, 0);
-	if (pRules != NULL && pRules->r_type == RT_COLOR) {
-		for (int i = 0; _cssColors[i].cc_name != NULL; i++) {
-			if (fMatch(pContext, _cssColors[i].cc_name)) {
-				fCallback(&(ANALYZER_CALLBACK_PARAM) {
-					.acp_replacedTextStart = pContext->ac_tokenOffset,
-						.acp_replacedTextLength = (int)strlen(pContext->ac_token),
-						.acp_recommendation = _cssColors[i].cc_name,
-						.acp_object = (void*)pRules,
-						.acp_help = analyzer_provideHelpForMappingRule,
-						.acp_score = codecomplete_calculateScore(pContext, _cssColors[i].cc_name),
-						.acp_icon = {
-						.cai_iconType = CAI_COLOR_ICON,
-						.cai_data.cai_color = _cssColors[i].cc_color
-					}
-				});
+	if (pRules != NULL) {
+		if (pRules->r_type == RT_COLOR) {
+			for (int i = 0; _cssColors[i].cc_name != NULL; i++) {
+				if (fMatch(pContext, _cssColors[i].cc_name)) {
+					fCallback(&(ANALYZER_CALLBACK_PARAM) {
+						.acp_replacedTextStart = pContext->ac_tokenOffset,
+							.acp_replacedTextLength = (int)strlen(pContext->ac_token),
+							.acp_recommendation = _cssColors[i].cc_name,
+							.acp_object = (void*)pRules,
+							.acp_help = analyzer_provideHelpForMappingRule,
+							.acp_score = codecomplete_calculateScore(pContext, _cssColors[i].cc_name),
+							.acp_icon = {
+							.cai_iconType = CAI_COLOR_ICON,
+							.cai_data.cai_color = _cssColors[i].cc_color
+						}
+					});
+				}
 			}
-
+		}
+		if (pRules->r_valueProvider != NULL) {
+			JSON_ENUM_VALUE* pValues = pRules->r_valueProvider();
+			if (pValues != NULL) {
+				for (int i = 0; pValues[i].jev_name; i++) {
+					char* pString = pValues[i].jev_name;
+					if (fMatch(pContext, pString)) {
+						fCallback(&(ANALYZER_CALLBACK_PARAM) {
+							.acp_replacedTextStart = pContext->ac_tokenOffset,
+								.acp_replacedTextLength = (int)strlen(pContext->ac_token),
+								.acp_recommendation = pString,
+								.acp_object = (void*)pRules,
+								.acp_help = analyzer_provideHelpForMappingRule,
+								.acp_score = codecomplete_calculateScore(pContext, pString),
+								.acp_icon = {
+								.cai_iconType = CAI_COLOR_ICON,
+								.cai_data.cai_color = pValues[i].jev_color
+							}
+						});
+					}
+					if (pValues[i].jev_description) {
+						free(pValues[i].jev_description);
+					}
+					free(pString);
+				}
+				free(pValues);
+			}
 		}
 	}
 }

@@ -191,6 +191,11 @@ static JSON_MAPPING_RULE _patternGroupRules[] = {
 	{	RT_END}
 };
 
+/*
+ * Returns the styles supported + their respective properties for being used in code completion.
+ */
+extern JSON_ENUM_VALUE* theme_getStyles();
+
 static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_OBJECT_LIST, "patterns", offsetof(GRAMMAR_PATTERN, children),
 			{.r_t_arrayDescriptor = {.ro_nestedRules = _patternRules, .ro_nestedSize = sizeof(GRAMMAR_PATTERN)}}},
@@ -201,7 +206,7 @@ static JSON_MAPPING_RULE _patternRules[] = {
 	{	RT_SET, "keywords", offsetof(GRAMMAR_PATTERN, keywords)},
 	{	RT_FLAG, "keywords-no-identifiers", offsetof(GRAMMAR_PATTERN, keywordsNoIdentifiers), .r_description = "Set this to true, to specify keywords, which are not identifiers."},
 	{	RT_FLAG, "ignore-case", offsetof(GRAMMAR_PATTERN, ignoreCase)},
-	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style)},
+	{	RT_CHAR_ARRAY, "style", offsetof(GRAMMAR_PATTERN, style), sizeof(((GRAMMAR_PATTERN*)NULL)->style), .r_valueProvider = theme_getStyles},
 	{	RT_CHAR_ARRAY, "begin", offsetof(GRAMMAR_PATTERN, begin), sizeof(((GRAMMAR_PATTERN*)NULL)->begin)},
 	{	RT_CHAR_ARRAY, "end", offsetof(GRAMMAR_PATTERN, end), sizeof(((GRAMMAR_PATTERN*)NULL)->end)},
 	{	RT_END}

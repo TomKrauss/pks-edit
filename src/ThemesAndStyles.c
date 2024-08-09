@@ -297,6 +297,30 @@ static char* _styleNames[] = {
 	"hyperlink"
 };
 
+/*
+ * Returns the styles supported + their respective properties for being used in code completion.
+ */
+JSON_ENUM_VALUE* theme_getStyles() {
+	THEME_DATA* pCurr = theme_getDefault();
+	if (pCurr == NULL) {
+		return NULL;
+	}
+	EDTEXTSTYLE* pStyles = pCurr->th_styles;
+	int nStyles = ll_size((LINKED_LIST*)pStyles)+1;
+	JSON_ENUM_VALUE* pValues = calloc(nStyles, sizeof * pValues);
+	if (pValues == NULL) {
+		return NULL;
+	}
+	int i = 0;
+	while (pStyles) {
+		pValues[i].jev_name = _strdup(pStyles->styleName);
+		pValues[i].jev_color = pStyles->fgcolor;
+		i++;
+		pStyles = pStyles->next;
+	}
+	return pValues;
+}
+
 static void theme_initSingle(THEME_DATA* pTheme) {
 	pTheme->th_isWinTheme = strcmp(DEFAULT, pTheme->th_name) == 0;
 	memset(pTheme->th_styleLookup, 0, sizeof pTheme->th_styleLookup);

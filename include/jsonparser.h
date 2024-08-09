@@ -63,6 +63,14 @@ struct tagOBJECT_DESCRIPTOR {
 	void (*ro_destroy)(void* p);						// An optional destruction method, invoked, when one uses json_destroy to de-allocate a nested JSON data structure.
 };
 
+typedef struct tagJSON_ENUM_VALUE {
+	char* jev_name;
+	char* jev_description;
+	COLORREF jev_color;
+} JSON_ENUM_VALUE;
+
+typedef JSON_ENUM_VALUE* (*PROVIDE_ENUM_VALUES)();
+
 typedef struct tagJSON_MAPPING_RULE {
 	JSON_RULE_TYPE r_type;										// the type of the rule
 	char* r_name;												// the name of the JSON value
@@ -78,6 +86,9 @@ typedef struct tagJSON_MAPPING_RULE {
 																// should be allocated and destroyed as well.
 	} r_descriptor;
 	char* r_description;										// Optional description for help.
+	PROVIDE_ENUM_VALUES r_valueProvider;						// Optional provider returning the possible values for this mapping. This is in particular used by 
+																// the JSON code completion analyzer to provide values to the user. The values returned must be freed, 
+																// after usage.
 } JSON_MAPPING_RULE;
 
 /*
