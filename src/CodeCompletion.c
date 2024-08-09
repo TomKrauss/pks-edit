@@ -54,6 +54,7 @@ typedef enum { CA_TEMPLATE, CA_TAG} CODE_ACTION_TYPE;
 typedef struct tagCODE_ACTION {
 	struct tagCODE_ACTION* ca_next;
 	CODE_ACTION_TYPE ca_type;
+	CODE_ACTION_ICON ca_icon;		// Describes the icon to display in front of a code completion entry.
 	const char* ca_name;
 	BOOL ca_replaceWord;
 	BOOL ca_freeName;
@@ -137,6 +138,7 @@ static CODE_ACTION* codecomplete_addTagsWithAlloc(ANALYZER_CALLBACK_PARAM* bPara
 	}
 	pAction->ca_name = pszCopy;
 	pAction->ca_type = CA_TAG;
+	pAction->ca_icon = bParam->acp_icon;
 	pAction->ca_param.text = pszCopy;
 	pAction->ca_replaceWord = TRUE;
 	pAction->ca_freeName = bAlloc;
@@ -174,7 +176,8 @@ static int codecomplete_matchWord(const char* pszWord) {
  * Calculate a score for a match during code completion. The 'pszSearch' variable contains
  * the word to search, the 'pszFound' variable the recommendation.
  */
-int codecomplete_calculateScore(const char* pszSearch, const char* pszFound) {
+int codecomplete_calculateScore(ANALYZER_CARET_CONTEXT* pCaretContext, const char* pszFound) {
+	char* pszSearch = pCaretContext->ac_tokenStart[0] ? pCaretContext->ac_tokenStart : pCaretContext->ac_token;
 	if (pszSearch[0] == 0) {
 		// If search is empty - standard score, so we can sort suggestions later alphabetically 
 		return 1;
@@ -192,14 +195,14 @@ int codecomplete_calculateScore(const char* pszSearch, const char* pszFound) {
 
 static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {
 	if (bParam->acp_score == 0) {
-		bParam->acp_score = codecomplete_calculateScore(caretContext.ac_token, bParam->acp_recommendation);
+		bParam->acp_score = codecomplete_calculateScore(&caretContext, bParam->acp_recommendation);
 	}
 	codecomplete_addTagsWithAlloc(bParam, FALSE);
 }
 
 static void codecomplete_analyzerCallback(ANALYZER_CALLBACK_PARAM *bParam) {
 	if (bParam->acp_score == 0) {
-		bParam->acp_score = codecomplete_calculateScore(caretContext.ac_token, bParam->acp_recommendation);
+		bParam->acp_score = codecomplete_calculateScore(&caretContext, bParam->acp_recommendation);
 	}
 	codecomplete_addTagsWithAlloc(bParam, TRUE);
 }
@@ -255,6 +258,7 @@ static void codecomplete_addTemplates(WINFO* wp, GRAMMAR* pGrammar) {
 			}
 			pAction->ca_name = up->uc_pattern.pattern;
 			pAction->ca_type = CA_TEMPLATE;
+			pAction->ca_icon.cai_iconType = CAI_TEMPLATE_ICON;
 			pAction->ca_param.template = up;
 			pAction->ca_score = 200;
 			pAction->ca_helpCB = codecomplete_helpForTemplate;
@@ -354,14 +358,41 @@ static void codecomplete_helpWindowSizeChanged(HWND hwnd) {
 	}
 }
 
+static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate, HICON hIconTag, TEXTMETRIC* pMetric, int x, int y) {
+	HICON hIcon = NULL;
+	switch (up->ca_icon.cai_iconType) {
+	case CAI_TAG_ICON: hIcon = hIconTag; break;
+	case CAI_TEMPLATE_ICON: hIcon = hIconTemplate; break;
+	case CAI_RESOURCE_ICON: hIcon = LoadIcon(hInst, up->ca_icon.cai_data.cai_iconName); break;
+	case CAI_COLOR_ICON: {
+		HBRUSH hBrush = CreateSolidBrush(up->ca_icon.cai_data.cai_color);
+		RECT rect = {
+			.left = x,
+			.top = y,
+			.right = x + pMetric->tmHeight,
+			.bottom = y + pMetric->tmHeight
+		};
+		FillRect(hdc, &rect, hBrush);
+		DeleteObject(hBrush);
+		return;
+	}
+	case CAI_NO_ICON: return;
+	}
+	if (hIcon != NULL) {
+		DrawIconEx(hdc, x, y, hIcon,
+			pMetric->tmHeight, pMetric->tmHeight, 0, NULL, DI_NORMAL);
+		if (up->ca_icon.cai_iconType == CAI_RESOURCE_ICON) {
+			DeleteObject(hIcon);
+		}
+	}
+}
+
 /*
  * Paint the list of selectable code action. 
  */
 static void codecomplete_paint(HWND hwnd) {
 	PAINTSTRUCT paint;
 	THEME_DATA* pTheme = theme_getCurrent();
-	HICON hIconTemplate = LoadIcon(hInst, "TEMPLATE");
-	HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 	TEXTMETRIC textmetric;
 	CODE_COMPLETION_PARAMS* pCC = (CODE_COMPLETION_PARAMS*)GetWindowLongPtr(hwnd, GWL_PARAMS);
 	CODE_ACTION* up = pCC->ccp_actions;
@@ -386,6 +417,8 @@ static void codecomplete_paint(HWND hwnd) {
 			DrawText(paint.hdc, pszBuf, -1, &rect, DT_CENTER | DT_VCENTER | DT_WORDBREAK);
 		}
 	} else {
+		HICON hIconTemplate = LoadIcon(hInst, "TEMPLATE");
+		HICON hIconTag = LoadIcon(hInst, "CROSSREFERENCE");
 		int x = CC_PADDING;
 		int y = 0;
 		int nDelta = CC_PADDING;
@@ -403,12 +436,11 @@ static void codecomplete_paint(HWND hwnd) {
 					FillRect(paint.hdc, &rect, hBrushFill);
 					DeleteObject(hBrushFill);
 					SetTextColor(paint.hdc, pTheme->th_dialogHighlightText);
-				}
-				else {
+				} else {
 					SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 				}
+				codecomplete_paintIcon(paint.hdc, up, hIconTemplate, hIconTag, &textmetric, x, y + nDelta / 2);
 				const char* pszDescription = up->ca_name;
-				DrawIconEx(paint.hdc, x, y+nDelta/2, up->ca_type == CA_TEMPLATE ? hIconTemplate : hIconTag, textmetric.tmHeight, textmetric.tmHeight, 0, NULL, DI_NORMAL);
 				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
 				y += textmetric.tmHeight + nDelta;
 				if (y > paint.rcPaint.bottom) {
@@ -417,10 +449,14 @@ static void codecomplete_paint(HWND hwnd) {
 			}
 			up = up->ca_next;
 		}
+		if (hIconTemplate != NULL) {
+			DeleteObject(hIconTemplate);
+		}
+		if (hIconTag != NULL) {
+			DeleteObject(hIconTag);
+		}
 	}
 	DeleteObject(SelectObject(paint.hdc, hFont));
-	DeleteObject(hIconTemplate);
-	DeleteObject(hIconTag);
 	EndPaint(hwnd, &paint);
 	if (oldLineHeight != pCC->ccp_lineHeight) {
 		codecomplete_updateScrollbar(hwnd);

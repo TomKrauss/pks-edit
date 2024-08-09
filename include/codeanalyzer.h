@@ -17,6 +17,29 @@
 
 #ifndef CODEANALYZER_H
 
+typedef enum {
+	// Show the default icon for tags.
+	CAI_TAG_ICON,
+	// Show the default icon for templates
+	CAI_TEMPLATE_ICON,
+	// Show a color box
+	CAI_COLOR_ICON,
+	// Show an icon with a given resource name
+	CAI_RESOURCE_ICON,
+	// Do not show an icon at all
+	CAI_NO_ICON
+} CODE_ACTION_ICON_TYPE;
+
+typedef struct tagCODE_ACTION_ICON {
+	CODE_ACTION_ICON_TYPE cai_iconType;
+	union {
+		// For type CAI_RESOURCE_ICON this is the name of the resource to load.
+		char cai_iconName[32];
+		// For type CAI_COLOR_ICON, this is the color to display.
+		COLORREF cai_color;
+	} cai_data;
+} CODE_ACTION_ICON;
+
 typedef struct tagANALYZER_CALLBACK_PARAM {
 	const char* acp_recommendation;									// The text to be displayed to the user as recommended by the code completion window
 	int			acp_score;											// A score for sorting the recommendation
@@ -27,6 +50,7 @@ typedef struct tagANALYZER_CALLBACK_PARAM {
 	void* acp_object;												// Describes the object for which a recommendation is provided 
 																	// (e.g. a native function or macro or the like).
 	const char* (*acp_getHyperlinkText)(const char* pszURL);		// Returns a text to be displayed in the help window, when a link in the help window is clicked.
+	CODE_ACTION_ICON acp_icon;										// Optional information about an icon to display.
 } ANALYZER_CALLBACK_PARAM;
 
  /*
@@ -48,6 +72,9 @@ typedef struct tagANALYZER_CARET_CONTEXT {
 	char ac_tokenTypeName[32];
 	// The line offset in bytes, where the start of the token to replace starts.
 	int ac_tokenOffset;
+	// The start of the token ending at the caret position or empty. If set, this is the
+	// value to compare against to pre-select the matches. If empty, ac_token is compared.
+	char ac_tokenStart[128];
 	// The token - typically the word under the caret.
 	char ac_token[128];
 	// A second token close to the caret. Example: when suggesting XML this could be the name of an entity, when trying to match an attribute.

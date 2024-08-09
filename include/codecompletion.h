@@ -38,11 +38,14 @@ extern void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce);
  */
 extern BOOL codecomplete_processKey(HWND hwnd, UINT message, WPARAM wParam);
 
+#ifdef CODEANALYZER_H
+
 /*
  * Calculate a score for a match during code completion. The 'pszSearch' variable contains
  * the word to search, the 'pszFound' variable the recommendation.
  */
-extern int codecomplete_calculateScore(const char* pszSearch, char* pszFound);
+extern int codecomplete_calculateScore(ANALYZER_CARET_CONTEXT* pCaretContext, const char* pszFound);
+#endif
 
 #define CODECOMPLETION_H
 

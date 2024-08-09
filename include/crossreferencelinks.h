@@ -92,7 +92,7 @@ extern int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching
  * automatically detected, pass -1. If the output file is the result of a PKSMacroC build, 
  * pass TRUE for [bMacroCError].
  */
-extern int xref_openBuildOutputFile(const char* pszFilename, BOOL bMacroCError, long codePage);
+extern int xref_openBuildOutputFile(const char* pszFilename, int bMacroCError, long codePage);
 
 extern int EdSearchListRead(void);
 

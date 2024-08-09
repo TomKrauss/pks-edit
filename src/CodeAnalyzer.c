@@ -113,7 +113,7 @@ static void analyzer_extractTokens(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CA
 		char* pszWord = stringbuf_getString(pBuf);
 		if (*pszWord) {
 			if (fMatch(pCaretContext, pszWord)) {
-				int nScore = codecomplete_calculateScore(pCaretContext->ac_token, pszWord);
+				int nScore = codecomplete_calculateScore(pCaretContext, pszWord);
 				if (calculateSuggestion != 0) {
 					calculateSuggestion(pCaretContext, &parsingContext, pBuf);
 				}
@@ -587,7 +587,8 @@ int analyzer_register(const char* pszName, ANALYZER_FUNCTION f, ANALYZER_GET_CON
 static int analyzer_matchContext(ANALYZER_CARET_CONTEXT* pContext, const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
-	return strcmp(pszWord, pContext->ac_token) != 0 && string_strcasestr(pszWord, pContext->ac_token) != NULL;
+	char* pszCompare = pContext->ac_tokenStart[0] ? pContext->ac_tokenStart : pContext->ac_token;
+	return strcmp(pszWord, pszCompare) != 0 && string_strcasestr(pszWord, pszCompare) != NULL;
 }
 
 static analyzer_getDefaultCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
@@ -641,6 +642,13 @@ typedef enum JSON_GRAMMAR_STATES {
 	JSON_VALUE
 } JSON_GRAMMAR_STATES;
 
+static void analyzer_getTokenContents(char* pszDestination, const char* pMem, jsmntok_t* pToken, size_t nMaxLen) {
+	char szToken[MAX_TOKEN_SIZE];
+	json_tokenContents(pMem, pToken, szToken);
+	strncpy(pszDestination, szToken, nMaxLen);
+	pszDestination[nMaxLen] = 0;
+}
+
 static void analyzer_getJsonCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext) {
 	FTABLE* fp = FTPOI(wp);
 	size_t nSize = 0;
@@ -662,12 +670,11 @@ static void analyzer_getJsonCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCar
 				}
 			}
 			if (nFound > 0 && (tokens[nFound].type == JSMN_STRING || tokens[nFound].type == JSMN_PRIMITIVE)) {
-				char szToken[MAX_TOKEN_SIZE];
 				if (pMem[tokens[nFound].end + 1] == ':') {
-					json_tokenContents(pMem, &tokens[nFound], szToken);
-					strncpy(pCaretContext->ac_token, szToken, sizeof(pCaretContext->ac_token) - 1);
+					analyzer_getTokenContents(pCaretContext->ac_token, pMem, &tokens[nFound], sizeof(pCaretContext->ac_token) - 1);
+					strcpy(pCaretContext->ac_tokenStart, pCaretContext->ac_token);
+					pCaretContext->ac_tokenStart[offset - tokens[nFound].start] = 0;
 					pCaretContext->ac_tokenOffset = wp->caret.offset + (int)(tokens[nFound].start - offset);
-					pCaretContext->ac_token[sizeof(pCaretContext->ac_token) - 1] = 0;
 					pCaretContext->ac_type = JSON_KEY;
 					strcpy(pCaretContext->ac_tokenTypeName, "key");
 					int nTakeIt = tokens[nFound].parent;
@@ -682,11 +689,18 @@ static void analyzer_getJsonCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCar
 						nTakeIt = pTok->parent;
 					}
 					if (nTakeIt > 0) {
-						json_tokenContents(pMem, &tokens[nTakeIt - 1], szToken);
-						strncpy(pCaretContext->ac_token2, szToken, sizeof(pCaretContext->ac_token2) - 1);
-						pCaretContext->ac_token2[sizeof(pCaretContext->ac_token2) - 1] = 0;
+						analyzer_getTokenContents(pCaretContext->ac_token2, pMem, &tokens[nTakeIt - 1], sizeof(pCaretContext->ac_token2) - 1);
 					}
 				} else {
+					if (tokens[nFound].type == JSMN_STRING) {
+						analyzer_getTokenContents(pCaretContext->ac_token, pMem, &tokens[nFound], sizeof(pCaretContext->ac_token) - 1);
+						strcpy(pCaretContext->ac_tokenStart, pCaretContext->ac_token);
+						pCaretContext->ac_tokenStart[offset - tokens[nFound].start] = 0;
+					}
+					if (nFound > 0 && tokens[nFound - 1].type == JSMN_STRING) {
+						analyzer_getTokenContents(pCaretContext->ac_token2, pMem, &tokens[nFound - 1], sizeof(pCaretContext->ac_token2) - 1);
+					}
+					pCaretContext->ac_tokenOffset = wp->caret.offset + (int)(tokens[nFound].start - offset);
 					pCaretContext->ac_type = JSON_VALUE;
 					strcpy(pCaretContext->ac_tokenTypeName, "value");
 				}
@@ -701,18 +715,21 @@ static void analyzer_getJsonCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCar
  * Given the name of the parent JSON node (pszName), try to find the list of mapping rules defining the object
  * define via pszName. nDepth is passed as a simple mechanism to avoid endless recursion.
  */
-static JSON_MAPPING_RULE* analyzer_findJsonRules(JSON_MAPPING_RULE* pRules, char* pszName, int nDepth) {
+static JSON_MAPPING_RULE* analyzer_findJsonRules(JSON_MAPPING_RULE* pRules, char* pszName, BOOL bFindObject, int nDepth) {
 	if (++nDepth > 10) {
 		return NULL;
 	}
 	while (pRules->r_type != RT_END) {
+		if (!bFindObject && strcmp(pszName, pRules->r_name) == 0) {
+			return pRules;
+		}
 		if (pRules->r_type == RT_OBJECT_LIST) {
 			JSON_MAPPING_RULE* pNested = pRules->r_descriptor.r_t_arrayDescriptor.ro_nestedRules;
 			if (pNested && pNested != pRules) {
 				if (strcmp(pszName, pRules->r_name) == 0) {
 					return pNested;
 				}
-				pNested = analyzer_findJsonRules(pNested, pszName, nDepth);
+				pNested = analyzer_findJsonRules(pNested, pszName, bFindObject, nDepth);
 				if (pNested != NULL) {
 					return pNested;
 				}
@@ -730,34 +747,58 @@ static char* analyzer_provideHelpForMappingRule(const char* pszRule, JSON_MAPPIN
 	return NULL;
 }
 
-static void analyzer_provideJsonSuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
-	pRules = analyzer_findJsonRules(pRules, pContext->ac_token2, 0);
+static void analyzer_provideJsonKeySuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
+	pRules = analyzer_findJsonRules(pRules, pContext->ac_token2, TRUE, 0);
 	while (pRules && pRules->r_type != RT_END) {
 		if (fMatch(pContext, pRules->r_name)) {
 			fCallback(&(ANALYZER_CALLBACK_PARAM) {
 				.acp_replacedTextStart = pContext->ac_tokenOffset,
 				.acp_replacedTextLength = (int)strlen(pContext->ac_token),
+				.acp_score = codecomplete_calculateScore(pContext, pRules->r_name),
 				.acp_recommendation = pRules->r_name,
 				.acp_object = (void*)pRules,
-				.acp_help = analyzer_provideHelpForMappingRule,
-				.acp_score = 1
+				.acp_help = analyzer_provideHelpForMappingRule
 			});
 		}
 		pRules++;
 	}
 }
 
-static void analyzer_calculateJsonSuggestions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
-	if (pContext->ac_type != JSON_KEY) {
-		return;
+static void analyzer_provideJsonValueSuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
+	pRules = analyzer_findJsonRules(pRules, pContext->ac_token2, FALSE, 0);
+	if (pRules != NULL && pRules->r_type == RT_COLOR) {
+		for (int i = 0; _cssColors[i].cc_name != NULL; i++) {
+			if (fMatch(pContext, _cssColors[i].cc_name)) {
+				fCallback(&(ANALYZER_CALLBACK_PARAM) {
+					.acp_replacedTextStart = pContext->ac_tokenOffset,
+						.acp_replacedTextLength = (int)strlen(pContext->ac_token),
+						.acp_recommendation = _cssColors[i].cc_name,
+						.acp_object = (void*)pRules,
+						.acp_help = analyzer_provideHelpForMappingRule,
+						.acp_score = codecomplete_calculateScore(pContext, _cssColors[i].cc_name),
+						.acp_icon = {
+						.cai_iconType = CAI_COLOR_ICON,
+						.cai_data.cai_color = _cssColors[i].cc_color
+					}
+				});
+			}
+
+		}
 	}
+}
+
+static void analyzer_calculateJsonSuggestions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	char szFilename[256];
 	FTABLE* fp = FTPOI(wp);
 	strcpy(szFilename, string_getBaseFilename(fp->fname));
 	ANALYZER_SCHEMA* pSchemas = _analyzerSchemas;
 	while (pSchemas) {
 		if (string_matchFilename(szFilename, pSchemas->as_fileNamePattern)) {
-			analyzer_provideJsonSuggestions(pSchemas->as_mappingRules, fMatch, fCallback, pContext);
+			if (pContext->ac_type == JSON_KEY) {
+				analyzer_provideJsonKeySuggestions(pSchemas->as_mappingRules, fMatch, fCallback, pContext);
+			} else if (pContext->ac_type == JSON_VALUE) {
+				analyzer_provideJsonValueSuggestions(pSchemas->as_mappingRules, fMatch, fCallback, pContext);
+			}
 			break;
 		}
 		pSchemas = pSchemas->as_next;

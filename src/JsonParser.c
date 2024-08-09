@@ -107,10 +107,7 @@ static JSON_MAPPING_RULE* json_findRule(char* pJsonInput, jsmntok_t* pToken, JSO
 	return NULL;
 }
 
-static struct tagCSS_COLOR {
-	const char* cc_name;
-	COLORREF    cc_color;
-} _cssColors[] = {
+CSS_COLOR _cssColors[] = {
 	// Must be sorted alphabetically
 	{"aliceblue", RGB(240,248,255)},
 	{"antiquewhite", RGB(250,235,215)},
@@ -196,7 +193,8 @@ static struct tagCSS_COLOR {
 	{"white", RGB(255,255,255)},
 	{"whitesmoke", RGB(245,245,245)},
 	{"yellow", RGB(255,255,0)},
-	{"yellowgreen", RGB(154,205,50)}
+	{"yellowgreen", RGB(154,205,50)},
+	{.cc_color = 0}
 };
 
 /*
@@ -207,7 +205,8 @@ COLORREF json_convertColor(char* pszString) {
 		long l = (long)string_convertToLongBase16(pszString + 1);
 		return RGB((l >> 16) & 0xFF, (l >> 8) & 0xFF, l & 0xFF);
 	}
-	int upper = DIM(_cssColors);
+	// Skip last element, which is used as end of list marker.
+	int upper = DIM(_cssColors)-1;
 	int lower = 0;
 	while (TRUE) {
 		int i = lower + (upper - lower) / 2;

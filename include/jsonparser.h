@@ -23,6 +23,13 @@
  */
 typedef int (*JSON_STRING_CALLBACK)(void* pTargetObject, const char* pszString);
 
+typedef struct tagCSS_COLOR {
+	const char* cc_name;
+	COLORREF    cc_color;
+} CSS_COLOR;
+
+extern CSS_COLOR _cssColors[];
+
 typedef enum { 
 	RT_CHAR_ARRAY,			// we expect a string in the JSON input and will store the value in the target object. The value descriptor will contain the maximum size
 	RT_ALLOC_STRING,		// we expect a string in the JSON input and will return a malloced version of the string in the target object 
