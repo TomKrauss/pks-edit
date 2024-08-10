@@ -190,8 +190,7 @@ int codecomplete_calculateScore(ANALYZER_CARET_CONTEXT* pCaretContext, const cha
 	if (string_strcasestr(pszFound, pszSearch) == pszFound) {
 		return 50 + lFound;
 	}
-	long l = (long)strlen(pszSearch);
-	return 20 - levenshtein_calculate(pszSearch, l, pszFound, l, 0);
+	return 20 - levenshtein_calculate(pszSearch, -1, pszFound, -1, 0);
 }
 
 static void codecomplete_addTags(ANALYZER_CALLBACK_PARAM* bParam) {

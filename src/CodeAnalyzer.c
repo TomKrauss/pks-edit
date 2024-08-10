@@ -73,6 +73,12 @@ typedef struct tagANALYZER {
 static ANALYZER *_analyzers;
 static ANALYZER_SCHEMA* _analyzerSchemas;
 
+typedef enum JSON_GRAMMAR_STATES {
+	JSON_UNKNOWN,
+	JSON_KEY,
+	JSON_VALUE
+} JSON_GRAMMAR_STATES;
+
 /*
  * Calculate the lexical start state at a given line.
  */
@@ -531,23 +537,37 @@ static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCo
 }
 
 static ANALYZER_CALLBACK _keyAnalyzerCallback;
+static char* pszCompare;
 static void analyzer_addKeycode(const char* pszKeycode) {
-	_keyAnalyzerCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pszKeycode });
+	if (strstr(pszKeycode, pszCompare) == pszKeycode) {
+		_keyAnalyzerCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pszKeycode });
+	}
 }
 
 /*
  * Returns a possible code completion in a PKS actionbinding file - either the name of a PKS command, the name of a fontawesome icon
  * or the name of a key.
  */
-static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
-	if (wp->caret.offset > 0 && wp->caret.linePointer->lbuf[wp->caret.offset - 1] == '+') {
+static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pCaretContext) {
+	if (pCaretContext->ac_type != JSON_VALUE) {
+		return;
+	}
+	if (strcmp(pCaretContext->ac_token2, "key") == 0) {
+		pszCompare = pCaretContext->ac_tokenStart;
+		char* pPlus = strrchr(pszCompare, '+');
+		if (pPlus != NULL) {
+			pszCompare = pPlus+1;
+		}
 		_keyAnalyzerCallback = fCallback;
 		bindings_addModifiersAndKeycodes(analyzer_addKeycode);
 		return;
 	}
+	if (strcmp(pCaretContext->ac_token2, "command") != 0) {
+		return;
+	}
 	const char* pszWord;
 	for (int i = 0; (pszWord = macro_getCommandByIndex(i)) != 0; i++) {
-		if (fMatch(pContext, pszWord)) {
+		if (fMatch(pCaretContext, pszWord)) {
 			MACROREF macref = (MACROREF){ .typ = CMD_CMDSEQ, .index = i };
 			fCallback(&(ANALYZER_CALLBACK_PARAM) {
 				.acp_recommendation = pszWord,
@@ -634,12 +654,6 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CA
 	}
 	return ret;
 }
-
-typedef enum JSON_GRAMMAR_STATES {
-	JSON_UNKNOWN,
-	JSON_KEY,
-	JSON_VALUE
-} JSON_GRAMMAR_STATES;
 
 static void analyzer_getTokenContents(char* pszDestination, const char* pMem, jsmntok_t* pToken, size_t nMaxLen) {
 	char szToken[MAX_TOKEN_SIZE];

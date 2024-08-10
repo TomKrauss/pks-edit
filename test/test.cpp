@@ -719,6 +719,8 @@ namespace pkseditTests
 			delta = levenshtein_calculate("abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890", -1, 
 			   "xbcdefghijklmnopqrstuvwxyz1234567890addddbcdefghijklmnopqrstu&&&yz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopuvwxyz1234567890", -1, 0);
 			Assert::AreEqual((size_t)12, delta);
+			delta = levenshtein_calculate("RETURN", -1, "Shift+Ctrl+PAGE_DOWN", -1, 0);
+			Assert::AreEqual((size_t)18, delta);
 		}
 	};
 	TEST_CLASS(character_classes)
