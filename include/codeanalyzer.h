@@ -28,6 +28,8 @@ typedef enum {
 	CAI_RESOURCE_ICON,
 	// Font awesome icon
 	CAI_FA_ICON,
+	// Paint an emoji
+	CAI_EMOJI,
 	// Do not show an icon at all
 	CAI_NO_ICON
 } CODE_ACTION_ICON_TYPE;
@@ -39,6 +41,8 @@ typedef struct tagCODE_ACTION_ICON {
 		char cai_iconName[32];
 		// For type CAI_COLOR_ICON, this is the color to display.
 		COLORREF cai_color;
+		// For type CAI_EMOJI, this the unicode of the emoji
+		WCHAR cai_emoji[3];
 	} cai_data;
 } CODE_ACTION_ICON;
 

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - JSON Code Completion support was added in particular for PKS Edit configuration files.
+- The Code Completion window show now supporting graphical information like the color of an inserted color name or
+  the emoji to insert into a markdown document or the FontAweSome icon, when inserting an icon name in a configuration
+  file.
 - The new function `reload-themes` (by default bound to `Ctrl+F10`) makes theme updates and editing easier.
 - File Templates: when creating files with a grammar defining a `file` - template will have the template being inserted, when the new file is created.
 - The Markdown Wysiwyg mode supports now caret line highlighting.

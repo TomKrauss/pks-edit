@@ -56,6 +56,8 @@ extern JSON_MAPPING_RULE * copyright_getJsonMapping();
  */
 extern JSON_MAPPING_RULE* bindings_getJsonMapping();
 
+extern JSON_ENUM_VALUE* emoji_getSuggestions();
+
 typedef struct tagANALYZER_SCHEMA {
 	struct tagANALYZER_SCHEMA* as_next;
 	const char * as_fileNamePattern;
@@ -537,9 +539,9 @@ static const char* analyzer_helpForCommand(const char* pszCommandName, void* pCo
 }
 
 static ANALYZER_CALLBACK _keyAnalyzerCallback;
-static char* pszCompare;
+static char* _pszKeyCompare;
 static void analyzer_addKeycode(const char* pszKeycode) {
-	if (strstr(pszKeycode, pszCompare) == pszKeycode) {
+	if (strstr(pszKeycode, _pszKeyCompare) == pszKeycode) {
 		_keyAnalyzerCallback(&(ANALYZER_CALLBACK_PARAM) { .acp_recommendation = pszKeycode });
 	}
 }
@@ -553,10 +555,10 @@ static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANA
 		return;
 	}
 	if (strcmp(pCaretContext->ac_token2, "key") == 0) {
-		pszCompare = pCaretContext->ac_tokenStart;
-		char* pPlus = strrchr(pszCompare, '+');
+		_pszKeyCompare = pCaretContext->ac_tokenStart;
+		char* pPlus = strrchr(_pszKeyCompare, '+');
 		if (pPlus != NULL) {
-			pszCompare = pPlus+1;
+			_pszKeyCompare = pPlus+1;
 		}
 		_keyAnalyzerCallback = fCallback;
 		bindings_addModifiersAndKeycodes(analyzer_addKeycode);
@@ -576,6 +578,31 @@ static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANA
 					.acp_getHyperlinkText = macrodoc_helpForHyperlink
 			});
 		}
+	}
+}
+
+/*
+ * Returns the possible code completion in a markdown file.
+ */
+static void analyzer_getMarkdownCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pCaretContext) {
+	if (pCaretContext->ac_token[0] == ':') {
+		JSON_ENUM_VALUE* pValues = emoji_getSuggestions();
+		if (pValues != NULL) {
+			for (int i = 0; pValues[i].jev_name; i++) {
+				const char* pString = pValues[i].jev_name;
+				if (fMatch(pCaretContext, pString)) {
+					fCallback(&(ANALYZER_CALLBACK_PARAM) {
+						.acp_replacedTextStart = pCaretContext->ac_tokenOffset,
+							.acp_replacedTextLength = (int)strlen(pCaretContext->ac_token),
+							.acp_recommendation = pString,
+							.acp_score = codecomplete_calculateScore(pCaretContext, pString),
+							.acp_icon = pValues[i].jev_icon
+					});
+				}
+			}
+			free(pValues);
+		}
+		return;
 	}
 }
 
@@ -612,6 +639,15 @@ static int analyzer_matchContext(ANALYZER_CARET_CONTEXT* pContext, const char* p
 static analyzer_getDefaultCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
 	xref_findIdentifierCloseToCaret(wp, &wp->caret, 
 		pContext->ac_token, pContext->ac_token + sizeof pContext->ac_token, NULL, NULL, FI_BEGIN_WORD_TO_CURSOR);
+}
+
+static int analyzer_matchMarkdownToken(unsigned char c) {
+	return c == ':' || c == '`' || isident(c);
+}
+
+static analyzer_getMarkdownCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pContext) {
+	xref_findMatchingCloseToCaret(wp, &wp->caret,
+		pContext->ac_token, pContext->ac_token + sizeof pContext->ac_token, NULL, NULL, analyzer_matchMarkdownToken, FI_BEGIN_WORD_TO_CURSOR);
 }
 
 /*
@@ -863,6 +899,7 @@ void analyzer_registerDefaultAnalyzers() {
 	analyzer_register("json", analyzer_calculateJsonSuggestions, analyzer_getJsonCaretContext);
 	analyzer_register("pks-macros", analyzer_getMacrocCompletions, analyzer_getDefaultCaretContext);
 	analyzer_register("action-bindings", analyzer_getBindingCompletions, analyzer_getJsonCaretContext);
+	analyzer_register("markdown", analyzer_getMarkdownCompletions, analyzer_getMarkdownCaretContext);
 
 	analyzer_registerSchema("*.grammar.json", grammar_getJsonMapping());
 	analyzer_registerSchema("pkseditconfig.json", doctypes_getJsonMapping());

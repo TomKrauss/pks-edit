@@ -37,6 +37,7 @@
 #include "pksmacro.h"
 #include "mainframe.h"
 #include "edctype.h"
+#include "codeanalyzer.h"
 #include "jsonparser.h"
 #include "hashmap.h"
 #include "printing.h"
@@ -146,6 +147,20 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F49B", ":yellow_heart:"}
 };
 
+/*
+ * Used during code completion.
+ */
+JSON_ENUM_VALUE* emoji_getSuggestions() {
+	JSON_ENUM_VALUE* pResult = calloc(DIM(_emojis) + 1, sizeof (*pResult));
+	if (pResult != NULL) {
+		for (int i = 0; i < DIM(_emojis); i++) {
+			pResult[i].jev_name = _emojis[i].name;
+			pResult[i].jev_icon.cai_iconType = CAI_EMOJI;
+			memcpy(pResult[i].jev_icon.cai_data.cai_emoji, _emojis[i].emoji, 2 * sizeof(WCHAR));
+		}
+	}
+	return pResult;
+}
 //
 // Describes the bounds of a text run with the following shape.
 // 

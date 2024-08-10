@@ -763,6 +763,17 @@ char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* p
 		xref_matchIdentifier, fiOptions);
 }
 
+/**
+ * xref_findMatchingCloseToCaret
+ * Find an word matching matchFunction close to the caret in the current editor window.
+ **/
+char* xref_findMatchingCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchFunction)(unsigned char c), FIND_IDENTIFIER_OPTIONS fiOptions) {
+
+	return xref_findExpressionCloseToCaret(wp, pCaret, pszTargetBuffer, pszTargetBufferEnd, pszExpressionBegin, pszExpressionEnd,
+		matchFunction, fiOptions);
+}
+
 /*---------------------------------*/
 /* xref_saveCrossReferenceWord()					*/
 /*---------------------------------*/

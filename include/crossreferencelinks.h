@@ -79,6 +79,13 @@ typedef enum { FI_BEGIN_WORD_TO_CURSOR, FI_CURSOR_TO_END_WORD, FI_COMPLETE_WORD}
 extern char* xref_findIdentifierCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
 	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, FIND_IDENTIFIER_OPTIONS fiOptions);
 
+/**
+ * xref_findMatchingCloseToCaret
+ * Find an word matching matchFunction close to the caret in the current editor window.
+ **/
+char* xref_findMatchingCloseToCaret(WINFO* wp, CARET* pCaret, unsigned char* pszTargetBuffer, unsigned char* pszTargetBufferEnd,
+	unsigned char** pszExpressionBegin, unsigned char** pszExpressionEnd, int (*matchFunction)(unsigned char c), FIND_IDENTIFIER_OPTIONS fiOptions);
+
 /*
  * Iterate over all cross references defined for the grammar of the given editor window and
  * process all tags defined matching the text 'pszMatching'. Return 1 if successful.

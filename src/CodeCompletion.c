@@ -85,6 +85,10 @@ typedef struct tagCODE_COMPLETION_PARAMS {
 } CODE_COMPLETION_PARAMS;
 
 static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC, int nNewSelection);
+/*
+ * Draws an emoji with the specified attributes.
+ */
+extern void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int* pHeight);
 
 #define	GWL_PARAMS				0
 #define	GWL_SECONDARY_WINDOW	GWL_PARAMS+sizeof(CODE_COMPLETION_PARAMS*)
@@ -225,32 +229,11 @@ static char* codecomplete_helpForTemplate(const char* pszCompletion, void* pText
 	return pText == NULL ? NULL : _strdup(pText);
 }
 
-/*
- * Tries to find the longest matching pattern close to the caret from the list of 
- * patterns to match.
- */
-static void codecomplete_findLongestTemplateMatch(char* pszMatch, WINFO* wp, UCLIST* up) {
-	char matched[128];
-	*pszMatch = 0;
-	while (up) {
-		template_matchIdentifier(wp, up->uc_pattern.pattern, matched, sizeof matched);
-		size_t nMatchLen = strlen(matched);
-		if (nMatchLen > strlen(caretContext.ac_token) && nMatchLen > strlen(pszMatch)) {
-			strcpy(pszMatch, matched);
-		}
-		up = up->next;
-	}
-}
-
-static void codecomplete_addTemplates(WINFO* wp, GRAMMAR* pGrammar) {
-	char szTemplateMatch[128];
+static void codecomplete_addTemplates(WINFO* wp, GRAMMAR* pGrammar, ANALYZER_CARET_CONTEXT* pCaretContext) {
 	UCLIST* up = grammar_getUndercursorActions(pGrammar);
-	codecomplete_findLongestTemplateMatch(szTemplateMatch, wp, up);
-	if (!szTemplateMatch[0]) {
-		return;
-	}
+	char* pszTemplateMatch = pCaretContext->ac_tokenStart[0] ? pCaretContext->ac_tokenStart : pCaretContext->ac_token;
 	while (up) {
-		if (up->action == UA_TEMPLATE && strstr(up->uc_pattern.pattern, szTemplateMatch) == up->uc_pattern.pattern &&
+		if (up->action == UA_TEMPLATE && strstr(up->uc_pattern.pattern, pszTemplateMatch) == up->uc_pattern.pattern &&
 			(up->uc_pattern.grammarContext == NULL || strcmp(up->uc_pattern.grammarContext, caretContext.ac_tokenTypeName) == 0)) {
 			CODE_ACTION* pAction = (CODE_ACTION*)calloc(1, sizeof * pAction);
 			if (pAction == NULL) {
@@ -288,7 +271,7 @@ void codecomplete_updateCompletionList(WINFO* wp, BOOL bForce) {
 	const char* pszAnalyzer = grammar_getCodeAnalyzer(pGrammar);
 	analyzer_getCaretContext(pszAnalyzer, wp, &caretContext);
 
-	codecomplete_addTemplates(wp, pGrammar);
+	codecomplete_addTemplates(wp, pGrammar, &caretContext);
 	_suggestions = hashmap_create(37, NULL, NULL);
 	analyzer_performAnalysis(pszAnalyzer, wp, &caretContext, codecomplete_analyzerCallback);
 	xref_forAllTagsDo(wp, codecomplete_matchWord, codecomplete_addTags);
@@ -362,6 +345,9 @@ static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate
 	HICON hIcon = NULL;
 	int nSize = pMetric->tmHeight;
 	switch (up->ca_icon.cai_iconType) {
+	case CAI_EMOJI:
+		paint_emojid2d(hdc, up->ca_icon.cai_data.cai_emoji, theme_getCurrent()->th_iconColor, nSize, x, y, &nSize, &nSize);
+		break;
 	case CAI_FA_ICON: {
 		CHAR_WITH_STYLE c = faicon_codeForName(up->ca_icon.cai_data.cai_iconName);
 		HBITMAP hBitmap = faicon_createAwesomeIcons(theme_getCurrent()->th_iconColor, nSize, &c, 1);
