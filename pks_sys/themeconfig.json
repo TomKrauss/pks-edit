@@ -23,110 +23,133 @@
         {
           "styleName": "wysiwyg",
           "faceName": "Arial",
-          "size": -11
+          "size": -11,
+          "description": "Used in <em>markdown</em> and <em>HTML</em> wysiwyg display to define font face and size"
         },
         {
           "styleName": "default",
           "size": -12,
           "foregroundColor": "#000030",
-          "weight": 400
+          "weight": 400,
+          "description": "Used as <em>regular text style</em> in text editors"
         },
         {
           "styleName": "control",
-          "foregroundColor": "#aaaaaa"
+          "foregroundColor": "#aaaaaa",
+          "description": "Used as text style for <em>control characters</em> (<code>cr</code>, <code>tab</code>, ...) displayed in text editors"
         },
         {
           "styleName": "identifier",
-          "foregroundColor": "#777722"
+          "foregroundColor": "#777722",
+          "description": "Used as text style to mark <em>identifiers</em> in source code"
         },
         {
           "styleName": "constant",
-          "foregroundColor": "#aaaa22"
+          "foregroundColor": "#aaaa22",
+          "description": "Used as text style to mark <em>constant declarations</em> in source code"
         },
         {
           "styleName": "keyword",
           "weight": 700,
-          "foregroundColor": "#AA0000"
+          "foregroundColor": "#AA0000",
+          "description": "Used as text style to mark <em>keywords</em> in source code"
         },
         {
           "styleName": "error",
           "weight": 700,
-          "foregroundColor": "#FF2222"
+          "foregroundColor": "#FF2222",
+          "description": "Used as text style to mark <em>syntax errors</em> and the like in source code"
         },
         {
           "styleName": "warning",
           "weight": 700,
-          "foregroundColor": "#2222FF"
+          "foregroundColor": "#2222FF",
+          "description": "Used as text style to mark <em>syntax warnings</em> in source code"
         },
         {
           "styleName": "operator",
           "weight": 700,
-          "foregroundColor": "#883333"
+          "foregroundColor": "#883333",
+          "description": "Used as text style to mark <em>operators</em> (<code>+, -,</code>...) in source code"
         },
         {
           "styleName": "annotation",
           "weight": 700,
-          "foregroundColor": "#007777"
+          "foregroundColor": "#007777",
+          "description": "Used as text style to mark <em>annotations</em> (<code>@Key</code>) in source code"
         },
         {
           "styleName": "bold",
-          "weight": 700
+          "weight": 700,
+          "description": "Used as text style to <b>emphasise</b> code fragments in source code"
         },
         {
           "styleName": "expression",
           "foregroundColor": "rosybrown",
-          "weight": 700
+          "weight": 700,
+          "description": "Used as text style to <em>highlight expressions</em> in source code"
         },
         {
           "styleName": "bold-italic",
           "weight": 700,
-          "italic": true
+          "italic": true,
+          "description": "Used as text style to <b>emphasise</b> code fragments in source code"
         },
         {
           "styleName": "italic",
-          "italic": true
+          "italic": true,
+          "description": "Used as text style to <i>emphasise</i> code fragments in source code"
         },
         {
           "styleName": "code",
           "faceName": "Consolas",
           "weight": 700,
-          "backgroundColor": "#efefef"
+          "backgroundColor": "#efefef",
+          "description": "Used as text style to mark <em>code</em> passages in markdown documents"
         },
         {
           "styleName": "highlight",
-          "backgroundColor": "#efef83"
+          "backgroundColor": "#efef83",
+          "description": "Used as text style to highlight text in markdown documents"
         },
         {
           "styleName": "literal",
           "weight": 700,
-          "foregroundColor": "#770077"
+          "foregroundColor": "#770077",
+          "description": "Used as text style to mark <em>literals</em> (e.g. <code>'a'</code>) in source code"
         },
         {
           "styleName": "hyperlink",
           "underline": true,
-          "foregroundColor": "#0000AA"
+          "foregroundColor": "#0000AA",
+          "description": "Used as text style to highlight <em>hyperlinks</em> either in wysiwyg display of documents"
         },
         {
           "styleName": "string",
-          "foregroundColor": "#44aaaa"
+          "foregroundColor": "#44aaaa",
+          "description": "Used as text style to mark <em>string literals</em> (e.g. <code>\"a text\"</code>) in source code"
         },
         {
           "styleName": "single-line-comment",
-          "foregroundColor": "#229922"
+          "foregroundColor": "#229922",
+          "description": "Used as text style to display <em>line comments</em> in source code"
         },
         {
           "styleName": "comment",
-          "foregroundColor": "#006600"
+          "foregroundColor": "#006600",
+          "description": "Used as text style to display <em>block comments</em> in source code"
         },
         {
           "styleName": "bold-comment",
           "weight": 900,
-          "foregroundColor": "#006600"
+          "foregroundColor": "#006600",
+          "description": "Used as text style to <b>highlight</b> passages in <em>block comments</em> in source code"
         },
         {
           "styleName": "task",
           "weight": 800,
-          "foregroundColor": "#FF7777"
+          "foregroundColor": "#FF7777",
+          "description": "Used as text style to highlight TODO annotations (e.g. /* TODO: */) in source code"
         }
       ]
     },

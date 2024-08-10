@@ -24,6 +24,7 @@
 #include "documentmodel.h"
 #include "linkedlist.h"
 #include "edierror.h"
+#include "codeanalyzer.h"
 #include "jsonparser.h"
 #include "editorconfiguration.h"
 #include "dpisupport.h"
@@ -200,6 +201,7 @@ static JSON_MAPPING_RULE _edTextStyleRules[] = {
 	{	RT_FLAG, "underline", offsetof(EDTEXTSTYLE, style.underline), {1}},
 	{	RT_FLAG, "strikeout", offsetof(EDTEXTSTYLE, style.strikeout), {1}},
 	{	RT_INTEGER, "weight", offsetof(EDTEXTSTYLE, style.weight)},
+	{	RT_ALLOC_STRING, "description", offsetof(EDTEXTSTYLE, description)},
 	{	RT_END}
 };
 
@@ -297,11 +299,26 @@ static char* _styleNames[] = {
 	"hyperlink"
 };
 
+static const char* theme_findStyleDescription(const char* pszStyleName) {
+	THEME_DATA* pCurr = theme_getDefault();
+	if (pCurr == NULL) {
+		return NULL;
+	}
+	EDTEXTSTYLE* pStyles = pCurr->th_styles;
+	while (pStyles) {
+		if (strcmp(pszStyleName, pStyles->styleName) == 0) {
+			return pStyles->description;
+		}
+		pStyles = pStyles->next;
+	}
+	return NULL;
+}
+
 /*
  * Returns the styles supported + their respective properties for being used in code completion.
  */
 JSON_ENUM_VALUE* theme_getStyles() {
-	THEME_DATA* pCurr = theme_getDefault();
+	THEME_DATA* pCurr = theme_getCurrent();
 	if (pCurr == NULL) {
 		return NULL;
 	}
@@ -313,8 +330,18 @@ JSON_ENUM_VALUE* theme_getStyles() {
 	}
 	int i = 0;
 	while (pStyles) {
-		pValues[i].jev_name = _strdup(pStyles->styleName);
-		pValues[i].jev_color = pStyles->fgcolor;
+		const char* pszDescription = pStyles->description;
+		if (pszDescription == NULL) {
+			pszDescription = theme_findStyleDescription(pStyles->styleName);
+		}
+		pValues[i].jev_name = pStyles->styleName;
+		pValues[i].jev_description = pszDescription;
+		pValues[i].jev_icon = (CODE_ACTION_ICON) {
+			.cai_iconType = CAI_COLOR_ICON,
+			.cai_data = {
+				.cai_color = pStyles->fgcolor
+			}
+		};
 		i++;
 		pStyles = pStyles->next;
 	}
@@ -650,8 +677,16 @@ THEME_DATA* theme_getCurrent() {
 	return themeConfiguration.th_currentTheme;
 }
 
+static int theme_destroyStyle(EDTEXTSTYLE* pStyle) {
+	if (pStyle->description) {
+		free(pStyle->description);
+		pStyle->description = NULL;
+	}
+	return 1;
+}
+
 static int theme_destroyTheme(THEME_DATA* pTheme) {
-	ll_destroy((void*) & pTheme->th_styles, NULL);
+	ll_destroy((void*) & pTheme->th_styles, theme_destroyStyle);
 	return 1;
 }
 

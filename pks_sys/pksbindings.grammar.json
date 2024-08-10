@@ -5,7 +5,7 @@
       "description": "Grammar for PKS-Edit action bindings files",
       "import": [ "json" ],
       "wordCharacterClass": "a-zäöü=A-ZÄÖÜß_0-9@-",
-      "analyzer": "action-bindings"
+      "analyzer": "action-bindings:json"
     }
   ]
 }

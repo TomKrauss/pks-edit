@@ -63,11 +63,15 @@ struct tagOBJECT_DESCRIPTOR {
 	void (*ro_destroy)(void* p);						// An optional destruction method, invoked, when one uses json_destroy to de-allocate a nested JSON data structure.
 };
 
-typedef struct tagJSON_ENUM_VALUE {
-	char* jev_name;
-	char* jev_description;
-	COLORREF jev_color;
-} JSON_ENUM_VALUE;
+#ifdef CODEANALYZER_H
+struct tagJSON_ENUM_VALUE {
+	const char* jev_name;
+	const char* jev_description;
+	CODE_ACTION_ICON jev_icon;
+};
+#endif
+
+typedef struct tagJSON_ENUM_VALUE JSON_ENUM_VALUE;
 
 typedef JSON_ENUM_VALUE* (*PROVIDE_ENUM_VALUES)();
 

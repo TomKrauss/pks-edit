@@ -26,6 +26,8 @@ typedef enum {
 	CAI_COLOR_ICON,
 	// Show an icon with a given resource name
 	CAI_RESOURCE_ICON,
+	// Font awesome icon
+	CAI_FA_ICON,
 	// Do not show an icon at all
 	CAI_NO_ICON
 } CODE_ACTION_ICON_TYPE;
@@ -33,7 +35,7 @@ typedef enum {
 typedef struct tagCODE_ACTION_ICON {
 	CODE_ACTION_ICON_TYPE cai_iconType;
 	union {
-		// For type CAI_RESOURCE_ICON this is the name of the resource to load.
+		// For type CAI_RESOURCE_ICON this is the name of the resource to load, for CAI_FA_ICON the name of the icon
 		char cai_iconName[32];
 		// For type CAI_COLOR_ICON, this is the color to display.
 		COLORREF cai_color;
@@ -80,6 +82,8 @@ typedef struct tagANALYZER_CARET_CONTEXT {
 	// A second token close to the caret. Example: when suggesting XML this could be the name of an entity, when trying to match an attribute.
 	char ac_token2[128];
 } ANALYZER_CARET_CONTEXT;
+
+typedef struct tagWINFO WINFO;
 
 /*
  * Function used for matching valid code completion matches during analysis of a file.

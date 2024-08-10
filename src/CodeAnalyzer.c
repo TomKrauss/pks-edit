@@ -25,11 +25,11 @@
 #define JSMN_HEADER
 #define JSMN_PARENT_LINKS
 #include "jsmn.h"
+#include "codeanalyzer.h"
 #include "jsonparser.h"
 #include "documentmodel.h"
 #include "winfo.h"
 #include "hashmap.h"
-#include "codeanalyzer.h"
 #include "codecompletion.h"
 #include "pksmacro.h"
 #include "actionbindings.h"
@@ -50,6 +50,11 @@ extern JSON_MAPPING_RULE* theme_getJsonMapping();
  * Returns the JSON mapping for the copyright_profiles.json config file.
  */
 extern JSON_MAPPING_RULE * copyright_getJsonMapping();
+
+/*
+ * Returns the JSON mapping for action binding files.
+ */
+extern JSON_MAPPING_RULE* bindings_getJsonMapping();
 
 typedef struct tagANALYZER_SCHEMA {
 	struct tagANALYZER_SCHEMA* as_next;
@@ -552,13 +557,6 @@ static void analyzer_getBindingCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANA
 			});
 		}
 	}
-	for (int i = 0; (pszWord = faicon_nameForIndex(i)) != 0; i++) {
-		if (fMatch(pContext, pszWord)) {
-			fCallback(&(ANALYZER_CALLBACK_PARAM) {
-				.acp_recommendation = pszWord
-			});
-		}
-	}
 }
 
 /*
@@ -608,7 +606,7 @@ BOOL analyzer_getCaretContext(const char* pszAnalyzerName, WINFO* wp, ANALYZER_C
 	ANALYZER* pAnalyzer = _analyzers;
 
 	while (pAnalyzer) {
-		if (strcmp(pszAnalyzerName, pAnalyzer->an_name) == 0) {
+		if (strstr(pszAnalyzerName, pAnalyzer->an_name) != 0) {
 			pAnalyzer->an_getCaretContext(wp, pCaretContext);
 			return TRUE;
 		}
@@ -625,15 +623,16 @@ int analyzer_performAnalysis(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CA
 		return 0;
 	}
 	ANALYZER* pAnalyzer = _analyzers;
+	int ret = 0;
 
 	while (pAnalyzer) {
-		if (strcmp(pszAnalyzerName, pAnalyzer->an_name) == 0) {
+		if (strstr(pszAnalyzerName, pAnalyzer->an_name) != 0) {
 			pAnalyzer->an_determineCompletionsFunction(wp, analyzer_matchContext, fCallback, pCaretContext);
-			return 1;
+			ret = 1;
 		}
 		pAnalyzer = pAnalyzer->an_next;
 	}
-	return 0;
+	return ret;
 }
 
 typedef enum JSON_GRAMMAR_STATES {
@@ -747,6 +746,13 @@ static char* analyzer_provideHelpForMappingRule(const char* pszRule, JSON_MAPPIN
 	return NULL;
 }
 
+static char* analyzer_provideHelpForString(const char* pszRule, char* pString) {
+	if (pString) {
+		return _strdup(pString);
+	}
+	return NULL;
+}
+
 static void analyzer_provideJsonKeySuggestions(JSON_MAPPING_RULE* pRules, ANALYZER_MATCH fMatch, ANALYZER_CALLBACK fCallback, ANALYZER_CARET_CONTEXT* pContext) {
 	pRules = analyzer_findJsonRules(pRules, pContext->ac_token2, TRUE, 0);
 	while (pRules && pRules->r_type != RT_END) {
@@ -789,25 +795,18 @@ static void analyzer_provideJsonValueSuggestions(JSON_MAPPING_RULE* pRules, ANAL
 			JSON_ENUM_VALUE* pValues = pRules->r_valueProvider();
 			if (pValues != NULL) {
 				for (int i = 0; pValues[i].jev_name; i++) {
-					char* pString = pValues[i].jev_name;
+					const char* pString = pValues[i].jev_name;
 					if (fMatch(pContext, pString)) {
 						fCallback(&(ANALYZER_CALLBACK_PARAM) {
 							.acp_replacedTextStart = pContext->ac_tokenOffset,
 								.acp_replacedTextLength = (int)strlen(pContext->ac_token),
 								.acp_recommendation = pString,
-								.acp_object = (void*)pRules,
-								.acp_help = analyzer_provideHelpForMappingRule,
+								.acp_object = (void*)pValues[i].jev_description,
+								.acp_help = analyzer_provideHelpForString,
 								.acp_score = codecomplete_calculateScore(pContext, pString),
-								.acp_icon = {
-								.cai_iconType = CAI_COLOR_ICON,
-								.cai_data.cai_color = pValues[i].jev_color
-							}
+								.acp_icon = pValues[i].jev_icon
 						});
 					}
-					if (pValues[i].jev_description) {
-						free(pValues[i].jev_description);
-					}
-					free(pString);
 				}
 				free(pValues);
 			}
@@ -849,10 +848,11 @@ void analyzer_registerDefaultAnalyzers() {
 	analyzer_register("xml", analyzer_extractXmlElements, analyzer_getXmlCaretContext);
 	analyzer_register("json", analyzer_calculateJsonSuggestions, analyzer_getJsonCaretContext);
 	analyzer_register("pks-macros", analyzer_getMacrocCompletions, analyzer_getDefaultCaretContext);
-	analyzer_register("action-bindings", analyzer_getBindingCompletions, analyzer_getDefaultCaretContext);
+	analyzer_register("action-bindings", analyzer_getBindingCompletions, analyzer_getJsonCaretContext);
 
 	analyzer_registerSchema("*.grammar.json", grammar_getJsonMapping());
 	analyzer_registerSchema("pkseditconfig.json", doctypes_getJsonMapping());
+	analyzer_registerSchema("pksactionbindings.json", bindings_getJsonMapping());
 	analyzer_registerSchema("themeconfig.json", theme_getJsonMapping());
 	analyzer_registerSchema("copyright_profiles.json", copyright_getJsonMapping());
 }

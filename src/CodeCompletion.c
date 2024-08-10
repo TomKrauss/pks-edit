@@ -19,6 +19,7 @@
 #include <windowsx.h>
 #include "customcontrols.h"
 #include "winfo.h"
+#include "fontawesome.h"
 #include "stringutil.h"
 #include "arraylist.h"
 #include "hashmap.h"
@@ -360,7 +361,20 @@ static void codecomplete_helpWindowSizeChanged(HWND hwnd) {
 
 static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate, HICON hIconTag, TEXTMETRIC* pMetric, int x, int y) {
 	HICON hIcon = NULL;
+	int nSize = pMetric->tmHeight;
 	switch (up->ca_icon.cai_iconType) {
+	case CAI_FA_ICON: {
+		CHAR_WITH_STYLE c = faicon_codeForName(up->ca_icon.cai_data.cai_iconName);
+		HBITMAP hBitmap = faicon_createAwesomeIcons(theme_getCurrent()->th_iconColor, nSize, &c, 1);
+		HDC hdcMem = CreateCompatibleDC(hdc);
+		HBITMAP oldBitmap = SelectObject(hdcMem, hBitmap);
+		SetStretchBltMode(hdc, COLORONCOLOR);
+		TransparentBlt(hdc, x, y, nSize, nSize, hdcMem, 0, 0, nSize, nSize, RGB(0, 0, 0));
+		SelectObject(hdcMem, oldBitmap);
+		DeleteDC(hdcMem);
+		DeleteObject(hBitmap);
+		break;
+	}
 	case CAI_TAG_ICON: hIcon = hIconTag; break;
 	case CAI_TEMPLATE_ICON: hIcon = hIconTemplate; break;
 	case CAI_RESOURCE_ICON: hIcon = LoadIcon(hInst, up->ca_icon.cai_data.cai_iconName); break;
@@ -369,8 +383,8 @@ static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate
 		RECT rect = {
 			.left = x,
 			.top = y,
-			.right = x + pMetric->tmHeight,
-			.bottom = y + pMetric->tmHeight
+			.right = x + nSize,
+			.bottom = y + nSize
 		};
 		FillRect(hdc, &rect, hBrush);
 		DeleteObject(hBrush);
@@ -380,7 +394,7 @@ static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate
 	}
 	if (hIcon != NULL) {
 		DrawIconEx(hdc, x, y, hIcon,
-			pMetric->tmHeight, pMetric->tmHeight, 0, NULL, DI_NORMAL);
+			nSize, nSize, 0, NULL, DI_NORMAL);
 		if (up->ca_icon.cai_iconType == CAI_RESOURCE_ICON) {
 			DeleteObject(hIcon);
 		}

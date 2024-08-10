@@ -56,6 +56,8 @@ typedef struct tagTHEME_DATA {
 	EDTEXTSTYLE* th_styleLookup[50];		// pre-processed array of styles for lookup
 } THEME_DATA;
 
+#define WYSIWYG_FONT_STYLE_NAME		"wysiwyg"
+
 /*
  * The style of a selected font
  */
@@ -80,6 +82,7 @@ typedef struct tagEDTEXTSTYLE {
 	float		zoomFactor;
 	HFONT		hfont;				// cached font handle.
 	EDFONTATTRIBUTES style;
+	char*		description;
 } EDTEXTSTYLE;
 
 #define SYSTEM_DEFAULT_THEME		"system default"

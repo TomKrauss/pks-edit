@@ -29,6 +29,11 @@
 #define MAX_CONTEXT_NAME_LEN		32
 #define MAX_ID_LEN					10
 
+ /*
+  * Returns the font awesome icons supported + their respective properties for being used in code completion.
+  */
+extern JSON_ENUM_VALUE* faicon_getIcons();
+
 typedef struct tagLOCAL_ACTION_BINDING {
 	struct tagLOCAL_ACTION_BINDING* ab_next;		// next action binding 
 	struct tagLOCAL_ACTION_BINDING* ab_children;	// for nested actions (e.g. menus) - this is the possibly null list of children.
@@ -344,7 +349,7 @@ static JSON_MAPPING_RULE _menuRules[] = {
 	{	RT_ALLOC_STRING, "label", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_label.bt_text), 0},
 	{	RT_INTEGER, "label-id", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_label.bt_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = bindings_parseContextmenuCommand}},
-	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = bindings_parseMenuIconName}},
+	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = bindings_parseMenuIconName}, .r_valueProvider = faicon_getIcons},
 	{	RT_FLAG, "separator", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isSeparator), 1},
 	{	RT_FLAG, "history-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isHistoryMenu), 1},
 	{	RT_FLAG, "macro-menu", offsetof(LOCAL_ACTION_BINDING, ab_binding.subMenu.mid_isMacroMenu), 1},
@@ -369,7 +374,7 @@ static JSON_MAPPING_RULE _tbbRules[] = {
 	{	RT_INTEGER, "label-id", offsetof(LOCAL_ACTION_BINDING, ab_binding.toolbarButtonBinding.tbb_label.bt_resourceId), 0},
 	{	RT_STRING_CALLBACK, "command", 0, .r_descriptor = {.r_t_callback = bindings_parseToolbarCommand}},
 	{	RT_FLAG, "separator", offsetof(LOCAL_ACTION_BINDING, ab_binding.toolbarButtonBinding.tbb_isSeparator), 1},
-	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = bindings_parseToolbarIconName}},
+	{	RT_STRING_CALLBACK, "icon", 0, .r_descriptor = {.r_t_callback = bindings_parseToolbarIconName}, .r_valueProvider = faicon_getIcons},
 	{	RT_END }
 };
 
@@ -483,6 +488,13 @@ static void bindings_mergeMenuDefinitions(LOCAL_ACTION_BINDING* pB) {
 		}
 		pB = pBNext;
 	}
+}
+
+/*
+ * Used in the code analyzer to provide code completion support.
+ */
+JSON_MAPPING_RULE* bindings_getJsonMapping() {
+	return _jsonBindingsRules;
 }
 
 /*

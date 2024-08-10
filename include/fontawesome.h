@@ -823,11 +823,6 @@ extern CHAR_WITH_STYLE faicon_codeForName(const char* pszIconName);
 extern void faicon_destroy();
 
 /*
- * Can be used to iterate all icon names. If the icon with the givem index does not exist, NULL is returned.
- */
-extern const char* faicon_nameForIndex(int nIndex);
-
-/*
  * Load the font-awesome font.
  */
 extern void faicon_loadFontAwesome();

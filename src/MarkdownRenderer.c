@@ -580,9 +580,9 @@ static void mdr_assignImageUrl(HASHMAP* pImageCache, TEXT_RUN* pRun, char* pszIm
 static HFONT mdr_createFont(HDC hdc, const FONT_ATTRIBUTES* pAttrs, float fZoom) {
 	LOGFONT _lf;
 	if (!_defaultFont.lfFaceName[0]) {
-		const char* pszFontface = theme_textStyleFontface("wysiwyg", "Verdana");
+		const char* pszFontface = theme_textStyleFontface(WYSIWYG_FONT_STYLE_NAME, "Verdana");
 		strcpy(_defaultFont.lfFaceName, pszFontface);
-		_defaultFont.lfHeight = theme_textStyleFontsize("wysiwyg", 12);
+		_defaultFont.lfHeight = theme_textStyleFontsize(WYSIWYG_FONT_STYLE_NAME, 12);
 	}
 	memcpy(&_lf, &_defaultFont, sizeof _lf);
 	long nHeight;
