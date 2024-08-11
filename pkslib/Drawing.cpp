@@ -37,7 +37,7 @@ static Gdiplus::PrivateFontCollection* awesomeFontCollection;
 extern "C" __declspec(dllexport) BOOL paint_loadFontAwesome(void* pFontData, DWORD len) {
 	paint_initGdiPlus();
 	static PrivateFontCollection myColl;
-	auto sRet = myColl.AddMemoryFont(pFontData, len);
+	const auto sRet = myColl.AddMemoryFont(pFontData, len);
 	awesomeFontCollection = &myColl;
 	return sRet == Ok;
 }
@@ -69,7 +69,7 @@ static BOOL fontawesome_initFontFamilies() {
 /*
  * Draws a text in an antialiased way. 
  */
-static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconSize) {
+static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen, COLORREF cColor, int x, int y, int nIconWidth, int nIconHeight) {
 	paint_initGdiPlus();
 	if (!fontawesome_initFontFamilies()) {
 		return;
@@ -77,22 +77,29 @@ static void paint_awesomeIcons(HDC hdc, const CHAR_WITH_STYLE* pszText, int nLen
 	Gdiplus::Graphics  graphics(hdc);
 	SolidBrush  brush(Color(255, GetRValue(cColor), GetGValue(cColor), GetBValue(cColor)));
 	PointF pointF(static_cast<float>(x), static_cast<float>(y));
-	Gdiplus::Font myFontSolid(faFamilyName, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
-	Gdiplus::Font myFontRegular(faFamilyNameRegular, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
-	Gdiplus::Font myFontBrands(faFamilyNameBrands, (float)(nIconSize - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontSolid(faFamilyName, (float)(nIconHeight - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontRegular(faFamilyNameRegular, (float)(nIconHeight - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
+	Gdiplus::Font myFontBrands(faFamilyNameBrands, (float)(nIconHeight - 2), FontStyleRegular, UnitPixel, awesomeFontCollection);
 	graphics.SetTextRenderingHint(TextRenderingHintAntiAlias);
-	const int delta = nIconSize / 8;
+	const int delta = nIconWidth / 8;
 	x -= delta;
 	for (int i = 0; i < nLen; i++) {
-		pointF.X = x + (float)nIconSize * i;
+		pointF.X = x + (float)nIconWidth * i;
 
 		// Work around for the fact, that the FA Icons are not quadratic: clip excessively wide characters
-		Region region(Rect((int)pointF.X, (int)pointF.Y, (int)pointF.Y+nIconSize+delta, (int)pointF.Y + nIconSize));
+		auto rect = RectF(pointF.X, pointF.Y, pointF.Y + nIconHeight + delta, pointF.Y + nIconHeight);
+		Region region(rect);
 		HRGN hRegion = region.GetHRGN(&graphics);
 		graphics.SetClip(hRegion);
 		CHAR_WITH_STYLE cs = pszText[i];
 
-		auto s = graphics.DrawString(&cs.symbol, 1, cs.brand ? &myFontBrands : (cs.regular ? &myFontRegular : &myFontSolid), pointF, &brush);
+		auto font = cs.brand ? &myFontBrands : (cs.regular ? &myFontRegular : &myFontSolid);
+		RectF outBox;
+		graphics.MeasureString(&cs.symbol, 1, font, pointF, &outBox);
+		if (nIconWidth > outBox.Width) {
+			pointF.X += (nIconWidth - outBox.Width) / 2;
+		}
+		auto s = graphics.DrawString(&cs.symbol, 1, font, pointF, &brush);
 		DeleteObject(hRegion);
 		if (s != Ok) {
 			return;
@@ -124,18 +131,18 @@ extern "C" __declspec(dllexport) void paint_roundedRect(HDC hdc, COLORREF cColor
 /*
  * Paint a list of FontAwesome icons onto an in memory bitmap in a given color and return the bitmap. 
  */
-extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons) {
+extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nIconWidth, int nIconHeight, CHAR_WITH_STYLE icons[], int nIcons) {
     HDC hdcScreen = GetDC(0);
     HDC hdc = CreateCompatibleDC(hdcScreen);
 
-    const int nWidth = nIcons * nSize;
+    const int nWidth = nIcons * nIconWidth;
     const int nBitcount = 32;
-    const int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nSize;
+    const int size = ((((nWidth * nBitcount) + 31) & ~31) >> 3) * nIconWidth;
 
     BITMAPINFO bmi = { 0 };
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = nWidth;
-    bmi.bmiHeader.biHeight = -nSize;
+    bmi.bmiHeader.biHeight = -nIconHeight;
     bmi.bmiHeader.biPlanes = 1;
     bmi.bmiHeader.biBitCount = nBitcount;
     bmi.bmiHeader.biCompression = BI_RGB;
@@ -147,10 +154,10 @@ extern "C" __declspec(dllexport) HBITMAP faicon_createAwesomeIcons(COLORREF nCol
     auto hBmpOld = hBmp == nullptr ? nullptr : SelectObject(hdc, hBmp);
 	RECT rect;
 	rect.top = 0;
-	rect.bottom = nSize;
+	rect.bottom = nIconHeight;
 	rect.left = 0;
 	rect.right = rect.left + nWidth;
-	paint_awesomeIcons(hdc, icons, nIcons, nColorRef, rect.left, 0, nSize);
+	paint_awesomeIcons(hdc, icons, nIcons, nColorRef, rect.left, 0, nIconWidth, nIconHeight);
 	if (hBmpOld != nullptr) {
 		SelectObject(hdc, hBmpOld);
 	}

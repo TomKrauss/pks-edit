@@ -92,7 +92,8 @@ static int st_setparts(BOOL bUpdateMessageOnly, int pSegments[MAXSEGMENTS]) {
 			if (c.symbol != 0 && pIcon->ic_bitmap == NULL) {
 				pIcon->ic_char = c;
 				pIcon->ic_color = color;
-				pIcon->ic_bitmap = faicon_createAwesomeIcons(pIcon->ic_color, dpisupport_getSize(ICON_SIZE), &c, 1);
+				int nSize = dpisupport_getSize(ICON_SIZE);
+				pIcon->ic_bitmap = faicon_createAwesomeIcons(pIcon->ic_color, nSize, nSize, &c, 1);
 			}
 			if (pSegment->sls_text == NULL || (pSegment->sls_lang[0] && strcmp(pSegment->sls_lang, pszLocale) != 0)) {
 				pSegment = pSegment->sls_next;

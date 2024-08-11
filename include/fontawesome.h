@@ -834,7 +834,7 @@ extern
 #ifdef __cplusplus
 "C" __declspec(dllexport)
 #endif
-HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nSize, CHAR_WITH_STYLE icons[], int nIcons);
+HBITMAP faicon_createAwesomeIcons(COLORREF nColorRef, int nIconWidth, int nIconHeight, CHAR_WITH_STYLE icons[], int nIcons);
 
 #define FONT_AWESOME_H
 #endif

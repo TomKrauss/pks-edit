@@ -187,7 +187,7 @@ int codecomplete_calculateScore(ANALYZER_CARET_CONTEXT* pCaretContext, const cha
 		// If search is empty - standard score, so we can sort suggestions later alphabetically 
 		return 1;
 	}
-	int lFound = (int)strlen(pszFound);
+	int lFound = (int)strlen(pszSearch);
 	if (strstr(pszFound, pszSearch) == pszFound) {
 		return 100 + lFound;
 	}
@@ -341,16 +341,17 @@ static void codecomplete_helpWindowSizeChanged(HWND hwnd) {
 	}
 }
 
-static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate, HICON hIconTag, TEXTMETRIC* pMetric, int x, int y) {
+static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate, HICON hIconTag, TEXTMETRIC* pMetric, int x, int y, BOOL bSelected) {
 	HICON hIcon = NULL;
 	int nSize = pMetric->tmHeight;
 	switch (up->ca_icon.cai_iconType) {
 	case CAI_EMOJI:
-		paint_emojid2d(hdc, up->ca_icon.cai_data.cai_emoji, theme_getCurrent()->th_iconColor, nSize, x, y, &nSize, &nSize);
+		paint_emojid2d(hdc, up->ca_icon.cai_data.cai_emoji, theme_getCurrent()->th_iconColor, nSize, x, y-dpisupport_getSize(3), &nSize, &nSize);
 		break;
 	case CAI_FA_ICON: {
 		CHAR_WITH_STYLE c = faicon_codeForName(up->ca_icon.cai_data.cai_iconName);
-		HBITMAP hBitmap = faicon_createAwesomeIcons(theme_getCurrent()->th_iconColor, nSize, &c, 1);
+		THEME_DATA* pTheme = theme_getCurrent();
+		HBITMAP hBitmap = faicon_createAwesomeIcons(bSelected ? pTheme->th_dialogHighlightText : pTheme->th_iconColor, nSize, nSize, &c, 1);
 		HDC hdcMem = CreateCompatibleDC(hdc);
 		HBITMAP oldBitmap = SelectObject(hdcMem, hBitmap);
 		SetStretchBltMode(hdc, COLORONCOLOR);
@@ -438,7 +439,7 @@ static void codecomplete_paint(HWND hwnd) {
 				} else {
 					SetTextColor(paint.hdc, pTheme->th_dialogForeground);
 				}
-				codecomplete_paintIcon(paint.hdc, up, hIconTemplate, hIconTag, &textmetric, x, y + nDelta / 2);
+				codecomplete_paintIcon(paint.hdc, up, hIconTemplate, hIconTag, &textmetric, x, y + nDelta / 2, i == nSelectedIndex);
 				const char* pszDescription = up->ca_name;
 				TextOut(paint.hdc, x + nIconSize + 4, y + (nDelta / 2), pszDescription, (int)strlen(pszDescription));
 				y += textmetric.tmHeight + nDelta;

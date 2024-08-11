@@ -142,7 +142,7 @@ void faicon_loadFontAwesome() {
  * Create an image list with images created from font-awesome icons. 
  */
 static HIMAGELIST tb_createImageList(int nIconSize, COLORREF cColor, CHAR_WITH_STYLE icons[], int nIcons) {
-    HBITMAP hBmp = faicon_createAwesomeIcons(cColor, nIconSize, icons, nIcons);
+    HBITMAP hBmp = faicon_createAwesomeIcons(cColor, nIconSize, nIconSize, icons, nIcons);
     HIMAGELIST hList = ImageList_Create(nIconSize, nIconSize,
         ILC_COLOR32 | ILC_HIGHQUALITYSCALE, nIcons, 0
     );
