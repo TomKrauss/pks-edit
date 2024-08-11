@@ -1,3 +1,10 @@
+## Emojis
+
+here are some emojis: :+1::-1: 
+
+:alien::angry::bell::blue_heart::blush::collision::confused::cupid::dizzy::fire::frowning::green_heart::grinning_face::heart::heart_eyes::hourglass::kiss::purple_heart: hello world :open_mouth::rocket::shit::sob::speaker::smile::star::two_hearts::yellow_heart::winking_face:
+:skull::eyes::clap::pray::cat::sunny::snowflake::bug::ant:
+
 
 ## HTML Support
 
@@ -7,14 +14,6 @@
 <li>one list element</li>
 <li>another list element</li>
 </ol>
-
-## Emojis
-
-:+1: :-1: :alien: :angry: :bell: :blue_heart: :blush: :collision:
-:confused: :cupid: :dizzy: :fire: :frowning: :green_heart: :grinning_face: :heart:
-:heart_eyes: :hourglass: :kiss: :purple_heart: :open_mouth: :rocket:
-:shit: :sob: :speaker: :smile: :star: :two_hearts: :yellow_heart: :winking_face:
-:skull: :eyes: :clap: :pray: :cat: :sunny: :snowflake: :bug: :ant:
 
 | Unicode      | Emoji      |
 |--------------|------------|

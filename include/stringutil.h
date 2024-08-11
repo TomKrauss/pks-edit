@@ -181,6 +181,11 @@ extern int stringbuf_getLineNumber(STRING_BUF* pBuf);
 extern size_t stringbuf_size(STRING_BUF* pBuf);
 
 /*
+ * Returns true, if the string buffer contains only space characters.
+ */
+extern BOOL stringbuf_isBlank(STRING_BUF* pBuf);
+
+/*
  * Destroy a string buffer.
  */
 extern void stringbuf_destroy(STRING_BUF* pBuf);

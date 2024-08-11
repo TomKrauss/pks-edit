@@ -372,6 +372,23 @@ size_t stringbuf_size(STRING_BUF* pBuf) {
 }
 
 /*
+ * Returns TRUE, if the stringbuf contains only blank characters.
+ */
+BOOL stringbuf_isBlank(STRING_BUF* pBuf) {
+	if (pBuf == NULL) {
+		return TRUE;
+	}
+	char* pszCurr = pBuf->sb_string;
+	while (pszCurr < pBuf->sb_current) {
+		char c = *pszCurr++;
+		if (!isblank(c)) {
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+/*
  * Destroy a string buffer.
  */
 void stringbuf_destroy(STRING_BUF* pBuf) {

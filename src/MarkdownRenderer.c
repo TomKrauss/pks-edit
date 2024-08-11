@@ -151,8 +151,8 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F448", ":point_left:"},
 	{L"\U0001F449", ":point_right:"},
 	{L"\U0001F446", ":point_up:"},
-	{L"\U0001F49C", ":purple_heart:"},
 	{L"\U0001F64F", ":pray:"},
+	{L"\U0001F49C", ":purple_heart:"},
 	{L"\U00002753", ":question:"},
 	{L"\U0001F400", ":rat:"},
 	{L"\U0001F680", ":rocket:"},
@@ -3224,9 +3224,13 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			bEnforceBreak = FALSE;
 			int nToggle = 0;
 			BOOL bEscaped = pState->hps_currentStyle->fsd_logicalStyles & ATTR_CODE;
-			if (c == ':') {
+			if (!bEscaped && c == ':') {
 				WCHAR* pEmoji = mdr_findEmoji(pStream);
 				if (pEmoji != NULL) {
+					int nSize = (int)(stringbuf_size(pState->hps_text) - pState->hps_lastTextOffset);
+					if (nSize > 0) {
+						mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
+					}
 					pState->hps_currentStyle->fsd_logicalStyles |= ATTR_EMOJI;
 					TEXT_RUN* pRun = mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
 					pRun->tr_isEmoji = TRUE;
