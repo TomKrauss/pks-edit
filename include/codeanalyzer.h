@@ -42,7 +42,7 @@ typedef struct tagCODE_ACTION_ICON {
 		// For type CAI_COLOR_ICON, this is the color to display.
 		COLORREF cai_color;
 		// For type CAI_EMOJI, this the unicode of the emoji
-		WCHAR cai_emoji[3];
+		WCHAR cai_emoji[4];
 	} cai_data;
 } CODE_ACTION_ICON;
 

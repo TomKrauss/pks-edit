@@ -101,7 +101,7 @@ static ENTITY_MAPPING _entities[] = {
 
 typedef struct tagEMOJI_MAPPING {
 	WCHAR*	emoji;
-	char    name[18];
+	char    *name;
 } EMOJI_MAPPING;
 
 static EMOJI_MAPPING _emojis[] = {
@@ -112,24 +112,47 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F47D", ":alien:"},
 	{L"\U0001F620", ":angry:"},
 	{L"\U0001F41C", ":ant:"},
+	{L"\U0001F388", ":balloon:"},
+	{L"\U0001F34C", ":banana:"},
+	{L"\U0001F4CA", ":bar_chart:"},
 	{L"\U0001F514", ":bell:"},
 	{L"\U0001F499", ":blue_heart:"},
 	{L"\U0001F60A", ":blush:"},
+	{L"\U0001F4D6", ":book:"},
+	{L"\U0001F494", ":broken_heart:"},
 	{L"\U0001F41B", ":bug:"},
+	{L"\U0001F4A1", ":bulb:"},
+	{L"\U0001F4C6", ":calendar:"},
+	{L"\U0001F36C", ":candy:"},
 	{L"\U0001F697", ":car:"},
 	{L"\U0001F638", ":cat:"},
+	{L"\U0001F4BF", ":cd:"},
+	{L"\U0001F4C9", ":chart_with_downwards_trend:"},
+	{L"\U0001F4C8", ":chart_with_upwards_trend:"},
+	{L"\U0001F36B", ":chocolate_bar:"},
 	{L"\U0001F44F", ":clap:"},
+	{L"\U00002601", ":cloud:"},
+	{L"\U0001F4BB", ":computer:"},
+	{L"\U0001F477", ":construction_worker:"},
 	{L"\U0001F46E", ":cop:"},
 	{L"\U0001F491", ":couple:"},
 	{L"\U0001F4A5", ":collision:"},
 	{L"\U0001F615", ":confused:"},
+	{L"\U0001F451", ":crown:"},
 	{L"\U0001F498", ":cupid:"},
+	{L"\U0001F4AB", ":date:"},
 	{L"\U0001F4AB", ":dizzy:"},
 	{L"\U0001F42C", ":dolphin:"},
+	{L"\U0001F4C0", ":dvd:"},
 	{L"\U0001F440", ":eyes:"},
+	{L"\U0001F3ED", ":factory:"},
 	{L"\U0001F46A", ":family:"},
 	{L"\U0001F525", ":fire:"},
+	{L"\U0001F526", ":flashlight:"},
 	{L"\U0001F626", ":frowning:"},
+	{L"\U0001F382", ":game_die:"},
+	{L"\U0001F47B", ":ghost:"},
+	{L"\U0001F381", ":gift:"},
 	{L"\U0001F49A", ":green_heart:"},
 	{L"\U0001F600", ":grinning_face:"},
 	{L"\U00002764", ":heart:"},
@@ -138,14 +161,31 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0000231B", ":hourglass:"},
 	{L"\U0001F607", ":innocent:"},
 	{L"\U0001F602", ":joy:"},
+	{L"\U0001F511", ":key:"},
+	{L"\U0001F458", ":kimono:"},
 	{L"\U0001F48B", ":kiss:"},
+	{L"\U0001F34B", ":lemon:"},
+	{L"\U0001F484", ":lipstick:"},
+	{L"\U0001F512", ":lock:"},
+	{L"\U0001F36D", ":lollipop:"},
+	{L"\U0001F4E2", ":loudspeaker:"},
+	{L"\U0001F50D", ":mag:"},
+	{L"\U0001F50E", ":mag_right:"},
+	{L"\U0001F4DD", ":memo:"},
+	{L"\U0001F3A4", ":microphone:"},
 	{L"\U0001F412", ":monkey:"},
 	{L"\U0001F42D", ":mouse:"},
 	{L"\U0001F401", ":mouse2:"},
 	{L"\U0001F4AA", ":muscle:"},
+	{L"\U0001F344", ":mushroom:"},
+	{L"\U0001F3B9", ":musical_keyboard:"},
 	{L"\U0001F3B5", ":musical_note:"},
+	{L"\U0001F611", ":neutral_face:"},
+	{L"\U0001F636", ":no_mouth:"},
+	{L"\U0001F443", ":nose:"},
 	{L"\U0001F44C", ":ok_hand:"},
 	{L"\U0001F632", ":open_mouth:"},
+	{L"\U0001F4CE", ":paperclip:"},
 	{L"\U0001F437", ":pig:"},
 	{L"\U0001F447", ":point_down:"},
 	{L"\U0001F448", ":point_left:"},
@@ -154,22 +194,40 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F64F", ":pray:"},
 	{L"\U0001F49C", ":purple_heart:"},
 	{L"\U00002753", ":question:"},
+	{L"\U0001F308", ":rainbow:"},
 	{L"\U0001F400", ":rat:"},
+	{L"\U0001F48D", ":ring:"},
 	{L"\U0001F680", ":rocket:"},
+	{L"\U0001F339", ":rose:"},
+	{L"\U0001F3C3", ":runner:"},
+	{L"\U00002702", ":scissors:"},
 	{L"\U0001F4A9", ":shit:"},
+	{L"\U0001F45E", ":shoe:"},
 	{L"\U0001F480", ":skull:"},
 	{L"\U0001F604", ":smile:"},
 	{L"\U00002744", ":snowflake:"},
 	{L"\U0001F62D", ":sob:"},
+	{L"\U00002728", ":sparkles:"},
 	{L"\U0001F508", ":speaker:"},
 	{L"\U00002B50", ":star:"},
+	{L"\U0001F61B", ":stuck_out_tounge:"},
+	{L"\U0001F33B", ":sunflower:"},
 	{L"\U0001F60E", ":sunglasses:"},
 	{L"\U0001F31E", ":sunny:"},
+	{L"\U0001F389", ":tada:"},
+	{L"\U0001F345", ":tomato:" },
+	{L"\U0001F3C6", ":trophy:"},
+	{L"\U0001F337", ":tulip:"},
 	{L"\U0001F495", ":two_hearts:"},
+	{L"\U00002614", ":umbrella:"},
+	{L"\U0001F513", ":unlock:"},
 	{L"\U0001F44B", ":wave:"},
+	{L"\U00002705", ":white_check_mark:"},
 	{L"\U0001F609", ":winking_face:"},
 	{L"\U0001F61F", ":worried:"},
-	{L"\U0001F49B", ":yellow_heart:"}
+	{L"\U0001F527", ":wrench:"},
+	{L"\U0001F49B", ":yellow_heart:"},
+	{L"\U0001F60B", ":yum:" }
 };
 
 /*
@@ -3730,11 +3788,13 @@ static int mdr_windowSizeChanged(HWND hwnd, MARKDOWN_RENDERER_DATA* pData) {
 	if (!pData) {
 		return 0;
 	}
-	mdr_invalidateViewpartsLayout(pData);
-	InvalidateRect(hwnd, 0, FALSE);
-	UpdateWindow(hwnd);
-	pData->md_needsSBUdpdate = TRUE;
-	return mdr_slSize(hwnd, pData);
+	if (!pData->md_needsSBUdpdate) {
+		mdr_invalidateViewpartsLayout(pData);
+		InvalidateRect(hwnd, 0, FALSE);
+		UpdateWindow(hwnd);
+		pData->md_needsSBUdpdate = TRUE;
+	}
+	return TRUE;
 }
 
 /*
@@ -4610,7 +4670,8 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 		if (message == WM_SIZE && !IsWindowVisible(hwnd)) {
 			return 0;
 		}
-		if ((pData = mdr_dataFromWindow(hwnd)) != 0) {
+		pData = mdr_dataFromWindow(hwnd);
+		if (pData != 0) {
 			mdr_windowSizeChanged(hwnd, pData);
 		}
 		return 0;
@@ -4618,6 +4679,7 @@ static LRESULT mdr_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 	LRESULT result = render_defaultWindowProc(hwnd, message, wParam, lParam);
 	if (message == WM_PAINT && (pData = mdr_dataFromWindow(hwnd)) != 0 && pData->md_needsSBUdpdate) {
 		mdr_slSize(hwnd, pData);
+		pData->md_needsSBUdpdate = FALSE;
 	}
 	return result;
 }

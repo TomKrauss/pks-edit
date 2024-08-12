@@ -25,6 +25,8 @@ struct DWriteSupport {
     ID2D1Factory* d2d_factory = NULL;
     IDWriteFactory* dwrite_factory = NULL;
     ID2D1DCRenderTarget* renderTarget = NULL;
+    IDWriteTextFormat* m_textFormat = NULL;
+    FLOAT m_fontSize = 0;
     FLOAT m_width = 0;
     FLOAT m_height = 0;
     HDC m_hdc = NULL;
@@ -36,7 +38,7 @@ struct DWriteSupport {
     ~DWriteSupport() {
     }
 
-    HRESULT Setup(HDC hdc) {
+    HRESULT Setup(HDC hdc, float fontSize) {
         HWND hwnd = WindowFromDC(hdc);
         HRESULT hr;
         d2d_factory = create_d2dFactory();
@@ -51,7 +53,8 @@ struct DWriteSupport {
                 return hr;
             }
         }
-        if (hdc != m_hdc) {
+        BOOL bHdcChanged = hdc != m_hdc;
+        if (bHdcChanged) {
             RECT rc;
             GetClientRect(hwnd, &rc);
             m_width = (FLOAT)(rc.right - rc.left);
@@ -67,6 +70,24 @@ struct DWriteSupport {
             }
         }
 
+        if (bHdcChanged || fontSize != m_fontSize || m_textFormat == NULL) {
+            if (m_textFormat != NULL) {
+                m_textFormat->Release();
+                m_textFormat = NULL;
+            }
+            hr = dwrite_factory->CreateTextFormat(L"Segoe UI Emoji",
+                NULL,
+                DWRITE_FONT_WEIGHT_NORMAL,
+                DWRITE_FONT_STYLE_NORMAL,
+                DWRITE_FONT_STRETCH_NORMAL,
+                fontSize,
+                L"",
+                &m_textFormat);
+            if (FAILED(hr)) {
+                return hr;
+            }
+            m_fontSize = fontSize;
+        }
         return S_OK;
     }
 
@@ -104,7 +125,7 @@ static DWriteSupport g_dwrite;
 /////////////////////////////////////////////////////////////////////////////////////////
 
 extern "C" __declspec(dllexport) void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int* pHeight) {
-    if (g_dwrite.Setup(hdc) != S_OK) {
+    if (g_dwrite.Setup(hdc, (FLOAT) fontSize) != S_OK) {
         return;
     }
     ID2D1SolidColorBrush* whiteBrush = NULL;
@@ -115,44 +136,31 @@ extern "C" __declspec(dllexport) void paint_emojid2d(HDC hdc, WCHAR* emoji, COLO
 
     // Create a text format
     HRESULT hr;
-    IDWriteTextFormat* textFormat = NULL;
-    hr = g_dwrite.dwrite_factory->CreateTextFormat(L"Segoe UI Emoji",
-        NULL,
-        DWRITE_FONT_WEIGHT_NORMAL,
-        DWRITE_FONT_STYLE_NORMAL,
-        DWRITE_FONT_STRETCH_NORMAL,
-        (FLOAT) fontSize,
-        L"",
-        &textFormat);
 
     ::D2D1_COLOR_F color;
     color.r = 0.0f;
     color.g = 0.0f;
     color.b = 0.0f;
     color.a = 1.0f;
-    g_dwrite.renderTarget->CreateSolidColorBrush(color, &whiteBrush);
+    hr = g_dwrite.renderTarget->CreateSolidColorBrush(color, &whiteBrush);
     if (SUCCEEDED(hr)) {
         // The text and its length
         auto text = emoji;
         INT count = lstrlenW(text);
 
         // Draw the text
-        D2D1_SIZE_F extent = g_dwrite.GetTextExtent(textFormat, text, count, g_dwrite.m_width, g_dwrite.m_height);
+        D2D1_SIZE_F extent = g_dwrite.GetTextExtent(g_dwrite.m_textFormat, text, count, g_dwrite.m_width, g_dwrite.m_height);
         *pWidth = (int)extent.width;
         *pHeight = (int)extent.height;
         rect.right = rect.left+extent.width+2;
         rect.bottom = rect.top+extent.height+2;
-        g_dwrite.DrawText(textFormat, text, count, whiteBrush, rect);
+        g_dwrite.DrawText(g_dwrite.m_textFormat, text, count, whiteBrush, rect);
     }
 
     // Release resources
     if (whiteBrush) {
         whiteBrush->Release();
         whiteBrush = NULL;
-    }
-    if (textFormat) {
-        textFormat->Release();
-        textFormat = NULL;
     }
 
     // End rendering
