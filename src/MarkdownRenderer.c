@@ -132,12 +132,12 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F36B", ":chocolate_bar:"},
 	{L"\U0001F44F", ":clap:"},
 	{L"\U00002601", ":cloud:"},
+	{L"\U0001F4A5", ":collision:"},
 	{L"\U0001F4BB", ":computer:"},
+	{L"\U0001F615", ":confused:"},
 	{L"\U0001F477", ":construction_worker:"},
 	{L"\U0001F46E", ":cop:"},
 	{L"\U0001F491", ":couple:"},
-	{L"\U0001F4A5", ":collision:"},
-	{L"\U0001F615", ":confused:"},
 	{L"\U0001F451", ":crown:"},
 	{L"\U0001F498", ":cupid:"},
 	{L"\U0001F4AB", ":date:"},
@@ -3176,8 +3176,8 @@ static void mdr_appendRefLinkDefinition(MD_REFERENCE_DEFINITION** pHead, char* p
 }
 
 static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
-	// maximim length of Emoji: 20
-	char szDef[20];
+	// maximum length of Emoji: 30
+	char szDef[30];
 	size_t nLen = 0;
 	szDef[0] = ':';
 	for (int i = 1; i < sizeof(szDef)-1; i++) {
