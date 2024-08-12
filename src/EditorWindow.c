@@ -99,7 +99,6 @@ void render_updateCaret(WINFO *wp) {
 	}
 
 	if (type) {
-		st_redraw(FALSE);
 		caret_updatePositionAndVisibility(wp, type, op->type);
 	}
 

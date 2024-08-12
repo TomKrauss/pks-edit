@@ -89,6 +89,7 @@ static void codecomplete_changeSelection(HWND hwnd, CODE_COMPLETION_PARAMS* pCC,
  * Draws an emoji with the specified attributes.
  */
 extern void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int* pHeight);
+extern void paint_endEmoji();
 
 #define	GWL_PARAMS				0
 #define	GWL_SECONDARY_WINDOW	GWL_PARAMS+sizeof(CODE_COMPLETION_PARAMS*)
@@ -347,6 +348,7 @@ static void codecomplete_paintIcon(HDC hdc, CODE_ACTION* up, HICON hIconTemplate
 	switch (up->ca_icon.cai_iconType) {
 	case CAI_EMOJI:
 		paint_emojid2d(hdc, up->ca_icon.cai_data.cai_emoji, theme_getCurrent()->th_iconColor, nSize, x, y-dpisupport_getSize(3), &nSize, &nSize);
+		paint_endEmoji();
 		break;
 	case CAI_FA_ICON: {
 		CHAR_WITH_STYLE c = faicon_codeForName(up->ca_icon.cai_data.cai_iconName);

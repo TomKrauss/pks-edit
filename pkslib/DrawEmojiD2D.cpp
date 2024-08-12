@@ -26,10 +26,12 @@ struct DWriteSupport {
     IDWriteFactory* dwrite_factory = NULL;
     ID2D1DCRenderTarget* renderTarget = NULL;
     IDWriteTextFormat* m_textFormat = NULL;
+    ID2D1SolidColorBrush* m_whiteBrush = NULL;
     FLOAT m_fontSize = 0;
     FLOAT m_width = 0;
     FLOAT m_height = 0;
     HDC m_hdc = NULL;
+    BOOL m_begin = FALSE;
 
     DWriteSupport()
     {
@@ -53,6 +55,19 @@ struct DWriteSupport {
                 return hr;
             }
         }
+
+        if (m_whiteBrush == NULL) {
+            ::D2D1_COLOR_F color;
+            color.r = 0.0f;
+            color.g = 0.0f;
+            color.b = 0.0f;
+            color.a = 1.0f;
+            hr = renderTarget->CreateSolidColorBrush(color, &m_whiteBrush);
+            if (FAILED(hr)) {
+                return hr;
+            }
+        }
+
         BOOL bHdcChanged = hdc != m_hdc;
         if (bHdcChanged) {
             RECT rc;
@@ -89,6 +104,20 @@ struct DWriteSupport {
             m_fontSize = fontSize;
         }
         return S_OK;
+    }
+
+    void BeginDraw() {
+        if (!m_begin && renderTarget) {
+            renderTarget->BeginDraw();
+            m_begin = TRUE;
+        }
+    }
+
+    void EndDraw() {
+        if (m_begin && renderTarget) {
+            renderTarget->EndDraw();
+            m_begin = FALSE;
+        }
     }
 
     D2D1_SIZE_F GetSize() {
@@ -128,42 +157,26 @@ extern "C" __declspec(dllexport) void paint_emojid2d(HDC hdc, WCHAR* emoji, COLO
     if (g_dwrite.Setup(hdc, (FLOAT) fontSize) != S_OK) {
         return;
     }
-    ID2D1SolidColorBrush* whiteBrush = NULL;
     // Start rendering
-    g_dwrite.renderTarget->BeginDraw();
+    g_dwrite.BeginDraw();
     // Calculate the client area
     D2D1_RECT_F rect = D2D1::RectF((FLOAT) x, (FLOAT) y, g_dwrite.m_width, g_dwrite.m_height);
 
-    // Create a text format
-    HRESULT hr;
+    // The text and its length
+    auto text = emoji;
+    INT count = lstrlenW(text);
 
-    ::D2D1_COLOR_F color;
-    color.r = 0.0f;
-    color.g = 0.0f;
-    color.b = 0.0f;
-    color.a = 1.0f;
-    hr = g_dwrite.renderTarget->CreateSolidColorBrush(color, &whiteBrush);
-    if (SUCCEEDED(hr)) {
-        // The text and its length
-        auto text = emoji;
-        INT count = lstrlenW(text);
+    // Draw the text
+    D2D1_SIZE_F extent = g_dwrite.GetTextExtent(g_dwrite.m_textFormat, text, count, g_dwrite.m_width, g_dwrite.m_height);
+    *pWidth = (int)extent.width;
+    *pHeight = (int)extent.height;
+    rect.right = rect.left+extent.width+2;
+    rect.bottom = rect.top+extent.height+2;
+    g_dwrite.DrawText(g_dwrite.m_textFormat, text, count, g_dwrite.m_whiteBrush, rect);
+}
 
-        // Draw the text
-        D2D1_SIZE_F extent = g_dwrite.GetTextExtent(g_dwrite.m_textFormat, text, count, g_dwrite.m_width, g_dwrite.m_height);
-        *pWidth = (int)extent.width;
-        *pHeight = (int)extent.height;
-        rect.right = rect.left+extent.width+2;
-        rect.bottom = rect.top+extent.height+2;
-        g_dwrite.DrawText(g_dwrite.m_textFormat, text, count, whiteBrush, rect);
-    }
 
-    // Release resources
-    if (whiteBrush) {
-        whiteBrush->Release();
-        whiteBrush = NULL;
-    }
-
-    // End rendering
-    g_dwrite.renderTarget->EndDraw();
+extern "C" __declspec(dllexport) void paint_endEmoji() {
+    g_dwrite.EndDraw();
 }
 

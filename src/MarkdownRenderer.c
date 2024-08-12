@@ -140,7 +140,7 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F491", ":couple:"},
 	{L"\U0001F451", ":crown:"},
 	{L"\U0001F498", ":cupid:"},
-	{L"\U0001F4AB", ":date:"},
+	{L"\U0001F4C5", ":date:"},
 	{L"\U0001F4AB", ":dizzy:"},
 	{L"\U0001F42C", ":dolphin:"},
 	{L"\U0001F4C0", ":dvd:"},
@@ -229,6 +229,8 @@ static EMOJI_MAPPING _emojis[] = {
 	{L"\U0001F49B", ":yellow_heart:"},
 	{L"\U0001F60B", ":yum:" }
 };
+
+static char _emojiOffsets[256];
 
 /*
  * Used during code completion.
@@ -469,6 +471,7 @@ typedef struct tagMDR_ELEMENT_FORMAT {
  * Draws an emoji with the specified attributes.
  */
 extern void paint_emojid2d(HDC hdc, WCHAR* emoji, COLORREF cColor, int fontSize, int x, int y, int* pWidth, int* pHeight);
+extern void paint_endEmoji();
 
 /*
  * Render a "text flow" - a simple text which contains styled regions aka text runs.
@@ -1169,13 +1172,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			x += pTR->tr_attributes.indent;
 		}
 		if (pTR->tr_isEmoji) {
-			WCHAR toPaint[512];
-			StrCpyW(toPaint, pTR->tr_data.tr_emoji);
-			while (pTR->tr_next && pTR->tr_next->tr_isEmoji) {
-				pTR = pTR->tr_next;
-				StrNCatW(toPaint, pTR->tr_data.tr_emoji, sizeof(toPaint)/sizeof(toPaint[0]));
-			}
-			mdr_renderEmoji(hdc, toPaint, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
+			mdr_renderEmoji(hdc, pTR->tr_data.tr_emoji, pTR->tr_attributes.fgColor, x, y, pRFP->rfp_zoomFactor, &size);
 			pPartBounds->bottom = y + size.cy;
 			mdr_updateHorizontalPartBounds(pPartBounds, x, x + size.cx);
 			pTR->tr_bounds.top1 = pTR->tr_bounds.top = y - pPartBounds->top;
@@ -1183,6 +1180,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
 			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPartBounds->right - pPartBounds->left;
 		} else if (pTR->tr_data.tr_image) {
+			paint_endEmoji();
 			mdr_paintImage(hdc, pTR, x, y, nRight-x, &size, pRFP->rfp_zoomFactor, pRFP->rfp_measureOnly);
 			if (size.cy > nHeight) {
 				nHeight = size.cy;
@@ -1194,8 +1192,15 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 			pTR->tr_bounds.left = pTR->tr_bounds.left1 = x - pPartBounds->left;
 			pTR->tr_bounds.right = pTR->tr_bounds.right2 = pPartBounds->right - pPartBounds->left;
 		} else {
+			char* pText = &pTF->tf_text[nOffs];
+			for (int i = 0; i < nLen; i++) {
+				if (pText[i] != ' ') {
+					paint_endEmoji();
+					break;
+				}
+			}
 			int nTotalWidth = nRight - x;
-			GetTextExtentExPoint(hdc, &pTF->tf_text[nOffs], (int)nLen, nTotalWidth, &nFit, 0 /* TODO: callback for measuring*/, &size);
+			GetTextExtentExPoint(hdc, pText, (int)nLen, nTotalWidth, &nFit, 0 /* TODO: callback for measuring*/, &size);
 			if (size.cy > nHeight) {
 				nHeight = size.cy;
 			}
@@ -1327,6 +1332,7 @@ static void mdr_renderTextFlow(MARGINS* pMargins, TEXT_FLOW* pFlow, RECT* pBound
 	}
 	DeleteObject(SelectObject(hdc, hOldFont));
 	pUsed->bottom = y + nHeight + pMargins->m_bottom;
+	paint_endEmoji();
 }
 
 static void mdr_paintFillDecoration(const RENDER_FLOW_PARAMS* pRFP, const RENDER_VIEW_PART* pPart, RECT* pBounds) {
@@ -3176,38 +3182,49 @@ static void mdr_appendRefLinkDefinition(MD_REFERENCE_DEFINITION** pHead, char* p
 }
 
 static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
-	// maximum length of Emoji: 30
-	char szDef[30];
-	size_t nLen = 0;
-	szDef[0] = ':';
-	for (int i = 1; i < sizeof(szDef)-1; i++) {
-		szDef[i] = pStream->is_peekc(pStream, i);
-		if (!szDef[i] || szDef[i] == ' ' || szDef[i] == '\n') {
-			return NULL;
-		}
-		if (szDef[i] == ':') {
-			szDef[i + 1] = 0;
-			nLen = i;
-			break;
+	if (_emojiOffsets[0] == 0) {
+		memset(_emojiOffsets, -1, sizeof _emojiOffsets);
+		char c = 0;
+		for (int i = 0; i < DIM(_emojis); i++) {
+			if (_emojis[i].name[1] != c) {
+				c = _emojis[i].name[1];
+				_emojiOffsets[c] = i;
+			}
 		}
 	}
-	int upper = DIM(_emojis);
-	int lower = 0;
-	while (TRUE) {
-		int i = lower + (upper - lower) / 2;
-		char* pszShortcut = _emojis[i].name;
-		int nResult = strcmp(szDef, pszShortcut);
-		if (nResult == 0) {
-			pStream->is_skip(pStream, (int) nLen);
-			return _emojis[i].emoji;
-		}
-		if (upper <= lower) {
+	char szDef[5];
+	size_t nLen = 0;
+	szDef[0] = ':';
+	int nOffset = -1;
+	// maximum length of emoji name: 128.
+	for (int i = 1; i < 128; i++) {
+		char c = pStream->is_peekc(pStream, i);
+		if (c == 0 || c == ' ') {
 			break;
 		}
-		if (nResult > 0) {
-			lower = i+1;
+		if (i == 1) {
+			nOffset = _emojiOffsets[c];
+			if (nOffset < 0) {
+				return NULL;
+			}
+			szDef[1] = c;
 		} else {
-			upper = i-1;
+			if (c == ':') {
+				if (_emojis[nOffset].name[i] == ':') {
+					nLen = i;
+					pStream->is_skip(pStream, (int)nLen);
+					return _emojis[nOffset].emoji;
+				}
+				break;
+			}
+			while (_emojis[nOffset].name[i] != c) {
+				if (++nOffset >= DIM(_emojis)) {
+					return NULL;
+				}
+				if (_emojis[nOffset].name[1] != szDef[1]) {
+					return NULL;
+				}
+			}
 		}
 	}
 	return NULL;
