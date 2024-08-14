@@ -176,13 +176,15 @@ static void fkey_createTips(HWND hwndParent) {
 /*
  * Initialize the preferred sizes and tooltips of the function keyboard.
  */
-static BOOL fkey_initialize(HWND hwnd) {
+static BOOL fkey_initialize(HWND hwnd, BOOL bShowKeys) {
 	HWND hwndFk1 = GetDlgItem(hwnd, IDD_FKFK1);
 	if (hwndFk1) {
 		int fkcharheight = cust_calculateButtonCharacterHeight(hwndFk1);
 		_fkoptheight = fkcharheight + FK_DELTA;
 		_fkfkheight = 2 * fkcharheight + FK_DELTA;
-		fkey_createTips(hwnd);
+		if (bShowKeys) {
+			fkey_createTips(hwnd);
+		}
 		return TRUE;
 	}
 	return FALSE;
@@ -200,17 +202,18 @@ EXPORT int fkey_getKeyboardSize(WORD *w, WORD *h) {
 		*w = *h = 0;
 		return 0;
 	}
-	if (!fkey_initialize(hwndFkeys)) {
+	int options = GetConfiguration()->layoutoptions;
+	if (!fkey_initialize(hwndFkeys, options & OL_FKEYS)) {
 		return 0;
 	}
 	GetWindowRect(hwndFkeys,&rectK);
 	GetClientRect(hwndFkeys,&rectClient);
 	*w = (WORD)(rectK.right - rectK.left) + 1;
 	*h = (WORD)((rectK.bottom - rectK.top) - rectClient.bottom);
-	if (GetConfiguration()->layoutoptions & OL_OPTIONBAR) {
+	if (options & OL_OPTIONBAR) {
 		*h += _fkoptheight;
 	}
-	if (GetConfiguration()->layoutoptions & OL_FKEYS) {
+	if (options & OL_FKEYS) {
 		*h += _fkfkheight;
 	}
 	return 1;
