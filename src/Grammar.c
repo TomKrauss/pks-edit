@@ -1437,6 +1437,9 @@ const char* grammar_getPatternName(GRAMMAR* pGrammar, LEXICAL_STATE aState) {
  * Returns the user readable name / description of a grammar.
  */
 const char* grammar_description(GRAMMAR* pGrammar) {
+	if (pGrammar == NULL) {
+		return "";
+	}
 	if (pGrammar->description[0]) {
 		return pGrammar->description;
 	}

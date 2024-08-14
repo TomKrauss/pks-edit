@@ -842,9 +842,7 @@ void dlg_drawFileInfo(HDC hdc, RECT *rcp, HWND hwnd, int nItem, BOOL bSelected) 
 	}
 	GetWindowText(hwnd, szBuf, sizeof szBuf);
 	HICON hIcon = (HICON)SendMessageW(hwnd, WM_GETICON, ICON_SMALL, 0L);
-	if (hIcon) {
-		cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
-	}
+	cust_drawListBoxRowWithIcon(hdc, rcp, hIcon, szBuf);
 }
 
 

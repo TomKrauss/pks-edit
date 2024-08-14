@@ -71,6 +71,11 @@ static void windowselector_paint(HWND hwnd) {
 		rect.top = y;
 		rect.bottom = rect.top + nLineHeight;
 		BOOL bSelected = i == pWSP->wsp_current;
+		if (bSelected) {
+			HBRUSH hBrush = CreateSolidBrush(pTheme->th_dialogHighlight);
+			FillRect(paint.hdc, &rect, hBrush);
+			DeleteObject(hBrush);
+		}
 		SelectObject(paint.hdc, bSelected ? hFontBold : hFontNormal);
 		dlg_drawFileInfo(paint.hdc, &rect, wp->edwin_handle, i, bSelected);
 		y += nLineHeight;

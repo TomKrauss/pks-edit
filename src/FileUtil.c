@@ -345,6 +345,21 @@ EXPORT BOOL file_fileNamesDiffer(const char* fileName1, const char* fileName2) {
 	char tempFn1[EDMAXPATHLEN];
 	char tempFn2[EDMAXPATHLEN];
 
+	const char* p1 = strrchr(fileName1, '\\');
+	const char* p2 = strrchr(fileName2, '\\');
+	if (p1 == NULL) {
+		p1 = fileName1;
+	} else {
+		p1++;
+	}
+	if (p2 == NULL) {
+		p2 = fileName2;
+	} else {
+		p2++;
+	}
+	if (lstrcmpi(p1, p2)) {
+		return TRUE;
+	}
 	if (GetLongPathName(fileName1, tempFn1, sizeof tempFn1) == FALSE) {
 		strcpy(tempFn1, fileName1);
 	}
