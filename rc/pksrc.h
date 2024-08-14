@@ -19,6 +19,7 @@
 #define IDD_EXPLANATION                 115
 #define IDD_PRESERVE_CASE               135
 #define IDS_NO_MATCHES_FOUND            149
+#define IDS_TAG_FILE_OUT_OF_DATE        150
 #define IDC_CURSOR1                     153
 #define IDC_CURSOR2                     154
 #define IDI_ICON1                       156

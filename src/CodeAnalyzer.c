@@ -656,17 +656,21 @@ static analyzer_getMarkdownCaretContext(WINFO* wp, ANALYZER_CARET_CONTEXT* pCont
  */
 BOOL analyzer_getCaretContext(const char* pszAnalyzerName, WINFO* wp, ANALYZER_CARET_CONTEXT* pCaretContext) {
 	memset(pCaretContext, 0, sizeof * pCaretContext);
-	if (pszAnalyzerName == NULL) {
-		return FALSE;
-	}
-	ANALYZER* pAnalyzer = _analyzers;
-
-	while (pAnalyzer) {
-		if (strstr(pszAnalyzerName, pAnalyzer->an_name) != 0) {
-			pAnalyzer->an_getCaretContext(wp, pCaretContext);
-			return TRUE;
+	if (pszAnalyzerName != NULL) {
+		ANALYZER* pAnalyzer = _analyzers;
+		while (pAnalyzer) {
+			if (strstr(pszAnalyzerName, pAnalyzer->an_name) != 0) {
+				pAnalyzer->an_getCaretContext(wp, pCaretContext);
+				return TRUE;
+			}
+			pAnalyzer = pAnalyzer->an_next;
 		}
-		pAnalyzer = pAnalyzer->an_next;
+	}
+	xref_getSelectedIdentifier(wp, pCaretContext->ac_token, sizeof pCaretContext->ac_token, &pCaretContext->ac_tokenOffset);
+	strcpy(pCaretContext->ac_tokenStart, pCaretContext->ac_token);
+	int nOffset = wp->caret.offset - pCaretContext->ac_tokenOffset;
+	if (nOffset > 0) {
+		pCaretContext->ac_tokenStart[nOffset] = 0;
 	}
 	return FALSE;
 }

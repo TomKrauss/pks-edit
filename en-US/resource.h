@@ -143,6 +143,8 @@
 #define IDS_MSGFILESHAVECHANGED         146
 #define IDS_NO_MATCHES_FOUND            149
 #define IDM_HLP_MANUAL_TOC              150
+#define IDS_NO_MATCHES_FOUND2           150
+#define IDS_TAG_FILE_OUT_OF_DATE        150
 #define IDM_HLPONDESKTOP                151
 #define IDM_HLPOVERVIEW                 152
 #define IDM_HLPONKEYS                   153

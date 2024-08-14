@@ -16,6 +16,7 @@
 #include <CommCtrl.h>
 #include <string.h>
 #include <stdio.h>
+#include <Shlwapi.h>
 #include "alloc.h"
 #include "pksmacro.h"
 #include "funcdef.h"
@@ -83,13 +84,15 @@ typedef struct tagNAVIGATION_SPEC {
 } NAVIGATION_SPEC;
 
 typedef struct tagTAG_TABLE {
+	struct tagTAG_TABLE* tt_next;
+	// The tag index - key is the identifier value is the TAG
 	HASHMAP* tt_map;
-	GRAMMAR* tt_grammar;
 	EDTIME tt_updated;
+	// The base directory for this tag index.
 	char* tt_directory;
 } TAG_TABLE;
 
-static TAG_TABLE _allTags;
+static TAG_TABLE *_tagTables;
 
 #define	TAGMAXTRY			5
 
@@ -97,9 +100,6 @@ extern FTABLE 	*ft_getCurrentErrorDocument();
 
 static NAVIGATION_PATTERN _pksEditSearchlistFormat = {
 0, "","\"([^\"]+)\", line ([0-9]+): *(.*)",	.filenameCapture = 1,.lineNumberCapture =	2,.commentCapture =	3 };
-static NAVIGATION_PATTERN _universalCTagsFileFormat =  {
-0, "", "^([^\t]+)\t([^\t]+)\t(.*);\"\t(.*)", .filenameCapture = 2, .lineNumberCapture = 3, .tagExtensionFields = 1 };
-static NAVIGATION_PATTERN *_tagfileFormatPattern  = &_universalCTagsFileFormat;
 static NAVIGATION_PATTERN	*_compilerOutputNavigationPatterns;
 
 static int xref_destroyNavigationPattern(NAVIGATION_PATTERN* ct) {
@@ -125,12 +125,16 @@ static int xref_destroyTag(intptr_t key, intptr_t value) {
 	return 1;
 }
 
+static int xref_destroyTable(TAG_TABLE* pTable) {
+	hashmap_destroy(pTable->tt_map, xref_destroyTag);
+	pTable->tt_map = NULL;
+	free(pTable->tt_directory);
+	pTable->tt_directory = NULL;
+	return 1;
+}
+
 static void xref_destroyTagTable() {
-	hashmap_destroy(_allTags.tt_map, xref_destroyTag);
-	_allTags.tt_map = NULL;
-	free(_allTags.tt_directory);
-	_allTags.tt_directory = NULL;
-	_allTags.tt_grammar = NULL;
+	ll_destroy(&_tagTables, xref_destroyTable);
 }
 
 /*
@@ -264,45 +268,40 @@ static int xref_readTagFile(char* fn, FTABLE* fp) {
 	return ft_readfileWithOptions(fp, &fro);
 }
 
-
-/*---------------------------------*/
-/* xref_loadTagFile()				*/
-/*---------------------------------*/
-static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
-	char   *fn = NULL;
-	char   dirname[512];
-
-	if (sourceFile) {
-		// tries to locate a tag file relative to a source file name (parent folder).
-		string_splitFilename(sourceFile, dirname, NULL, 0);
-		while(dirname[0]) {
-			size_t len = strlen(dirname);
-			if (dirname[len - 1] == '\\' || dirname[len - 1] == '/') {
-				dirname[len - 1] = 0;
-			}
-			fn = file_searchFileInDirectory(tagFilename, dirname);
-			if (fn) {
-				break;
-			}
-			string_splitFilename(dirname, dirname, NULL, 0);
+/*
+ * Find the tag index for a source file. If a tag index had been loaded already, return it.
+ * Otherwise - if a tag definition file (pTagFilename = "TAGS") can be found, copy the full path
+ * of it to pFullTagFile (if not NULL).
+ */
+static TAG_TABLE* xref_findTagIndex(char* pSourceFile, char* pFullTagFile, char* pTagFilename) {
+	char   dirname[1024];
+	*pFullTagFile = 0;
+	TAG_TABLE* pTable = _tagTables;
+	while (pTable) {
+		size_t len = PathCommonPrefix(pSourceFile, pTable->tt_directory, NULL);
+		if (len == strlen(pTable->tt_directory)) {
+			return pTable;
 		}
+		pTable = pTable->tt_next;
 	}
-	if (fn == NULL && (fn = file_searchFileInPKSEditLocation(tagFilename)) == 0L) {
-		return 0;
+	if (pFullTagFile == NULL) {
+		return NULL;
 	}
-	string_splitFilename(fn, dirname, NULL, 0);
-	if (_allTags.tt_directory != NULL && strcmp(dirname, _allTags.tt_directory) == 0) {
-		return 1;
+	// tries to locate a tag file relative to a source file name (parent folder).
+	string_splitFilename(pSourceFile, dirname, NULL, 0);
+	while (dirname[0]) {
+		size_t len = strlen(dirname);
+		if (dirname[len - 1] == '\\' || dirname[len - 1] == '/') {
+			dirname[len - 1] = 0;
+		}
+		char *fn = file_searchFileInDirectory(pTagFilename, dirname);
+		if (fn) {
+			strcpy(pFullTagFile, fn);
+			break;
+		}
+		string_splitFilename(dirname, dirname, NULL, 0);
 	}
-	if (_allTags.tt_map) {
-		// Tag index is recreated.
-		xref_destroyTagTable();
-	}
-	_allTags.tt_directory = _strdup(dirname);
-	if (file_exists(fn) != 0) {
-		return 0;
-	}
-	return xref_readTagFile(fn,fp);
+	return NULL;
 }
 
 #define TAGLIST_COL_WIDTH_ICON			60
@@ -313,72 +312,94 @@ static int xref_loadTagFile(FTABLE *fp, char* sourceFile, char *tagFilename) {
 /*
  * Parse a tag definition from the tag file. If successful, return the tag definition, if not, return 0.
  */
-static TAG* xref_parseTagDefinition(NAVIGATION_PATTERN* pNavigationPattern, LINE* lp, RE_PATTERN* pattern) {
-	RE_MATCH match;
+static TAG* xref_parseTagDefinition(TAG_TABLE* pTable, LINE* lp, BOOL* pUpdateToDate) {
 	TAG_REFERENCE* pReference;
-	static char extCommand[256];
-	static char extCommandCopy[256];
 
-	if (regex_match(pattern, lp->lbuf, &lp->lbuf[lp->len], &match)) {
-		regex_getCapturingGroup(&match, pNavigationPattern->tagCapture - 1, extCommand, sizeof extCommand);
-		TAG* pTag = (TAG*) hashmap_get(_allTags.tt_map, extCommand);
+	// Skip PSEUDO Tags for now
+	if (lp->len == 0 || lp->lbuf[0] == '!') {
+		return NULL;
+	}
+	char* pszRef = strtok(lp->lbuf, "\t");
+	if (pszRef == NULL) {
+		return NULL;
+	}
+	TAG* pTag = (TAG*)hashmap_get(pTable->tt_map, pszRef);
+	if (pTag == NULL) {
+		pTag = calloc(1, sizeof * pTag);
 		if (pTag == NULL) {
-			pTag = calloc(1, sizeof *pTag);
-			pTag->tagname = _strdup(extCommand);
-			hashmap_put(_allTags.tt_map, pTag->tagname, (intptr_t)pTag);
+			return NULL;
 		}
-		pReference = ll_insert((void**) & pTag->tagReferences, sizeof * pReference);
-		pReference->pTag = pTag;
-		char* filename = calloc(1, EDMAXPATHLEN);
-		regex_getCapturingGroup(&match, pNavigationPattern->filenameCapture - 1, filename, EDMAXPATHLEN);
-		pReference->filename = realloc(filename, strlen(filename)+1);
-		if (pReference->filename == NULL) {
-			free(filename);
-			return 0;
-		}
-		memset(extCommand, 0, sizeof extCommand);
-		regex_getCapturingGroup(&match, pNavigationPattern->commentCapture - 1, extCommand, sizeof extCommand);
-		if (extCommand[0] == '?' || extCommand[0] == '/') {
-			char* pszSource = extCommand + 1;
-			char* pszDest = extCommandCopy;
-			while (*pszSource) {
-				char c = *pszSource++;
-				if (c == '/') {
-					*pszDest = 0;
-					break;
-				}
-				if (c == '\\') {
-					c = *pszSource++;
-				}
-				else if (c == '*' || c == '+' || c == '?' || c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']') {
-					*pszDest++ = '\\';
-				}
-				*pszDest++ = c;
-			}
-			*pszDest = 0;
-			pReference->ln = -1;
-			pReference->searchCommand = _strdup(extCommandCopy);
-		} else {
-			// lines are 0-based
-			pReference->ln = (long)string_convertToLong(extCommand)-1l;
-		}
-		regex_getCapturingGroup(&match, pNavigationPattern->tagExtensionFields - 1, extCommand, sizeof extCommand);
-		pReference->kind = extCommand[0];
-		char* pszRef = strtok(extCommand + 2, "\t");
-		pReference->isDefinition = TRUE;
-		while (pszRef) {
-			if (strstr(pszRef, "roles:") == pszRef) {
-				pReference->isDefinition = strcmp(pszRef+5,"def") == 0;
-			}
-			if (strstr(pszRef, "struct:") == pszRef || strstr(pszRef, "object:") == pszRef) {
-				pReference->referenceDescription = _strdup(pszRef);
-				break;
-			}
-			pszRef = strtok(NULL, "\t");
-		}
+		pTag->tagname = _strdup(pszRef);
+		hashmap_put(pTable->tt_map, pTag->tagname, (intptr_t)pTag);
+	}
+	pszRef = strtok(NULL, "\t");
+	if (pszRef == NULL) {
 		return pTag;
 	}
-	return 0;
+	pReference = ll_insert((void**)&pTag->tagReferences, sizeof * pReference);
+	if (pReference == NULL) {
+		return NULL;
+	}
+	pReference->pTag = pTag;
+	char* filename = pszRef;
+	if (*pUpdateToDate) {
+		char* pszCompleteFile = file_searchFileInDirectory(filename, pTable->tt_directory);
+		if (!pszCompleteFile) {
+			*pUpdateToDate = FALSE;
+		}
+	}
+	pReference->filename = _strdup(filename);
+	if (pReference->filename == NULL) {
+		free(filename);
+		return 0;
+	}
+	pszRef = strtok(NULL, "\t");
+	if (pszRef == NULL) {
+		return pTag;
+	}
+	if ((pszRef[0] == '/') || (pszRef[0] == '?')) {
+		char szCopy[256];
+		char* pszSource = pszRef + 1;
+		char* pszDest = szCopy;
+		while (*pszSource && pszDest < szCopy + sizeof szCopy - 2) {
+			char c = *pszSource++;
+			if (c == '/') {
+				*pszDest = 0;
+				break;
+			}
+			if (c == '\\') {
+				c = *pszSource++;
+			}
+			else if (c == '*' || c == '+' || c == '?' || c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']') {
+				*pszDest++ = '\\';
+			}
+			*pszDest++ = c;
+		}
+		*pszDest = 0;
+		pReference->ln = -1;
+		pReference->searchCommand = _strdup(szCopy);
+	}
+	else {
+		// lines are 0-based
+		pReference->ln = (long)string_convertToLong(pszRef) - 1l;
+	}
+	pszRef = strtok(NULL, "\t");
+	if (pszRef == NULL) {
+		return pTag;
+	}
+	pReference->kind = pszRef[0];
+	pReference->isDefinition = TRUE;
+	while (pszRef) {
+		if (strstr(pszRef, "roles:") == pszRef) {
+			pReference->isDefinition = strcmp(pszRef+5,"def") == 0;
+		}
+		if (strstr(pszRef, "struct:") == pszRef || strstr(pszRef, "object:") == pszRef) {
+			pReference->referenceDescription = _strdup(pszRef);
+			break;
+		}
+		pszRef = strtok(NULL, "\t");
+	}
+	return pTag;
 }
 
 /*
@@ -386,36 +407,67 @@ static TAG* xref_parseTagDefinition(NAVIGATION_PATTERN* pNavigationPattern, LINE
  * We try to locate the tags file relative to the source file passed with sourceFilename,
  * if that is non NULL.
  *
- * TODO: try to rebuild tag file index if required.
+ * Try to rebuild tag file index if required.
  */
-static BOOL xref_buildTagTable(char* sourceFilename, char* baseTagFilename) {
+static TAG_TABLE* xref_buildTagTable(char* sourceFilename, char* pszTagFilename) {
 	FTABLE ftable;
 	LINE* lp;
+	char szDirectory[EDMAXPATHLEN];
 
 	memset(&ftable, 0, sizeof ftable);
-	if (xref_loadTagFile(&ftable, sourceFilename, baseTagFilename) == 0) {
+	if (xref_readTagFile(pszTagFilename, &ftable) == 0) {
 		return FALSE;
 	}
 	if (!ftable.firstl) {
-		// Everything up to date.
-		return TRUE;
+		return NULL;
 	}
-	RE_PATTERN* pPattern = xref_initializeNavigationPattern(_tagfileFormatPattern);
-	if (pPattern == NULL) {
-		ft_bufdestroy(&ftable);
-		return FALSE;
+	TAG_TABLE* pTable = ll_append((LINKED_LIST**) & _tagTables, sizeof * _tagTables);
+	if (pTable == NULL) {
+		return NULL;
 	}
-	_allTags.tt_map = hashmap_create(997, NULL, NULL);
-	find_initializeReplaceByExpression(_tagfileFormatPattern->pattern);	/* assure a few initialiations */
+	pTable->tt_map = hashmap_create(997, NULL, NULL);
+	string_splitFilename(pszTagFilename, szDirectory, NULL, 0);
+	size_t nLen = strlen(szDirectory);
+	if (nLen > 0 && szDirectory[nLen - 1] == '\\') {
+		szDirectory[nLen - 1] = 0;
+	}
+	pTable->tt_directory = _strdup(szDirectory);
+	BOOL bUptoDate = TRUE;
 	for (lp = ftable.firstl; lp; lp = lp->next) {
 		if (lp->len > 0 && lp->lbuf[0] == '!') {
 			// Metatag lines in tag file format.
 			continue;
 		}
-		xref_parseTagDefinition(_tagfileFormatPattern, lp, pPattern);
+		xref_parseTagDefinition(pTable, lp, &bUptoDate);
+	}
+	if (!bUptoDate) {
+		error_showErrorById(IDS_TAG_FILE_OUT_OF_DATE, ftable.fname);
 	}
 	ft_bufdestroy(&ftable);
-	return 1;
+	return pTable;
+}
+
+static TAG_TABLE* xref_lookupTagIndex(FTABLE* fp) {
+	TAGSOURCE* ttl;
+	GRAMMAR* pszGrammar = fp->documentDescriptor->grammar;
+	char szFullTagFile[EDMAXPATHLEN];
+	ttl = grammar_getTagSources(pszGrammar);
+	char* pTags = TST_TAGFILE;
+	while (ttl) {
+		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
+			pTags = ttl->fn;
+			break;
+		}
+		ttl = ttl->next;
+	}
+	TAG_TABLE* pFound = xref_findTagIndex(fp->fname, szFullTagFile, pTags);
+	if (pFound != NULL) {
+		return pFound;
+	}
+	if (!szFullTagFile) {
+		return 0;
+	}
+	return xref_buildTagTable(fp->fname, szFullTagFile);
 }
 
 /*
@@ -471,19 +523,20 @@ static void xref_addMessageItems(intptr_t k, intptr_t v) {
 /*------------------------------------------------------------
  * xref_fillTagList()
  */
-static void xref_fillTagList(HWND hwnd, void* crossReferenceWord) {
+static void xref_fillTagList(TAG_TABLE* pTable, HWND hwnd, void* crossReferenceWord) {
 	hwndList = GetDlgItem(hwnd, IDD_ICONLIST);
 	ListView_DeleteAllItems(hwndList);
 
 	_pszFilterString = crossReferenceWord;
 	_hwndDialog = hwnd;
-	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, crossReferenceWord) : NULL;
+	TAG* tp = pTable->tt_map ? (TAG*)hashmap_get(pTable->tt_map, crossReferenceWord) : NULL;
 	_pSelectReference = NULL;
 
 	if (tp != NULL) {
 		xref_addMessageItems((intptr_t)crossReferenceWord, (intptr_t)tp);
-	} else if (_allTags.tt_map) {
-		hashmap_forKeysMatching(_allTags.tt_map, xref_addMessageItems, xref_filter);
+	}
+	else if (pTable->tt_map) {
+		hashmap_forKeysMatching(pTable->tt_map, xref_addMessageItems, xref_filter);
 	}
 }
 
@@ -498,28 +551,10 @@ static void xref_processTag(intptr_t pszText, intptr_t pszVal) {
  */
 int xref_forAllTagsDo(WINFO* wp, int (*matchfunc)(const char* pszMatching), ANALYZER_CALLBACK cbCallback) {
 	FTABLE* fp = wp->fp;
-	GRAMMAR* pszGrammar = fp->documentDescriptor->grammar;
-	if (_allTags.tt_map != NULL && pszGrammar != _allTags.tt_grammar) {
-		xref_destroyTagTable();
-	}
-	if (_allTags.tt_map == NULL) {
-		TAGSOURCE* ttl;
-		if ((ttl = grammar_getTagSources(pszGrammar)) == NULL) {
-			return 0;
-		}
-		while (ttl) {
-			if (strcmp(TST_TAGFILE, ttl->type) == 0) {
-				if (xref_buildTagTable(fp->fname, ttl->fn)) {
-					_allTags.tt_grammar = pszGrammar;
-					break;
-				}
-			}
-			ttl = ttl->next;
-		}
-	}
-	if (_allTags.tt_map != NULL) {
+	TAG_TABLE* pFound = xref_lookupTagIndex(fp);
+	if (pFound && pFound->tt_map != NULL) {
 		_addCallback = cbCallback;
-		hashmap_forKeysMatching(_allTags.tt_map, xref_processTag, (int(*)(intptr_t p))matchfunc);
+		hashmap_forKeysMatching(pFound->tt_map, xref_processTag, (int(*)(intptr_t p))matchfunc);
 		_addCallback = NULL;
 		return 1;
 	}
@@ -662,7 +697,11 @@ static INT_PTR CALLBACK xref_lookupTagReferenceProc(HWND hDlg, UINT message, WPA
 			if (nNotify == EN_CHANGE) {
 				char szNewText[50];
 				GetDlgItemText(hDlg, idCtrl, szNewText, sizeof szNewText);
-				xref_fillTagList(hDlg, szNewText);
+				WINFO* wp = ww_getCurrentEditorWindow();
+				TAG_TABLE* pTable = xref_lookupTagIndex(wp->fp);
+				if (pTable != NULL) {
+					xref_fillTagList(pTable, hDlg, szNewText);
+				}
 				return TRUE;
 			}
 		}
@@ -690,8 +729,8 @@ static TAG_REFERENCE* xref_selectTagsByDialog(char* pTagName) {
  * tag name are presented to the user for selection.
  */
 static BOOL _tagCancelled;
-static TAG_REFERENCE *xref_lookupTagReference(char *tagName, BOOL bForceDialog) {
-	TAG* tp = _allTags.tt_map ? (TAG*)hashmap_get(_allTags.tt_map, tagName) : NULL;
+static TAG_REFERENCE *xref_lookupTagReference(TAG_TABLE* pTable, char *tagName, BOOL bForceDialog) {
+	TAG* tp = pTable->tt_map ? (TAG*)hashmap_get(pTable->tt_map, tagName) : NULL;
 	TAG_REFERENCE* pRef;
 
 	if (!bForceDialog && tp && ll_size((LINKED_LIST*)tp->tagReferences) <= 1) {
@@ -856,8 +895,9 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 	ttl = grammar_getTagSources(fp->documentDescriptor->grammar);
 	while (ttl && ret == 0 && _tagCancelled == FALSE) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {
-			if (xref_buildTagTable(fp->fname, ttl->fn) && (tp = xref_lookupTagReference(s, bForceDialog)) != 0L) {
-				char* pszCompleteFile = file_searchFileInDirectory(tp->filename, _allTags.tt_directory);
+			TAG_TABLE* pTable = xref_lookupTagIndex(fp);
+			if (pTable != NULL && (tp = xref_lookupTagReference(pTable, s, bForceDialog)) != 0L) {
+				char* pszCompleteFile = file_searchFileInDirectory(tp->filename, pTable->tt_directory);
 				if (pszCompleteFile) {
 					strcpy(buffer, pszCompleteFile);
 				} else {
@@ -868,10 +908,10 @@ static int xref_navigateCrossReferenceForceDialog(WINFO* wp, char *s, BOOL bForc
 					error_showErrorById(IDS_FILE_NOT_FOUND, buffer);
 					break;
 				}
-				if (tp->searchCommand && ft_getCurrentDocument()) {
+				if (tp->searchCommand && ww_getCurrentEditorWindow()) {
 					RE_PATTERN* pPattern;
 					if ((pPattern = find_regexCompile(&pattern, buffer, tp->searchCommand, (int)RE_DOREX)) != NULL) {
-						find_expressionInCurrentFile(wp, 1, tp->searchCommand, pPattern, RE_WRAPSCAN);
+						find_expressionInCurrentFile(ww_getCurrentEditorWindow(), 1, tp->searchCommand, pPattern, RE_WRAPSCAN);
 					}
 				}
 				ret = 1;
@@ -1200,7 +1240,7 @@ int xref_navigateSearchErrorList(LIST_OPERATION_FLAGS nNavigationType) {
 #define	ST_ERRORS	2
 #define	ST_STEP		3
 #define	ST_MACROC_ERRORS	4
-static FSELINFO _tagfselinfo = { ".", "tags", "*.tag" };
+static FSELINFO _tagfselinfo = { ".", TST_TAGFILE, "*.tag" };
 static FSELINFO _cmpfselinfo = { ".", "build.out", "*.out" };
 static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *fsp, FT_OPEN_OPTIONS* pOptions) {
 	FILE_SELECT_PARAMS params;
@@ -1237,7 +1277,7 @@ static int xref_openTagFileOrSearchResults(int nCommand, int st_type, FSELINFO *
 			}
 			return 0;
 		case ST_TAGS:
-			return xref_buildTagTable(NULL, _fseltarget);
+			return xref_buildTagTable(NULL, _fseltarget) != NULL;
 	}
 	return 0;
 }

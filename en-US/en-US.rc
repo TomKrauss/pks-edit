@@ -1398,11 +1398,13 @@ BEGIN
     IDS_UNSUPPORTED_CHARACTERS 
                             "!The file %s contains unsupported characters and cannot be saved without loss."
     IDS_NO_MATCHES_FOUND    "!The entered pattern could not be found in any of the affected files."
+    IDS_TAG_FILE_OUT_OF_DATE 
+                            "The tag definition file %s is out of date and has to be recreated."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGRENOTNULL        "Illegal attemp to search 'nothing'"
+    IDS_MSGRENOTNULL        "Illegal attempt to search 'nothing'"
     IDS_MSGRECOMPLEXEXPR    "Regular expression to complex"
     IDS_MSGREMACRORANGESYNTAX "Invalid combination macro and range"
     IDS_MSGRERANGE          "Wrong character class syntax"

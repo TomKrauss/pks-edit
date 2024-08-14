@@ -1442,6 +1442,8 @@ BEGIN
     IDS_UNSUPPORTED_CHARACTERS 
                             "!Die Datei %s enthält nicht unterstützte Zeichen und kann nicht ohne Verlust gespeichert werden."
     IDS_NO_MATCHES_FOUND    "!Das angegebene Muster konnte nirgendwo gefunden werden."
+    IDS_TAG_FILE_OUT_OF_DATE 
+                            "Die Ctags Definitionsdatei %s ist veraltet und muss neu erzeugt werden."
 END
 
 STRINGTABLE

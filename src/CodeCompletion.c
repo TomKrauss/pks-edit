@@ -175,7 +175,8 @@ static ANALYZER_CARET_CONTEXT caretContext;
 static int codecomplete_matchWord(const char* pszWord) {
 	// add all words to the completion list, which are not identical to the word searched, but where the word
 	// searched / completed is a substring.
-	return string_strcasestr(pszWord, caretContext.ac_token) != NULL;
+	char* pszSearch = caretContext.ac_tokenStart[0] ? caretContext.ac_tokenStart : caretContext.ac_token;
+	return string_strcasestr(pszWord, pszSearch) != NULL;
 }
 
 /*
