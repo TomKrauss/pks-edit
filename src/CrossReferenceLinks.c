@@ -312,7 +312,7 @@ static TAG_TABLE* xref_findTagIndex(char* pSourceFile, char* pFullTagFile, char*
 /*
  * Parse a tag definition from the tag file. If successful, return the tag definition, if not, return 0.
  */
-static TAG* xref_parseTagDefinition(TAG_TABLE* pTable, LINE* lp, BOOL* pUpdateToDate) {
+static TAG* xref_parseTagDefinition(TAG_TABLE* pTable, LINE* lp) {
 	TAG_REFERENCE* pReference;
 
 	// Skip PSEUDO Tags for now
@@ -342,12 +342,6 @@ static TAG* xref_parseTagDefinition(TAG_TABLE* pTable, LINE* lp, BOOL* pUpdateTo
 	}
 	pReference->pTag = pTag;
 	char* filename = pszRef;
-	if (*pUpdateToDate) {
-		char* pszCompleteFile = file_searchFileInDirectory(filename, pTable->tt_directory);
-		if (!pszCompleteFile) {
-			*pUpdateToDate = FALSE;
-		}
-	}
 	pReference->filename = _strdup(filename);
 	if (pReference->filename == NULL) {
 		free(filename);
@@ -433,13 +427,33 @@ static TAG_TABLE* xref_buildTagTable(char* sourceFilename, char* pszTagFilename)
 	}
 	pTable->tt_directory = _strdup(szDirectory);
 	BOOL bUptoDate = TRUE;
+	szDirectory[0] = 0;
+	HASHMAP* pDirectoryCache = hashmap_create(11, NULL, NULL);
 	for (lp = ftable.firstl; lp; lp = lp->next) {
 		if (lp->len > 0 && lp->lbuf[0] == '!') {
 			// Metatag lines in tag file format.
 			continue;
 		}
-		xref_parseTagDefinition(pTable, lp, &bUptoDate);
+		TAG* pTag = xref_parseTagDefinition(pTable, lp);
+		if (bUptoDate && pTag) {
+			TAG_REFERENCE* pRef = pTag->tagReferences;
+			while (pRef && pRef->next) {
+				pRef = pRef->next;
+			}
+			if (pRef && pRef->filename) {
+				string_splitFilename(pRef->filename, szDirectory, NULL, 0);
+				if (hashmap_get(pDirectoryCache, szDirectory) == 0) {
+					char* pszCompleteFile = file_searchFileInDirectory(pRef->filename, pTable->tt_directory);
+					if (!pszCompleteFile) {
+						bUptoDate = FALSE;
+					} else {
+						hashmap_put(pDirectoryCache, _strdup(szDirectory), (intptr_t)1);
+					}
+				}
+			}
+		}
 	}
+	hashmap_destroySet(pDirectoryCache);
 	if (!bUptoDate) {
 		error_showErrorById(IDS_TAG_FILE_OUT_OF_DATE, ftable.fname);
 	}
