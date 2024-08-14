@@ -464,7 +464,7 @@ static TAG_TABLE* xref_lookupTagIndex(FTABLE* fp) {
 	if (pFound != NULL) {
 		return pFound;
 	}
-	if (!szFullTagFile) {
+	if (!szFullTagFile[0]) {
 		return 0;
 	}
 	return xref_buildTagTable(fp->fname, szFullTagFile);

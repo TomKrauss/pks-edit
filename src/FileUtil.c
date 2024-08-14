@@ -191,10 +191,13 @@ static int pathstat(char *path,char *fn)
 /*--------------------------------------------------------------------------
  * file_searchFileInDir()
  * Searches a file in a directory. If found, return the full path name.
+ * If the file cannot be found or is not a file, return NULL.
  */
 EXPORT char* file_searchFileInDirectory(char* s, char* pDir) {
 	if (pathstat(pDir, s)) {
-		return _found;
+		BOOL bDirectory = FALSE;
+		file_getFileAttributes(_found, NULL, NULL, &bDirectory);
+		return bDirectory ? NULL : _found;
 	}
 	return 0;
 }
