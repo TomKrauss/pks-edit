@@ -838,8 +838,8 @@ static void paintGroupbox(HWND hwnd, HDC hdc, BUTTON_PAINT_DATA* buttonData) {
 		DrawThemeTextEx(buttonData->hTheme, hdc, BP_GROUPBOX, iStateID, szText, -1, textFlags | DT_SINGLELINE, &rcText, &dtto);
 	}
 
-	if (hCreatedFont) DeleteObject(hCreatedFont);
 	SelectObject(hdc, hOldFont);
+	if (hCreatedFont) DeleteObject(hCreatedFont);
 }
 
 /*
@@ -972,8 +972,8 @@ static void theme_renderButton(HWND hwnd, HDC hdc, HTHEME hTheme, int iPartID, i
 		DrawFocusRect(hdc, &rcFocus);
 	}
 
-	if (hCreatedFont) DeleteObject(hCreatedFont);
 	SelectObject(hdc, hOldFont);
+	if (hCreatedFont) DeleteObject(hCreatedFont);
 }
 
 /*

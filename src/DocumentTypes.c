@@ -60,9 +60,15 @@ typedef struct tagDOCUMENT_TYPE {
 	BOOL				ll_hideInFileSelector;				// Do not display file name pattern in list of file types in files selector.
 	char				ll_firstlineMatch[64];				// Can be used to match a file by parsing the 1st line contained in that file.
 	EDIT_CONFIGURATION* ll_documentDescriptor;
+	HICON				ll_icon;							// The icon to use to represent this document.
 } DOCUMENT_TYPE;
 
 DOCUMENT_TYPE* doctypes_createDocumentType(DOCUMENT_TYPE* llp);
+
+/*
+ * Returns a default icon to display for editors not having an own icon defined by the Windows file type.
+ */
+extern HICON mainframe_getDefaultEditorIcon();
 
 static FSELINFO _editConfigurationFileInfo = { "", "pkseditconfig.json", "*.json" };
 
@@ -166,6 +172,23 @@ static BOOL doctypes_destroySegment(STATUS_LINE_SEGMENT* pSegment) {
  */
 JSON_MAPPING_RULE* doctypes_getJsonMapping() {
 	return _doctypeConfigurationRules;
+}
+
+/**
+ * Return the file icon to use to display this document type.
+ */
+HICON doctypes_getFileIcon(DOCUMENT_TYPE* pType) {
+	if (pType->ll_icon == NULL) {
+		SHFILEINFO sfi = { 0 };
+		SHGetFileInfo(pType->ll_match, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
+		if (sfi.hIcon != NULL) {
+			pType->ll_icon = sfi.hIcon;
+		}
+		else {
+			pType->ll_icon = mainframe_getDefaultEditorIcon();
+		}
+	}
+	return pType->ll_icon;
 }
 
 /*
@@ -296,16 +319,12 @@ int doctypes_addDocumentTypesToListView(HWND hwndList, const void* pSelected) {
 		if (pSelectedDocumentType != NULL && strcmp(pSelectedDocumentType->ll_name, llp->ll_name) == 0) {
 			nSelected = nCnt;
 		}
-		SHFILEINFO sfi = { 0 };
-		SHGetFileInfo(llp->ll_match, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-		if (sfi.hIcon != NULL) {
-			ImageList_AddIcon(hSmall, sfi.hIcon);
-			if (ListView_InsertItem(hwndList, &lvI) == -1) {
-				return FALSE;
-			}
-			DestroyIcon(sfi.hIcon);
-			nCnt++;
+		HICON hIcon = doctypes_getFileIcon(llp);
+		ImageList_AddIcon(hSmall, hIcon);
+		if (ListView_InsertItem(hwndList, &lvI) == -1) {
+			return FALSE;
 		}
+		nCnt++;
 	}
 	ListView_SetImageList(hwndList, hSmall, LVSIL_SMALL);
 	if (nSelected >= 0) {
@@ -599,10 +618,22 @@ BOOL doctypes_destroyEditConfiguration(EDIT_CONFIGURATION* pConfiguration) {
 	return TRUE;
 }
 
+static void doctypes_preDestroyDocumentType(DOCUMENT_TYPE* pType) {
+	if (pType->ll_icon) {
+		DeleteObject(pType->ll_icon);
+		pType->ll_icon = NULL;
+	}
+}
+
 /**
  * Deletes and de-allocates all known document types and editor configurations.
  */
 void doctypes_destroyAllDocumentTypes() {
+	DOCUMENT_TYPE* pTypes = config.dc_types;
+	while (pTypes) {
+		doctypes_preDestroyDocumentType(pTypes);
+		pTypes = pTypes->ll_next;
+	}
 	json_destroy(&config, _doctypeConfigurationRules);
 }
 
@@ -611,6 +642,7 @@ void doctypes_destroyAllDocumentTypes() {
  * Deletes a given document type.
  */
 void doctypes_deleteDocumentType(DOCUMENT_TYPE* llp) {
+	doctypes_preDestroyDocumentType(llp);
 	ll_delete(&config.dc_types, llp);
 }
 

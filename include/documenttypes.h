@@ -36,6 +36,11 @@ extern void doctypes_destroyAllDocumentTypes();
  */
 extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 
+/**
+ * Return the file icon to use to display this document type.
+ */
+extern HICON doctypes_getFileIcon(DOCUMENT_TYPE* pType);
+
 /*--------------------------------------------------------------------------
  * doctypes_getDocumentTypeDescription()
  * Returns the properties for a document type (primarily for the purpose of displaying

@@ -47,7 +47,7 @@ extern void 	tb_wh(WORD* width, WORD* height);
 extern BOOL 	ww_workWinHasFocus(void);
 extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern void		tb_updateImageList(HWND hwnd, wchar_t* tbIcons, int nCount);
+extern void		tb_updateImageList(HWND hwnd, void* tbIcons, int nCount);
 /*
  * Activate a tab page with the given window handle.
  */

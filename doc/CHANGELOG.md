@@ -14,20 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - JSON Code Completion support was added in particular for PKS Edit configuration files.
-- The Code Completion window show now supporting graphical information like the color of an inserted color name or
-  the emoji to insert into a markdown document or the FontAweSome icon, when inserting an icon name in a configuration
+- The Code Completion window shows now supporting graphical information like the color of an inserted color name or
+  the emoji to insert into a markdown document or the FontAweSome icon, when inserting an icon name into a configuration
   file.
 - The new function `reload-themes` (by default bound to `Ctrl+F10`) makes theme updates and editing easier.
 - File Templates: when creating files with a grammar defining a `file` - template will have the template being inserted, when the new file is created.
 - The Markdown Wysiwyg mode supports now caret line highlighting.
-- Added support for inserting `copyright` templates. One may define copyright templates in a file named `copyright_profiles.json`
+- Support for inserting `copyright` templates was added. One may define copyright templates in a file named `copyright_profiles.json`
   along with options, how they should be formatted (using single line or multiple line comments). Copyrights are
   currently only supported in files having a grammar defining a language supporting comments.
 - A generic exception handler will now catch errors, which occur in editing functions and allow to more gracefully
   exit PKS Edit in case of an internal error.
 - Document Types may be hidden now in the file selector. This will cause the extension of the corresponding document
   type not being added to the list of selectable file extensions in file dialogs (to keep this list clear).
-- Grammars for Docker (Dockerfile) and the Assembly, Julia, Rust, Cobol, Kotlin, Fortran, PHP and Swift Programming Languages were added.
+- Grammars for Docker (Dockerfile) and the languages Assembly, Julia, Rust, Cobol, Kotlin, Fortran, PHP and Swift were added.
 
 ### Improved
 - The Align Text function is more intuitive to use now.
@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compilation resulted in one or more errors.
 - Opening build results **and** a PKS Edit search result list at the same time will now work correctly correctly.
   Pressing `Shift+Ctrl+N` will then navigate the list of results of the corresponding active search
-- list. Search Lists and Build Log Windows are restored, when PKS Edit will be opened again.
+  list. Search Lists and Build Log Windows are restored, when PKS Edit will be opened again.
 - #21: wrong markdown rendering for `#HEADER` fixed.
 - PKS Edit stored the _autosave temp file path_ in `pkseditini.json`, even if that was the default path from the
   user home directory, which could cause various problems like the failure to edit files

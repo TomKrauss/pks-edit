@@ -347,11 +347,6 @@ void ww_redrawAllWindows(int update)
 	}
 }
 
-static void mainframe_destroyEditorIcon(HICON hIcon) {
-	if (hIcon && hIcon != mainframe_getDefaultEditorIcon())
-		DestroyIcon(hIcon);
-}
-
 /*-----------------------------------------------------------
  * ww_setwindowtitle()
  * Update the title of a window.
@@ -376,15 +371,9 @@ int ww_setwindowtitle(WINFO *wp, BOOL bRepaint) {
 		}
 	}
 	SetWindowText(wp->edwin_handle,buf);
-	SHFILEINFO sfi;
-	memset(&sfi, 0, sizeof sfi);
-	SHGetFileInfo(fp->fname, FILE_ATTRIBUTE_NORMAL, &sfi, sizeof sfi, SHGFI_ICON | SHGFI_SMALLICON);
-	HICON icon = sfi.hIcon;
-	if (!icon) {
-		icon = mainframe_getDefaultEditorIcon();
-	}
-	HICON hIconOld = (HICON)SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)icon);
-	mainframe_destroyEditorIcon(hIconOld);
+	DOCUMENT_TYPE* pType = fp->documentDescriptor->documentType;
+	HICON icon = pType == NULL ? mainframe_getDefaultEditorIcon() : doctypes_getFileIcon(pType);
+	SendMessage(wp->edwin_handle, WM_SETICON, ICON_SMALL, (LPARAM)icon);
 	if (bRepaint) {
 		mainframe_tabLayoutChanged();
 	}
@@ -1149,11 +1138,6 @@ WINFUNC EditWndProc(
 		ww_destroy(wp);
 		if (!ww_getNumberOfOpenWindows()) {
 			menu_selectActionContext(DEFAULT_ACTION_CONTEXT);
-		}
-		{
-			HICON hIcon = (HICON)SendMessage(hwnd, WM_SETICON, (WPARAM)ICON_SMALL,
-					(LPARAM)NULL);
-			mainframe_destroyEditorIcon(hIcon);
 		}
 		return 0;
     }
