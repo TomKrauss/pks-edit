@@ -1878,6 +1878,7 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	static BOOL			bHelp = FALSE;
 	static BOOL			appActivated;
 	static BOOL			closed = FALSE;
+	static BOOL			messageOccurred = FALSE;
 	RECT				rect;
 	WORD				fwMenu;
 	WORD				w;
@@ -1887,6 +1888,9 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 	int					idCtrl;
 	LRESULT				lResult;
 
+	if (message != WM_TIMER) {
+		messageOccurred = TRUE;
+	}
 	if (UAHWndProc(hwnd, message, wParam, lParam, &lResult)) {
 		return lResult;
 	}
@@ -2006,7 +2010,8 @@ static LRESULT mainframe_windowProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 			fkey_keyModifierStateChanged();
 		}
 		ft_triggerAutosaveAllFiles();
-		if (bActive) {
+		if (bActive && messageOccurred) {
+			messageOccurred = FALSE;
 			st_redraw(FALSE);
 		}
 		break;
