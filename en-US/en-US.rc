@@ -126,14 +126,14 @@ CLASS "DLGFKEYS"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "Insert",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
-    CONTROL         "Auto Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
-    CONTROL         "Auto Wrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
-    CONTROL         "Auto Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
-    CONTROL         "Check {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
+    CONTROL         "Autoindent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
+    CONTROL         "Autowrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
+    CONTROL         "Autoformat",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
+    CONTROL         "Check Brackets",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
     CONTROL         "Wysiwyg",IDD_FKFLG6,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Autocomplete",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
-    CONTROL         "Select | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
-    CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
+    CONTROL         "Block Selection",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
+    CONTROL         "Readonly",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
     CONTROL         "Logfile Mode",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
     CONTROL         "Caret Highlight",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
@@ -314,20 +314,20 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Caret and Scrolling"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Scrollbehavior",-1,9,12,176,114,WS_GROUP
-    LTEXT           "Minimum &Distance of Caret to End of Page before Scrolling:",-1,14,30,118,18,NOT WS_GROUP
-    EDITTEXT        IDD_INT3,139,31,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Number of Lines to &Scroll, when reaching End of Page:",-1,14,56,115,20,NOT WS_GROUP
-    EDITTEXT        IDD_INT4,139,56,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Update Screen during Scrolling",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,80,163,10
-    CONTROL         "Caret follows Scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,92,163,10
-    GROUPBOX        "Caret Placement after Searching",-1,194,12,181,114,WS_GROUP
-    CONTROL         "&Top of Page",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,200,31,170,12
-    CONTROL         "Page &Center",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,200,43,170,12
-    CONTROL         "Bottom of &Page",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,200,55,170,12
-    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,11,120,11,14
-    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,120,11,14
-    CONTROL         "Keep Screen Column",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,104,163,10
+    GROUPBOX        "Scrollbehavior",-1,9,10,176,114,WS_GROUP
+    LTEXT           "Minimum &distance of caret to end of page before scrolling:",-1,14,28,118,18,NOT WS_GROUP
+    EDITTEXT        IDD_INT3,139,29,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    LTEXT           "Number of lines to &scroll, when reaching end of page:",-1,14,54,115,20,NOT WS_GROUP
+    EDITTEXT        IDD_INT4,139,54,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    CONTROL         "&Update screen during scrolling",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,78,163,10
+    CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,90,163,10
+    GROUPBOX        "Caret Placement after Searching",-1,194,10,181,114,WS_GROUP
+    CONTROL         "&Top of page",IDD_LOWRADIO,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT | WS_TABSTOP,200,29,170,12
+    CONTROL         "&Center of page",IDD_RADIO2,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,200,41,170,12
+    CONTROL         "Bottom of &page",IDD_RADIO3,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,200,53,170,12
+    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,11,118,11,14
+    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | UDS_ALIGNLEFT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,43,118,11,14
+    CONTROL         "Keep screen column on caret movement",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,102,163,10
 END
 
 DLGDISPMODE DIALOGEX 46, 24, 363, 173
@@ -335,24 +335,25 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Display"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Display",1000,12,12,339,82
-    CONTROL         "&Tabs and Spaces",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,21,27,152,10
-    CONTROL         "He&x Editing",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,37,152,10
-    CONTROL         "Show R&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,47,152,10
-    CONTROL         "Syntax Highlighting",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,26,152,10
-    CONTROL         "No &vertical Slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,36,152,10
-    CONTROL         "No hori&zontal Slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,190,46,152,10
-    LTEXT           "Fill Tabs with:",118,17,99,90,8
-    EDITTEXT        IDD_CHAR,156,99,16,12,ES_AUTOHSCROLL
-    LTEXT           "Statusline format:",117,17,147,104,8,NOT WS_GROUP
-    EDITTEXT        IDD_STRING1,17,161,329,12,ES_AUTOHSCROLL
-    LTEXT           "&Tabsize:",217,17,114,62,10
-    EDITTEXT        IDD_INT1,156,113,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Right Margin:",220,17,129,50,8
-    EDITTEXT        IDD_INT2,156,127,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,57,152,10
-    CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,68,152,10
-    CONTROL         "W&ysiwyg Display",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,21,80,152,10
+    GROUPBOX        "Display",1000,9,9,339,82
+    CONTROL         "Show &control characters (tabs, spaces)",IDD_LOWOPT,
+                    "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,15,24,152,10
+    CONTROL         "He&x mode editing",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,34,152,10
+    CONTROL         "Show r&uler",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,44,152,10
+    CONTROL         "Syntax highlighting",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,23,152,10
+    CONTROL         "Hide &vertical slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,33,152,10
+    CONTROL         "Hide hori&zontal slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,43,152,10
+    LTEXT           "Fill tab characters with:",118,14,96,90,8
+    EDITTEXT        IDD_CHAR,153,96,16,12,ES_AUTOHSCROLL
+    LTEXT           "Statusline format:",117,15,144,104,8,NOT WS_GROUP
+    EDITTEXT        IDD_STRING1,14,155,329,12,ES_AUTOHSCROLL
+    LTEXT           "&Tabsize:",217,15,111,62,10
+    EDITTEXT        IDD_INT1,153,110,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    LTEXT           "&Right margin:",220,15,126,50,8
+    EDITTEXT        IDD_INT2,153,124,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
+    CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,54,152,10
+    CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,65,152,10
+    CONTROL         "W&ysiwyg display",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,77,152,10
 END
 
 DLGEXEC DIALOGEX 7, 68, 270, 182
@@ -527,31 +528,31 @@ BEGIN
     CONTROL         "&Backslash Quoting of Delimiters",IDD_OPT3,"Button",BS_AUTOCHECKBOX,10,112,169,12
 END
 
-DLGWORKMODE DIALOGEX 38, 28, 363, 216
+DLGWORKMODE DIALOGEX 38, 28, 358, 178
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Editing"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        " O&ptions",130,5,12,358,98,WS_TABSTOP
-    CONTROL         "Insert te&xt",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,20,26,152,10
-    CONTROL         "Abbre&viations",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,37,152,10
-    CONTROL         "Auto&indent",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,72,152,10
-    CONTROL         "&Automatically wrap long lines",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,49,152,10
-    CONTROL         "&Format text while typing",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,60,152,10
-    CONTROL         "&OEM-Text",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,26,152,10
-    CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,37,152,10
-    CONTROL         "&Bracket Checks",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,60,152,10
-    GROUPBOX        "Lifecycle Actions to Execute",-1,5,116,358,42
-    LTEXT           "On Creation:",-1,22,130,41,8
-    EDITTEXT        IDD_STRING2,75,126,118,13
-    LTEXT           "On Save:",-1,22,144,43,8
-    EDITTEXT        IDD_STRING3,75,142,118,12
-    LTEXT           "&Expand Tabs:",114,21,165,48,10,NOT WS_GROUP
-    EDITTEXT        IDD_CHAR,74,163,36,12,ES_AUTOHSCROLL
-    CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,49,152,10
-    CONTROL         "Logfile Mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,71,152,10
-    CONTROL         "Correct &Capitals",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,84,152,10
-    LTEXT           "CApitals -> Capitals, ""sold. this"" -> ""sold. This""",IDD_EXPLANATION,20,96,314,10,SS_REALSIZECONTROL | NOT WS_GROUP
+    GROUPBOX        " O&ptions",130,10,10,344,98,WS_TABSTOP
+    CONTROL         "Insert te&xt",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,20,24,152,10
+    CONTROL         "Abbre&viations",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,35,152,10
+    CONTROL         "Auto&indent",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,70,152,10
+    CONTROL         "&Automatically wrap long lines",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,47,152,10
+    CONTROL         "&Format text while typing",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,58,152,10
+    CONTROL         "&OEM character encoding",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,24,152,10
+    CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,35,152,10
+    CONTROL         "&Check balanced bracket",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,58,152,10
+    GROUPBOX        "Lifecycle Actions to Execute",-1,10,114,344,42
+    LTEXT           "On creation:",-1,20,128,40,8
+    EDITTEXT        IDD_STRING2,161,124,118,13
+    LTEXT           "On save:",-1,20,142,43,8
+    EDITTEXT        IDD_STRING3,161,140,118,12
+    LTEXT           "&Expand tabs using character:",114,20,163,95,10,NOT WS_GROUP
+    EDITTEXT        IDD_CHAR,162,162,118,12,ES_AUTOHSCROLL
+    CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,47,152,10
+    CONTROL         "Logfile mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,69,152,10
+    CONTROL         "Correct &capitals",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,20,82,152,10
+    LTEXT           "CApitals -> Capitals, ""sold. this"" -> ""sold. This""",IDD_EXPLANATION,20,94,314,10,SS_REALSIZECONTROL | NOT WS_GROUP
 END
 
 DLGMACNAME DIALOG 20, 30, 132, 66
@@ -605,20 +606,20 @@ BEGIN
     PUSHBUTTON      "Dis&assemble",IDD_MACPRINTINSTRUCTIONS,136,68,58,14,WS_GROUP
 END
 
-DLGFILEFORMAT DIALOGEX 64, 58, 394, 101
+DLGFILEFORMAT DIALOGEX 64, 58, 365, 101
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "File Format"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "Fileformat",IDD_OPT11,7,9,379,91
-    CONTROL         "Separator &1",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,21,60,12
+    GROUPBOX        "File Format",IDD_OPT11,8,9,354,91
+    CONTROL         "Line feed character",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,21,94,12
     EDITTEXT        IDD_INT1,175,21,12,12,ES_AUTOHSCROLL
-    CONTROL         "&Skip in front of 1",IDD_OPT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,33,120,12
+    CONTROL         "Character for carriage return",IDD_OPT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,33,120,12
     EDITTEXT        IDD_INT3,175,33,12,12,ES_AUTOHSCROLL
-    CONTROL         "Separator &2",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,45,60,12
+    CONTROL         "&Alternate line separator",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,45,108,12
     EDITTEXT        IDD_INT2,175,44,12,12,ES_AUTOHSCROLL
-    CONTROL         "&Password Protected",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,63,167,12
-    CONTROL         "&File Suffix Backup Files:",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,16,82,94,8
+    CONTROL         "&Password protected",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,63,167,12
+    CONTROL         "&File suffix of backup files:",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,16,82,94,8
     EDITTEXT        IDD_STRING1,116,81,70,12
 END
 
@@ -941,7 +942,6 @@ BEGIN
 
     DLGDISPMODE, DIALOG
     BEGIN
-        RIGHTMARGIN, 361
     END
 
     DLGEXEC, DIALOG
@@ -983,7 +983,6 @@ BEGIN
 
     DLGWORKMODE, DIALOG
     BEGIN
-        BOTTOMMARGIN, 192
     END
 
     DLGKEYCODE, DIALOG
@@ -1452,7 +1451,7 @@ BEGIN
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
     IDS_TT_PRESERVE_CASE    "When replacing upper/lower case spelling of the original text a  re preserved.\r\nExample: if you replace ""Germany"" by ""england"" the result is ""England""."
     IDS_FILE_MODIFIED       "Modified"
-    IDS_FILE_READONLY       "Read-only"
+    IDS_FILE_READONLY       "Readonly"
     IDS_SEARCH              "Search incrementally"
     IDS_NO_MACROS_DEFINED   "No macros defined."
     IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"
@@ -1644,7 +1643,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND128          "Check bracket matches;Check Braces and Brackets"
+    IDS_COMMAND128          "Check whether brackets are balanced;Check Brackets"
     IDS_COMMAND129          "Shows a form with current character set;Insert Special Character..."
     IDS_COMMAND130          "Shift the text block between brackets to left;Shift {} left"
     IDS_COMMAND131          "Shift the text block between brackets to right;Shift {} right"

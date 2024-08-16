@@ -15,11 +15,11 @@ BEGIN
 	CONTROL "Indent", IDD_FKFLG2, "toggle", 3 | WS_TABSTOP | WS_CHILD, 80, 20, 40, 12
 	CONTROL "Umbruch", IDD_FKFLG3, "toggle", 3 | WS_TABSTOP | WS_CHILD, 120, 20, 40, 12
 	CONTROL "Format", IDD_FKFLG4, "toggle", 3 | WS_TABSTOP | WS_CHILD, 200, 20, 40, 12
-	CONTROL "Prüfe {}", IDD_FKFLG5, "toggle", 3 | WS_TABSTOP | WS_CHILD, 0, 20, 40, 12
+	CONTROL "Klammen-Prüfung", IDD_FKFLG5, "toggle", 3 | WS_TABSTOP | WS_CHILD, 0, 20, 40, 12
 	CONTROL "Indent {", IDD_FKFLG6, "toggle", 3 | WS_TABSTOP | WS_CHILD, 400, 20, 40, 12
 	CONTROL "Shortcuts", IDD_FKFLG7, "toggle", 3 | WS_TABSTOP | WS_CHILD, 240, 20, 40, 12
-	CONTROL "Block | |", IDD_FKFLG8, "toggle", 3 | WS_TABSTOP | WS_CHILD, 160, 20, 40, 12
-	CONTROL "Read O.", IDD_FKFLG9, "toggle", 3 | WS_TABSTOP | WS_CHILD, 320, 20, 40, 12
+	CONTROL "Block Auswahl", IDD_FKFLG8, "toggle", 3 | WS_TABSTOP | WS_CHILD, 160, 20, 40, 12
+	CONTROL "Nur Lesen", IDD_FKFLG9, "toggle", 3 | WS_TABSTOP | WS_CHILD, 320, 20, 40, 12
 	CONTROL "Ein. OEM", IDD_FKFLG10, "toggle", 3 | WS_TABSTOP | WS_CHILD, 280, 20, 40, 12
 	CONTROL "Anz. OEM", 510, "toggle", 3 | WS_TABSTOP | WS_CHILD, 400, 20, 40, 12
 	CONTROL "Record", 511, "toggle", 3 | WS_TABSTOP | WS_CHILD, 360, 20, 40, 12

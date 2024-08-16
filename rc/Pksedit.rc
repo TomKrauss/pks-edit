@@ -35,16 +35,16 @@ CLASS "DLGFKEYS"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     CONTROL         "Einfügen",IDD_FKFLG1,"toggle",WS_TABSTOP | 0x3,40,20,40,12
-    CONTROL         "Indent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
-    CONTROL         "Umbruch",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
-    CONTROL         "Format",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
-    CONTROL         "Prüfe {}",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
+    CONTROL         "Autondent",IDD_FKFLG2,"toggle",WS_TABSTOP | 0x3,80,20,40,12
+    CONTROL         "Autowrap",IDD_FKFLG3,"toggle",WS_TABSTOP | 0x3,120,20,40,12
+    CONTROL         "Autoformat",IDD_FKFLG4,"toggle",WS_TABSTOP | 0x3,200,20,40,12
+    CONTROL         "Klammerprüfung",IDD_FKFLG5,"toggle",WS_TABSTOP | 0x3,0,20,40,12
     CONTROL         "Wysiwyg",IDD_FKFLG6,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Shortcuts",IDD_FKFLG7,"toggle",WS_TABSTOP | 0x3,240,20,40,12
-    CONTROL         "Block | |",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
-    CONTROL         "Read O.",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
+    CONTROL         "Block Selektion",IDD_FKFLG8,"toggle",WS_TABSTOP | 0x3,160,20,40,12
+    CONTROL         "Nur Lesen",IDD_FKFLG9,"toggle",WS_TABSTOP | 0x3,320,20,40,12
     CONTROL         "Logfileansicht",IDD_FKFLG10,"toggle",WS_TABSTOP | 0x3,280,20,40,12
-    CONTROL         "Zeile mark.",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
+    CONTROL         "Zeile hervorheben",510,"toggle",WS_TABSTOP | 0x3,400,20,40,12
     CONTROL         "Record",511,"toggle",WS_TABSTOP | 0x3,360,20,40,12
     CONTROL         "F1",IDD_FKFK1,"Button",BS_OWNERDRAW | WS_TABSTOP,0,0,40,14
     CONTROL         "F2",IDD_FKFK2,"Button",BS_OWNERDRAW | WS_TABSTOP,40,0,40,14
@@ -450,7 +450,7 @@ BEGIN
     CONTROL         "Auto&format",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,23,65,127,10
     CONTROL         "&OEM-Text",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,24,138,10
     CONTROL         "Nur &lesen",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,34,138,10
-    CONTROL         "&Klammerncheck",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,44,138,10
+    CONTROL         "&Klammerprüfung",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,165,44,138,10
     GROUPBOX        "Auszuführende Lebenszyklus-Aktionen",-1,9,112,311,42
     LTEXT           "Beim Anlegen:",-1,22,126,48,8
     EDITTEXT        IDD_STRING2,82,122,118,12
@@ -520,11 +520,11 @@ CAPTION "Datei - Format"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Dateiformat",IDD_OPT11,0,4,370,80
-    CONTROL         "Trenner &1",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,20,48,12
+    CONTROL         "Zeilentrenner &LF",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,20,76,12
     EDITTEXT        IDD_INT1,148,20,12,12,ES_AUTOHSCROLL
-    CONTROL         "&Skippe vor 1",IDD_OPT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,32,60,12
+    CONTROL         "&Zeilenende CR",IDD_OPT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,32,60,12
     EDITTEXT        IDD_INT3,148,32,12,12,ES_AUTOHSCROLL
-    CONTROL         "Trenner &2",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,44,48,12
+    CONTROL         "Alternativer Zeilentrenner",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,44,112,12
     EDITTEXT        IDD_INT2,148,44,12,12,ES_AUTOHSCROLL
     CONTROL         "&Geschützt durch Kennwort",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,64,173,12
     CONTROL         "&Endung Backups:",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,6,98,64,8
@@ -1712,7 +1712,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMMAND128          "Überprüft Klammern - Paare;Prüfe {}"
+    IDS_COMMAND128          "Überprüft Klammern - Paare;Klammerprüfung"
     IDS_COMMAND129          "Zeigt ein Formular mit dem aktuellen Zeichensatz;Sonderzeichen einfügen..."
     IDS_COMMAND130          "Verschiebt zwischen den Block zwischen Klammern nach links;Klammernblock nach links schieben"
     IDS_COMMAND131          "Verschiebt zwischen den Block zwischen Klammern nach rechts;Klammernblock nach rechts schieben"
