@@ -27,9 +27,9 @@
 
 static ARRAY_LIST* _allActions;
 
-static BOOL action_isEnabled(ACTION* pAction) {
+static BOOL action_isEnabled(const ACTION* pAction) {
 	if (pAction->ac_commandType == CMD_CMDSEQ) {
-		COMMAND* pCommand = &_commandTable[pAction->ac_commandId];
+		const COMMAND* pCommand = &_commandTable[pAction->ac_commandId];
 		return interpreter_canExecuteNativeFunction(_commandTable[pAction->ac_commandId].c_functionDef.funcnum, pCommand->c_functionDef.p, 0);
 	}
 	else if (pAction->ac_commandType == CMD_MACRO) {

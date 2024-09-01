@@ -37,9 +37,9 @@
 #define GWW_POSTFIX_ICON	GWW_ICON2+sizeof(HICON)
 #define GWW_LABELED_EXTRA	GWW_POSTFIX_ICON+sizeof(HICON)
 
- /*
-  * Draws a rounded rectangle in an antialiased way.
-  */
+/*
+ * Draws a rounded rectangle in an antialiased way.
+ */
 extern void paint_roundedRect(HDC hdc, COLORREF cColor, float penWidth, int x, int y, int width, int height, int radius);
 
 static const int toastWindowHeight = 40;
@@ -83,15 +83,15 @@ void cust_drawShadow(HDC hdc,RECT *rcp,int odItemState)
 static LOGFONT _lf =  {
     10,					// lfHeight;
     0,					// lfWidth;
- 
+
     0,					// lfEscapement;
     0,					// lfOrientation;
     FW_NORMAL,				// lfWeight;
- 
+
     0,					// lfItalic;
     0,					// lfUnderline;
     0,					// lfStrikeOut;
-    
+
     ANSI_CHARSET,			// lfCharSet;
     OUT_DEFAULT_PRECIS,		// lfOutPrecision;
     CLIP_DEFAULT_PRECIS,	// lfClipPrecision;
@@ -250,7 +250,7 @@ int cust_calculateButtonCharacterHeight(HWND hwnd)
  * ToggleWndProc()
  */
 static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam)
-{	
+{
 	RECT		rc;
 	HDC			hdc;
 	PAINTSTRUCT	ps;
@@ -283,7 +283,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 				bit = STATE_SEL;
 			else
 				bit = STATE_CHECK;
-			wwsav = ww;	
+			wwsav = ww;
 			ww = (wParam) ? (ww | bit) : (ww & (~bit));
 			SetWindowWord(hwnd,GWW_CUSTOMVAL, (WORD)ww);
 			if (ww != wwsav) {
@@ -299,7 +299,7 @@ static WINFUNC ToggleWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lParam
 				break;
 		case WM_LBUTTONUP:
 			SendMessage(hwnd, BM_SETSTATE, 0, 0L);
-			SendMessage(hwnd, BM_SETCHECK, 
+			SendMessage(hwnd, BM_SETCHECK,
 					GetWindowWord(hwnd,GWW_CUSTOMVAL) ^ STATE_CHECK, 0L);
 			win_sendParentCommand(hwnd,
 					(LONG)GetWindowWord(hwnd,GWW_CUSTOMVAL));
@@ -408,8 +408,8 @@ static WINFUNC CharSetWndProc(HWND hwnd,UINT message,WPARAM wParam, LPARAM lPara
 			break;
 
 		case WM_GETDLGCODE:
-			return DLGC_WANTARROWS;		
-			
+			return DLGC_WANTARROWS;
+
 		case WM_KEYDOWN : /* key being odItemState */
 			/* process virtual key codes */
 			newc = GetWindowWord(hwnd,GWW_CUSTOMVAL);
@@ -662,7 +662,7 @@ EXPORT void cust_initializeWindowClassDefaults(WNDCLASS *wcp)
 	wcp->hIcon = 0;
 	wcp->hCursor = LoadCursor(0, IDC_ARROW);
 	wcp->hbrBackground = (HBRUSH) (COLOR_WINDOW+1);
-	wcp->lpszMenuName = 0; 
+	wcp->lpszMenuName = 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -673,15 +673,15 @@ EXPORT int cust_registerControls(void)
 {
 	WNDCLASS  wc;
 
-	cust_initializeWindowClassDefaults(&wc);	
+	cust_initializeWindowClassDefaults(&wc);
 	wc.style = CS_PARENTDC | CS_HREDRAW | CS_VREDRAW;
 	wc.cbWndExtra = GWW_CUSTOMEXTRA;
-	
+
 	wc.lpfnWndProc = ToggleWndProc;
 	wc.lpszClassName = TOGGLE_CLASS;
 	if (!RegisterClass(&wc))
 		return 0;
-		
+
 	wc.lpfnWndProc = CharSetWndProc;
 	wc.lpszClassName = CHARSET_CLASS;
 	if (!RegisterClass(&wc)) {
@@ -713,7 +713,7 @@ void cust_setPostfixIcon(HWND hwndLabeled, int index) {
 }
 
 /*
- * Add a cue banner (label) to an edit control. 
+ * Add a cue banner (label) to an edit control.
  */
 static void cust_addCueBanner(HWND hwndEdit, char* pszLabel) {
 	size_t nSize = strlen(pszLabel);
@@ -724,7 +724,7 @@ static void cust_addCueBanner(HWND hwndEdit, char* pszLabel) {
 }
 
 /*
- * Create a toast window. 
+ * Create a toast window.
  */
 HWND cust_createToastWindow(char* pszText) {
 	if (hwndToastWindow == NULL) {
@@ -757,7 +757,7 @@ HWND cust_createToastWindow(char* pszText) {
 /*--------------------------------------------------------------------------
  * cust_drawComboBoxOwnerDraw()
  */
-int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(), 
+int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 	void (*ShowSelection)(LPDRAWITEMSTRUCT lp), BOOL noDarkMode)
 {
     if (lpdis->itemID == (UINT)-1) {
@@ -797,7 +797,7 @@ void cust_measureListBoxRowWithIcon(MEASUREITEMSTRUCT* mp) {
 }
 
 /*
- * Draw a list box row in an owner drawn listbox painting an icon + a text. 
+ * Draw a list box row in an owner drawn listbox painting an icon + a text.
  */
 void cust_drawListBoxRowWithIcon(HDC hdc, RECT* rcp, HICON hIcon, char* pszText) {
 	int x;

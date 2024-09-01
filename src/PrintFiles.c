@@ -575,7 +575,7 @@ static int print_file(RENDER_CONTEXT* pRC, BOOL measureOnly)
 			}
 			printLineParam.produceOutput = printing && !measureOnly;
 			if (!PREVIEWING() && printLineParam.produceOutput) {
-				sprintf(message,/*STR*/"%s - %s (Seite %ld)",
+				sprintf(message,/*STR*/"%s - %s (Seite %d)",
 						(LPSTR)szAppName,
 					  	(LPSTR)string_abbreviateFileName(ft_visibleName(fp)),
 						printLineParam.pagenumber);

@@ -31,7 +31,8 @@ static LINE *caret_copyIndent(WINFO *wp, LINE **Lps, int cfirst, int clast,
 {
 	LINE *		lp;
 	LINE *		lps;
-	unsigned char *s,*d;
+	const unsigned char* s;
+	unsigned char* d;
 	int			i,col,len,size;
 	FTABLE* fp = wp->fp;
 

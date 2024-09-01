@@ -496,7 +496,7 @@ static void hex_moveCaretToHexCaretPosition(WINFO* wp, int nLine, int nCol) {
 }
 
 static void hex_getLineAnnotation(WINFO* wp, long nLine, LINE_ANNOTATION* pAnnotation) {
-	sprintf(pAnnotation->la_text, "%08x", nLine * HEX_BYTES_PER_LINE);
+	sprintf(pAnnotation->la_text, "%08lx", (long)(nLine * HEX_BYTES_PER_LINE));
 	pAnnotation->la_lineFlag = 0;
 }
 

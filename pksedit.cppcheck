@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="1">
     <builddir>pksedit-cppcheck-build-dir</builddir>
-    <platform>Unspecified</platform>
     <importproject>Pksedit.sln</importproject>
     <analyze-all-vs-configs>false</analyze-all-vs-configs>
     <check-headers>true</check-headers>
@@ -9,7 +8,9 @@
     <max-ctu-depth>2</max-ctu-depth>
     <max-template-recursion>100</max-template-recursion>
     <vs-configurations>
-        <config>Debug</config>
         <config>Release</config>
     </vs-configurations>
+    <exclude>
+        <path name="C:/source/pks-edit/test/test.cpp"/>
+    </exclude>
 </project>

@@ -63,7 +63,7 @@ static int st_setparts(BOOL bUpdateMessageOnly, int pSegments[MAXSEGMENTS]) {
 	if (!hwndStatus) {
 		return 0;
 	}
-	memset(pSegments, 0, sizeof pSegments);
+	memset(pSegments, 0, MAXSEGMENTS * sizeof(int));
 	memset(pszStrArr, 0, sizeof pszStrArr);
 	if (!bSimpleMode) {
 		faicon_loadFontAwesome();

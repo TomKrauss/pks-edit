@@ -632,7 +632,7 @@ int ft_selectWindowWithId(int winid) {
  * Make the passed filebuffer the "current" edited file in PKS Edit.
  */
 int ft_currentFileChanged(FTABLE *fp) {
-	if (fp->navigationPattern) {
+	if (fp && fp->navigationPattern) {
 		if (_currentSteplistFile != fp) {
 			_currentSteplistFile = fp;
 			EdTRACE(log_message(DEBUG_TRACE, "ft_currentErrorListChanged(name = %s)", fp->fname));
@@ -641,7 +641,7 @@ int ft_currentFileChanged(FTABLE *fp) {
 	if (fp == _currentFile) {
 		return 1;
 	}
-	EdTRACE(log_message(DEBUG_TRACE,"ft_currentFileChanged(name = %s)", fp -> fname));
+	EdTRACE(log_message(DEBUG_TRACE,"ft_currentFileChanged(name = %s)", fp ? fp -> fname : "NO-FILE"));
 	_currentFile = fp;
 	action_commandEnablementChanged(ACTION_CHANGE_COMMAND_ALL);
 	if (fp == 0) {

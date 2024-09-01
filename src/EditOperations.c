@@ -250,6 +250,8 @@ long long edit_toggleComment(WINFO* wp) {
 	const char* pszCommentStart = commentDescriptor.comment_single;
 	if (!pszCommentStart) {
 		pszCommentStart = commentDescriptor.comment_start;
+	} else {
+		commentDescriptor.comment_end = NULL;
 	}
 	if (!pszCommentStart) {
 		return 0;
@@ -274,9 +276,9 @@ long long edit_toggleComment(WINFO* wp) {
 		char* pszFirst = string_skipBlanks(lpFirst->lbuf);
 		size_t nOffset = pszFirst ? pszFirst - lpFirst->lbuf : lpFirst->len;
 		if (addCommentFlag < 0) {
-			nOffset -= (size_t)nLen * addCommentFlag;
+			nOffset += nLen;
 		}
-		size_t nOffset2 = nOffset + (size_t)nLen * addCommentFlag;
+		size_t nOffset2 = (size_t)nOffset + (nLen * addCommentFlag);
 		if ((lpFirst = ln_modify(fp, lpFirst, (int)nOffset, (int)nOffset2)) == 0) {
 			break;
 		}

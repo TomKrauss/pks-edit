@@ -275,7 +275,6 @@ static int xref_readTagFile(char* fn, FTABLE* fp) {
  */
 static TAG_TABLE* xref_findTagIndex(char* pSourceFile, char* pFullTagFile, char* pTagFilename) {
 	char   dirname[1024];
-	*pFullTagFile = 0;
 	TAG_TABLE* pTable = _tagTables;
 	while (pTable) {
 		size_t len = PathCommonPrefix(pSourceFile, pTable->tt_directory, NULL);
@@ -287,6 +286,7 @@ static TAG_TABLE* xref_findTagIndex(char* pSourceFile, char* pFullTagFile, char*
 	if (pFullTagFile == NULL) {
 		return NULL;
 	}
+	*pFullTagFile = 0;
 	// tries to locate a tag file relative to a source file name (parent folder).
 	string_splitFilename(pSourceFile, dirname, NULL, 0);
 	while (dirname[0]) {

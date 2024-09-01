@@ -19,7 +19,6 @@ To follow the latest updates or to contribute visit the [PKS Edit Github Reposit
   - [Release 2.4.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.4.0)
   - [Release 2.3.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.3.0)
   - [Release 2.2.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.2.0)
-  - [Release 2.1.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.1.0)
 
 ## Features
 

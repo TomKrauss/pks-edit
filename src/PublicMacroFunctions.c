@@ -862,7 +862,7 @@ static void infoFillParams(DIALOG_ITEM_DESCRIPTOR *dp, WINFO *wp) {
 	string_formatDate(dp->did_data, &fp->ti_created); 	dp++;
 	string_formatDate(dp->did_data, &fp->ti_modified); 	dp++;
 	string_formatDate(dp->did_data, &fp->ti_saved);  	dp++;
-	sprintf(dp->did_data,"%llu", ft_totalBytes(fp)); 	dp++;
+	sprintf(dp->did_data,"%llu", (unsigned long long) ft_totalBytes(fp)); 	dp++;
 	sprintf(dp->did_data, "%ld", fp->nlines); dp++;
 	sprintf(dp->did_data, "%ld", ft_countWords(fp)); dp++;
 	dp->did_data = szCodePage; dp++;
