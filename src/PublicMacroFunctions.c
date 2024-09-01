@@ -375,6 +375,7 @@ int EdAbout(void)
 	DIALOG_DESCRIPTOR dialogDescriptor = {
 		.dd_items = dialogItems
 	};
+
 	return DoDialog(DLGABOUT, dlg_standardDialogProcedure, &dialogDescriptor);
 }
 
