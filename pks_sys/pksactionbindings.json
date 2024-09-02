@@ -1081,7 +1081,9 @@
         { "command": "@toggle-show-wysiwyg" },
         { "separator": true },
         { "command": "@toggle-line-selection" },
-        { "command": "@toggle-column-selection" }
+        { "command": "@toggle-column-selection" },
+        { "separator": true },
+        { "command": "@set-options" }
       ]
     },
     {
@@ -1094,9 +1096,7 @@
         { "command": "@read-tagfile" },
         { "command": "@read-compiler-errors" },
         { "command": "@errorlist-next" },
-        { "command": "@errorlist-previous" },
-        { "separator": true },
-        { "command": "@set-options" }
+        { "command": "@errorlist-previous" }
       ]
     },
     {

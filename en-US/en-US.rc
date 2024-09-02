@@ -1553,7 +1553,7 @@ BEGIN
     IDS_COMMAND55           "Display hexadecimal representation of file;Hex Editor Mode"
     IDS_COMMAND56           "Smart process indents with spaces;Use Smart Indentation"
     IDS_COMMAND57           "Switches insert overwite mode;Toggle Insert and Overwrite Mode"
-    IDS_COMMAND58           "Configure the general settings of PKS Edit;Settings..."
+    IDS_COMMAND58           "Configure the general settings of PKS Edit;General Settings..."
     IDS_COMMAND59           "Formats a text area;Format Text..."
     IDS_COMMAND60           "Compresses spaces to tabs;Convert Spaces to Tabs"
     IDS_COMMAND61           "Expand tabs to spaces;Expand Tabs"
