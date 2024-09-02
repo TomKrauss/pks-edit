@@ -163,7 +163,7 @@ END
 
 DLGINFOFILE DIALOGEX 20, 52, 445, 274
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Windowlist"
+CAPTION "Window List"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LISTBOX         IDD_WINDOWLIST,6,8,295,263,LBS_OWNERDRAWFIXED | LBS_DISABLENOSCROLL | WS_TABSTOP
@@ -1445,7 +1445,7 @@ BEGIN
     IDS_MSGKEYNOTBOUND      "This key combination is not bound to a macro."
     IDS_MSGRECOVER          "Autosaved backup file for %s found. Do you want to use the autosaved version?"
     IDS_MSGNTIMESFOUND      "%d times found"
-    IDS_WINDOWLIST          "Open window list"
+    IDS_WINDOWLIST          "Window List"
     IDS_SELECTCOMPILEWINDOW "File - Selection for Compilation"
     IDS_TT_REGULAR_EXPRESSION 
                             "Regular expressions support the following special characters\r\n""."" - (matches any char)\r\n""[a-z]"" - all characters from a-z\r\n""*"" - (an arbitrary number of times)\r\n""+"" - at least once\r\n""{x,y}"" - minimum x, maximum y times"
@@ -1590,7 +1590,7 @@ BEGIN
     IDS_COMMAND84           "Change Fileformat;Change File Format..."
     IDS_COMMAND85           "Save document settings;Save Document Settings..."
     IDS_COMMAND86           "Read document settings from file;Read Document Settings..."
-    IDS_COMMAND87           "Show info about edited files;Open Windowlist..."
+    IDS_COMMAND87           "Show info about edited files;Open Window List..."
     IDS_COMMAND88           "Close all editor windows;Close all Windows"
     IDS_COMMAND89           "Reload the theme definitions from the theme config file;Reload Themes"
     IDS_COMMAND90           "Pin Window"

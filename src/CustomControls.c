@@ -772,7 +772,8 @@ int cust_drawComboBoxOwnerDraw(LPDRAWITEMSTRUCT lpdis, void (*DrawEntireItem)(),
 		DrawFocusRect(lpdis->hDC,&lpdis->rcItem);
     } else {
 		THEME_DATA* pTheme = noDarkMode ? theme_getDefault() : theme_getCurrent();
-		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : pTheme->th_dialogBackground);
+		COLORREF c = pTheme->th_isDarkMode ? pTheme->th_dialogBackground : pTheme->th_defaultBackgroundColor;
+		HBRUSH hBrush = CreateSolidBrush((lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlight : c);
 		FillRect(lpdis->hDC, &lpdis->rcItem, hBrush);
 		DeleteObject(hBrush);
 		SetTextColor(lpdis->hDC, (lpdis->itemState & ODS_SELECTED) ? pTheme->th_dialogHighlightText : pTheme->th_dialogForeground);

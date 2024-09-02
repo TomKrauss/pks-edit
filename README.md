@@ -12,13 +12,12 @@ To follow the latest updates or to contribute visit the [PKS Edit Github Reposit
 ## Releases
 
 - Installable versions of PKS Edit can be downloaded here:
+  - [Release 2.8.1](https://github.com/TomKrauss/pks-edit/releases/tag/v2.8.1)
   - [Release 2.8.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.8.0)
   - [Release 2.7.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.7.0)
   - [Release 2.6.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.6.0)
   - [Release 2.5.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.5.0)
   - [Release 2.4.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.4.0)
-  - [Release 2.3.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.3.0)
-  - [Release 2.2.0](https://github.com/TomKrauss/pks-edit/releases/tag/v2.2.0)
 
 ## Features
 

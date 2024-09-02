@@ -987,8 +987,7 @@ static void macro_updateSelectedMacro(HWND hwnd, LONG nSelected)
 /*------------------------------------------------------------
  * mac_lboxdraw()
  */
-static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, 
-					    int nID)
+static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem, int nID)
 {
 	char	szBuf[128];
 
@@ -997,7 +996,9 @@ static void macro_ownerDrawListboxItem(HDC hdc, RECT *rcp, void* par, int nItem,
 	} else {
 		mac_name(szBuf, (MACROREFIDX)HIWORD(par), (MACROREFTYPE)LOWORD(par), (int)sizeof szBuf);
 	}
-	TextOut(hdc, rcp->left, rcp->top, szBuf, (int)strlen(szBuf));
+	InflateRect(rcp, -3, 0);
+	DrawText(hdc, szBuf, (int)strlen(szBuf), rcp, DT_SINGLELINE|DT_VCENTER);
+	InflateRect(rcp, 3, 0);
 }
 
 /*------------------------------------------------------------

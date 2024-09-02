@@ -43,7 +43,7 @@ int  _psenabled = 1;
 
 #define MAXSSIZE		256
 
-char _pksVersion[] = "2.8.0";
+char _pksVersion[] = "2.8.1";
 
 static char sDate[2], sTime[2];
 static int  iDate;
