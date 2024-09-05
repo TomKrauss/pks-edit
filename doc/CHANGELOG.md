@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.9.0] - 2024-09-02
 
 ### Fixed
+- Leaving the incremental search field by pressing the `ESCAPE` key did not correctly focus the editor
+  if the incremental search field had been activated by a mouse click rather than by pressing `Ctrl+Alt+S`.
+  As a consequence one could not start typing right away but had to click into the editor again.
 
 ## [2.8.1] - 2024-09-02
 

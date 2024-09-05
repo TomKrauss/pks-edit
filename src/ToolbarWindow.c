@@ -32,6 +32,7 @@
 #include "editorconfiguration.h"
 #include "actions.h"
 #include "stringutil.h"
+#include "winfo.h"
 #include "findandreplace.h"
 #include "themes.h"
 #include "linkedlist.h"
@@ -290,7 +291,6 @@ static HWND tb_initToolbar(HWND hwndOwner) {
  */
 static WNDPROC oldEditProc;
 LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    static HWND previousFocusWnd;
     LRESULT nRet;
     char pszBuf[256];
     static int direction = 1;
@@ -305,9 +305,6 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
         find_incrementally(pszBuf, RE_IGNCASE | RE_WRAPSCAN, direction, FALSE);
         return nRet;
     case WM_SETFOCUS:
-        if (previousFocusWnd == NULL) {
-            previousFocusWnd = (HWND)wParam;
-        }
         PostMessage(hwnd, EM_SETSEL, 0, -1);
         find_startIncrementalSearch();
         PostMessage(GetParent(hwnd), LAB_CHILD_FOCUS_CHANGE, TRUE, 0);
@@ -337,9 +334,8 @@ LRESULT CALLBACK incrementalSearchEditWndProc(HWND hwnd, UINT msg, WPARAM wParam
             }
             break;
         case VK_ESCAPE:
-            if (previousFocusWnd != NULL) {
-                SetFocus(previousFocusWnd);
-                previousFocusWnd = NULL;
+            if (ww_getCurrentEditorWindow() != NULL) {
+                SetFocus(ww_getCurrentEditorWindow()->ww_handle);
                 return 0;
             }
             break;
