@@ -73,7 +73,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,226,156,120,14
     DEFPUSHBUTTON   "... with &selected window",1,226,6,120,14
     PUSHBUTTON      "... with histor&y",IDD_BUT3,226,24,120,14
-    LTEXT           "Compare file:",-1,10,9,195,8,NOT WS_GROUP
+    LTEXT           "Compare file",-1,10,9,195,8,NOT WS_GROUP
 END
 
 
@@ -249,13 +249,13 @@ BEGIN
     PUSHBUTTON      "&OK",1,196,116,51,14
     LTEXT           "?",IDD_RO1,18,76,122,8,NOT WS_GROUP
     ICON            188,IDD_APP_ICON,18,20,20,20
-    LTEXT           "This product has been licensed for:",-1,18,63,122,8
+    LTEXT           "This product has been licensed for",-1,18,63,122,8
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,55,232,1
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME | WS_GROUP,18,92,232,1
     LTEXT           "Design: Rolf-D. Pahlen",127,174,98,77,8,NOT WS_GROUP
     LTEXT           "64 Bit",IDD_STRING1,211,34,41,8,NOT WS_GROUP
-    LTEXT           "Version:",-1,48,34,27,8,NOT WS_GROUP
-    LTEXT           "Platform:",-1,174,34,28,8,NOT WS_GROUP
+    LTEXT           "Version",-1,48,34,27,8,NOT WS_GROUP
+    LTEXT           "Platform",-1,174,34,28,8,NOT WS_GROUP
 END
 
 DLGALIGN DIALOGEX 24, 88, 290, 183
@@ -301,7 +301,7 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Expand Tabs"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Range:",114,8,14,30,8
+    LTEXT           "Range",114,8,14,30,8
     COMBOBOX        IDD_RNGE,8,30,116,56,CBS_DROPDOWNLIST | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&Cancel",2,136,10,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,136,30,44,14
@@ -313,9 +313,9 @@ CAPTION "Caret and Scrolling"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "Scrollbehavior",-1,9,10,176,114,WS_GROUP
-    LTEXT           "Minimum &distance of caret to end of page before scrolling:",-1,14,28,118,18,NOT WS_GROUP
+    LTEXT           "Minimum &distance of caret to end of page before scrolling",-1,14,28,118,18,NOT WS_GROUP
     EDITTEXT        IDD_INT3,139,29,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Number of lines to &scroll, when reaching end of page:",-1,14,54,115,20,NOT WS_GROUP
+    LTEXT           "Number of lines to &scroll, when reaching end of page",-1,14,54,115,20,NOT WS_GROUP
     EDITTEXT        IDD_INT4,139,54,39,14,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Update screen during scrolling",IDD_LOWOPT,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,78,163,10
     CONTROL         "Caret follows scrollbar",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,90,163,10
@@ -341,13 +341,13 @@ BEGIN
     CONTROL         "Syntax highlighting",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,23,152,10
     CONTROL         "Hide &vertical slider",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,33,152,10
     CONTROL         "Hide hori&zontal slider",IDD_OPT9,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,187,43,152,10
-    LTEXT           "Fill tab characters with:",118,14,96,90,8
+    LTEXT           "Fill tab characters with",118,14,96,90,8
     EDITTEXT        IDD_CHAR,153,96,16,12,ES_AUTOHSCROLL
-    LTEXT           "Statusline format:",117,15,144,104,8,NOT WS_GROUP
+    LTEXT           "Statusline format",117,15,144,104,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,14,155,329,12,ES_AUTOHSCROLL
-    LTEXT           "&Tabsize:",217,15,111,62,10
+    LTEXT           "&Tabsize",217,15,111,62,10
     EDITTEXT        IDD_INT1,153,110,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Right margin:",220,15,126,50,8
+    LTEXT           "&Right margin",220,15,126,50,8
     EDITTEXT        IDD_INT2,153,124,16,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "&Show line numbers",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,54,152,10
     CONTROL         "&Highlight line with caret",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,15,65,152,10
@@ -424,7 +424,7 @@ CAPTION "Go to line"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     EDITTEXT        IDD_LONG1,56,10,48,12,ES_LOWERCASE
-    LTEXT           "Linenumber:",IDD_OPT2,4,12,52,8,NOT WS_GROUP
+    LTEXT           "Linenumber",IDD_OPT2,4,12,52,8,NOT WS_GROUP
     DEFPUSHBUTTON   "&OK",1,120,30,40,14
     PUSHBUTTON      "&Cancel",2,120,8,40,14
 END
@@ -448,7 +448,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "&OK",1,152,30,44,14
     CONTROL         "",IDD_OPT11,"Static",SS_BLACKFRAME,32,12,112,12
-    LTEXT           "&Name:",112,4,14,28,8,NOT WS_GROUP
+    LTEXT           "&Name",112,4,14,28,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,36,14,104,8,NOT WS_GROUP
     PUSHBUTTON      "&Cancel",2,152,10,44,14
 END
@@ -459,10 +459,10 @@ CAPTION "Rename"
 FONT 8, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "&OK",1,152,26,44,14
-    RTEXT           "File:",112,4,10,24,8,NOT WS_GROUP
+    RTEXT           "File",112,4,10,24,8,NOT WS_GROUP
     LTEXT           "T",IDD_RO1,36,10,104,8,NOT WS_GROUP
     PUSHBUTTON      "&Cancel",2,152,8,44,14
-    RTEXT           "&In:",111,12,24,16,8,NOT WS_GROUP
+    RTEXT           "&In",111,12,24,16,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,36,22,104,12,ES_AUTOHSCROLL
 END
 
@@ -471,8 +471,8 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Replace Confirmation"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Replace:",IDD_OPT6,6,6,34,8,NOT WS_GROUP
-    LTEXT           "With:",IDD_OPT7,6,22,34,8,NOT WS_GROUP
+    LTEXT           "Replace",IDD_OPT6,6,6,34,8,NOT WS_GROUP
+    LTEXT           "With",IDD_OPT7,6,22,34,8,NOT WS_GROUP
     CONTROL         "",IDD_OPT8,"Static",SS_BLACKFRAME,44,5,275,13
     CONTROL         "",IDD_OPT9,"Static",SS_BLACKFRAME,44,21,275,13
     LTEXT           "X",IDD_STRING1,46,8,266,8,NOT WS_GROUP
@@ -495,7 +495,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,14,46,197,10
     PUSHBUTTON      "&Stop Recording",2,234,44,60,14
     DEFPUSHBUTTON   "OK",1,234,26,60,14
-    LTEXT           "When the recorded macro will be played, apply the following options:",IDC_STATIC,14,9,219,8
+    LTEXT           "When the recorded macro will be played, apply the following options",IDC_STATIC,14,9,219,8
 END
 
 DLGSORT DIALOGEX 9, 51, 329, 145
@@ -504,9 +504,9 @@ EXSTYLE WS_EX_CONTEXTHELP
 CAPTION "Sort file contents"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "&Selection Criteria:",-1,4,10,74,8,NOT WS_GROUP
+    LTEXT           "&Selection Criteria",-1,4,10,74,8,NOT WS_GROUP
     COMBOBOX        IDD_FINDS2,4,22,178,44,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Ke&yfields (comma separated):",-1,4,42,153,8,NOT WS_GROUP
+    LTEXT           "Ke&yfields (comma separated)",-1,4,42,153,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING2,4,54,178,12,ES_AUTOHSCROLL
     GROUPBOX        "Optionen",-1,6,74,178,68,WS_GROUP
     CONTROL         "Sort lines clustered by Selection Criteria",IDD_LOWOPT,
@@ -517,9 +517,9 @@ BEGIN
     CONTROL         "&Ignore upper/lower Case",IDD_IGNORECASE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,202,44,111,12
     CONTROL         "Regular Expressions",IDD_REGEXP,"Button",BS_AUTOCHECKBOX,202,56,84,12
     CONTROL         "Shell &Wildcards",IDD_SHELLJOKER,"Button",BS_AUTOCHECKBOX,202,68,84,12
-    LTEXT           "R&ange:",-1,196,94,30,8
+    LTEXT           "R&ange",-1,196,94,30,8
     COMBOBOX        IDD_RNGE,267,92,55,43,CBS_DROPDOWNLIST | WS_TABSTOP
-    LTEXT           "&Field Delimiters:",-1,196,112,66,8,NOT WS_GROUP
+    LTEXT           "&Field Delimiters",-1,196,112,66,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,268,110,54,12,ES_AUTOHSCROLL
     PUSHBUTTON      "&Cancel",2,230,6,44,14,WS_GROUP
     DEFPUSHBUTTON   "&OK",1,278,6,44,14
@@ -541,11 +541,11 @@ BEGIN
     CONTROL         "Read onl&y",IDD_OPT7,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,35,152,10
     CONTROL         "&Check balanced bracket",IDD_OPT8,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,58,152,10
     GROUPBOX        "Lifecycle Actions to Execute",-1,10,114,344,42
-    LTEXT           "On creation:",-1,20,128,40,8
+    LTEXT           "On creation",-1,20,128,40,8
     EDITTEXT        IDD_STRING2,161,124,118,13
-    LTEXT           "On save:",-1,20,142,43,8
+    LTEXT           "On save",-1,20,142,43,8
     EDITTEXT        IDD_STRING3,161,140,118,12
-    LTEXT           "&Expand tabs using character:",114,20,163,95,10,NOT WS_GROUP
+    LTEXT           "&Expand tabs using character",114,20,163,95,10,NOT WS_GROUP
     EDITTEXT        IDD_CHAR,162,162,118,12,ES_AUTOHSCROLL
     CONTROL         "Delete multiple spaces",IDD_OPT10,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,47,152,10
     CONTROL         "Logfile mode",IDD_OPT11,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,193,69,152,10
@@ -617,7 +617,7 @@ BEGIN
     CONTROL         "&Alternate line separator",IDD_OPT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,45,108,12
     EDITTEXT        IDD_INT2,175,44,12,12,ES_AUTOHSCROLL
     CONTROL         "&Password protected",IDD_OPT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,63,167,12
-    CONTROL         "&File suffix of backup files:",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,16,82,94,8
+    CONTROL         "&File suffix of backup files",116,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,16,82,94,8
     EDITTEXT        IDD_STRING1,116,81,70,12
 END
 
@@ -633,7 +633,7 @@ BEGIN
     COMBOBOX        IDD_REPLS,6,68,183,48,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_GROUP | WS_TABSTOP
     LTEXT           "Maximum folder search &depth",IDD_OPT11,6,126,132,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,152,126,37,12,ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Filename &pattern:",IDD_OPT12,6,148,54,8,NOT WS_GROUP
+    LTEXT           "Filename &pattern",IDD_OPT12,6,148,54,8,NOT WS_GROUP
     COMBOBOX        IDD_FILE_PATTERN,78,148,111,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Find in &Folder",112,6,171,114,8,NOT WS_GROUP
     COMBOBOX        IDD_PATH1,6,184,251,64,CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -661,10 +661,10 @@ CAPTION "Documenttypes"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     CONTROL         "",IDC_DOCTYPES,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,12,30,325,106
-    LTEXT           "Defined &Types:",IDC_STATIC,13,20,60,8
+    LTEXT           "Defined &Types",IDC_STATIC,13,20,60,8
     GROUPBOX        "Editor Configuration",IDD_GROUPBOX,13,140,324,42,WS_GROUP
     LTEXT           "&Name",126,19,159,32,8,NOT WS_GROUP
-    LTEXT           "Filename &Pattern:",226,14,209,52,8
+    LTEXT           "Filename &Pattern",226,14,209,52,8
     EDITTEXT        IDD_STRING5,88,207,245,12
     LTEXT           "&Description",227,14,227,52,8
     EDITTEXT        IDD_STRING4,88,225,245,12
@@ -675,7 +675,7 @@ BEGIN
     DEFPUSHBUTTON   "&Apply",IDD_CALLBACK3,293,6,44,14
     PUSHBUTTON      "&Cancel",IDCANCEL,241,6,44,14,WS_GROUP
     PUSHBUTTON      "&Change",IDD_CALLBACK1,141,285,44,14
-    LTEXT           "&Grammar:",229,14,244,52,8
+    LTEXT           "&Grammar",229,14,244,52,8
     EDITTEXT        IDD_STRING3,88,243,245,12,ES_AUTOHSCROLL
     COMBOBOX        IDD_PATH1,65,157,268,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDD_OPT1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,89,263,18,10
@@ -687,7 +687,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "Enter password"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "TEXT:",IDD_RO1,6,10,264,8
+    LTEXT           "TEXT",IDD_RO1,6,10,264,8
     EDITTEXT        IDD_STRING1,5,22,265,12,ES_PASSWORD
 END
 
@@ -730,41 +730,41 @@ BEGIN
     CONTROL         "&Line numbers",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,26,218,10
     CONTROL         "&Headers and Footers",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,36,218,10
     GROUPBOX        "Margins",65524,6,249,234,69
-    LTEXT           "Lines per page:",65523,12,262,64,8,NOT WS_GROUP
+    LTEXT           "Lines per page",65523,12,262,64,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,82,261,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     EDITTEXT        IDD_INT2,82,273,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Line&width:",65522,12,274,44,8,NOT WS_GROUP
-    LTEXT           "Left margin:",65521,12,286,60,8
-    LTEXT           "Right margin:",65520,11,298,56,8
+    LTEXT           "Line&width",65522,12,274,44,8,NOT WS_GROUP
+    LTEXT           "Left margin",65521,12,286,60,8
+    LTEXT           "Right margin",65520,11,298,56,8
     EDITTEXT        IDD_INT3,82,284,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     EDITTEXT        IDD_INT4,82,296,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     EDITTEXT        IDD_STRING1,72,116,162,13,ES_AUTOHSCROLL
     EDITTEXT        IDD_STRING2,72,201,162,14,ES_AUTOHSCROLL
-    LTEXT           "Template:",65527,18,117,41,8,NOT WS_GROUP
-    LTEXT           "Template:",65528,18,201,48,8,NOT WS_GROUP
+    LTEXT           "Template",65527,18,117,41,8,NOT WS_GROUP
+    LTEXT           "Template",65528,18,201,48,8,NOT WS_GROUP
     CONTROL         "Sample: %s$f - %D - %d prints file name, date and current page number",65529,
                     "Static",SS_SIMPLE,18,133,282,10
-    LTEXT           "Top Margin:",65530,112,261,56,8
+    LTEXT           "Top Margin",65530,112,261,56,8
     EDITTEXT        IDD_INT5,206,262,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Bottom margin:",65531,112,273,56,8
+    LTEXT           "Bottom margin",65531,112,273,56,8
     EDITTEXT        IDD_INT6,206,273,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "Height header:",65532,112,284,56,8
-    LTEXT           "Height footer:",65533,112,296,56,8
+    LTEXT           "Height header",65532,112,284,56,8
+    LTEXT           "Height footer",65533,112,296,56,8
     EDITTEXT        IDD_INT7,206,284,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     EDITTEXT        IDD_INT8,206,295,22,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     PUSHBUTTON      "Save Settings",IDD_CALLBACK1,249,299,79,14,NOT WS_TABSTOP
     CONTROL         "Wrap long lines",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,47,218,10
     CONTROL         "Print with Syntaxhighlighting",IDD_OPT6,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,57,218,10
-    LTEXT           "Alignment:",65534,18,102,46,8,NOT WS_GROUP
-    LTEXT           "Decoration:",-1,18,148,41,8,NOT WS_GROUP
+    LTEXT           "Alignment",65534,18,102,46,8,NOT WS_GROUP
+    LTEXT           "Decoration",-1,18,148,41,8,NOT WS_GROUP
     COMBOBOX        IDD_ICONLIST,73,147,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
     GROUPBOX        "Footer Options",57,6,171,323,72
     PUSHBUTTON      "Font...",IDD_FONTSELECT3,254,185,62,14,NOT WS_TABSTOP
     CONTROL         "&Left Aligned",IDD_RADIO4,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,72,187,52,8
     CONTROL         "&Centered",IDD_RADIO5,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,131,187,42,8
     CONTROL         "&Right Aligned",IDD_RADIO6,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,186,187,59,8
-    LTEXT           "Alignment:",1,18,187,46,8,NOT WS_GROUP
-    LTEXT           "Decoration:",-1,18,223,41,8,NOT WS_GROUP
+    LTEXT           "Alignment",1,18,187,46,8,NOT WS_GROUP
+    LTEXT           "Decoration",-1,18,223,41,8,NOT WS_GROUP
     COMBOBOX        IDD_ICONLIST2,72,221,161,80,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | WS_VSCROLL | WS_TABSTOP
 END
 
@@ -773,7 +773,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Change Autosave - Path"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Path:",-1,8,16,16,8
+    LTEXT           "Path",-1,8,16,16,8
     EDITTEXT        IDD_STRING1,30,14,166,12
     LTEXT           "The path for backup files is not valid. Please select an alternate path.",-1,4,36,126,34
     PUSHBUTTON      "Cancel",IDCANCEL,148,34,52,14,WS_GROUP
@@ -810,9 +810,9 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPT
 CAPTION "Saving"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Autosave &time [sec]:",-1,12,12,78,8,NOT WS_GROUP
+    LTEXT           "Autosave &time [sec]",-1,12,12,78,8,NOT WS_GROUP
     EDITTEXT        IDD_INT1,186,12,57,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "&Autosave path:",-1,12,50,53,8,NOT WS_GROUP
+    LTEXT           "&Autosave path",-1,12,50,53,8,NOT WS_GROUP
     EDITTEXT        IDD_STRING1,69,48,174,12,ES_AUTOHSCROLL
     CONTROL         "Automatically delete temporary autosave files",IDD_OPT1,
                     "Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,30,231,10
@@ -831,21 +831,21 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPT
 CAPTION "Miscellanous"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "Number of &undo steps:",-1,12,29,84,12,NOT WS_GROUP
+    LTEXT           "Number of &undo steps",-1,12,29,84,12,NOT WS_GROUP
     EDITTEXT        IDD_INT1,177,29,80,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
     CONTROL         "Undo &available",IDD_OPT1,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,13,242,10
     CONTROL         "Hide selection on caret movement",IDD_OPT2,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,62,242,12
     CONTROL         "Open dialogs close to mouse pointer",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,79,242,12
-    LTEXT           "&Maximum number of open windows:",-1,12,46,119,12,NOT WS_GROUP
+    LTEXT           "&Maximum number of open windows",-1,12,46,119,12,NOT WS_GROUP
     EDITTEXT        IDD_INT2,177,46,79,12,ES_RIGHT | ES_AUTOHSCROLL | ES_NUMBER,WS_EX_RIGHT
-    LTEXT           "UI &Theme:",-1,12,149,84,12,NOT WS_GROUP
-    LTEXT           "&Language:",-1,12,164,84,12,NOT WS_GROUP
+    LTEXT           "UI &Theme",-1,12,149,84,12,NOT WS_GROUP
+    LTEXT           "&Language",-1,12,164,84,12,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST1,177,163,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDD_STRINGLIST2,177,147,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Lock edited files",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,95,242,12
     PUSHBUTTON      "Select Font...",IDD_FONTSELECT,177,198,77,14,NOT WS_TABSTOP
-    LTEXT           "Default te&xt font:",-1,12,199,84,11,NOT WS_GROUP
-    LTEXT           "Default search engine:",-1,11,182,84,11,NOT WS_GROUP
+    LTEXT           "Default te&xt font",-1,12,199,84,11,NOT WS_GROUP
+    LTEXT           "Default search engine",-1,11,182,84,11,NOT WS_GROUP
     COMBOBOX        IDD_STRINGLIST3,177,181,77,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Reuse running PKS Edit instance",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,128,242,12
     CONTROL         "Silently reload files changed externally",IDD_OPT18,
@@ -862,7 +862,7 @@ BEGIN
     CONTROL         "Show &Statusline",IDD_OPT3,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,36,210,8
     CONTROL         "Show &Toolbar",IDD_OPT4,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,48,210,8
     CONTROL         "Display editor tabs in compact mode",IDD_OPT5,"Button",BS_AUTOCHECKBOX | BS_LEFTTEXT,12,60,210,8
-    LTEXT           "&Toolbar icon size:",-1,12,73,122,12,NOT WS_GROUP
+    LTEXT           "&Toolbar icon size",-1,12,73,122,12,NOT WS_GROUP
     COMBOBOX        IDD_ICONLIST,167,74,54,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
@@ -1249,16 +1249,16 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_DELUNTILC           "Delete text up to this Character:"
-    IDS_MARKGOTO            "Go to text marker:"
-    IDS_MARKSET             "Set text marker:"
-    IDS_MACROESCAPE         "Execute Keyboard Macro:"
-    IDS_GETBLOCK            "Name of Clipboard:"
+    IDS_DELUNTILC           "Delete text up to this Character"
+    IDS_MARKGOTO            "Go to text marker"
+    IDS_MARKSET             "Set text marker"
+    IDS_MACROESCAPE         "Execute Keyboard Macro"
+    IDS_GETBLOCK            "Name of Clipboard"
     IDS_COMPRESSTABS        "Replace Spaces with Tabs"
     IDS_EXPANDTABS          "Replace Tabs with Spaces"
     IDS_SHIFTLEFT           "Shift left"
     IDS_SHIFTRIGHT          "Shift right"
-    IDS_CURSUNTILC          "Navigate to letter:"
+    IDS_CURSUNTILC          "Navigate to letter"
     IDS_QUERYDELETE         "Delete File or Folder"
     IDS_QUERYMKDIR          "Create new Folder"
     IDS_RENAME              "Rename File"
@@ -1429,7 +1429,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s:"
+    IDS_ENTER_PASSWORD_TO_DECRYPT "Enter password to decrypt %s"
     IDS_INSERT              "Insert"
     IDS_CREATE_BUFFER       "Create"
     IDS_NO_EVALUATION_SUPPORTED 
@@ -1461,7 +1461,7 @@ BEGIN
     IDS_FILE_READONLY       "Readonly"
     IDS_SEARCH              "Search incrementally"
     IDS_NO_MACROS_DEFINED   "No macros defined."
-    IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s:"
+    IDS_ENTER_PASSWORD_TO_ENCRYPT "Enter password to encrypt %s"
 END
 
 STRINGTABLE

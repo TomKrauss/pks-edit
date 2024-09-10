@@ -722,6 +722,7 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 	int			olen;
 	REPLACE_TEXT_RESULT bResult = RTR_FINISHED;
 	int  		splflg = _playing, column = 0, lastfcol, query,marked;
+	char* pReplacement;
 
 	memset(&match, 0, sizeof match);
 	fp = wp->fp;
@@ -772,6 +773,10 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 		progress_startMonitor(IDS_ABRTREPLACE, 1000);
 	}
 
+	pReplacement = calloc(1, MAXLINELEN);
+	if (pReplacement == NULL) {
+		goto endrep;
+	}
 	while(lp) {
 
 		if (column) {
@@ -837,12 +842,12 @@ success:	olen = (int)(match.loc2 - match.loc1);
 				delta = olen; 
 			goto advance1;
 		}
-
-		if ((newlen = regex_replaceSearchString(&_currentReplacementPattern,_linebuf,MAXLINELEN, &match)) < 0) {
+		if ((newlen = regex_replaceSearchString(&_currentReplacementPattern, pReplacement,MAXLINELEN, &match)) < 0) {
 			ln_errorLineTooLong();
+			free(pReplacement);
 			break;
 		}
-		q = _linebuf;
+		q = pReplacement;
 
 		lastfln  = ln;
 		lastfcol = col;
@@ -893,6 +898,7 @@ advance:	if (delta <= 0 && olen <= 0)	/* empty expr. glitch */
 	}
 
 endrep:
+	free(pReplacement);
 	if (!(query || scope == RNG_ONCE)) {
 		progress_closeMonitor(0);
 	}
