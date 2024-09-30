@@ -270,7 +270,8 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 		i += textlen;
 	}
 	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX && s >= send) {
-		render_formattedString(pRC, x, y, (lp->lflg & LNNOCR) ? "¬" : "¶", 1, FS_CONTROL_CHARS, &fsPreviousClass);
+		BOOL lf = (lp->lflg & LNNOCR) != 0;
+		render_formattedString(pRC, x, y, lf ? "¬" : "¤¶", lf ? 1 : 2, FS_CONTROL_CHARS, &fsPreviousClass);
 	}
 	CARET* pCaret = wp->caret.next;
 	while (pCaret) {

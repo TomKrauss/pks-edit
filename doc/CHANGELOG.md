@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.9.0] - 2024-09-02
 
+### Changed
+- PKS Edit will now render Cr+LF lineends as two characters, when the `showcontrol` option is selected.
+
 ### Fixed
 - Leaving the incremental search field by pressing the `ESCAPE` key did not correctly focus the editor
   if the incremental search field had been activated by a mouse click rather than by pressing `Ctrl+Alt+S`.
