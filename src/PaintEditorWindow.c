@@ -269,16 +269,18 @@ int render_singleLineOnDevice(RENDER_CONTEXT* pRC, int x, int y, LINE *lp, long 
 		x = x2;
 		i += textlen;
 	}
+	int nDelta = 0;
 	if (showcontrol && i >= wp->mincol && !(lp->lflg & LNNOTERM) && x >= startX && s >= send) {
 		BOOL lf = (lp->lflg & LNNOCR) != 0;
-		render_formattedString(pRC, x, y, lf ? "¬" : "¤¶", lf ? 1 : 2, FS_CONTROL_CHARS, &fsPreviousClass);
+		nDelta = lf ? 1 : 2;
+		render_formattedString(pRC, x, y, lf ? "¬" : "¤¶", nDelta, FS_CONTROL_CHARS, &fsPreviousClass);
 	}
 	CARET* pCaret = wp->caret.next;
 	while (pCaret) {
 		render_secondaryCaret(pRC, startX, y, lp, pCaret);
 		pCaret = pCaret->next;
 	}
-	return (x-startX)/wp->cwidth;
+	return (x-startX)/wp->cwidth + nDelta;
 }
 
 /*------------------------------------------------------------

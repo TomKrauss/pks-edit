@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - PKS Edit will now render Cr+LF lineends as two characters, when the `showcontrol` option is selected.
+- PKS Edit will display also control chars (end of line) selected in case a selection is present to better 
+  provide selection feedback on empty lines.
 
 ### Fixed
 - Leaving the incremental search field by pressing the `ESCAPE` key did not correctly focus the editor

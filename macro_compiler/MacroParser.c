@@ -192,6 +192,9 @@ int function_registerNativeFunction(const char* pszMacroCName, const char* pszFu
 	newTableSize = _functionTableSize;
 	if (pszModule && strcmp(pszModule, "PKSEDIT") != 0) {
 		hInstance = LoadLibrary(pszModule);
+		if (hInstance == NULL) {
+			hInstance = hInst;
+		}
 	}
 	char* existingKey;
 	SYMBOL symbol = sym_find(sym_getKeywordContext(), pszMacroCName, &existingKey);
