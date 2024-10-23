@@ -17,85 +17,46 @@
 #include <string.h>
 #include "levensthein.h"
 #include "edctype.h"
+#include "alloc.h"
 
- /* compare two strings s and t with ls, lt: their respective length and bestFound the best distance found so far */
-static long levenshtein_calculateOptimized(const char* s, long ls, const char* t, long lt, long bestFound, int nOptions) {
-    long a, b, c;
-    int ignoreWS = nOptions & LOPT_IGNORE_WS;
+static int costOfSubstitution(char a, char b, int ignoreCase) {
+    if (ignoreCase) {
+        return _l2uset[a] == b || _u2lset[a] == b ? 0 : 1;
+    }
+    return a == b ? 0 : 1;
+}
 
-    /* if last letters are the same, the difference is whatever is
-     * required to edit the rest of the strings
-     */
-    while (ls > 0 && lt > 0) {
-        char c1 = s[ls - 1];
-        char c2 = t[lt - 1];
-        if (c1 != c2) {
-            if (ignoreWS) {
-                int bSpaceFound = 0;
-                if (pks_isspace(c1)) {
-                    bSpaceFound = 1;
-                    ls--;
-                }
-                if (pks_isspace(c2)) {
-                    bSpaceFound = 1;
-                    lt--;
-                }
-                if (bSpaceFound) {
-                    continue;
-                }
+static int minimum(int a, int b, int c) {
+    return a < b ? (a < c ? a : c) : (b < c ? b : c);
+}
+
+ /* compare two strings s and t with ls, lt: their respective length */
+static long levenshtein_calculateOptimized(const char* s, long ls, const char* t, long lt, int nOptions) {
+    int ignoreCase = nOptions & LOPT_IGNORE_CASE;
+    int** dp = calloc(sizeof (int*), ls + 1);
+    for (int i = 0; i < ls + 1; i++) {
+        dp[i] = calloc(sizeof(int), lt + 1);
+    }
+    for (int i = 0; i <= ls; i++) {
+        for (int j = 0; j <= lt; j++) {
+            if (i == 0) {
+                dp[i][j] = j;
+            } else if (j == 0) {
+                dp[i][j] = i;
+            } else {
+                dp[i][j] = minimum(dp[i - 1][j - 1]
+                    + costOfSubstitution(s[i - 1], t[j - 1], ignoreCase),
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1);
             }
-            if (nOptions & LOPT_IGNORE_CASE) {
-                if (_l2uset[c1] == c2 || _u2lset[c1] == c2) {
-                    ls--;
-                    lt--;
-                    continue;
-                }
-            }
-            break;
-        }
-        ls--;
-        lt--;
-    }
-    if (ignoreWS) {
-        while (ls > 0 && pks_isspace(s[ls - 1])) {
-            ls--;
-        }
-        while (lt > 0 && pks_isspace(t[lt - 1])) {
-            lt--;
         }
     }
-    /* if either string is empty, difference is inserting all chars
-     * from the other
-     */
-    if (!ls) return lt;
-    if (!lt) return ls;
-
-    if (--bestFound <= 0) {
-        // optimization: search tree pruning - we cannot get any better from here - do not recurse but stop.
-        return 1;
+    int result = dp[ls][lt];
+    for (int i = 0; i < ls + 1; i++) {
+        free(dp[i]);
     }
-    /* else try:
-     *      changing last letter of s to that of t; or
-     *      remove last letter of s; or
-     *      remove last letter of t,
-     * any of which is 1 edit plus editing the rest of the strings
-     */
-    a = levenshtein_calculateOptimized(s, ls - 1, t, lt - 1, bestFound, nOptions);
-    if (a <= bestFound) {
-        bestFound = a;
-    }
-    b = levenshtein_calculateOptimized(s, ls, t, lt - 1, bestFound, nOptions);
-    if (b <= bestFound) {
-        bestFound = b;
-    }
-    c = levenshtein_calculateOptimized(s, ls - 1, t, lt, bestFound, nOptions);
-    if (a > b) {
-        a = b;
-    }
-    if (a > c) {
-        a = c;
-    }
-    return a + 1;
+    free(dp);
+    return result;
 }
 
 /* 
@@ -111,6 +72,6 @@ long levenshtein_calculate(const char* s, int ls, const char* t, long lt, int nO
         lt = (long) strlen(t);
     }
     int bestFound = ls > lt ? ls : lt;
-    return levenshtein_calculateOptimized(s, ls, t, lt, bestFound, nOptions);
+    return levenshtein_calculateOptimized(s, ls, t, lt, nOptions);
 }
 

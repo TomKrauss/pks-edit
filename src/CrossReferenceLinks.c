@@ -466,6 +466,9 @@ static TAG_TABLE* xref_lookupTagIndex(FTABLE* fp) {
 	GRAMMAR* pszGrammar = fp->documentDescriptor->grammar;
 	char szFullTagFile[EDMAXPATHLEN];
 	ttl = grammar_getTagSources(pszGrammar);
+	if (ttl == NULL) {
+		return NULL;
+	}
 	char* pTags = TST_TAGFILE;
 	while (ttl) {
 		if (strcmp(TST_TAGFILE, ttl->type) == 0) {

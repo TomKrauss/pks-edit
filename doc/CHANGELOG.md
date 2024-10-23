@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if the incremental search field had been activated by a mouse click rather than by pressing `Ctrl+Alt+S`.
   As a consequence one could not start typing right away but had to click into the editor again.
 - Replace with option "Confirm Replacement" sometimes used the wrong replacement text. This is fixed.
+- A performance problem during code completion caused by an inefficient implementation of a Levenshtein
+  comparison, which could cause PKS Edit appear to hang for certain completions was fixed.
+- Code completion has been improved in ignoring tag sources for languages not defining a tag source.
 
 ## [2.8.1] - 2024-09-02
 

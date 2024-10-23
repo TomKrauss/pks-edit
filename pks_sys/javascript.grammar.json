@@ -120,6 +120,7 @@
             "native",
             "new",
             "null",
+            "of",
             "package",
             "private",
             "protected",
@@ -148,6 +149,11 @@
           ],
           "style": "keyword",
           "name": "keyword.js"
+        },
+        {
+          "match": "<[a-z_][A-Z_a-z0-9]*>:",
+          "style": "annotation",
+          "name": "js.named.parameter"
         },
         {
           "match": "<[-+]?[0-9.]+([xX][a-fA-F0-9]+|b[01]+|e[-+0-9]+)?>",

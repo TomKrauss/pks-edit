@@ -47,7 +47,7 @@ int _flushing;
 
 /*----- LOCALS --------------*/
 
-static char _eof[] = "- eof -\n";
+char _eofMarker[] = "- eof -";
 static int  _verbose = 1;
 static int 	_scratchlen = 0;
 static char _crypting;
@@ -536,7 +536,7 @@ ret0:			ret = 0;
 		}
 	}
 
-	if (!ln_createAndAdd(fp,_eof,sizeof _eof -2,LNNOTERM))
+	if (!ln_createAndAdd(fp,_eofMarker,sizeof _eofMarker -1,LNNOTERM))
 		goto ret0;
 
 	if (fp->codepageInfo.cpi_hasUnsupportedChars) {

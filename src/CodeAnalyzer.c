@@ -72,6 +72,8 @@ typedef struct tagANALYZER {
 	ANALYZER_FUNCTION an_determineCompletionsFunction;
 } ANALYZER;
 
+extern char _eofMarker[];
+
 static ANALYZER *_analyzers;
 static ANALYZER_SCHEMA* _analyzerSchemas;
 
@@ -836,7 +838,7 @@ static void analyzer_provideJsonValueSuggestions(JSON_MAPPING_RULE* pRules, ANAL
 							.acp_recommendation = _cssColors[i].cc_name,
 							.acp_object = (void*)pRules,
 							.acp_help = analyzer_provideHelpForMappingRule,
-							.acp_score = codecomplete_calculateScore(pContext, _cssColors[i].cc_name),
+							.acp_score = codecomplete_calculateScore(pContext, _cssColors[i].cc_name)+50,
 							.acp_icon = {
 							.cai_iconType = CAI_COLOR_ICON,
 							.cai_data.cai_color = _cssColors[i].cc_color
@@ -857,7 +859,7 @@ static void analyzer_provideJsonValueSuggestions(JSON_MAPPING_RULE* pRules, ANAL
 								.acp_recommendation = pString,
 								.acp_object = (void*)pValues[i].jev_description,
 								.acp_help = analyzer_provideHelpForString,
-								.acp_score = codecomplete_calculateScore(pContext, pString),
+								.acp_score = codecomplete_calculateScore(pContext, pString)+50,
 								.acp_icon = pValues[i].jev_icon
 						});
 					}
