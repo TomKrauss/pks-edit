@@ -915,7 +915,7 @@ int codecomplete_registerWindowClass() {
 /*
  * Calculate the place of the code completion window relative to the caret of the given window. 
  */
-static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nHeight) {
+static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nWidth, int nHeight) {
 	RECT rect = { 0 };
 	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
 	pPoint->y = wp->cy + wp->cheight + 5;
@@ -927,6 +927,9 @@ static void codecomplete_calculateWindowPos(WINFO* wp, POINT *pPoint, int nHeigh
 		ClientToScreen(wp->ww_handle, pPoint);
 	} else if (pPoint->y < rect.top - 5) {
 		pPoint->y = rect.top - 5;
+	}
+	if (pPoint->x + nWidth > rect.right- 5) {
+		pPoint->x = rect.right - nWidth - 5;
 	}
 }
 
@@ -954,7 +957,7 @@ int codecomplete_showSuggestionWindow(void) {
 	int width = dpisupport_getSize(CC_WIDTH);
 	int height = dpisupport_getSize(CC_HEIGHT);
 	if (wp->codecomplete_handle == NULL) {
-		codecomplete_calculateWindowPos(wp, &pt, height);
+		codecomplete_calculateWindowPos(wp, &pt, width, height);
 		wp->codecomplete_handle = CreateWindow(CLASS_CODE_COMPLETION, NULL, WS_POPUP|WS_SIZEBOX|WS_VSCROLL|WS_BORDER, 
 			pt.x, pt.y, width, height, wp->ww_handle, NULL, hInst, wp);
 		SetWindowLong(wp->codecomplete_handle, GWL_STYLE, WS_BORDER);
@@ -963,7 +966,7 @@ int codecomplete_showSuggestionWindow(void) {
 		GetWindowRect(wp->codecomplete_handle, &rect);
 		width = rect.right - rect.left;
 		height = rect.bottom - rect.top;
-		codecomplete_calculateWindowPos(wp, &pt, height);
+		codecomplete_calculateWindowPos(wp, &pt, width, height);
 		MoveWindow(wp->codecomplete_handle, pt.x, pt.y, width, height, TRUE);
 	}
 	theme_enableDarkMode(wp->codecomplete_handle);
