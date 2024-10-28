@@ -1102,7 +1102,7 @@ native int edit_convertCharacterCase(EDITOR editor);
 @Method(name="EvaluateSelection", signature="i")
 native int evaluator_evaluateCurrentSelection(EDITOR editor);
 /*
- * Open the dialog
+ * Open the dialog to configure the options for editing.
  */
 @Method(name="SetEditorSettings", signature="ibFORM_siiiieSHOW_")
 native int dlg_configureEditorModes();
@@ -1666,12 +1666,23 @@ native range edit_getSelectedLineRange(EDITOR editor);
 
 /*
  * Returns the length of the specified line in number of characters.
+ * If you pass -1 as a line number, the length of the current line is returned.
  */
 @Method(name="EditorGetLineLen")
 native int edit_getLineLen(EDITOR editor, int lineNumber);
 
 /*
+ * Sets the caret position to the given line number and offset. Offset is interpreted
+ * as an offset in the line buffer (not screen column). Specifying either a line number or an
+ * offset of -1 will use the current line number or offset respectively.
+ * If you pass -1 as a line number, the length of the current line is returned.
+ */
+@Method(name="EditorSetCaret")
+native int edit_setCaret(EDITOR editor, int lineNumber, int offset);
+
+/*
  * Returns the string representing the contents of the specified line.
+ * If you pass -1 as a line number, the current line is used.
  */
 @Method(name="EditorGetLineText")
 native string edit_getLineText(EDITOR editor, int lineNumber);

@@ -1,0 +1,40 @@
+
+
+/*
+ * Position the input caret to the first non space character of a line.
+ */
+void PositionToWSBeginOfLine() {
+	char c;
+	int i = 0;
+	string text = EditorGetLineText(-1);
+	int length = EditorGetLineLen(-1);
+	while (i < length) {
+		c = text[i];
+		if (c != ' ' && c != '\t') {
+			break;
+		}
+		i++;
+	}
+	EditorSetCaret(-1, i);
+}
+
+
+/*
+ * Position the input caret after the last non space character of a line.
+ */
+void PositionToWSEndOfLine() {
+	char c;
+	int i;
+	string text = EditorGetLineText(-1);
+	int length = EditorGetLineLen(-1);
+	while (length > 0) {
+		i = length-1;
+		c = text[i];
+		if (c != ' ' && c != '\t') {
+			break;
+		}
+		length--;
+	}
+	EditorSetCaret(-1, length);
+}
+

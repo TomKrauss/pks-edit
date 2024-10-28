@@ -465,9 +465,34 @@ PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pVal
  * Returns the length of the specified line in number of characters.
  */
 int edit_getLineLen(WINFO* wp, long nLine) {
-	FTABLE* fp = wp->fp;
-	LINE* lp = ln_goto(fp, nLine);
+	if (wp == NULL) {
+		wp = ww_getCurrentEditorWindow();
+	}
+	LINE* lp;
+	if (nLine < 0) {
+		lp = wp->caret.linePointer;
+	} else {
+		FTABLE* fp = wp->fp;
+		lp = ln_goto(fp, nLine);
+	}
 	return lp ? lp->len : -1;
+}
+
+/*
+ * Position the caret to a given offset and line.
+ */
+int edit_setCaret(WINFO* wp, long nLine, long nOffset) {
+	if (wp == NULL) {
+		wp = ww_getCurrentEditorWindow();
+	}
+	if (nLine < 0) {
+		nLine = wp->caret.ln;
+	}
+	if (nOffset < 0) {
+		nOffset = wp->caret.offset;
+	}
+	caret_placeCursorAndSavePosition(wp, nLine, nOffset);
+	return 1;
 }
 
 /*
@@ -475,9 +500,12 @@ int edit_getLineLen(WINFO* wp, long nLine) {
  */
 char* edit_getLineText(WINFO* wp, long nLine) {
 	if (wp == NULL) {
-		return NULL;
+		wp = ww_getCurrentEditorWindow();
 	}
 	FTABLE* fp = wp->fp;
+	if (nLine < 0) {
+		nLine = wp->caret.ln;
+	}
 	LINE* lp = ln_goto(fp, nLine);
 	if (!lp) {
 		return 0;

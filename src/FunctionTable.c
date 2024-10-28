@@ -75,7 +75,7 @@ EdCompileMacros(long ), EdDocTypes(long ), EdIsDefined(long ), ft_cloneWindow(BO
 bl_moveSelectionUpDown(long),
 EdShowClipboard(long ), EdSaveAllFiles(), EdSetExtendSelectionMode(long ), EdFindOnInternet(), macroc_print(const char*), macroc_println(const char*), macroc_clearConsole(),
 interpreter_typeOf(), interpreter_foreach(), interpreter_size(), interpreter_createArray(), interpreter_createMap(), interpreter_registerType(), macroc_toupper(), macroc_fileOpen(), macroc_fileClose(), macroc_fileReadLine(), macroc_fileWriteLine(), macroc_indexOf(), macroc_stringTokenize(), macroc_tolower(), macro_getFunctionNamesMatching(), macroc_fileTest(),
-macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_getLineText(),macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
+macroc_fileListFiles(), edit_replaceText(), edit_getAllEditors(), macroc_pathCreateFromSegments(), edit_getSelectedLineRange(), edit_getLineLen(), edit_setCaret(), edit_getLineText(),macroc_findPattern(), edit_replaceLines(), edit_replaceSpacesWithTabs(), edit_replaceTabsWithSpaces(), op_changeEditorOption();
 
 /*
  * Used for testing themes: can be used to reload the theme definitions from the
@@ -315,6 +315,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*169*/(long long (*)())interpreter_registerType, -1, 0, "RegisterType", NULL, "P" },
 {/*170*/(long long (*)())op_changeEditorOption, -1, 0, "EditorChangeOption", NULL, "iWeOP_ii" },
 {/*171*/(long long (*)())theme_reloadThemes, -1, 0, "ReloadThemes", NULL, "i" },
+{/*172*/(long long (*)())edit_setCaret, -1, 0, "EditorSetCaret", NULL, "iWii" },
 0
 };
 
