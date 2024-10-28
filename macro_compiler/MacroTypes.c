@@ -216,12 +216,12 @@ void types_registerDefaultTypes() {
 		.ptd_callbacks = {
 			.tc_close = (T_FINALIZER)file_close
 		}});
-	TYPE_PROPERTY_DESCRIPTOR descriptors[] = {
+	TYPE_PROPERTY_DESCRIPTOR mapDescriptors[] = {
 			{.tpd_type = VT_STRING, .tpd_name = "key"},
 			{.tpd_type = VT_AUTO, .tpd_name = "value"},
 	};
 	types_register(VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
-		.ptd_elements.ptd_properties = descriptors, .ptd_numberOfProperties = DIM(descriptors)
+		.ptd_elements.ptd_properties = mapDescriptors, .ptd_numberOfProperties = DIM(mapDescriptors)
 	});
 	types_register(VT_EDITOR_HANDLE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_EDITOR, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_isHandleType = 1,
@@ -229,6 +229,14 @@ void types_registerDefaultTypes() {
 			.tc_handleFromMacroMemory = ww_winfoFromWorkwinHandle,
 			.tc_handleToMacroMemory = types_toHwnd,
 	}});
+	TYPE_PROPERTY_DESCRIPTOR caretDescriptors[] = {
+			{.tpd_type = VT_INT, .tpd_name = "line"},
+			{.tpd_type = VT_INT, .tpd_name = "offset"},
+			{.tpd_type = VT_INT, .tpd_name = "column"},
+	};
+	types_register(VT_CARET, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_CARET, .ptd_isValueType = 0, .ptd_objectSize = 3, .ptd_hasDefaultValue = 0,
+		.ptd_elements.ptd_properties = caretDescriptors, .ptd_numberOfProperties = DIM(caretDescriptors)
+	});
 }
 
 /*

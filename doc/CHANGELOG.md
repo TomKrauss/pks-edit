@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The new PKS Edit MacroC function `EditorSetCaret` can be used to set the input caret in a document.
   Some additional macros available by default to position to the first non whitespace character or after
   the last non whitespace character in the current line were added.
+- The new PKS Edit MacroC type `CARET` allows to work with caret positions in PKS MacroC. 
 
 ## [2.9.0] - 2024-09-02
 

@@ -76,12 +76,14 @@ typedef enum {
 	VT_AUTO = 9,
 	VT_FILE = 10,
 	VT_MAP_ENTRY = 11,
-	VT_EDITOR_HANDLE = 12							// Editor window handle
+	VT_EDITOR_HANDLE = 12,							// Editor window handle
+	VT_CARET = 13									// Editor caret position
 } PKS_VALUE_TYPE;
 
 #define PKS_TYPE_FILE		"FILE"
 #define PKS_TYPE_MAP_ENTRY	"MAP_ENTRY"
 #define PKS_TYPE_EDITOR		"EDITOR"
+#define PKS_TYPE_CARET		"CARET"
 
 typedef struct tagPKS_VALUE {
 	int				pkv_managed : 1;				// the memory of this object is managed by the MacroVM object memory
@@ -569,6 +571,11 @@ extern int memory_addObject(EXECUTION_CONTEXT* pContext, PKS_VALUE *vObject, PKS
  * Returns an array object with all keys contained in the map type value passed as single argument.
  */
 extern PKS_VALUE memory_mapKeys(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, int nArgs);
+
+/*
+ * Set the properties of a caret type PKS_VALUE object.
+ */
+extern void memory_fillCaret(PKS_VALUE vCaret, long line, long offset, long col);
 
 /*
  * If the passed value is of type "handle" (file handle, editor handle etc...), it is assumed,

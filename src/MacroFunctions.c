@@ -404,6 +404,17 @@ PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 	return tResult;
 }
 
+PKS_VALUE edit_getCaretPosition(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
+	WINFO* wp = ww_getCurrentEditorWindow();
+	if (nArgs >= 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+		wp = memory_handleForValue(*pValues);
+	}
+	PKS_VALUE vCaret = memory_createObject(pContext, VT_CARET, 3, 0);
+	CARET* pCaret = &wp->caret;
+	memory_fillCaret(vCaret, pCaret->ln, pCaret->offset, pCaret->col);
+	return vCaret;
+}
+
 /*
  * Replace all lines in the specified range with a list of strings.
  */

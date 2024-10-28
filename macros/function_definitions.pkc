@@ -1,5 +1,28 @@
 
 /*
+ * Represents a caret position in an editor.
+ */
+typedef struct {
+	/*
+	 * The 0-based line offset of a line.
+	 */
+	int line;
+
+	/*
+	 * The line offset (i.e. the offset into the internal line memory of one line).
+	 */
+	int offset;
+
+	/*
+	 * The screen column - differs from the line offset in particular, when tab characters are used which occupy
+	 * more space on the screen than 1.
+	 */
+	int column;
+
+} CARET;
+
+
+/*
  * Represents tuples of data contained in a HASHMAP, which can be retrieved
  * from a Map using the MapEntries API.
  *

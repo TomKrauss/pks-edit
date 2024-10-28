@@ -370,6 +370,16 @@ static int memory_collectEntries(intptr_t k, intptr_t v, void* pParam) {
 	return 1;
 }
 
+/*
+ * Set the properties of a caret type PKS_VALUE object.
+ */
+void memory_fillCaret(PKS_VALUE vCaret, long line, long offset, long col) {
+	OBJECT_DATA* pEData = vCaret.pkv_data.objectPointer;
+	pEData->od_data.objects[0] = MAKE_TYPED_OBJECT_POINTER(0, VT_INT, line);
+	pEData->od_data.objects[1] = MAKE_TYPED_OBJECT_POINTER(0, VT_INT, offset);
+	pEData->od_data.objects[2] = MAKE_TYPED_OBJECT_POINTER(0, VT_INT, col);
+}
+
 static PKS_VALUE memory_collectElements(EXECUTION_CONTEXT* pContext, PKS_VALUE vTarget, int (*func)(intptr_t k, intptr_t v, void *p)) {
 	if (vTarget.pkv_managed && vTarget.pkv_type == VT_MAP) {
 		_currentContext = pContext;

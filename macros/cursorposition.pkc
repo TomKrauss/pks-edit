@@ -18,6 +18,19 @@ void PositionToWSBeginOfLine() {
 	EditorSetCaret(-1, i);
 }
 
+/*
+ * Can be used as an example showing, how one can access the caret position.
+ */
+void GetCaretPosition() {
+	CARET c;
+
+	clear();
+	c = EditorGetCaretPosition();
+	println("Line: " + c.line);
+	println("Offset: " + c.offset);
+	println("Column: " + c.column);
+}
+
 
 /*
  * Position the input caret after the last non space character of a line.
