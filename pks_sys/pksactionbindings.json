@@ -154,11 +154,15 @@
     },
     {
       "key": "Shift+INSERT",
+      "command": "@paste-clipboard"
+    },
+    {
+      "key": "Alt+Shift+INSERT",
       "command": "@paste-trash"
     },
     {
       "key": "Shift+DELETE",
-      "command": "@delete-to-eol"
+      "command": "@cut-to-clipboard"
     },
     {
       "key": "Shift+F2",
@@ -226,7 +230,7 @@
     },
     {
       "key": "Ctrl+INSERT",
-      "command": "@cut-selection"
+      "command": "@copy-to-clipboard"
     },
     {
       "key": "Ctrl+DELETE",
