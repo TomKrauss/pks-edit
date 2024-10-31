@@ -77,7 +77,7 @@ void calculateFactorial() {
 
     nSelected = (int)PromptAssign("Calculate factorial of: ","10");
     if (nSelected == 0) {
-        MessageBox(MB_ICONINFORMATION|MB_OK, "Calculation aborted.");
+        MessageBox(MB_ICONASTERISK|MB_OK, "Calculation aborted.");
         return;
     }
 
@@ -86,9 +86,9 @@ void calculateFactorial() {
     }
 
     if (result < 0) {
-        MessageBox(MB_ICONERROR|MB_OK, "Overflow during calculation.");
+        MessageBox(MB_ICONEXCLAMATION|MB_OK, "Overflow during calculation.");
     } else {
-        MessageBox(MB_ICONINFORMATION|MB_OK, "The factorial of " + nSelected + " is: " + result);
+        MessageBox(MB_ICONASTERISK|MB_OK, "The factorial of " + nSelected + " is: " + result);
     }
 }
 ```

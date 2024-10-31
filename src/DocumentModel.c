@@ -903,6 +903,12 @@ char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp) {
 		memcpy(lpMem, lp->lbuf, lp->len);
 		lpMem += lp->len;
 		nSize -= lp->len;
+		if ((lp = lp->next) == 0) {
+			break;
+		}
+		if (fp && lp == fp->lastl) {
+			break;
+		}
 		if (LINE_HAS_LINE_END(lp) && nl) {
 			if (LINE_HAS_CR(lp) && cr) {
 				if (nSize <= 0) {
@@ -917,13 +923,8 @@ char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp) {
 			*lpMem++ = nl;
 			nSize--;
 		}
-		if ((lp = lp->next) == 0) {
-			break;
-		}
-		if (fp && lp == fp->lastl) {
-			break;
-		}
 	}
+	*pnSize -= nSize;
 	return pMemStart;
 }
 
