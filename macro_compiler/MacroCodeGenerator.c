@@ -380,6 +380,26 @@ static int bytecode_getPushInt(char* pInstr, int* pVal) {
 }
 
 /*
+ * As a process of the byte code optimization, update all branch offsets to point to a new place.
+ */
+static void bytecode_updateBranchOffsets(BYTECODE_BUFFER* pBuffer, char* pUpdatedRange, int nDeltaOptimized) {
+	char* pSource = pBuffer->bb_start;
+	while (pSource < pUpdatedRange) {
+		char nOp = *pSource;
+		if (nOp == C_GOTO) {
+			COM_GOTO* pGoto = (COM_GOTO*)pSource;
+			int nOffset = pGoto->offset;
+			int nUpdatedOffset = (int)(pUpdatedRange - pSource);
+			if (nOffset >= nUpdatedOffset) {
+				pGoto->offset -= nDeltaOptimized;
+			}
+		}
+		size_t nSize = interpreter_getParameterSize(nOp, pSource + 1);
+		pSource += nSize;
+	}
+}
+
+/*
  * Eliminate unneccessary instructions from the byte codes generated.
  * Should be done on a long term run based on an intermediate AST created by the parser.
  */
@@ -431,6 +451,8 @@ void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer) {
 						bOptimize = 0;
 					}
 					if (bOptimize) {
+						char* pTargetStart = pTarget;
+						char* pSourceStart = pSource;
 						if (nVal < 256) {
 							*pTarget++ = C_PUSH_SMALL_INT_LITERAL;
 							*pTarget++ = nVal;
@@ -444,6 +466,8 @@ void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer) {
 						if (pSource < pBuffer->bb_current && (*pSource == C_PUSH_SMALL_INT_LITERAL || *pSource == C_PUSH_INTEGER_LITERAL)) {
 							bOptimizeMore = 1;
 						}
+						int nDeltaOptimized = (int)((pSource - pSourceStart) - (pTarget - pTargetStart));
+						bytecode_updateBranchOffsets(pBuffer, pSourceStart, nDeltaOptimized);
 						continue;
 					}
 				}

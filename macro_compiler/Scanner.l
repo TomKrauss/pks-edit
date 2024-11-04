@@ -129,14 +129,18 @@ static void yyreport(const char* s, int bError, va_list ap) {
 		fflush(yyerr.errfp);
 		if (bError && ++yyerr.yynerr >= yyerr.yymaxerr) {
 			fprintf(yyerr.errfp, "\n*** too many errors ***\n");
-			if (yyerr.failpt)
+			if (yyerr.failpt) {
+				yylex_destroy();
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
+			}
 		}
 		if (!bError && ++yyerr.yynwarn  >= yyerr.yymaxwarn) {
 			yyerr.yynerr++;
 			fprintf(yyerr.errfp, "\n*** too many warnings ***\n");
-			if (yyerr.failpt)
+			if (yyerr.failpt) {
+				yylex_destroy();
 				longjmp(*yyerr.failpt, ERR_TOOMANYERR);
+			}
 		}
 	}
 }

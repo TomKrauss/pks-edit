@@ -958,7 +958,7 @@ for_loop_expression:
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, lendid,_breaklevel,BRA_IF_FALSE);
 				_breaklevel++;
 			} local_block {
-				if ($2.ident.s) {
+				if ($2.ident.s && $2.ident.stringIsAlloced) {
 					sym_remove(_currentIdentifierContext, $2.ident.s);
 					freeitem(&$2.ident.s);
 				}
@@ -981,7 +981,7 @@ for_to_clause: '(' opt_for_initializer {
 				YY_EMIT(C_POP_STACK,(GENERIC_DATA){0}); 
 				parser_switchToBuffer(0);
 			} ')' {
-				$$.ident.s = $2.ident.s;
+				$$.ident = $2.ident;
 			}
 
 opt_for_initializer:
@@ -992,10 +992,10 @@ opt_for_initializer:
 			}
 
 for_clause:	for_to_clause {
-				$$.ident.s = $1.ident.s;
+				$$.ident = $1.ident;
 			}
 			| in_clause {
-				$$.ident.s = $1.ident.s;
+				$$.ident = $1.ident;
 			}
 			| error {
 				$$.ident.s = 0;
@@ -1003,17 +1003,32 @@ for_clause:	for_to_clause {
 				yyerrok;
 			}
 
-in_clause:	'(' type_name variable_identifier {
+in_clause_begin: type_name variable_identifier {
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
 				parser_newForeachCursor();
 				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=_localVariableIndex});
-				parser_defineVariable($3.ident.s, $2.ident.type, (intptr_t)0, $2.ident.arraySize);
-			} ':' expression ')' {
+				parser_defineVariable($2.ident.s, $1.ident.type, (intptr_t)0, $1.ident.arraySize);
+				$$.ident.s = $2.ident.s;
+				$$.ident.type = $1.ident.type;
+			} 
+			|
+			T_VARIABLE {
 				SYMBOL 	sym;
 				char *	key;
-				sym = sym_find(_currentIdentifierContext, "foreach",&key);
-				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
-				$$.ident.s = $3.ident.s;
+				sym = sym_find(_currentIdentifierContext, $1.ident.s, &key);
+				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, lstartid,_breaklevel);
+				parser_newForeachCursor();
+				YY_EMIT(C_PUSH_INTEGER_LITERAL, (GENERIC_DATA){.intValue=sym.s_index});
+				$$.ident = $1.ident;
+			}
+
+in_clause:	'(' in_clause_begin ':' expression ')' {
+				SYMBOL 	sym;
+				char *	key;
+				sym = sym_find(_currentIdentifierContext, "foreach", &key);
+				_currentBytecodeBuffer->bb_current = bytecode_emitFunctionCall(_currentBytecodeBuffer, C_0FUNC,
+						(GENERIC_DATA){function_getIndexOfFunction((void*)VALUE(sym))}, 3);
+				$$.ident = $2.ident;
 			}
 
 while:		T_WHILE {

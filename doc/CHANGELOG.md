@@ -13,6 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the last non whitespace character in the current line were added.
 - The new PKS Edit MacroC type `CARET` allows to work with caret positions in PKS MacroC. 
 
+### Improved
+- PKS MacroC `for to loops` have been improved and allow now for using previously defined variable references.
+  This allows for expressions as in the following example:
+```c
+int i = 0;
+int length = EditorGetLineLen(-1);
+for (i : 0..length) {
+	c = text[i];
+...
+```
+
+### Fixed
+- A bug in the PKS Edit MacroC interpreter was fixed, causing branch instructions to become corrupted,
+  when the MacroC bytecode was optimized. 
+
 ## [2.9.0] - 2024-09-02
 
 ### Changed

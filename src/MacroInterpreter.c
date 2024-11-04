@@ -195,7 +195,7 @@ static EXECUTION_CONTEXT* interpreter_pushExecutionContext(MACRO* mpMacro) {
 	int nLocalVars = mpMacro->mc_numberOfLocalVars;
 	if (nLocalVars > 0) {
 		pResult->ec_localVariables = calloc(nLocalVars, sizeof * pResult->ec_localVariables);
-		pResult->ec_localVariableCount = mpMacro->mc_numberOfLocalVars;
+		pResult->ec_localVariableCount = nLocalVars;
 	}
 	pResult->ec_currentFunction = mpMacro->mc_name;
 	pResult->ec_parent = _currentExecutionContext;
@@ -332,6 +332,9 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	} else {
 		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
+	if (nCaretVarHeapOffset >= pContext->ec_localVariableCount) {
+		interpreter_raiseError("Wrong heap variable access at offset %d", nCaretVarHeapOffset);
+	}
 	PKS_VALUE caretV = pContext->ec_localVariables[nCaretVarHeapOffset];
 	if (caretV.pkv_type != VT_NUMBER) {
 		caretV = (PKS_VALUE){.pkv_type = VT_NUMBER, .pkv_data.intValue = 0};
@@ -352,6 +355,9 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 		vResult = memory_getNestedObject(v, idx);
 	} else {		// string
 		vResult = (PKS_VALUE){.pkv_type = VT_CHAR, .pkv_data.uchar = memory_accessString(v)[idx] };
+	}
+	if (nResultVarOffset >= pContext->ec_localVariableCount) {
+		interpreter_raiseError("Wrong heap variable access at offset %d", nResultVarOffset);
 	}
 	pContext->ec_localVariables[nResultVarOffset] = vResult;
 	caretV.pkv_data.intValue++;
