@@ -27,6 +27,9 @@ for (i : 0..length) {
 ### Fixed
 - A bug in the PKS Edit MacroC interpreter was fixed, causing branch instructions to become corrupted,
   when the MacroC bytecode was optimized. 
+- A bug was fixed causing text copied to the clipboard not being preserved, when closing PKS-Edit.
+- The line number area did not correctly resize / redraw, when the number of lines in a file changed,
+  so that resizing of the area was necessary.
 
 ## [2.9.0] - 2024-09-02
 

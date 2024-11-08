@@ -435,7 +435,6 @@ void main_cleanup(void) {
 	ft_destroyCaches();
 	hist_destroy();
 	action_destroyAll();
-	bl_destroyPasteList(FALSE);
 	fm_destroyAll();
 	sym_destroyTable();
 	faicon_destroy();

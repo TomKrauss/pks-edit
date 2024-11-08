@@ -536,7 +536,8 @@ static int ww_calculateLongestLine(WINFO* wp) {
 	LINE* lp = fp->firstl;
 	int max = 0;
 
-	while (lp) {
+	int nLinesToConsider = 10000;
+	while (lp && --nLinesToConsider >= 0) {
 		int len = caret_lineOffset2screen(wp, &(CARET){.linePointer = lp, .offset = lp->len});
 		if (max < len) {
 			max = len;
@@ -1120,6 +1121,11 @@ WINFUNC EditWndProc(
 					xyRuler.w,xyRuler.h,bRepaint);
 		}
 		if (wp->lineNumbers_handle) {
+			RECT rc;
+			GetWindowRect(wp->lineNumbers_handle, &rc);
+			if (rc.right - rc.left != xyLineWindowSize.w) {
+				InvalidateRect(wp->lineNumbers_handle, NULL, TRUE);
+			}
 			MoveWindow(wp->lineNumbers_handle, xyLineWindowSize.x, xyLineWindowSize.y,
 				xyLineWindowSize.w, xyLineWindowSize.h, bRepaint);
 		}
@@ -1588,8 +1594,13 @@ static void draw_lineNumbers(WINFO* wp) {
 	if (!wp->renderer->r_calculateMaxLine) {
 		return;
 	}
-	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
+	int nLeft = ruler_getLeft(wp);
 	GetClientRect(wp->lineNumbers_handle, &rect);
+	if (nLeft > rect.right - rect.left) {
+		SendMessage(wp->edwin_handle, WM_EDWINREORG, 0, 0L);
+		return;
+	}
+	hdc = BeginPaint(wp->lineNumbers_handle, &ps);
 	HBRUSH bgBrush = CreateSolidBrush(pTheme->th_rulerBackgroundColor);
 	HBRUSH hAnnotationBrush = CreateSolidBrush(pTheme->th_changedLineColor);
 	HBRUSH hSavedBrush = CreateSolidBrush(pTheme->th_savedChangedLineColor);

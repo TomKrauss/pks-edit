@@ -1822,6 +1822,8 @@ BEGIN
                             "!The configuration file %s could not be saved."
     IDS_SEGMENTATION_FAULT_EXECUTING_MACRO 
                             "!!Segmentation Fault when executing the macro named '%s'. We recommend to save your work and to exit PKS Edit. If you can reproduce the error, please report it to https://github.com/TomKrauss/pks-edit."
+    IDS_HUGE_CLIPBOARD_DO_YOU_WANT_TO_COPY 
+                            "Are you sure, you want to leave more than 1 MB of memory on the system clipboard?"
 END
 
 #endif    // Englisch (USA) resources

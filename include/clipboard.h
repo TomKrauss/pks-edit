@@ -31,9 +31,11 @@ extern void clp_setmine(void);
 /*------------------------------------------------------------
  * clp_setdata()
  * deliver contents of the clipboard to a caller
- * is called after a RENDER... message
+ * is called after a RENDER... message.
+ * pszBufferName is the name of  buffer, bExit should be
+ * TRUE, when calling this method as part of exiting PKS Edit.
  */
-extern int clp_setdata(char* pszBufferName);
+extern int clp_setdata(char* pszBufferName, BOOL bExit);
 
 /*------------------------------------------------------------
  * clp_getdata()

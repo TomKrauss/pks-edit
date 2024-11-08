@@ -20,6 +20,7 @@
 #include "winterf.h"
 #include "documentmodel.h"
 #include "pksedit.h"
+#include "pksrc.h"
 #include "errordialogs.h"
 #include "clipboard.h"
 #include "textblocks.h"
@@ -52,7 +53,7 @@ static void clp_setclipboarddata(HANDLE hMem)
 /*--------------------------------------------------------------------------
  * clp_makebufferhandle()
  */
-static HANDLE clp_makebufferhandle(char* whichBuffer) {
+static HANDLE clp_makebufferhandle(char* whichBuffer, BOOL bExit) {
 	size_t 	size;
 	PASTE *	bp;
 	HANDLE 	hMem;
@@ -65,9 +66,12 @@ static HANDLE clp_makebufferhandle(char* whichBuffer) {
 	}
 
 	if (bp->pln == 0 ||
-	    (size = ln_calculateMemorySizeRequired(NULL, bp->pln, nl, cr)) == 0) 
+		(size = ln_calculateMemorySizeRequired(NULL, bp->pln, nl, cr)) == 0) {
 		return 0;
-
+	}
+	if (bExit && size > 1000000 && error_displayYesNoConfirmation(IDS_HUGE_CLIPBOARD_DO_YOU_WANT_TO_COPY) == IDNO) {
+		return 0;
+	}
 	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
 	    (lpMem = GlobalLock(hMem)) == 0) {
 		error_showErrorById(IDS_MSGNOSPCE);
@@ -93,11 +97,11 @@ EXPORT void clp_setmine(void) {
  * deliver contents of the clipboard to a caller
  * is called after a RENDER... message
  */
-EXPORT int clp_setdata(char* whichBuffer)
+EXPORT int clp_setdata(char* whichBuffer, BOOL bExit)
 {
 	HANDLE hMem;
 
-	hMem = clp_makebufferhandle(whichBuffer);
+	hMem = clp_makebufferhandle(whichBuffer, bExit);
 
 	/* give away the handle ... */
 	SetClipboardData(CF_TEXT,hMem);

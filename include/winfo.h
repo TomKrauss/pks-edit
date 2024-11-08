@@ -730,6 +730,8 @@ extern void ww_registerRenderer(const char* pszName, RENDERER* pRenderer);
  */
 extern void ww_destroyAll();
 
+extern BOOL ww_workWinHasFocus(void);
+
 /*
  * Destroy internally allocated data structures for a WINFO object.
  */

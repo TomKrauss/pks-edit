@@ -30,6 +30,7 @@
 #include "errordialogs.h"
 #include "xdialog.h"
 #include "textblocks.h"
+#include "fontawesome.h"
 #include "customcontrols.h"
 #include "mouseutil.h"
 #include "windowselector.h"
@@ -37,6 +38,7 @@
 #include "darkmode.h"
 #include "menu.h"
 #include "dpisupport.h"
+#include "clipboard.h"
 
 extern HINSTANCE		hInst;
 extern void 	st_init(HWND hwndDaddy);
@@ -44,10 +46,8 @@ extern void		st_redraw(BOOL bErase);
 extern void		st_resize(int nStatusHeight, RECT* pRect);
 extern void 	status_wh(WORD* width, WORD* height);
 extern void 	tb_wh(WORD* width, WORD* height);
-extern BOOL 	ww_workWinHasFocus(void);
-extern int 		clp_setdata(char* pszBufferName);
 extern void 	EditDroppedFiles(HDROP hdrop);
-extern void		tb_updateImageList(HWND hwnd, void* tbIcons, int nCount);
+extern void		tb_updateImageList(HWND hwnd, CHAR_WITH_STYLE* tbIcons, int nCount);
 /*
  * Activate a tab page with the given window handle.
  */
@@ -2177,16 +2177,16 @@ repaintUI:
 		return 0;
 
 	case WM_RENDERALLFORMATS:
-		OpenClipboard(hwnd);
+		OpenClipboard(NULL);
 		EmptyClipboard();
-		clp_setdata(0);
+		clp_setdata(0, TRUE);
 		bl_destroyPasteList(FALSE);
 		CloseClipboard();
 		return 0;
 
 	case WM_RENDERFORMAT:
 		if (wParam == CF_TEXT) {
-			clp_setdata(0);
+			clp_setdata(0, FALSE);
 		}
 		return 0;
 
@@ -2210,6 +2210,7 @@ repaintUI:
 		break;
 
 	case WM_DESTROY:
+		bl_destroyPasteList(FALSE);
 		ll_destroy(&dockingSlots, NULL);
 		PostQuitMessage(0);
 		return 0;
