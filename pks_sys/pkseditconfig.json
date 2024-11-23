@@ -467,7 +467,7 @@
         "highlightCaretLine": true,
         "insertMode": true,
         "autoIndent": true,
-        "fixCapitals": true,
+        "fixCapitals": false,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "statuslineSegments": [
@@ -597,7 +597,7 @@
         "showSyntaxHighlight": true,
         "insertMode": true,
         "autoIndent": true,
-        "fixCapitals": true,
+        "fixCapitals": false,
         "expandAbbreviations": true,
         "smartSpaceDelete": true,
         "tabCharacter": " ",
