@@ -260,7 +260,7 @@ int ln_changeFlag(FTABLE* fp, LINE *lpstart, const LINE *lpend, int flagsearch, 
 /*
  * Calculates the number of bytes occupied by one line. 
  */
-long ln_nBytes(LINE* lp) {
+long ln_nBytes(const LINE* lp) {
 	long offset = lp->len;
 	if (LINE_HAS_LINE_END(lp)) {
 		offset += LINE_HAS_CR(lp) ? 2 : 1;
@@ -860,7 +860,7 @@ void ln_destroy(LINE *lp)
  * Calculates the number of bytes needed for a list of lines with the first line
  * being lp.
  */
-EXPORT size_t ln_calculateMemorySizeRequired(FTABLE* fp, LINE *lp, int nl, int cr) { 	
+EXPORT size_t ln_calculateMemorySizeRequired(const FTABLE* fp, const LINE *lp, int nl, int cr) { 	
 	size_t fsize = 0L;
 
 	LINE* lpLast = fp != NULL ? fp->lastl : NULL;
@@ -874,7 +874,7 @@ EXPORT size_t ln_calculateMemorySizeRequired(FTABLE* fp, LINE *lp, int nl, int c
 /*
  * Calculates the number of bytes in a file.
  */
-size_t ft_totalBytes(FTABLE* fp) {
+size_t ft_totalBytes(const FTABLE* fp) {
 	EDIT_CONFIGURATION* pConf = fp->documentDescriptor;
 	return ln_calculateMemorySizeRequired(fp, fp->firstl, pConf->nl, pConf->cr);
 }
@@ -885,7 +885,7 @@ size_t ft_totalBytes(FTABLE* fp) {
  * a size of nSize. fp may be NULL.lpMem may also be NULL, in which case the memory is allocated and created
  * and must be freed, once you are done using it.
  */
-char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp) {
+char* ft_convertToBuffer(const FTABLE* fp, char* lpMem, size_t* pnSize, const LINE* lp) {
 	int cr = fp ? fp->documentDescriptor->cr : '\r';
 	int nl = fp ? fp->documentDescriptor->nl : '\n';
 	size_t nSize = *pnSize;

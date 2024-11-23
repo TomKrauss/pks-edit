@@ -1138,7 +1138,7 @@ void ft_setOutputFilename(FTABLE* fp, char* pNewName) {
 /*
  * Assign a new nCommand to display for a file.
  */
-void ft_setTitle(FTABLE* fp, char* pNewName) {
+void ft_setTitle(FTABLE* fp, const char* pNewName) {
 	char oldName[256];
 	if (fp->title) {
 		if (strcmp(fp->title, pNewName) == 0) {
@@ -1151,7 +1151,7 @@ void ft_setTitle(FTABLE* fp, char* pNewName) {
 	PROPERTY_CHANGE change = {
 		.prop_type = FT_NAME,
 		.prop_oldValue.v_string = oldName,
-		.prop_newValue.v_string = pNewName
+		.prop_newValue.v_string = (char*)pNewName
 	};
 	fp->title = _strdup(pNewName);
 	ft_firePropertyChange(fp, &change);

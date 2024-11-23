@@ -139,25 +139,29 @@ typedef struct tagWINFO WINFO;
 #define	fnt_bgcolor		editFontStyle.bgcolor
 #define	fnt_charset		editFontStyle.charset
 
-#if defined(_WINUSER_)
-
 typedef struct tagGRAMMAR GRAMMAR;
+
+typedef struct tagSTATUS_LINE_SEGMENT STATUS_LINE_SEGMENT;
+
+#if defined(_WINDEF_)
 
 /*
  * Defines one segment of the status line with an optional icon and a text.
  * A segment may be tagged with a language if it is available only in a special selected
  * language. Language identifiers are "de", "en", ...
  */
-typedef struct tagSTATUS_LINE_SEGMENT {
+struct tagSTATUS_LINE_SEGMENT {
 	struct tagSTATUS_LINE_SEGMENT* sls_next;
 	char						   sls_lang[8];
 	// Logical width of this segment (1,2,3,...)
 	int							   sls_width;
-	char*						   sls_text;
-	char*						   sls_icon;
+	char* sls_text;
+	char* sls_icon;
 	// Optional color for an icon to use
 	COLORREF					   sls_iconColor;
-} STATUS_LINE_SEGMENT;
+};
+
+#endif
 
 typedef struct tagEDIT_CONFIGURATION {
 	struct tagEDIT_CONFIGURATION* next;
@@ -202,7 +206,6 @@ extern EDIT_CONFIGURATION* doctypes_createDefaultDocumentTypeDescriptor();
 extern JSON_MAPPING_RULE* doctypes_getJsonMapping();
 
 #endif // JSONPARSER_H
-#endif
 
 /* default document descriptor context (Makros are global) */
 #define	DEFAULT_DOCUMENT_DESCRIPTOR_CTX			0
@@ -433,7 +436,7 @@ extern int ln_changeFlag(FTABLE* fp, LINE* lpstart, const LINE* lpend, int flags
 /*
  * Calculates the number of bytes occupied by one line.
  */
-extern long ln_nBytes(LINE* lp);
+extern long ln_nBytes(const LINE* lp);
 
 /*
  * Calculates the offset in bytes of the caret to the beginning of the file.
@@ -443,7 +446,7 @@ extern size_t ln_caretOffset(FTABLE* fp, CARET* pCaret);
 /*
  * Calculates the number of bytes in a file.
  */
-extern size_t ft_totalBytes(FTABLE* fp);
+extern size_t ft_totalBytes(const FTABLE* fp);
 
 /*---------------------------------
  * ln_removeFlag()
@@ -630,20 +633,20 @@ extern void ft_setOutputFilename(FTABLE* fp, char* pNewName);
 /*
  * Assign a new title to display for a file.
  */
-extern void ft_setTitle(FTABLE* fp, char* pNewName);
+extern void ft_setTitle(FTABLE* fp, const char* pNewName);
 
 /*------------------------------------------------------------
  * ln_needbytes()
  * Calculates the number of bytes needed for one line.
  */
-extern size_t ln_calculateMemorySizeRequired(FTABLE* fp, LINE* lp, int nl, int cr);
+extern size_t ln_calculateMemorySizeRequired(const FTABLE* fp, const LINE* lp, int nl, int cr);
 
 /*
  * Convert the lines starting at lp to a string pointed to by lpMem. It is assumed, that lpMem has
  * a size as described by *pnSize. fp may be NULL.lpMem may also be NULL, in which case the memory is allocated and the actual memory size
  * is returned in *pnSize. Memory is created in this case and must be freed, once you are done using it.
  */
-extern char* ft_convertToBuffer(FTABLE* fp, char* lpMem, size_t* pnSize, LINE* lp);
+extern char* ft_convertToBuffer(const FTABLE* fp, char* lpMem, size_t* pnSize, const LINE* lp);
 
 /*--------------------------------------------------------------------------
  * ln_unhide()
