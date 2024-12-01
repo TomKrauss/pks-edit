@@ -1073,9 +1073,12 @@ void xref_openWindowHistory(LINE *lp) {
 	const char* pszName = NULL;
 	NAVIGATION_PATTERN* pNavigationPattern = xref_getSearchListFormat();
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
-	WINFO* pActivate = NULL;
 	BOOL bActive;
+	WINFO* pActivate[5];
+	int nActivate = 0;
+	int nFocussed = -1;
 
+	memset(pActivate, 0, sizeof pActivate);
 	while(lp != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(pNavigationPattern, &spec, pPattern, lp)) {
 			bActive = FALSE;
@@ -1083,6 +1086,7 @@ void xref_openWindowHistory(LINE *lp) {
 			BOOL bClone = FALSE;
 			BOOL bLink = FALSE;
 			BOOL bSearchList = FALSE;
+			BOOL bFocus = FALSE;
 			if (spec.comment[0]) {
 				if (strstr(spec.comment, " sl") != NULL) {
 					bSearchList = TRUE;
@@ -1092,6 +1096,7 @@ void xref_openWindowHistory(LINE *lp) {
 				pszName = spec.comment;
 				bClone = hHint.oh_clone;
 				bLink = hHint.oh_link;
+				bFocus = hHint.oh_focus;
 				nDisplayMode = hHint.oh_displayMode;
 			}
 			if (bClone) {
@@ -1112,8 +1117,12 @@ void xref_openWindowHistory(LINE *lp) {
 				WINFO* wpThis = ww_getCurrentEditorWindow();
 				if (wpThis) {
 					if (bActive) {
-						pActivate = wpThis;
-						pActivate->workmode |= WM_PINNED;
+						pActivate[nActivate] = wpThis;
+						pActivate[nActivate]->workmode |= WM_PINNED;
+						if (bFocus) {
+							nFocussed = nActivate;
+						}
+						nActivate++;
 					}
 					if (nDisplayMode != -1 && !bClone) {
 						ww_changeDisplayMode(wpThis, nDisplayMode);
@@ -1127,10 +1136,15 @@ void xref_openWindowHistory(LINE *lp) {
 		}
 		lp = lp->next;
 	}
-	if (pActivate) {
-		ww_selectWindow(pActivate);
+	if (nFocussed >= 0 && nFocussed != nActivate - 1) {
+		WINFO* pTemp = pActivate[nActivate - 1];
+		pActivate[nActivate - 1] = pActivate[nFocussed];
+		pActivate[nFocussed] = pTemp;
+	}
+	for (int i = 0; i < nActivate; i++) {
+		ww_selectWindow(pActivate[i]);
 		op_updateall();
-		pActivate->workmode &= ~WM_PINNED;
+		pActivate[i]->workmode &= ~WM_PINNED;
 	}
 }
 

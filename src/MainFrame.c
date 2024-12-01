@@ -585,6 +585,9 @@ static void tabcontrol_selectTab(HWND hwnd, TAB_CONTROL* pControl, int newIdx) {
 		}
 		tabcontrol_makeActiveTabVisible(hwnd, pControl);
 		tabcontrol_repaintTabs(hwnd, pControl);
+	} else if (pControl->tc_activeTab >= 0) {
+		pPage = arraylist_get(pControl->tc_pages, pControl->tc_activeTab);
+		SetFocus(pPage->tp_hwnd);
 	}
 	if (hwndOld != NULL) {
 		ShowWindow(hwndOld, SW_HIDE);
