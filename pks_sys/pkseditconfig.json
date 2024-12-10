@@ -388,6 +388,16 @@
       "filenamePatterns": "*.md"
     },
     {
+      "name": "asciidoc",
+      "languages": [
+        "adoc"
+      ],
+      "description": "AsciiDoc Files (*.adoc)",
+      "grammar": "asciidoc",
+      "editorConfiguration": "readme",
+      "filenamePatterns": "*.adoc"
+    },
+    {
       "name": "svg",
       "description": "SVG Files (*.svg)",
       "grammar": "svg",

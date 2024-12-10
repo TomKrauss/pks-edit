@@ -79,12 +79,40 @@ typedef struct tagRENDER_FLOW_PARAMS {
 	THEME_DATA* rfp_theme;
 } RENDER_FLOW_PARAMS;
 
+typedef int (*MDR_GET_LIST_LEVEL)(INPUT_STREAM* pStream, char aListChar);
+
+typedef struct tagMDR_SYNTAX {
+	char syn_header;					// Character used to define a header section - i.e. '#' in markdown and '=' in asciidoc
+	char* syn_literalMarker;			// String used to start and and a literal section - i.e. '```' in markdown and '----' in asciidoc
+	char* syn_literalMarker2;			// Optional alternate literal marker '....' in asciidoc
+	MDR_GET_LIST_LEVEL syn_getLevel;	// Function used to determine the level of a list.
+} MDR_SYNTAX;
+
 typedef void (*RENDER_PAINT)(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed);
 
 typedef struct tagENTITY_MAPPING {
 	char	c;
 	char    entity[8];
 } ENTITY_MAPPING;
+
+static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
+static int asciidoc_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
+
+static MDR_SYNTAX _markdownSyntax = {
+	.syn_header = '#',
+	.syn_literalMarker = "```",
+	.syn_literalMarker2 = "~~~",
+	.syn_getLevel = mdr_getLevelFromIndent
+};
+
+static MDR_SYNTAX _asciidocSyntax = {
+	.syn_header = '=',
+	.syn_literalMarker = "----",
+	.syn_literalMarker = "....",
+	.syn_getLevel = asciidoc_getLevelFromIndent
+};
+
+static MDR_SYNTAX _htmlSyntax;
 
 static ENTITY_MAPPING _entities[] = {
 	{'&', "amp;"},
@@ -1427,7 +1455,28 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
 	pPart->rvp_layouted = TRUE;
 }
 
-static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
+/*
+ * Check, whether we match the begin or end of a literal marker. If matched, return the length matched (e.g. 3 for ```).
+ */
+static int mdr_matchFixBlock(INPUT_STREAM* pStream, MDR_SYNTAX* pSyntax) {
+	char* pMarker = pSyntax->syn_literalMarker;
+	if (pMarker) {
+		size_t nLen = strlen(pMarker);
+		if (pStream->is_strncmp(pStream, pMarker, nLen) == 0) {
+			return (int)nLen;
+		}
+	}
+	pMarker = pSyntax->syn_literalMarker2;
+	if (pMarker) {
+		size_t nLen = strlen(pMarker);
+		if (pStream->is_strncmp(pStream, pMarker, nLen) == 0) {
+			return (int)nLen;
+		}
+	}
+	return 0;
+}
+
+static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_SYNTAX* pSyntax, MDR_ELEMENT_TYPE mCurrentType, int nLevel) {
 	char c;
 	if ((c = pStream->is_peekc(pStream, 0)) == 0) {
 		return FALSE;
@@ -1441,7 +1490,7 @@ static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_ELEMENT_TYPE mCurre
 		if (IS_UNORDERED_LIST_START(c) || c == '#') {
 			break;
 		}
-		if ((c == '`' || c == '~') && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
+		if (mdr_matchFixBlock(pStream, pSyntax)) {
 			break;
 		}
 		if (isdigit((unsigned char)c)) {
@@ -1505,6 +1554,24 @@ static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar) {
 	return nRet;
 }
 
+static int asciidoc_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar) {
+	int nRet = 1;
+
+	while (TRUE) {
+		char c = pStream->is_peekc(pStream, 1);
+		if (c == '\n' || c == 0) {
+			break;
+		}
+		if (c == aListChar) {
+			pStream->is_skip(pStream, 1);
+			nRet++;
+		} else {
+			break;
+		}
+	}
+	return nRet;
+}
+
 /*
  * Skip all space in the input. Return TRUE, if we found at least one space character.
  */
@@ -1553,16 +1620,17 @@ static MDR_ELEMENT_FORMAT* mdr_getFormatFor(MDR_ELEMENT_TYPE mType, int nLevel) 
 /*
  * Parse a top level markup element (list, header, code block etc...) 
  */
-static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, RENDER_VIEW_PART_PARAM *pParam) {
+static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, RENDER_VIEW_PART_PARAM *pParam, MDR_SYNTAX* pSyntax) {
+	int nLiteralMarkerLength;
 	char c = pStream->is_peekc(pStream, 0);
 	MDR_ELEMENT_TYPE mType = MET_NORMAL;
 
-	if (c == '#') {
+	if (c == pSyntax->syn_header) {
 		mType = MET_HEADER;
 		pParam->rvp_level = 1;
 		BOOL bSpaceFound = FALSE;
-		while ((c = pStream->is_peekc(pStream, 1)) == '#' || c == ' ') {
-			if (c == '#') {
+		while ((c = pStream->is_peekc(pStream, 1)) == pSyntax->syn_header || c == ' ') {
+			if (c == pSyntax->syn_header) {
 				if (bSpaceFound) {
 					break;
 				}
@@ -1578,7 +1646,9 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 			pStream->is_positionToLineStart(pStream, 1);
 			return MET_HORIZONTAL_RULE;
 		}
-		pParam->rvp_level = mdr_getLevelFromIndent(pStream, c);
+		if (pSyntax->syn_getLevel) {
+			pParam->rvp_level = pSyntax->syn_getLevel(pStream, c);
+		}
 		BOOL bSpaceFound = mdr_skipSpace(pStream, 1);
 		if (bSpaceFound) {
 			if (pStream->is_peekc(pStream, 1) == '[' && pStream->is_peekc(pStream, 3) == ']') {
@@ -1611,8 +1681,8 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 			pStream->is_skip(pStream, 1);
 		}
 		pParam->rvp_level = mdr_getLevelFromIndent(pStream, c);
-	} else if ((c == '`' || c == '~') && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
-		pStream->is_skip(pStream, 3);
+	} else if ((nLiteralMarkerLength = mdr_matchFixBlock(pStream, pSyntax)) != 0) {
+		pStream->is_skip(pStream, nLiteralMarkerLength);
 		int i = 0;
 		char szName[128] = { 0 };
 		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName-1) && c != '\n') {
@@ -1810,6 +1880,7 @@ typedef struct tagHTML_PARSER_STATE {
 	RENDER_TABLE*		hps_table;
 	RENDER_TABLE_ROW*	hps_tableRow;
 	RENDER_TABLE_CELL*	hps_tableCell;
+	MDR_SYNTAX*			hps_syntax;
 } HTML_PARSER_STATE;
 
 static void mdr_ensureParagraph(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState);
@@ -1938,7 +2009,7 @@ static void mdr_parsePreformattedCodeBlock(INPUT_STREAM* pStream, HTML_PARSER_ST
 				nOffs = 4;
 			}
 		}
-		else if (pEndTag == 0 && (pStream->is_strncmp(pStream, "```", 3) == 0 || pStream->is_strncmp(pStream, "~~~", 3) == 0)) {
+		else if (pEndTag == 0 && mdr_matchFixBlock(pStream, pState->hps_syntax)) {
 			pStream->is_positionToLineStart(pStream, 1);
 			return;
 		} else if (pEndTag && c == '<' && pStream->is_strncmp(pStream, szTag, strlen(szTag)) == 0) {
@@ -3089,6 +3160,7 @@ MARKDOWN_RENDERER_DATA* mdr_parseHTML(INPUT_STREAM* pStream, HWND hwndParent, co
 	MD_REFERENCE_DEFINITION* pUnused;
 
 	mdr_initParserState(&state, &pFirst, &pUnused, NULL, pszBaseURL);
+	state.hps_syntax = &_htmlSyntax;
 	while ((c = pStream->is_getc(pStream)) != 0) {
 		if (c == '&') {
 			if (mdr_parseEntity(state.hps_text, pStream)) {
@@ -3271,7 +3343,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			}
 			if (nState == 0) {
 				if (pState->hps_blockLevel == 0) {
-					mType = mdr_determineTopLevelElement(pStream, &param);
+					mType = mdr_determineTopLevelElement(pStream, &param, pState->hps_syntax);
 					pState->hps_part = mdr_newPart(pStream, pState, mType, param.rvp_level);
 					if (mType == MET_HORIZONTAL_RULE) {
 						return;
@@ -3483,7 +3555,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 			pState->hps_currentStyle->fsd_logicalStyles |= ATTR_LINE_BREAK;
 		}
 		mdr_appendRunState(pStream, pState, pState->hps_currentStyle);
-		if (mdr_isTopLevelOrBreak(pStream, mType, param.rvp_level)) {
+		if (mdr_isTopLevelOrBreak(pStream, pState->hps_syntax, mType, param.rvp_level)) {
 			break;
 		}
 		nState = 1;
@@ -3681,6 +3753,7 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 
 	pData->md_parse = mdr_parseMarkdownFormat;
 	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, pData->md_imageCache, fp->fname);
+	state.hps_syntax = &_markdownSyntax;
 	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
 		if (c != '\n') {
 			if (!mdr_parseTable(pStream, &state)) {
@@ -3695,6 +3768,41 @@ static void mdr_parseMarkdownFormat(WINFO *wp) {
 			pLastPart = state.hps_part;
 			mdr_endPart(&state);
 		} else {
+			nDelta += PARAGRAPH_OFFSET / 2;
+			pStream->is_skip(pStream, 1);
+		}
+	}
+	mdr_finalizeParserState(pStream, &state);
+	pStream->is_destroy(pStream);
+}
+
+static void mdr_parseAdocFormat(WINFO* wp) {
+	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
+	FTABLE* fp = wp->fp;
+	INPUT_STREAM* pStream = streams_createLineInputStream(fp->firstl, 0);
+	char c;
+	HTML_PARSER_STATE state;
+	int nDelta = 0;
+	RENDER_VIEW_PART* pLastPart = 0;
+
+	pData->md_parse = mdr_parseAdocFormat;
+	mdr_initParserState(&state, &pData->md_pElements, &pData->md_referenceDefinitions, pData->md_imageCache, fp->fname);
+	state.hps_syntax = &_asciidocSyntax;
+	while ((c = pStream->is_peekc(pStream, 0)) != 0) {
+		if (c != '\n') {
+			if (!mdr_parseTable(pStream, &state)) {
+				state.hps_blockLevel = 0;
+				mdr_parseFlow(pStream, &state);
+			}
+			pLastPart = pLastPart ? pLastPart->rvp_next : state.hps_part;
+			if (pLastPart) {
+				pLastPart->rvp_margins.m_top += nDelta;
+				nDelta = 0;
+			}
+			pLastPart = state.hps_part;
+			mdr_endPart(&state);
+		}
+		else {
 			nDelta += PARAGRAPH_OFFSET / 2;
 			pStream->is_skip(pStream, 1);
 		}
@@ -4140,6 +4248,13 @@ static void mdr_renderMarkdownFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRU
  */
 static void mdr_renderHTMLFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
 	mdr_renderPage(pCtx, mdr_parseFileToHTML, pClip, hBrushBg, y);
+}
+
+/*
+ * Render the current window displaying AsciiDoc wysiwyg contents.
+ */
+static void mdr_renderAdocFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y) {
+	mdr_renderPage(pCtx, mdr_parseAdocFormat, pClip, hBrushBg, y);
 }
 
 /*
@@ -4949,6 +5064,10 @@ static RENDERER _htmlRenderer = {
 	.r_renderPage = mdr_renderHTMLFormatPage,
 };
 
+static RENDERER _adocRenderer = {
+	.r_renderPage = mdr_renderAdocFormatPage,
+};
+
 /*
  * Returns a markdown renderer.
  */
@@ -4965,4 +5084,14 @@ RENDERER* mdr_getHTMLRenderer() {
 	_htmlRenderer.r_context = "wysiwyg-renderer";
 	return &_htmlRenderer;
 }
+
+/*
+ * Returns an AsciiDoc wysiwyg renderer.
+ */
+RENDERER* mdr_getAdocRenderer() {
+	memcpy(&_adocRenderer, &_mdrRenderer, sizeof _mdrRenderer);
+	_adocRenderer.r_renderPage = mdr_renderAdocFormatPage;
+	return &_adocRenderer;
+}
+
 

@@ -1,0 +1,216 @@
+{
+  "grammars": [
+    {
+      "scopeName": "asciidoc",
+      "description": "Ascii Doc Syntax",
+      "wysiwygRenderer": "adoc",
+      "analyzer": "markdown:words",
+      "formatter": "text",
+      "templates": [
+        {
+          "match": "**",
+          "contents": "${cursor}**",
+          "auto-insert": true
+        },
+        {
+          "match": "__",
+          "contents": "${cursor}__",
+          "auto-insert": true
+        },
+        {
+          "match": "code",
+          "contents": "`${cursor}my code${selection_end}`",
+          "help": "Inserts a piece of text rendered as code"
+        },
+        {
+          "match": "table",
+          "contents": "| Header 1 | Header 2 |\n|----------|----------|\n| cell 1   | cell 2   |\n",
+          "help": "Inserts a table with headers and cells"
+        },
+        {
+          "match": "definition list",
+          "contents": "term\n : definition",
+          "help": "Inserts a term with its corresponding definition"
+        },
+        {
+          "match": "strike through",
+          "contents": "~~${cursor}my code${selection_end}~~",
+          "help": "Inserts a piece of text displayed with a line-through text decoration"
+        },
+        {
+          "match": "highlight",
+          "contents": "==${cursor}my code${selection_end}==",
+          "help": "Inserts a piece of text displayed highlighted with a special font and color"
+        },
+        {
+          "match": "subscript",
+          "contents": "H~${cursor}2${selection_end}~O",
+          "help": "Inserts a piece of text using subscript letters"
+        },
+        {
+          "match": "superscript",
+          "contents": "X^${cursor}2${selection_end}^",
+          "help": "Inserts a piece of text using super script letters"
+        },
+        {
+          "match": "header1",
+          "contents": "# ${cursor}HEADER 1${selection_end}",
+          "help": "Inserts a markdown header level 1"
+        },
+        {
+          "match": "header2",
+          "contents": "## ${cursor}HEADER 2${selection_end}",
+          "help": "Inserts a markdown header level 2"
+        },
+        {
+          "match": "header3",
+          "contents": "### ${cursor}HEADER 3${selection_end}",
+          "help": "Inserts a markdown header level 3"
+        },
+        {
+          "match": "header4",
+          "contents": "## ${cursor}HEADER 4${selection_end}",
+          "help": "Inserts a markdown header level 4"
+        },
+        {
+          "match": "horizontal rule",
+          "contents": "---",
+          "help": "Inserts a horizontal rule"
+        },
+        {
+          "match": "blockquote",
+          "contents": "> ${cursor}text${selection_end}",
+          "help": "Inserts block quote quoting the text following the &gt; character."
+        },
+        {
+          "match": "unordered list",
+          "contents": "- ${cursor}1st item${selection_end}\n- 2nd item...",
+          "help": "Each list item is introduced by alternatively one of the following characters: '-', '*', '+'. To create multi-level lists, indent the items to display in the next level."
+        },
+        {
+          "match": "ordered list",
+          "contents": "1. ${cursor}1st item${selection_end}\n2. 2nd item...",
+          "help": "Each list item is introduced by a number followed by '.'. To create multi-level lists, indent the items to display in the next level. Note, that the items are numbered sub-sequently regardless of the number defined in the markup."
+        },
+        {
+          "match": "task list",
+          "contents": "- [x] ${cursor}task 1${selection_end}\n- [ ] task 2",
+          "help": "Each list item is introduced by - [ ]. To mark a task as completed, use [x] instead if [ ]."
+        },
+        {
+          "match": "fenced code block",
+          "contents": "```cpp\n${cursor}my source code${selection_end}\n```",
+          "help": "Used to insert a piece of source code. One may define the syntax used in the source code by adding the name of the language as in: ```json..."
+        },
+        {
+          "match": "image",
+          "contents": "![${cursor}image_name${selection_end}](image_url)",
+          "help": "Inserts a markdown <em>image reference</em>.<br>General syntax is: <code>![image_name](image_url \"tooltip to display\" =width_x_height)"
+        },
+        {
+          "match": "link",
+          "contents": "[${cursor}link_name${selection_end}](image_url)",
+          "help": "Inserts a markdown hyperlink.<br>General syntax is: <code>[text_displayed](hyperlink_url \"tooltip to display\")"
+        }
+      ],
+      "patterns": [
+        {
+          "match": "^=+.*",
+          "name": "asciidoc.header",
+          "style": "keyword"
+        },
+        {
+          "match": "`[^`]+`",
+          "name": "asciidoc.code",
+          "style": "code"
+        },
+        {
+          "match": "[\\*_]{2}[^* ,]+[\\*_]{2}",
+          "name": "asciidoc.bold_italic",
+          "style": "bold-italic"
+        },
+        {
+          "match": "([\\*_]{2})[^*_]+\\1",
+          "name": "asciidoc.bold",
+          "style": "bold"
+        },
+        {
+          "match": "[\\*_][^*_]+[\\*_]",
+          "name": "asciidoc.italic",
+          "style": "italic"
+        },
+        {
+          "match": "\\[[^]]+\\]\\([^)]+\\)",
+          "name": "asciidoc.url.title",
+          "style": "literal",
+          "patterns": [
+            {
+              "match": "\\] *\\(([^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "match": "^\\>\\s.*",
+          "name": "markdown.blockquote",
+          "style": "bold-italic",
+          "patterns": [
+            {
+              "match": "`[^`]+`",
+              "name": "markdown.code.bullet",
+              "style": "code"
+            },
+            {
+              "match": "\\] *\\(([^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "match": "^[*-].*",
+          "name": "markdown.bullet",
+          "style": "bold",
+          "patterns": [
+            {
+              "match": "`[^`]+`",
+              "name": "markdown.code.bullet",
+              "style": "code"
+            },
+            {
+              "match": "\\] *\\(([^)]+)\\)",
+              "name": "markdown.url",
+              "captures": [
+                {
+                  "name": "string.hyperlink"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "match": "\\] *\\(([^)]+)\\)",
+          "name": "markdown.url",
+          "captures": [
+            {
+              "name": "string.hyperlink"
+            }
+          ]
+        },
+        {
+          "name": "string.hyperlink",
+          "style": "hyperlink"
+        }
+      ]
+    }
+  ]
+}

@@ -71,6 +71,7 @@ extern int  mouse_onMouseClicked(WINFO *fp, int x,int y,int b, int nclicks,int s
 extern RENDERER* hex_getRenderer();
 extern RENDERER* mdr_getRenderer();
 extern RENDERER* mdr_getHTMLRenderer();
+extern RENDERER* mdr_getAdocRenderer();
 extern RENDERER* image_getRenderer();
 
 #define  LINE_ANNOTATION_WIDTH			5
@@ -1773,6 +1774,7 @@ int ww_register(void) {
 	ww_registerRenderer("hex", hex_getRenderer());
 	ww_registerRenderer("markdown", mdr_getRenderer());
 	ww_registerRenderer("html", mdr_getHTMLRenderer());
+	ww_registerRenderer("adoc", mdr_getAdocRenderer());
 	ww_registerRenderer("image", image_getRenderer());
 	return 1;
 }

@@ -747,6 +747,13 @@
     <None Include="pks_sys\docker.grammar.json" />
     <None Include="pks_sys\julia.grammar.json" />
     <None Include="pks_sys\fortran.grammar.json" />
+    <None Include="pks_sys\asciidoc.grammar.json" />
+    <None Include="pks_sys\assembly.grammar.json" />
+    <None Include="pks_sys\cobol.grammar.json" />
+    <None Include="pks_sys\rust.grammar.json" />
+    <None Include="pks_sys\swift.grammar.json" />
+    <None Include="pks_sys\php.grammar.json" />
+    <None Include="pks_sys\kotlin.grammar.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">
