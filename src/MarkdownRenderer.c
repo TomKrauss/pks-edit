@@ -49,6 +49,7 @@
 
 #include "syntaxhighlighting.h"
 #include "loadimage.h"
+#include "markdown.h"
 
 typedef struct tagRENDER_VIEW_PART RENDER_VIEW_PART;
 
@@ -79,15 +80,6 @@ typedef struct tagRENDER_FLOW_PARAMS {
 	THEME_DATA* rfp_theme;
 } RENDER_FLOW_PARAMS;
 
-typedef int (*MDR_GET_LIST_LEVEL)(INPUT_STREAM* pStream, char aListChar);
-
-typedef struct tagMDR_SYNTAX {
-	char syn_header;					// Character used to define a header section - i.e. '#' in markdown and '=' in asciidoc
-	char* syn_literalMarker;			// String used to start and and a literal section - i.e. '```' in markdown and '----' in asciidoc
-	char* syn_literalMarker2;			// Optional alternate literal marker '....' in asciidoc
-	MDR_GET_LIST_LEVEL syn_getLevel;	// Function used to determine the level of a list.
-} MDR_SYNTAX;
-
 typedef void (*RENDER_PAINT)(RENDER_FLOW_PARAMS* pParams, RECT* pBounds, RECT* pUsed);
 
 typedef struct tagENTITY_MAPPING {
@@ -95,21 +87,29 @@ typedef struct tagENTITY_MAPPING {
 	char    entity[8];
 } ENTITY_MAPPING;
 
+static BOOL mdr_detectLink(INPUT_STREAM* pStream, char c);
+static BOOL asciidoc_detectLink(INPUT_STREAM* pStream, char c);
 static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
 static int asciidoc_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
+static BOOL asciidoc_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
+static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
 
 static MDR_SYNTAX _markdownSyntax = {
 	.syn_header = '#',
 	.syn_literalMarker = "```",
 	.syn_literalMarker2 = "~~~",
-	.syn_getLevel = mdr_getLevelFromIndent
+	.syn_getLevel = mdr_getLevelFromIndent,
+	.syn_detectLink = mdr_detectLink,
+	.syn_parseLink = mdr_parseLink
 };
 
 static MDR_SYNTAX _asciidocSyntax = {
 	.syn_header = '=',
 	.syn_literalMarker = "----",
 	.syn_literalMarker = "....",
-	.syn_getLevel = asciidoc_getLevelFromIndent
+	.syn_getLevel = asciidoc_getLevelFromIndent,
+	.syn_detectLink = asciidoc_detectLink,
+	.syn_parseLink = asciidoc_parseLink
 };
 
 static MDR_SYNTAX _htmlSyntax;
@@ -1554,6 +1554,15 @@ static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar) {
 	return nRet;
 }
 
+static BOOL asciidoc_detectLink(INPUT_STREAM* pStream, char c) {
+	if (c != 'x' && c != 'l' && c != 'h') {
+		return FALSE;
+	}
+	return pStream->is_strncmp(pStream, "link:", 5) == 0 || pStream->is_strncmp(pStream, "xref:", 5) == 0 
+		|| pStream->is_strncmp(pStream, "https:", 6) == 0
+		|| pStream->is_strncmp(pStream, "htts:", 5) == 0;
+}
+
 static int asciidoc_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar) {
 	int nRet = 1;
 
@@ -1885,28 +1894,64 @@ typedef struct tagHTML_PARSER_STATE {
 
 static void mdr_ensureParagraph(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState);
 
-typedef struct tagLINK_PARSE_RESULT {
-	// The actual URL - image or hyperlink
-	char* lpr_LinkUrl;
-	// The reference to a reference link type link
-	char* lpr_LinkRefUrl;
-	// The title to display in particular for an image
-	char* lpr_title;
-	// for image links - the width
-	int   lpr_width;
-	// for image links - the height
-	int   lpr_height;
-	// If the parsed link represents the definition of a reference link this value is TRUE.
-	BOOL  lpr_isReferenceLinkDefinition;
-	// If the parsed link represents the definition of a footnote....
-	BOOL  lpr_isFootnoteDefinition;
-} LINK_PARSE_RESULT;
-
-typedef enum LINK_PARSE_STATE {
-	LPS_TITLE,
-	LPS_WAIT_URL,
-	LPS_PARSE_URL
-} LINK_PARSE_STATE;
+static BOOL asciidoc_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState) {	
+	char* szLinkEnd = szLinkText + 255;
+	char c = 0;
+	int state = LPS_PARSE_URL;
+	memset(pResult, 0, sizeof(*pResult));
+	pStream->is_skip(pStream,   -1);
+	char szUrl[256];
+	char* pszUrl = szUrl;
+	char* pszUrlEnd = szUrl + sizeof szUrl - 1;
+	*pszUrl = 0;
+	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
+		if (state == LPS_PARSE_URL) {
+			if (c == ' ' || c == '[') {
+				if (c == '[') {
+					state = LPS_TITLE;
+				}
+				else {
+					break;
+				}
+			} else if (pszUrl < pszUrlEnd) {
+				*pszUrl++ = c;
+				*pszUrl = 0;
+			}
+		} else if (state == LPS_TITLE) {
+			if (c == ']' || c == '\n' || szLinkText >= szLinkEnd) {
+				break;
+			}
+			else {
+				*szLinkText++ = c;
+				*szLinkText = 0;
+			}
+		} else {
+			break;
+		}
+	}
+	if (strncmp(szUrl, "xref:", 5) == 0) {
+		// some dumb handling of cross references...
+		char szTotal[512];
+		pszUrl = szUrl + 5;
+		char* pszModule = strchr(pszUrl, ':');
+		if (pszModule) {
+			strcpy(szTotal, "../");
+			*pszModule++ = 0;
+			strcat(szTotal, pszUrl);
+			strcat(szTotal, "/pages/");
+			strcat(szTotal, pszModule);
+		} else {
+			strcpy(szTotal, "pages/");
+			strcat(szTotal, pszUrl);
+		}
+		pResult->lpr_LinkUrl = _strdup(szTotal);
+	} else if (strncmp(szUrl, "link:", 5) == 0) {
+		pResult->lpr_LinkUrl = _strdup(szUrl + 5);
+	} else {
+		pResult->lpr_LinkUrl = _strdup(szUrl);
+	}
+	return TRUE;
+}
 
 static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState) {
 	char szBuf[256];
@@ -1925,35 +1970,42 @@ static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char
 					pStream->is_skip(pStream, 1);
 				}
 				state = LPS_WAIT_URL;
-			} else if (szLinkText < szLinkEnd) {
+			}
+			else if (szLinkText < szLinkEnd) {
 				*szLinkText++ = c;
 			}
-		} else if (state == LPS_WAIT_URL) {
+		}
+		else if (state == LPS_WAIT_URL) {
 			if (c == '(') {
 				// support special syntax: [text](<link>)
 				if (pStream->is_peekc(pStream, 0) == '<') {
 					pStream->is_skip(pStream, 1);
 				}
-			} else if (c == '[') {
+			}
+			else if (c == '[') {
 				bRefStyleLink = 1;
 				// Reference style link or footnote.
-			} else if (c == ':') {
+			}
+			else if (c == ':') {
 				pStream->is_skip(pStream, 1);
 				while (pStream->is_peekc(pStream, 0) == ' ') {
 					pStream->is_skip(pStream, 1);
 				}
 				pResult->lpr_isReferenceLinkDefinition = TRUE;
-			} else {
+			}
+			else {
 				pStream->is_seek(pStream, savedOffset);
 				return FALSE;
 			}
 			state = LPS_PARSE_URL;
-		} else {
+		}
+		else {
 			if (bRefStyleLink && c == ']') {
 				szBuf[nUrlPartStart] = 0;
 				pResult->lpr_LinkRefUrl = _strdup(szBuf);
 				return TRUE;
-			} else if (!bRefStyleLink && !pResult->lpr_isReferenceLinkDefinition && c == ')') {
+			}
+			else if (!bRefStyleLink && !pResult->lpr_isReferenceLinkDefinition && c == ')') {
 				szBuf[nUrlPartStart] = 0;
 				return mdr_parseLinkUrl(pState->hps_baseUrl, szBuf, &pResult->lpr_LinkUrl, &pResult->lpr_title, &pResult->lpr_width, &pResult->lpr_height);
 			}
@@ -3303,6 +3355,13 @@ static WCHAR* mdr_findEmoji(INPUT_STREAM* pStream) {
 }
 
 /*
+ * Detect a link reference in the input - markdown style.
+ */
+static BOOL mdr_detectLink(INPUT_STREAM* pStream, char c) {
+	return (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['));
+}
+
+/*
  * Parse a top-level element to be rendered with a view part possibly containing nested formatting. 
  */
 static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
@@ -3425,7 +3484,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					pState->hps_currentStyle->fsd_logicalStyles ^= nToggle;
 					continue;
 				}
-			} else if (!bEscaped && (c == '[' || (c == '!' && pStream->is_peekc(pStream, 1) == '['))) {
+			} else if (!bEscaped && pState->hps_syntax->syn_detectLink(pStream, c)) {
 				BOOL bImage = c == '!';
 				BOOL bImageLink = FALSE;
 				pStream->is_skip(pStream, bImage ? 2 : 1);
@@ -3437,7 +3496,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 					bImageLink = TRUE;
 					pStream->is_skip(pStream, 1);
 				}
-				if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_TITLE)) {
+				if (pState->hps_syntax->syn_parseLink(pStream, pState, szLinkText, &result, LPS_TITLE)) {
 					if (result.lpr_isReferenceLinkDefinition) {
 						mdr_appendRefLinkDefinition(pState->hps_referenceDefinitions, szLinkText, result.lpr_LinkUrl, result.lpr_title);
 						pStream->is_skip(pStream, -1);
@@ -3484,7 +3543,7 @@ static void mdr_parseFlow(INPUT_STREAM* pStream, HTML_PARSER_STATE*pState) {
 							mdr_assignImageUrl(pState->hps_imageCache, pRun, result.lpr_LinkUrl);
 							if (bImageLink) {
 								pStream->is_skip(pStream, 1);
-								if (mdr_parseLink(pStream, pState, szLinkText, &result, LPS_WAIT_URL)) {
+								if (pState->hps_syntax->syn_parseLink(pStream, pState, szLinkText, &result, LPS_WAIT_URL)) {
 									bImage = FALSE;
 								}
 								pStream->is_skip(pStream, -1);

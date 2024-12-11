@@ -587,6 +587,9 @@
     <ClInclude Include="include\copyright.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\markdown.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">

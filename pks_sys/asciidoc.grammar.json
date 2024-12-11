@@ -54,33 +54,23 @@
         },
         {
           "match": "header1",
-          "contents": "# ${cursor}HEADER 1${selection_end}",
+          "contents": "= ${cursor}HEADER 1${selection_end}",
           "help": "Inserts a markdown header level 1"
         },
         {
           "match": "header2",
-          "contents": "## ${cursor}HEADER 2${selection_end}",
+          "contents": "== ${cursor}HEADER 2${selection_end}",
           "help": "Inserts a markdown header level 2"
         },
         {
           "match": "header3",
-          "contents": "### ${cursor}HEADER 3${selection_end}",
+          "contents": "=== ${cursor}HEADER 3${selection_end}",
           "help": "Inserts a markdown header level 3"
         },
         {
           "match": "header4",
-          "contents": "## ${cursor}HEADER 4${selection_end}",
+          "contents": "==== ${cursor}HEADER 4${selection_end}",
           "help": "Inserts a markdown header level 4"
-        },
-        {
-          "match": "horizontal rule",
-          "contents": "---",
-          "help": "Inserts a horizontal rule"
-        },
-        {
-          "match": "blockquote",
-          "contents": "> ${cursor}text${selection_end}",
-          "help": "Inserts block quote quoting the text following the &gt; character."
         },
         {
           "match": "unordered list",
@@ -140,34 +130,13 @@
           "style": "italic"
         },
         {
-          "match": "\\[[^]]+\\]\\([^)]+\\)",
-          "name": "asciidoc.url.title",
+          "match": "(link:|xref:)[^\\[]+\\[[^\\]]+\\]",
+          "name": "asciidoc.url",
           "style": "literal",
           "patterns": [
             {
-              "match": "\\] *\\(([^)]+)\\)",
-              "name": "markdown.url",
-              "captures": [
-                {
-                  "name": "string.hyperlink"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "match": "^\\>\\s.*",
-          "name": "markdown.blockquote",
-          "style": "bold-italic",
-          "patterns": [
-            {
-              "match": "`[^`]+`",
-              "name": "markdown.code.bullet",
-              "style": "code"
-            },
-            {
-              "match": "\\] *\\(([^)]+)\\)",
-              "name": "markdown.url",
+              "match": "(\\[[^)]+)\\]",
+              "name": "asciidoc.url",
               "captures": [
                 {
                   "name": "string.hyperlink"

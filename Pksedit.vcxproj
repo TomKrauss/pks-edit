@@ -1617,6 +1617,7 @@
     <ClInclude Include="include\linkedlist.h" />
     <ClInclude Include="include\loadimage.h" />
     <ClInclude Include="include\mainframe.h" />
+    <ClInclude Include="include\markdown.h" />
     <ClInclude Include="include\markpositions.h" />
     <ClInclude Include="include\menu.h" />
     <ClInclude Include="include\mouseutil.h" />
