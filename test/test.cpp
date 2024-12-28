@@ -705,10 +705,8 @@ namespace pkseditTests
 			Assert::AreEqual((size_t)0, delta);
 			delta = levenshtein_calculate("Abc", -1, "aBC", -1, LOPT_IGNORE_CASE);
 			Assert::AreEqual((size_t)0, delta);
-			delta = levenshtein_calculate(" Abc", -1, "aBC ", -1, LOPT_IGNORE_CASE|LOPT_IGNORE_WS);
-			Assert::AreEqual((size_t)0, delta);
-			delta = levenshtein_calculate("This is a sentence\twith  blanks", -1, "This is a sentence with blanks", -1, LOPT_IGNORE_WS);
-			Assert::AreEqual((size_t)0, delta);
+			delta = levenshtein_calculate("This is a sentence\twith  blanks", -1, "This is a sentence with blanks", -1, 0);
+			Assert::AreEqual((size_t)2, delta);
 			delta = levenshtein_calculate("abc", -1, "abd", -1, 0);
 			Assert::AreEqual((size_t)1, delta);
 			delta = levenshtein_calculate("abcdefg", -1, "axdefg", -1, 0);

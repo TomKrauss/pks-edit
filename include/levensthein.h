@@ -18,8 +18,6 @@
 #define LEVENSTHEIN_H
 
 #define LOPT_IGNORE_CASE	0x1		// ignore case when calculating the levensthein distance
-#define LOPT_IGNORE_WS		0x2		// ignore white space when calculating the levensthein distance
-
 
 /* 
  * Compare two strings s and t with ls, lt: their respective length and calculate the Levensthein distance.

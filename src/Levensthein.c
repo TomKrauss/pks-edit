@@ -34,6 +34,9 @@ static int minimum(int a, int b, int c) {
 static long levenshtein_calculateOptimized(const char* s, long ls, const char* t, long lt, int nOptions) {
     int ignoreCase = nOptions & LOPT_IGNORE_CASE;
     int** dp = calloc(sizeof (int*), ls + 1);
+    if (dp == NULL) {
+        return 1000;
+    }
     for (int i = 0; i < ls + 1; i++) {
         dp[i] = calloc(sizeof(int), lt + 1);
     }
@@ -62,7 +65,7 @@ static long levenshtein_calculateOptimized(const char* s, long ls, const char* t
 /* 
  * Compare two strings s and t with ls, lt: their respective length and calculate the Levensthein distance.
  * If -1 are passed as length, the strlen of the compared strings is used.
- * nOptions is a bitwise combination of LOPT_IGNORE_CASE and LOPT_IGNORE_WS affecting the way the distance is calculated.
+ * nOptions may be LOPT_IGNORE_CASE affecting the way the distance is calculated.
  */
 long levenshtein_calculate(const char* s, int ls, const char* t, long lt, int nOptions) {
     if (ls < 0) {
