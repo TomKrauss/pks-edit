@@ -2,6 +2,7 @@
   "themes": [
     {
       "name": "default",
+      "darkMode": 0,
       "iconColor": "#0066cc",
       "backgroundColor": "#fcfcfc",
       "changedLineColor": "#ffdd00",
