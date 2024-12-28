@@ -46,3 +46,15 @@ jobs:
     - name: run unit test
       working-directory: ${{env.SOLUTION_FILE_PATH}}\x64\Release
       run: vstest.console.exe /Platform:x64 .\test.dll
+
+  publish:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile .ISS to .EXE Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
+        with:
+          path: pksedit.iss
+          options: /O.
