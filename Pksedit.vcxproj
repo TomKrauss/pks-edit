@@ -1580,6 +1580,8 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='NO Git Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="src\WindowSelector.c" />
+    <ClCompile Include="test\pch.cpp" />
+    <ClCompile Include="test\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\actionbindings.h" />
@@ -1664,6 +1666,7 @@
     <ClInclude Include="rc\helpitem.h" />
     <ClInclude Include="rc\pksedit.h" />
     <ClInclude Include="rc\pksrc.h" />
+    <ClInclude Include="test\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CODE_OF_CONDUCT.md" />
@@ -1783,6 +1786,7 @@
     <None Include="rc\UNDO.ICO" />
     <None Include="README.md" />
     <None Include="SECURITY.md" />
+    <None Include="test\markdowntest.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">

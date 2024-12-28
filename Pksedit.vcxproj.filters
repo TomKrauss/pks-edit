@@ -342,6 +342,12 @@
     <ClCompile Include="src\Copyright.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="test\pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
@@ -590,6 +596,9 @@
     <ClInclude Include="include\markdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="test\pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PKSEDIT.DEF">
@@ -757,6 +766,7 @@
     <None Include="pks_sys\swift.grammar.json" />
     <None Include="pks_sys\php.grammar.json" />
     <None Include="pks_sys\kotlin.grammar.json" />
+    <None Include="test\markdowntest.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="rc\Pksedit.rc">
