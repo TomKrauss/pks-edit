@@ -98,6 +98,7 @@ static MDR_SYNTAX _markdownSyntax = {
 	.syn_header = '#',
 	.syn_literalMarker = "```",
 	.syn_literalMarker2 = "~~~",
+	.syn_rulerCharacter = '-',
 	.syn_getLevel = mdr_getLevelFromIndent,
 	.syn_detectLink = mdr_detectLink,
 	.syn_parseLink = mdr_parseLink
@@ -106,7 +107,10 @@ static MDR_SYNTAX _markdownSyntax = {
 static MDR_SYNTAX _asciidocSyntax = {
 	.syn_header = '=',
 	.syn_literalMarker = "----",
-	.syn_literalMarker = "....",
+	.syn_literalMarker2 = "....",
+	.syn_tableDelimiter = "|===",
+	.syn_rulerCharacter = '\'',
+	.syn_tableEmptyRowsAllowed = TRUE,
 	.syn_getLevel = asciidoc_getLevelFromIndent,
 	.syn_detectLink = asciidoc_detectLink,
 	.syn_parseLink = asciidoc_parseLink
@@ -1459,7 +1463,7 @@ static void mdr_renderMarkdownBlockPart(RENDER_FLOW_PARAMS* pParams, RECT* pBoun
  * Check, whether we match the begin or end of a literal marker. If matched, return the length matched (e.g. 3 for ```).
  */
 static int mdr_matchFixBlock(INPUT_STREAM* pStream, MDR_SYNTAX* pSyntax) {
-	char* pMarker = pSyntax->syn_literalMarker;
+	const char* pMarker = pSyntax->syn_literalMarker;
 	if (pMarker) {
 		size_t nLen = strlen(pMarker);
 		if (pStream->is_strncmp(pStream, pMarker, nLen) == 0) {
@@ -1487,10 +1491,10 @@ static BOOL mdr_isTopLevelOrBreak(INPUT_STREAM* pStream, MDR_SYNTAX* pSyntax, MD
 	BOOL bRet = TRUE;
 	STREAM_OFFSET offset = pStream->is_tell(pStream);
 	while (1) {
-		if (IS_UNORDERED_LIST_START(c) || c == '#') {
+		if (mdr_matchFixBlock(pStream, pSyntax)) {
 			break;
 		}
-		if (mdr_matchFixBlock(pStream, pSyntax)) {
+		if (IS_UNORDERED_LIST_START(c) || c == '#') {
 			break;
 		}
 		if (isdigit((unsigned char)c)) {
@@ -1649,9 +1653,23 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 			}
 			pStream->is_skip(pStream, 1);
 		}
+	} else if ((nLiteralMarkerLength = mdr_matchFixBlock(pStream, pSyntax)) != 0) {
+		pStream->is_skip(pStream, nLiteralMarkerLength);
+		int i = 0;
+		char szName[128] = { 0 };
+		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName - 1) && c != '\n') {
+			szName[i] = c;
+			i++;
+		}
+		if (i > 0) {
+			szName[i] = 0;
+			pParam->rvp_grammar = _strdup(szName);
+		}
+		pStream->is_positionToLineStart(pStream, 1);
+		mType = MET_FENCED_CODE_BLOCK;
 	} else if (IS_UNORDERED_LIST_START(c)) {
 		mType = MET_UNORDERED_LIST;
-		if (c == '-' && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
+		if (c == pSyntax->syn_rulerCharacter && pStream->is_peekc(pStream, 1) == c && pStream->is_peekc(pStream, 2) == c) {
 			pStream->is_positionToLineStart(pStream, 1);
 			return MET_HORIZONTAL_RULE;
 		}
@@ -1690,20 +1708,6 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 			pStream->is_skip(pStream, 1);
 		}
 		pParam->rvp_level = mdr_getLevelFromIndent(pStream, c);
-	} else if ((nLiteralMarkerLength = mdr_matchFixBlock(pStream, pSyntax)) != 0) {
-		pStream->is_skip(pStream, nLiteralMarkerLength);
-		int i = 0;
-		char szName[128] = { 0 };
-		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName-1) && c != '\n') {
-			szName[i] = c;
-			i++;
-		}
-		if (i > 0) {
-			szName[i] = 0;
-			pParam->rvp_grammar = _strdup(szName);
-		}
-		pStream->is_positionToLineStart(pStream, 1);
-		mType = MET_FENCED_CODE_BLOCK;
 	}
 	return mType;
 }
@@ -3659,19 +3663,25 @@ static RENDER_TABLE_CELL *mdr_parseTableCell(INPUT_STREAM* pStream, HTML_PARSER_
 /*
  * Parse a table row.
  */
-static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_PARSER_STATE* pState, BOOL bHeader, const byte* columnAlignments, int nMaxColumns) {
+static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_PARSER_STATE* pState, BOOL bHeader, const byte* columnAlignments, int* pMaxColumns) {
 	long lnOffset;
 	int nColumn = 0;
 	int nStart = 0;
 	RENDER_TABLE_ROW row;
 	char c;
-	STRING_BUF* pBuf = stringbuf_create(128);
 	LINE* lp = NULL;
 	STREAM_OFFSET offset = pStream->is_tell(pStream);
+	const char* pszDelimiter = pState->hps_syntax->syn_tableDelimiter;
 
+	if (pszDelimiter && pStream->is_strncmp(pStream, pszDelimiter, strlen(pszDelimiter)) == 0) {
+		pStream->is_skip(pStream, (int) strlen(pszDelimiter));
+		return FALSE;
+	}
 	memset(&row, 0, sizeof row);
 	lnOffset = pStream->is_inputMark(pStream, &lp);
-	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n' && nColumn < nMaxColumns) {
+	int nMaxColumns = *pMaxColumns;
+	STRING_BUF* pBuf = stringbuf_create(128);
+	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n' && (nMaxColumns == -1 || nColumn < nMaxColumns)) {
 		if (c == '|') {
 			mdr_skipLeadingSpace(pStream);
 			if (nStart > 0) {
@@ -3697,20 +3707,27 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
 	}
 	if (nColumn == 0) {
 		stringbuf_destroy(pBuf);
+		if (c != 0 && nMaxColumns > 0 && pState->hps_syntax->syn_tableEmptyRowsAllowed) {
+			pStream->is_positionToLineStart(pStream, 1);
+			return TRUE;
+		}
 		pStream->is_seek(pStream, offset);
 		return FALSE;
 	}
-	if (nColumn < nMaxColumns && (c == '|' || stringbuf_size(pBuf) > 0)) {
+	if ((nMaxColumns < 0 || nColumn < nMaxColumns) && (c == '|' || stringbuf_size(pBuf) > 0)) {
 		RENDER_TABLE_CELL* pCell = mdr_parseTableCell(pStream, pState, &row, pBuf, lp, lnOffset, bHeader);
 		if (pCell) {
 			pCell->rtc_flow.tf_align = columnAlignments[nColumn++];
 		}
 	}
-	stringbuf_destroy(pBuf);
+	stringbuf_destroy(pBuf); 
 	RENDER_TABLE_ROW* pAppended = (RENDER_TABLE_ROW*)ll_append((LINKED_LIST**)&pTable->rt_rows, sizeof row);
 	memcpy(pAppended, &row, sizeof row);
 	pStream->is_seek(pStream, offset);
 	pStream->is_positionToLineStart(pStream, 1);
+	if (nMaxColumns < 0) {
+		*pMaxColumns = nColumn;
+	}
 	return TRUE;
 }
 
@@ -3720,7 +3737,7 @@ static BOOL mdr_parseTableRow(INPUT_STREAM* pStream, RENDER_TABLE* pTable, HTML_
  */
 static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 	byte columnAlignments[MAX_TABLE_COLUMNS];
-	memset(columnAlignments, 0, sizeof columnAlignments);
+	memset(columnAlignments, TA_ALIGN_DEFAULT, sizeof columnAlignments);
 	BOOL bStartColon = FALSE;
 	BOOL bDashSeen = FALSE;
 	int nColumn = -1;
@@ -3731,51 +3748,63 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 		// Create a normal part and initialize below (not using factory) as pTable was created already.
 		pState->hps_part = pPart = mdr_newPart(pStream, pState, MET_NORMAL, 0);
 	}
-	STREAM_OFFSET offsetCurrent = pStream->is_positionToLineStart(pStream, 1);
-	while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
-		if (nColumn == -1) {
-			if (isspace((unsigned char)c)) {
-				continue;
-			}
-			if (c == '|' || c == '-' || c == '=' || c == ':') {
-				nColumn = 0;
-				if (c == ':') {
-					bStartColon = TRUE;
+	const char* pszDelimiter = pState->hps_syntax->syn_tableDelimiter;
+	STREAM_OFFSET offsetCurrent;
+	if (pszDelimiter) {
+		if (pStream->is_strncmp(pStream, pszDelimiter, strlen(pszDelimiter)) == 0) {
+			pStream->is_skip(pStream, (int)strlen(pszDelimiter));
+			offsetCurrent = pStream->is_positionToLineStart(pStream, 1);
+		} else {
+			return FALSE;
+		}
+	} else {
+		offsetCurrent = pStream->is_positionToLineStart(pStream, 1);
+		while ((c = pStream->is_getc(pStream)) != 0 && c != '\n') {
+			if (nColumn == -1) {
+				if (isspace((unsigned char)c)) {
+					continue;
 				}
-				if (c == '-' || c == '=') {
-					nColumn = 1;
-					bDashSeen = TRUE;
+				if (c == '|' || c == '-' || c == '=' || c == ':') {
+					nColumn = 0;
+					if (c == ':') {
+						bStartColon = TRUE;
+					}
+					if (c == '-' || c == '=') {
+						nColumn = 1;
+						bDashSeen = TRUE;
+					}
+				}
+				else {
+					pStream->is_seek(pStream, offsetCurrent);
+					return FALSE;
 				}
 			}
 			else {
-				pStream->is_seek(pStream, offsetCurrent);
-				return FALSE;
+				if (c == '-' || c == '=') {
+					bDashSeen = TRUE;
+				}
+				else if (bDashSeen && c == ':') {
+					nAlign = bStartColon ? TA_ALIGN_CENTER : TA_ALIGN_RIGHT;
+				}
+				else if (!bDashSeen && c == ':') {
+					bStartColon = TRUE;
+				}
+				else if (bDashSeen && c == '|') {
+					columnAlignments[nColumn++] = nAlign;
+					bDashSeen = FALSE;
+					bStartColon = FALSE;
+					nAlign = TA_ALIGN_LEFT;
+				}
+				else {
+					pStream->is_seek(pStream, offsetCurrent);
+					return FALSE;
+				}
 			}
 		}
-		else {
-			if (c == '-' || c == '=') {
-				bDashSeen = TRUE;
-			}
-			else if (bDashSeen && c == ':') {
-				nAlign = bStartColon ? TA_ALIGN_CENTER : TA_ALIGN_RIGHT;
-			}
-			else if (!bDashSeen && c == ':') {
-				bStartColon = TRUE;
-			}
-			else if (bDashSeen && c == '|') {
-				columnAlignments[nColumn++] = nAlign;
-				bDashSeen = FALSE;
-				bStartColon = FALSE;
-				nAlign = TA_ALIGN_LEFT;
-			} else {
-				pStream->is_seek(pStream, offsetCurrent);
-				return FALSE;
-			}
-		}
-	}
-	if (nColumn < 0) {
 		pStream->is_seek(pStream, offsetCurrent);
-		return FALSE;
+		if (nColumn < 0) {
+			return FALSE;
+		}
 	}
 # if 0
 	if (lpDef->lbuf[lpDef->len - 1] != '|') {
@@ -3784,14 +3813,13 @@ static BOOL mdr_parseTable(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState) {
 #endif
 	// OK - we have a valid table definition. Now parse header and rows.
 	RENDER_TABLE* pTable = mdr_newTable(nColumn);
-	pStream->is_seek(pStream, offsetCurrent);
-	if (!mdr_parseTableRow(pStream, pTable, pState, TRUE, columnAlignments, nColumn)) {
+	if (!mdr_parseTableRow(pStream, pTable, pState, TRUE, columnAlignments, &nColumn)) {
 		free(pTable);
 		return FALSE;
 	}
 	pStream->is_seek(pStream, offsetCurrent);
 	pStream->is_positionToLineStart(pStream, 2);
-	while (mdr_parseTableRow(pStream, pTable, pState, FALSE, columnAlignments, nColumn)) {
+	while (mdr_parseTableRow(pStream, pTable, pState, FALSE, columnAlignments, &nColumn)) {
 	}
 	pPart->rvp_data.rvp_table = pTable;
 	pPart->rvp_type = MET_TABLE;
@@ -4319,7 +4347,7 @@ static void mdr_renderAdocFormatPage(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH h
 /*
  * Implements rich text rendering printing.
  */
-PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintLine, DEVEXTENTS* pExtents) {
+static PRINT_FRAGMENT_RESULT mdr_printFragment(RENDER_CONTEXT* pRC, PRINT_LINE* pPrintLine, DEVEXTENTS* pExtents) {
 	WINFO* wp = pPrintLine->wp;
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (!pData) {

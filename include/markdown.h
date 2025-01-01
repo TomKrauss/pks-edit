@@ -47,12 +47,15 @@ typedef BOOL(*MDR_PARSE_LINK)
 	(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
 
 typedef struct tagMDR_SYNTAX {
-	char syn_header;					// Character used to define a header section - i.e. '#' in markdown and '=' in asciidoc
-	char* syn_literalMarker;			// String used to start and and a literal section - i.e. '```' in markdown and '----' in asciidoc
-	char* syn_literalMarker2;			// Optional alternate literal marker '....' in asciidoc
-	MDR_GET_LIST_LEVEL syn_getLevel;	// Function used to determine the level of a list.
-	MDR_DETECT_LINK syn_detectLink;		// Function used to detect a link in the input text.
-	MDR_PARSE_LINK syn_parseLink;		// Function used to parse a link from the input.
+	const char syn_header;					// Character used to define a header section - i.e. '#' in markdown and '=' in asciidoc
+	const char* syn_literalMarker;			// String used to start and and a literal section - i.e. '```' in markdown and '----' in asciidoc
+	const char* syn_literalMarker2;			// Optional alternate literal marker '....' in asciidoc
+	const char* syn_tableDelimiter;			// Optional table delimiter lines (asciidoc only: |===)
+	char		syn_rulerCharacter;			// The character used to define a break / ruler (for asciidoc ', for markdown -).
+	BOOL		syn_tableEmptyRowsAllowed;	// Whether empty rows are allowed in table definitions.
+	MDR_GET_LIST_LEVEL syn_getLevel;		// Function used to determine the level of a list.
+	MDR_DETECT_LINK syn_detectLink;			// Function used to detect a link in the input text.
+	MDR_PARSE_LINK syn_parseLink;			// Function used to parse a link from the input.
 } MDR_SYNTAX;
 
 

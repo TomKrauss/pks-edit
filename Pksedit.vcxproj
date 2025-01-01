@@ -1580,8 +1580,6 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='NO Git Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="src\WindowSelector.c" />
-    <ClCompile Include="test\pch.cpp" />
-    <ClCompile Include="test\test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\actionbindings.h" />

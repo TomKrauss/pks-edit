@@ -342,12 +342,6 @@
     <ClCompile Include="src\Copyright.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test\pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="test\test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rc\dial2.h">
