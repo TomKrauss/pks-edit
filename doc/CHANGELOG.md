@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Some additional macros available by default to position to the first non whitespace character or after
   the last non whitespace character in the current line were added.
 - The new PKS Edit MacroC type `CARET` allows to work with caret positions in PKS MacroC. 
-- Added poor mens version support of Wysiwyg rendering for AsciiDoc documents.
+- Added simple support for Wysiwyg rendering of documents formatted using [AsciiDoc](https://docs.asciidoctor.org) .
 
 ### Improved
 - PKS MacroC `for to loops` have been improved and allow now for using previously defined variable references.
