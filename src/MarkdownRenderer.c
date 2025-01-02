@@ -87,12 +87,15 @@ typedef struct tagENTITY_MAPPING {
 	char    entity[8];
 } ENTITY_MAPPING;
 
-static BOOL mdr_detectLink(INPUT_STREAM* pStream, char c);
 static BOOL asciidoc_detectLink(INPUT_STREAM* pStream, char c);
-static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
 static int asciidoc_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
 static BOOL asciidoc_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
+static void asciidoc_detectGrammar(INPUT_STREAM* pStream, int nLiteralMarkerLength, RENDER_VIEW_PART_PARAM* pParam);
+
+static BOOL mdr_detectLink(INPUT_STREAM* pStream, char c);
+static int mdr_getLevelFromIndent(INPUT_STREAM* pStream, char aListChar);
 static BOOL mdr_parseLink(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
+static void mdr_detectGrammar(INPUT_STREAM* pStream, int nLiteralMarkerLength, RENDER_VIEW_PART_PARAM* pParam);
 
 static MDR_SYNTAX _markdownSyntax = {
 	.syn_header = '#',
@@ -101,6 +104,7 @@ static MDR_SYNTAX _markdownSyntax = {
 	.syn_rulerCharacter = '-',
 	.syn_getLevel = mdr_getLevelFromIndent,
 	.syn_detectLink = mdr_detectLink,
+	.syn_detectGrammar = mdr_detectGrammar,
 	.syn_parseLink = mdr_parseLink
 };
 
@@ -112,6 +116,7 @@ static MDR_SYNTAX _asciidocSyntax = {
 	.syn_rulerCharacter = '\'',
 	.syn_tableEmptyRowsAllowed = TRUE,
 	.syn_getLevel = asciidoc_getLevelFromIndent,
+	.syn_detectGrammar = asciidoc_detectGrammar,
 	.syn_detectLink = asciidoc_detectLink,
 	.syn_parseLink = asciidoc_parseLink
 };
@@ -1630,6 +1635,44 @@ static MDR_ELEMENT_FORMAT* mdr_getFormatFor(MDR_ELEMENT_TYPE mType, int nLevel) 
 	return &_formatText;
 }
 
+static void asciidoc_detectGrammar(INPUT_STREAM* pStream, int nLiteralMarkerLength, RENDER_VIEW_PART_PARAM* pParam) {
+	STREAM_OFFSET nOffset = pStream->is_tell(pStream);
+	pStream->is_positionToLineStart(pStream, -1);
+	int i = 0;
+	char szName[128] = { 0 };
+	char c;
+	if ((c = pStream->is_peekc(pStream, i)) == '[') {
+		i++;
+		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName - 1) && c != '\n' && c != ']') {
+			szName[i-1] = c;
+			i++;
+		}
+		if (i > 1) {
+			szName[i] = 0;
+			pParam->rvp_grammar = _strdup(szName);
+		}
+	}
+	pStream->is_seek(pStream, nOffset);
+	pStream->is_positionToLineStart(pStream, 1);
+}
+
+static void mdr_detectGrammar(INPUT_STREAM* pStream, int nLiteralMarkerLength, RENDER_VIEW_PART_PARAM* pParam) {
+	pStream->is_skip(pStream, nLiteralMarkerLength);
+	int i = 0;
+	char szName[128] = { 0 };
+	char c;
+	while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName - 1) && c != '\n') {
+		szName[i] = c;
+		i++;
+	}
+
+	if (i > 0) {
+		szName[i] = 0;
+		pParam->rvp_grammar = _strdup(szName);
+	}
+	pStream->is_positionToLineStart(pStream, 1);
+}
+
 /*
  * Parse a top level markup element (list, header, code block etc...) 
  */
@@ -1654,18 +1697,7 @@ static MDR_ELEMENT_TYPE mdr_determineTopLevelElement(INPUT_STREAM* pStream, REND
 			pStream->is_skip(pStream, 1);
 		}
 	} else if ((nLiteralMarkerLength = mdr_matchFixBlock(pStream, pSyntax)) != 0) {
-		pStream->is_skip(pStream, nLiteralMarkerLength);
-		int i = 0;
-		char szName[128] = { 0 };
-		while ((c = pStream->is_peekc(pStream, i)) != 0 && i < (sizeof szName - 1) && c != '\n') {
-			szName[i] = c;
-			i++;
-		}
-		if (i > 0) {
-			szName[i] = 0;
-			pParam->rvp_grammar = _strdup(szName);
-		}
-		pStream->is_positionToLineStart(pStream, 1);
+		pSyntax->syn_detectGrammar(pStream, nLiteralMarkerLength, pParam);
 		mType = MET_FENCED_CODE_BLOCK;
 	} else if (IS_UNORDERED_LIST_START(c)) {
 		mType = MET_UNORDERED_LIST;

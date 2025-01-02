@@ -40,11 +40,13 @@ typedef enum LINK_PARSE_STATE {
 
 typedef struct tagINPUT_STREAM INPUT_STREAM;
 typedef struct tagHTML_PARSER_STATE HTML_PARSER_STATE;
+typedef struct tag_RENDER_VIEW_PART_PARAM RENDER_VIEW_PART_PARAM;
 
 typedef int (*MDR_GET_LIST_LEVEL)(INPUT_STREAM* pStream, char aListChar);
 typedef BOOL(*MDR_DETECT_LINK)(INPUT_STREAM* pStream, char c);
 typedef BOOL(*MDR_PARSE_LINK)
 	(INPUT_STREAM* pStream, HTML_PARSER_STATE* pState, char* szLinkText, LINK_PARSE_RESULT* pResult, LINK_PARSE_STATE startState);
+typedef void (*MDR_DETECT_SYNTAX)(INPUT_STREAM* pStream, int nLiteralMarkerLength, RENDER_VIEW_PART_PARAM* pParam);
 
 typedef struct tagMDR_SYNTAX {
 	const char syn_header;					// Character used to define a header section - i.e. '#' in markdown and '=' in asciidoc
@@ -53,6 +55,7 @@ typedef struct tagMDR_SYNTAX {
 	const char* syn_tableDelimiter;			// Optional table delimiter lines (asciidoc only: |===)
 	char		syn_rulerCharacter;			// The character used to define a break / ruler (for asciidoc ', for markdown -).
 	BOOL		syn_tableEmptyRowsAllowed;	// Whether empty rows are allowed in table definitions.
+	MDR_DETECT_SYNTAX syn_detectGrammar;	// Callback method detecting the syntax/grammar of a fenced code block.
 	MDR_GET_LIST_LEVEL syn_getLevel;		// Function used to determine the level of a list.
 	MDR_DETECT_LINK syn_detectLink;			// Function used to detect a link in the input text.
 	MDR_PARSE_LINK syn_parseLink;			// Function used to parse a link from the input.
