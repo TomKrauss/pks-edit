@@ -600,7 +600,7 @@
         "leftMargin": 0,
         "rightMargin": 80,
         "tabSize": 8,
-        "codepage": 0,
+        "codepage": -1,
         "shiftWidth": 4,
         "showWhitespace": true,
         "showLineNumbers": true,
