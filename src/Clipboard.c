@@ -72,13 +72,13 @@ static HANDLE clp_makebufferhandle(char* whichBuffer, BOOL bExit) {
 	if (bExit && size > 1000000 && error_displayYesNoConfirmation(IDS_HUGE_CLIPBOARD_DO_YOU_WANT_TO_COPY) == IDNO) {
 		return 0;
 	}
-	if ((hMem = GlobalAlloc(GHND, (DWORD)size)) == 0 ||
+	if ((hMem = GlobalAlloc(GHND, (DWORD)size+1)) == 0 ||
 	    (lpMem = GlobalLock(hMem)) == 0) {
 		error_showErrorById(IDS_MSGNOSPCE);
 		return 0;
 	}
+	lpMem[size] = 0;
 	ft_convertToBuffer(NULL, lpMem, &size, bp->pln);
-
 	GlobalUnlock(hMem);
 
 	return hMem;

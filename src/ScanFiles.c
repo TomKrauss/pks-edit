@@ -104,7 +104,7 @@ static void find_inFilesMatchFound(char *fn, int nStartCol, int nLength, char* p
 	} else {
 		szBuf[0] = 0;
 	}
-	// TODO: why _line+1??
+	// We report line+1 to have a user friendly hint, where the match was found.
 	fprintf(_searchContext.sc_file, _grepFileFormat, fn, _searchContext.sc_line+1, szBuf);
 	fprintf(_searchContext.sc_file, "\n");
 	// Causes the UI of the error file preview to update.

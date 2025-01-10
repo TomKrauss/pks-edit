@@ -33,6 +33,8 @@ for (i : 0..length) {
   so that resizing of the area was necessary.
 - Windows were not correctly activated from a saved PKS Edit session, when more than one window dock were
   being displayed at the same time.
+- Copying text to the system clipboard did not work, if a piece of text was copied from the last line of a file,
+  when this line was not line terminated.
 
 ## [2.9.0] - 2024-09-02
 
