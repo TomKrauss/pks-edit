@@ -25,7 +25,7 @@ typedef enum {
 	OPEN_FILES = 2,
 	FILE_PATTERNS = 3,
 	OPEN_IN_EDITOR = 4,
-	PATHES = 5
+	FOLDERS = 5
 } HISTORY_TYPE;
 
 // Describes the layout of the mainframe - one docking area
@@ -45,7 +45,7 @@ typedef struct tagSESSION_DATA {
 	MAINFRAME_DOCK sd_dock1;							// mainframe dock 1 placement
 	MAINFRAME_DOCK sd_dock2;							// mainframe dock 2 placement
 	MAINFRAME_DOCK sd_dock3;							// mainframe dock 3 placement
-	void* sd_histories[OPEN_IN_EDITOR+1];				// the various histories
+	void* sd_histories[FOLDERS+1];						// the various histories
 } SESSION_DATA;
 
 /*

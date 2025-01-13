@@ -59,6 +59,7 @@ static JSON_MAPPING_RULE _sessionDataRules[] = {
 	{	RT_STRING_ARRAY, "file-patterns", offsetof(SESSION_DATA, sd_histories[FILE_PATTERNS])},
 	{	RT_STRING_ARRAY, "open-files", offsetof(SESSION_DATA, sd_histories[OPEN_FILES])},
 	{	RT_STRING_ARRAY, "open-editors", offsetof(SESSION_DATA, sd_histories[OPEN_IN_EDITOR])},
+	{	RT_STRING_ARRAY, "folders", offsetof(SESSION_DATA, sd_histories[FOLDERS])},
 	{	RT_END}
 };
 
@@ -159,7 +160,7 @@ EXPORT void hist_saveString(HISTORY_TYPE type, const char *string) {
 }
 
 static ARRAY_LIST* hist_getOpenFilePathes() {
-	ARRAY_LIST* pArray = arraylist_create(4);
+	ARRAY_LIST* pArray = hist_getHistoryArray(FOLDERS);
 	WINFO* wp = ww_getCurrentEditorWindow();
 	while (wp) {
 		char szPath[1024];
@@ -182,7 +183,7 @@ EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bFo
 	if (cust_isEditField(hwnd)) {
 		return;
 	}
-	ARRAY_LIST* pArray = type == PATHES ? hist_getOpenFilePathes() : hist_getHistoryArray(type);
+	ARRAY_LIST* pArray = type == FOLDERS ? hist_getOpenFilePathes() : hist_getHistoryArray(type);
 
 	SendDlgItemMessage(hDlg, nItem, CB_RESETCONTENT, 0,0L);
 	int nSize = (int)arraylist_size(pArray);
@@ -197,9 +198,6 @@ EXPORT void hist_fillComboBox(HWND hDlg, WORD nItem, HISTORY_TYPE type, BOOL bFo
 	}
 	if (bForceInit && q) {
 		SetDlgItemText(hDlg, nItem, q);
-	}
-	if (type == PATHES) {
-		arraylist_destroyStringList(pArray);
 	}
 }
 

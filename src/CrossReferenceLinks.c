@@ -138,6 +138,13 @@ static void xref_destroyTagTable() {
 }
 
 /*
+ * Returns the search list format which can be used to parse PKS Edit search results.
+ */
+static NAVIGATION_PATTERN* xref_getSearchListFormat() {
+	return &_pksEditSearchlistFormat;
+}
+
+/*
  * Return the navigation pattern for a given compiler.
  */
 static NAVIGATION_PATTERN* xref_getNavigationPatternFor(const char* pszCompiler) {
@@ -156,7 +163,7 @@ static NAVIGATION_PATTERN* xref_detectNavigationPattern(FTABLE* fp) {
 
 	LINE* lp2 = lp->next;
 	if (lp2 && (lp2 = lp2->next) != NULL) {
-		NAVIGATION_PATTERN* pPattern = &_pksEditSearchlistFormat;
+		NAVIGATION_PATTERN* pPattern = xref_getSearchListFormat();
 		find_regexCompile(&pPattern->rePattern, pPattern->ebuf, pPattern->pattern, RE_DOREX);
 		if (regex_match(&pPattern->rePattern, lp2->lbuf, &lp2->lbuf[lp2->len], &match)) {
 			return pPattern;
@@ -1031,13 +1038,6 @@ static BOOL xref_parseNavigationSpec(NAVIGATION_PATTERN* pNavigationPattern, NAV
 		return TRUE;
 	}
 	return FALSE;
-}
-
-/*
- * Returns the search list format which can be used to parse PKS Edit search results.
- */
-static NAVIGATION_PATTERN* xref_getSearchListFormat() {
-	return &_pksEditSearchlistFormat;
 }
 
 /*

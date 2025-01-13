@@ -452,7 +452,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 				}
 				break;
 			case IDD_PATH1:
-				hist_fillComboBox(hDlg, item, PATHES, 1);
+				hist_fillComboBox(hDlg, item, FOLDERS, 1);
 				if (!((LPSTR)ip)[0]) {
 					break;
 				}
@@ -660,6 +660,9 @@ BOOL dlg_applyChanges(HWND hDlg, int idCtrl, DIALOG_DESCRIPTOR *dpDialog) {
 				}
 				hist_getSessionData()->sd_searchAndReplaceOptions = _currentSearchAndReplaceParams.options;
 				hist_saveString(SEARCH_PATTERNS, (LPSTR)ip);
+			}
+			if (item == IDD_PATH1) {
+				hist_saveString(FOLDERS, (LPSTR)ip);
 			}
 			if (idCtrl == IDOK && item == IDD_REPLS) {
 				if (!find_initializeReplaceByExpression(dp->did_data)) {
