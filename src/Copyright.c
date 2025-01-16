@@ -34,9 +34,9 @@ typedef struct tagCOPYRIGHT_LANGUAGE_OPTION {
 	char clo_language[32];
 	// Whether we should use single line comments to insert a template.
 	int  clo_useSingleLineComments;
-	// Wether a blank line should be added in front of the copyright
+	// Whether a blank line should be added in front of the copyright
 	int  clo_addBlankLineBefore;
-	// Wether a blank line should be added at the end of the copyright
+	// Whether a blank line should be added at the end of the copyright
 	int  clo_addBlankLineAfter;
 } COPYRIGHT_LANGUAGE_OPTION;
 

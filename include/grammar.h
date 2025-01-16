@@ -109,9 +109,9 @@ typedef struct tagNAVIGATION_PATTERN {
 // Describes the primary ways to comment code in the described language
 typedef struct tagCOMMENT_DESCRIPTOR {
 	const char* comment_start;		// This contains the 0-terminated string to start a comment - e.g. "/*"
-	const char* comment_end;		// If only a block line comment feature is avaible, this contains the 0-terminated string to end it - e.g. "*/"
+	const char* comment_end;		// If only a block line comment feature is available, this contains the 0-terminated string to end it - e.g. "*/"
 	const char* comment2_start;		// This may contain an alternate 0-terminated string to start a comment - e.g. "/*"
-	const char* comment2_end;		// If only a block line comment feature is avaible, this an alternate 0-terminated string to end it - e.g. "*/"
+	const char* comment2_end;		// If only a block line comment feature is available, this an alternate 0-terminated string to end it - e.g. "*/"
 	const char* comment_single;		// This contains the 0-terminated string to start a single line comment - e.g. "//"
 } COMMENT_DESCRIPTOR;
 
