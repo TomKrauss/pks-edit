@@ -108,8 +108,7 @@
             "const",
             "factory",
             "library",
-            "mixin",
-            "final",
+            "mixin"
             "hide",
             "synch"
           ],
