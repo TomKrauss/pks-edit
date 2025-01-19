@@ -32,7 +32,8 @@ int _ftw(
 	int depth,						// the depth of the maximum folder recursion level is reached
 	const char *searchPattern, 		// pattern for file name matching. E.g. something such as "*.c" or "dir\*.c". In the later case the pattern is matched
 									// also recursively for sub-directories.
-	int mode						// file attributes of the files searched
+	int mode,						// file attributes of the files searched
+	BOOL (*traverseDirectory)(char* filename)  // optional filter method for filtering sub-directories.
 ) {
 	struct _finddata_t  *	pdta;
 	char 				*	target;
@@ -75,14 +76,17 @@ int _ftw(
 					if (i) {
 						goto done;
 					}
-				} else if (nFiles % 10 == 9) {
+				} else if (nFiles % 100 == 99) {
 					progress_stepIndicator();
 				}
 			}
 
-			if (depth > 0 && (pdta->attrib & _A_SUBDIR) != 0 && (pThisPattern == searchPattern || string_matchFilename(pdta->name, pThisPattern))) {
+			if (depth > 0 && 
+					(pdta->attrib & _A_SUBDIR) != 0 && 
+					(traverseDirectory == NULL || traverseDirectory(pdta->name)) && 
+					(pThisPattern == searchPattern || string_matchFilename(pdta->name, pThisPattern))) {
 				string_concatPathAndFilename(target,path,pdta->name);
-				i = _ftw(target, func, depth, pNextPattern,  mode);
+				i = _ftw(target, func, depth, pNextPattern,  mode, traverseDirectory);
 				if (i != 0) {
 					goto done;
 				}

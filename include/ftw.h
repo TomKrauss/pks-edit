@@ -25,7 +25,9 @@ typedef struct ffblk DTA;
 #endif
 
 typedef int (* FTWFUNC)(const char *s,DTA *p);
-int _ftw(const char *path,FTWFUNC func,int depth,const char *pattern,int mode);
+int _ftw(const char *path,FTWFUNC func,int depth,const char *pattern,int mode, 
+	BOOL(*traverseDirectory)(char* filename)  // optional filter method for filtering sub-directories.
+);
 
 #endif __FTW__
 

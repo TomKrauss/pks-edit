@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added simple support for Wysiwyg rendering of documents formatted using [AsciiDoc](https://docs.asciidoctor.org) .
 
 ### Improved
+- Searching in Files is much faster now, when the option `ignore binary files` is selected. PKS-Edit will
+  skip in this case .git - folders and build folders resulting in some cases in a performance improvement
+  by a factor of more than 100.
 - PKS MacroC `for to loops` have been improved and allow now for using previously defined variable references.
   This allows for expressions as in the following example:
 ```c

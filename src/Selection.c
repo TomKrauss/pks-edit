@@ -65,7 +65,7 @@ static void bl_withClipboardDirDo(FTWFUNC pFunc) {
 	char szPattern[20];
 	string_concatPathAndFilename(szDirName, config_getPKSEditTempPath(), _pszAutosaveDir);
 	sprintf(szPattern, "*%s", _pszAutosaveExtension);
-	_ftw(szDirName, pFunc, 1, szPattern, 0xFF);
+	_ftw(szDirName, pFunc, 1, szPattern, 0xFF, NULL);
 }
 
 /*

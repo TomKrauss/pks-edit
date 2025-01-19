@@ -50,6 +50,7 @@ static struct tagSEARCH_CONTEXT {
 	size_t sc_matches;
 	size_t sc_files;
 	size_t sc_filesScanned;
+	size_t sc_directoriesScanned;
 	size_t sc_filesSkipped;
 	int    sc_trymatch;
 	int    sc_abortOnFirstMatch;
@@ -330,6 +331,19 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
 	return pResult;
 }
 
+/*
+ * Filter for skipping binary directories.
+ */
+BOOL _isNonBinaryDirectory(char* filename) {
+	_searchContext.sc_directoriesScanned++;
+	if (_searchContext.sc_directoriesScanned % 1000 == 0) {
+		char szBuf[128];
+		sprintf(szBuf, "%llu directories scanned.", _searchContext.sc_directoriesScanned);
+		progress_showMonitorMessage(szBuf);
+	}
+	return *filename != '.' && strcmp(filename, "target") != 0 && strcmp(filename, "build") != 0;
+}
+
 /*--------------------------------------------------------------------------
  * find_matchesInFiles()
  * Perform a recursive pSearchExpression in a list of pates with a given filename pattern.
@@ -347,6 +361,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 	memset(&_searchContext, 0, sizeof _searchContext);
 	_searchContext.sc_abortOnFirstMatch = (nOptions & RE_SEARCH_ONCE) || fAction == FIF_REPLACE;
 	_searchContext.sc_ignoreBinary = nOptions & RE_IGNORE_BINARY;
+	_searchContext.sc_directoriesScanned = 0;
 	string_concatPathAndFilename(stepfile, config_getPKSEditTempPath(), "pksedit.grep");
 	hist_saveString(FILE_PATTERNS, pFilenamePattern);
 
@@ -388,7 +403,7 @@ int find_matchesInFiles(SEARCH_AND_REPLACE_PARAMETER* pParams, FIND_IN_FILES_ACT
 		if ((path = strtok(pathlist, ",;")) != 0) {
 			do {
 				if (_ftw(path, matchInFile, nDepth < 0 ? 999 : nDepth,
-					pFilenamePattern, NORMALFILE | ARCHIV | WPROTECT) == 1) break;
+					pFilenamePattern, NORMALFILE | ARCHIV | WPROTECT, _searchContext.sc_ignoreBinary ? _isNonBinaryDirectory : NULL) == 1) break;
 			} while ((path = strtok((char*)0, ",;")) != 0);
 		}
 	}

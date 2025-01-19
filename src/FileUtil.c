@@ -326,7 +326,7 @@ EXPORT void file_clearTempFiles(void)
 	string_splitFilename(tmpname,pathname,fn,sizeof fn);
 	if ((szBang = strchr(fn, '!')) != 0) {
 		*szBang = '?';
-		_ftw(pathname, file_removeCb,1,fn,0xFF);
+		_ftw(pathname, file_removeCb,1,fn,0xFF, NULL);
 	}
 }
 

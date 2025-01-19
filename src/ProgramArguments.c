@@ -68,7 +68,7 @@ static void argument_openFiles(const char* pszDirectory, const char* pszFilespec
 	}
 
 	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
-		_ftw(pszDirectory, argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT);
+		_ftw(pszDirectory, argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT, NULL);
 	} else {
 		if (file_exists(pszFilespec) != 0 && pszDirectory[0] != 0) {
 			char szDest[EDMAXPATHLEN];
