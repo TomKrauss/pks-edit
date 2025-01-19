@@ -1,79 +1,80 @@
 {
-    "configuration": {
-        "autosave-to-temp": true,
-        "preserve-history": true,
-        "create-back-in-temp-path": true,
-        "cleanup-autosave-files": true,
-        "sound-on-error": true,
-        "forms-follow-mouse": true,
-        "hide-selection-on-move": true,
-        "save-clipboards-on-exit": true,
-        "maintain-clipboard-history": true,
-        "reuse-application-running-instance": true,
-        "show-error-toast": true,
-        "silently-reload-changed-files": true,
-        "undo-enabled": true,
-        "compact-editor-tabs": true,
-        "show-function-keys": true,
-        "show-optionbar": true,
-        "show-statusbar": true,
-        "show-toolbar": true,
-        "icon-size": "small",
-        "undo-history": 100,
-        "autosave-time": 10,
-        "maximum-open-windows": 15,
-        "theme": "system default",
-        "include-path": "..\\include;include",
-        "language": "English",
-        "default-font": "Consolas",
-        "search-engine": "Google",
-        "compiler-output-patterns": [
-        {
-            "name": "PKSMAKROC",
-            "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
-            "filename-pattern": ".pkc",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "columnnumber-capture": 0,
-            "comment-capture": 3
-        },
-        {
-            "name": "MSC",
-            "pattern": "^([^(]*)(([0-9]+)) : (.*)",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "columnnumber-capture": 0,
-            "comment-capture": 3
-        },
-        {
-            "name": "Java",
-            "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
-            "filename-pattern": ".java",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "columnnumber-capture": 0,
-            "comment-capture": 3
-        },
-        {
-            "name": "Dart",
-            "pattern": "^ *[a-z]+ - *(.+):([0-9]+):([0-9]+) - (.*)",
-            "filename-pattern": ".dart",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "columnnumber-capture": 3,
-            "comment-capture": 4
-        },
-        {
-            "name": "Typescript",
-            "pattern": "^*[A-Za-z]+: *(.+):([0-9]+):[0-9]+ - (.*)",
-            "filename-pattern": ".ts",
-            "filename-capture": 1,
-            "linenumber-capture": 2,
-            "columnnumber-capture": 0,
-            "comment-capture": 3
-        }
-        ]
-    },
+  "configuration": {
+    "autosave-to-temp": true,
+    "preserve-history": true,
+    "create-back-in-temp-path": true,
+    "cleanup-autosave-files": true,
+    "sound-on-error": true,
+    "forms-follow-mouse": true,
+    "hide-selection-on-move": true,
+    "save-clipboards-on-exit": true,
+    "maintain-clipboard-history": true,
+    "reuse-application-running-instance": true,
+    "show-error-toast": true,
+    "silently-reload-changed-files": true,
+    "undo-enabled": true,
+    "compact-editor-tabs": true,
+    "show-function-keys": true,
+    "show-optionbar": true,
+    "show-statusbar": true,
+    "show-toolbar": true,
+    "icon-size": "small",
+    "undo-history": 100,
+    "autosave-time": 10,
+    "maximum-open-windows": 15,
+    "theme": "system default",
+    "pruned-search-directories": ".*:target:build",
+    "include-path": "..\\include;include",
+    "language": "English",
+    "default-font": "Consolas",
+    "search-engine": "Google",
+    "compiler-output-patterns": [
+      {
+        "name": "PKSMAKROC",
+        "pattern": "^[^ ]+ ([^ ]+) ([0-9]+): *(.*)",
+        "filename-pattern": ".pkc",
+        "filename-capture": 1,
+        "linenumber-capture": 2,
+        "columnnumber-capture": 0,
+        "comment-capture": 3
+      },
+      {
+        "name": "MSC",
+        "pattern": "^([^(]*)(([0-9]+)) : (.*)",
+        "filename-capture": 1,
+        "linenumber-capture": 2,
+        "columnnumber-capture": 0,
+        "comment-capture": 3
+      },
+      {
+        "name": "Java",
+        "pattern": "^ *\\[[^]]+\\] *(.+):([0-9]+): error:*(.*)",
+        "filename-pattern": ".java",
+        "filename-capture": 1,
+        "linenumber-capture": 2,
+        "columnnumber-capture": 0,
+        "comment-capture": 3
+      },
+      {
+        "name": "Dart",
+        "pattern": "^ *[a-z]+ - *(.+):([0-9]+):([0-9]+) - (.*)",
+        "filename-pattern": ".dart",
+        "filename-capture": 1,
+        "linenumber-capture": 2,
+        "columnnumber-capture": 3,
+        "comment-capture": 4
+      },
+      {
+        "name": "Typescript",
+        "pattern": "^*[A-Za-z]+: *(.+):([0-9]+):[0-9]+ - (.*)",
+        "filename-pattern": ".ts",
+        "filename-capture": 1,
+        "linenumber-capture": 2,
+        "columnnumber-capture": 0,
+        "comment-capture": 3
+      }
+    ]
+  },
     "print-configuration": {
         "header": {
             "template": "Printed by PKS-Edit",

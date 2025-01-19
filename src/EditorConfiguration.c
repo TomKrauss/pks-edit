@@ -188,6 +188,7 @@ static JSON_MAPPING_RULE _editConfigurationRules[] = {
 	{	RT_INTEGER, "undo-history", offsetof(EDITOR_CONFIGURATION, nundo)},
 	{	RT_INTEGER, "autosave-time", offsetof(EDITOR_CONFIGURATION, autosaveSeconds)},
 	{	RT_INTEGER, "maximum-open-windows", offsetof(EDITOR_CONFIGURATION, maximumNumberOfOpenWindows)},
+	{	RT_CHAR_ARRAY, "pruned-search-directories", offsetof(EDITOR_CONFIGURATION, prunedSearchDirectories), sizeof(((EDITOR_CONFIGURATION*)NULL)->prunedSearchDirectories)},
 	{	RT_CHAR_ARRAY, "sound-name", offsetof(EDITOR_CONFIGURATION, soundName), sizeof(((EDITOR_CONFIGURATION*)NULL)->soundName)},
 	{	RT_CHAR_ARRAY, "theme", offsetof(EDITOR_CONFIGURATION, themeName), sizeof(((EDITOR_CONFIGURATION*)NULL)->themeName)},
 	{	RT_CHAR_ARRAY, "temp-path", offsetof(EDITOR_CONFIGURATION, pksEditTempPath), sizeof(((EDITOR_CONFIGURATION*)NULL)->pksEditTempPath)},
@@ -292,6 +293,7 @@ static EDITOR_CONFIGURATION _configuration = {
 	.themeName = "system default",
 	.language = "Deutsch",
 	.soundName = "",
+	.prunedSearchDirectories = ".*;build;target",
 	.searchEngine = "Google",
 	.outputPatterns = 0,
 	.pksEditTempPath = 0,
@@ -413,6 +415,7 @@ static DIALOG_ITEM_DESCRIPTOR _dMisc[] = {
 	{IDD_STRINGLIST2, 0,								.did_listhandler = &_themelist},
 	{IDD_STRINGLIST1, 0,								.did_listhandler = &_localeslist},
 	{IDD_FONTSELECT,	TRUE,	_configuration.defaultFontFace, .did_command = dlg_selectFontCommand},
+	{IDD_STRING2,	sizeof _configuration.prunedSearchDirectories,	_configuration.prunedSearchDirectories},
 	// Terminate with 0
 	{0}
 };

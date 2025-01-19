@@ -247,13 +247,15 @@ static int find_inFile(intptr_t p1, void* pUnused) {
 
 	if (_searchContext.sc_ignoreBinary && scan_isBinaryFile(fd)) {
 		_searchContext.sc_filesSkipped++;
-	} else {
-        _searchContext.sc_filesScanned++;
+	}
+	else {
+		_searchContext.sc_filesScanned++;
 		size_t nOldFound = _searchContext.sc_matches;
 		progress_showMonitorMessage(string_abbreviateFileName(pszFile));
 		if (!_searchContext.sc_trymatch) {
 			find_inFilesMatchFound(pszFile, -1, 0, 0);
-		} else {
+		}
+		else {
 			CODE_PAGE_INFO cpInfo = {
 				.cpi_codepage = CP_ACP
 			};
@@ -273,16 +275,16 @@ static int find_inFile(intptr_t p1, void* pUnused) {
  * matchInFile()
  * scan for a pSearchExpression pattern in file filename
  */
-static int matchInFile(const char *fn, DTA *stat) {
+static int matchInFile(const char* fn, DTA* stat) {
 
 	if (stat->attrib & _A_SUBDIR) {
 		return 0;
 	}
-	return find_inFile((intptr_t)fn,0) == 1 ? 0 : -1;
+	return find_inFile((intptr_t)fn, 0) == 1 ? 0 : -1;
 }
 
 /*
- * Scan all files from the current search result list 
+ * Scan all files from the current search result list
  */
 static int find_matchesInSearchResults(HASHMAP* pFiles) {
 	hashmap_forEachKey(pFiles, find_inFile, 0);
@@ -290,7 +292,7 @@ static int find_matchesInSearchResults(HASHMAP* pFiles) {
 }
 
 /*
- * Parse the filename from a 
+ * Parse the filename from a
  */
 static unsigned char* find_collectFileFromLine(HASHMAP* pResult, EDIT_CONFIGURATION* pConfig, unsigned char* pStart, unsigned char* pEnd) {
 	RE_MATCH match;
@@ -331,6 +333,24 @@ static HASHMAP* find_collectFiles(char* pszStepfile) {
 	return pResult;
 }
 
+BOOL _find_folderMatches(const char* match, const char* folderName) {
+	for (int j = 0, m = 0; ; j++, m++) {
+		if (folderName[j] == 0 || match[m] == '*' || match[m] == ';' || match[m] == ':') {
+			return TRUE;
+		}
+		if (match[m] != folderName[j]) {
+			while (match[m] != ';' && match[m] != ':') {
+				if (!match[m]) {
+					return FALSE;
+				}
+				m++;
+			}
+			j = -1;
+		}
+	}
+	return FALSE;
+}
+
 /*
  * Filter for skipping binary directories.
  */
@@ -341,7 +361,7 @@ BOOL _isNonBinaryDirectory(char* filename) {
 		sprintf(szBuf, "%llu directories scanned.", _searchContext.sc_directoriesScanned);
 		progress_showMonitorMessage(szBuf);
 	}
-	return *filename != '.' && strcmp(filename, "target") != 0 && strcmp(filename, "build") != 0;
+	return !_find_folderMatches(GetConfiguration()->prunedSearchDirectories, filename);
 }
 
 /*--------------------------------------------------------------------------

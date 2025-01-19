@@ -118,7 +118,8 @@ typedef struct tagEDITOR_CONFIGURATION {
 	char defaultFontFace[32];
 	char searchEngine[32];						// selected search engine for searching a string on the internet.
 	char soundName[32];							// sound name for playing sounds.
-	BUILD_OUTPUT_PATTERN* outputPatterns;	// Pre-defined compiler output patterns
+	char prunedSearchDirectories[64];			// Directories not scanned during Search In Folders, when Ignore Binary Files option is selected.
+	BUILD_OUTPUT_PATTERN* outputPatterns;		// Pre-defined compiler output patterns
 	void (*autosaveOnExit)();
 } EDITOR_CONFIGURATION;
 
