@@ -18,6 +18,7 @@
 #include "..\include\loadimage.h"
 #include "..\include\winterf.h"
 #include "..\include\alloc.h"
+#include "string.h"
 #include <Windows.h>
 #include <tchar.h>
 #include <wincodec.h>
@@ -589,7 +590,14 @@ static GUID loadimage_getTypeFromContent(char* pszData, UINT cbSize) {
     if (cbSize < 5) {
         return guid;
     }
-    if (pszData[0] == '<' && (strncmp(pszData, "<svg", 4) == 0 || strncmp(pszData, "<?xml", 5) == 0)) {
+    int i = 0;
+    while(i < (int)cbSize) {
+        if (pszData[i] != '\n' && pszData[i] != ' ') {
+            break;
+        }
+        i++;
+    }
+    if (pszData[i] == '<' && (strncmp(pszData+i, "<svg", 4) == 0 || strncmp(pszData+i, "<?xml", 5) == 0)) {
         return CLSID_SvgDecoder;
     }
     if (strncmp(pszData, "GIF8", 4) == 0) {

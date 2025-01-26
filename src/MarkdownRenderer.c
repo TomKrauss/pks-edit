@@ -1835,6 +1835,11 @@ static char* mdr_processUrlWithBase(const char* pszBaseURL, char* pszLink, BOOL 
 		string_concatPathAndFilename(szFullURL, szFullURL, szLink);
 		return _strdup(szFullURL);
 	}
+	if (strstr(pszLink, "github") != 0 && strstr(pszLink, "raw") == 0) {
+		strncpy(szFullURL, pszLink, sizeof szFullURL);
+		strncat(szFullURL, "?raw=true", sizeof szFullURL);
+		pszLink = szFullURL;
+	}
 	return _strdup(pszLink);
 }
 
