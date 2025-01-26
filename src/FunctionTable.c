@@ -138,6 +138,9 @@ static int func_supportsEvaluate(intptr_t* pStack) {
         return FALSE;
     }
     FTABLE* fp = FTPOI(wp);
+    if (fp->documentDescriptor == NULL) {
+        return FALSE;
+    }
     return grammar_getEvaluator(fp->documentDescriptor->grammar) != NULL;
 }
 

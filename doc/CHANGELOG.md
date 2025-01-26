@@ -5,6 +5,11 @@ All notable changes to PKS Edit will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.1] - 2025-01-27
+
+### Fixed
+- A bug was fixed, which could cause "Reload File" to crash, when there is a non empty selection in a file.
+
 ## [2.10.0] - 2024-10-30
 
 ### Added
