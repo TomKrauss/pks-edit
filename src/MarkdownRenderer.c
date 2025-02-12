@@ -5140,9 +5140,8 @@ static int mdr_placeCaretAfterClick(WINFO* wp, long* ln, long* col, int updateVi
 static int mdr_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
 	MARKDOWN_RENDERER_DATA* pData = wp->r_data;
 	if (wp->ww_handle && pData) {
-		FTABLE* fp = wp->fp;
-		LINE* lp1 = ln_goto(fp, ln1);
-		LINE* lp2 = ln_goto(fp, ln2);
+		LINE* lp1 = ln_gotoWP(wp, ln1);
+		LINE* lp2 = ln_gotoWP(wp, ln2);
 		int dummy;
 		RENDER_VIEW_PART* p1 = mdr_getViewPartForLine(pData->md_pElements, lp1, &dummy);
 		RENDER_VIEW_PART* p2 = mdr_getViewPartForLine(pData->md_pElements, lp2, &dummy);

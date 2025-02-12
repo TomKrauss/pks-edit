@@ -783,16 +783,64 @@ void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
  * Returns the indices of the first selected line and the last selected line.
  * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
  */
-int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex) {
+int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex, BOOL bInWIndow) {
 	*pFirstIndex = -1;
 	*pLastIndex = -1;
 	if (wp->blstart && wp->blend) {
 		LINE* pStartPointer = wp->blstart->m_linePointer;
+		LINE* pEndPointer = wp->blend->m_linePointer;
+		if (bInWIndow) {
+			LINE* lp = ln_gotoWP(wp, wp->minln);
+			long ln = wp->minln;
+			*pFirstIndex = ln;
+			*pLastIndex = wp->maxln;
+			while (lp && ln <= wp->maxln) {
+				if (lp == pStartPointer) {
+					*pFirstIndex = ln;
+				}
+				if (lp == pEndPointer) {
+					*pLastIndex = ln;
+					return TRUE;
+				}
+				lp = lp->next;
+				ln++;
+			}
+			FTABLE* fp = wp->fp;
+			if (ln < fp->nlines / 2) {
+				while (lp) {
+					if (lp == pStartPointer) {
+						return TRUE;
+					}
+					if (lp == pEndPointer) {
+						*pFirstIndex = *pLastIndex = ln;
+						return TRUE;
+					}
+					lp = lp->prev;
+					ln--;
+				}
+				*pFirstIndex = *pLastIndex = ln;
+				return TRUE;
+			} else {
+				while (lp) {
+					if (lp == pEndPointer) {
+						return TRUE;
+					}
+					if (lp == pStartPointer) {
+						*pFirstIndex = *pLastIndex = ln;
+						return TRUE;
+					}
+					lp = lp->next;
+					ln++;
+				}
+				*pFirstIndex = *pLastIndex = ln;
+				return TRUE;
+			}
+		}
 		*pFirstIndex = pStartPointer == wp->caret.linePointer ? wp->caret.ln : ln_indexOf(wp->fp, pStartPointer);
-		if (pStartPointer == wp->blend->m_linePointer) {
+		if (pStartPointer == pEndPointer) {
 			*pLastIndex = *pFirstIndex;
 		} else {
-			int nDelta = ll_indexOf((LINKED_LIST*)pStartPointer, (LINKED_LIST*)wp->blend->m_linePointer);
+			int nDelta = ll_indexOf((LINKED_LIST*)pStartPointer, (LINKED_LIST*)pEndPointer);
 			if (wp->blend->m_column == 0) {
 				nDelta--;
 			}

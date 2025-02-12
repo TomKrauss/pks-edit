@@ -510,8 +510,8 @@ static int hex_placeCaret(WINFO* wp, long* ln, long offset, long* screenCol, int
 	if (!pMovementSpec || pMovementSpec->cms_absolute) {
 		FTABLE* fp = FTPOI(wp);
 		wp->caret.offset = offset;
+		wp->caret.linePointer = ln_gotoWP(wp, *ln);
 		wp->caret.ln = *ln;
-		wp->caret.linePointer = ln_goto(fp, *ln);
 		hex_bufferOffsetToScreen(wp, &wp->caret, &nLine, &nCol);
 	} else {
 		nLine = pData->nCaretLine;
@@ -602,8 +602,7 @@ static int hex_repaint(WINFO* wp, int ln1, int ln2, int col1, int col2) {
 		if (ln1 == ln2) {
 			long nMin = wp->minln;
 			long nMax = wp->maxln;
-			FTABLE* fp = wp->fp;
-			LINE* lp1 = ln_goto(fp, ln1);
+			LINE* lp1 = ln_gotoWP(wp, ln1);
 			long nLine;
 			long nCol;
 			hex_bufferOffsetToScreen(wp, &(CARET) {.linePointer = lp1, .offset = col1}, & nLine, & nCol);

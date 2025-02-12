@@ -640,8 +640,9 @@ extern int ww_close(WINFO* wp);
 /*
  * Returns the indices of the first selected line and the last selected line.
  * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
+ * If bInWindow is TRUE only lines between the minimum window and maximum window line are returned.
  */
-extern int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex);
+extern int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex, BOOL bInWindow);
 
 /*
  * Returns the LINE pointer for a line with a given index.

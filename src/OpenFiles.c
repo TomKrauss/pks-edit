@@ -427,7 +427,7 @@ int bl_selectionContainsLogicalPoint(WINFO* wp, long ln, long col) {
 	long ln1;
 	long ln2;
 
-	if (!ww_getSelectionLines(wp, &ln1, &ln2)) {
+	if (!ww_getSelectionLines(wp, &ln1, &ln2, FALSE)) {
 		return 0;
 	}
 	if (ln1 > ln || ln2 < ln) {

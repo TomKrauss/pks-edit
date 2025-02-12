@@ -484,7 +484,7 @@ int bl_moveSelectionUpDown(long delta) {
 	} 
 	long pos;
 	long pos2;
-	ww_getSelectionLines(wp, &pos, &pos2);
+	ww_getSelectionLines(wp, &pos, &pos2, FALSE);
 	long newPos;
 	newPos = pos + delta;
 	if (newPos < 0 || newPos >= fp->nlines) {
@@ -806,8 +806,8 @@ EXPORT int EdMouseMarkParts(WINFO* wp, int type)
 	} else if (type == MOT_PGRPH) {
 		col = caret_advanceParagraph(wp, ln,1,1);
 		ln  = caret_advanceParagraph(wp, col,-1,1);
-		lp  = ln_goto(wp,ln);
-		lp2 = ln_goto(wp,col);
+		lp  = ln_gotoWP(wp,ln);
+		lp2 = ln_gotoWP(wp,col);
 	} else {	/* MOT_TOEND */
 		lp2 = lp->next;
 		if (lp2->next == 0 || colflg) {

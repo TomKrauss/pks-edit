@@ -37,12 +37,6 @@ typedef struct linkedList {
  */
 extern long ll_indexOf(LINKED_LIST* pHead, const LINKED_LIST* lp);
 
-/**
- * Find the index of two elements in a linked list. If both elements are found (idx1 and idx2 can be determined),
- * return 1, 0 otherwise.
- */
-extern int ll_indexTwoElements(LINKED_LIST* pHead, const void* lp1, const void* lp2, long* pIdx1, long* pIdx2);
-
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()
  * put an element to the top of the linked list

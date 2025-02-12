@@ -483,8 +483,7 @@ int edit_getLineLen(WINFO* wp, long nLine) {
 	if (nLine < 0) {
 		lp = wp->caret.linePointer;
 	} else {
-		FTABLE* fp = wp->fp;
-		lp = ln_goto(fp, nLine);
+		lp = ln_gotoWP(wp, nLine);
 	}
 	return lp ? lp->len : -1;
 }
@@ -513,11 +512,10 @@ char* edit_getLineText(WINFO* wp, long nLine) {
 	if (wp == NULL) {
 		wp = ww_getCurrentEditorWindow();
 	}
-	FTABLE* fp = wp->fp;
 	if (nLine < 0) {
 		nLine = wp->caret.ln;
 	}
-	LINE* lp = ln_goto(fp, nLine);
+	LINE* lp = ln_gotoWP(wp, nLine);
 	if (!lp) {
 		return 0;
 	}

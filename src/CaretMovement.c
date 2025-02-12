@@ -663,7 +663,6 @@ static void caret_advanceSectionUsing(WINFO* wp, long *ln, DIRECTION_OPTION dir,
 					/* caret_gotoParagraphStart,caret_gotoParagraphEnd for advancing paragraphs */
 					/* equaltabed(line) for advancing sections */
 {	register LINE *lp;
-	register FTABLE *fp;
 	register long lnr,mul;
 
 	lnr = *ln;

@@ -214,7 +214,7 @@ long long caret_addSecondaryWithMouse() {
 	int x, y;
 	mouse_getXYPos(wp->ww_handle, &x, &y);
 	wp->renderer->r_hitTest(wp, x, y, &ln, &col);
-	LINE* lp = ln_goto(wp->fp, ln);
+	LINE* lp = ln_gotoWP(wp, ln);
 	if (!lp) {
 		return 0;
 	}

@@ -578,10 +578,14 @@ int ln_joinLines(FTABLE *fp) {
  * Optimized version of ln_goto for big files.
  */
 LINE* ln_gotoWP(WINFO* wp, long l) {
+	FTABLE* fp = wp->fp;
 	if (wp->caret.linePointer != NULL && l > abs(wp->caret.ln - l)) {
+		if (l >= fp->nlines) {
+			return 0;
+		}
 		return ln_relative(wp->caret.linePointer, l - wp->caret.ln);
 	} else {
-		return ln_goto(wp->fp, l);
+		return ln_goto(fp, l);
 	}
 }
 

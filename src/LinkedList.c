@@ -89,39 +89,6 @@ long ll_indexOf(LINKED_LIST* pHead, const LINKED_LIST *lp) {
 	return ln;
 }
 
-/**
- * Find the index of two elements in a linked list. If both elements are found (idx1 and idx2 can be determined),
- * return 1, 0 otherwise.
- */
-int ll_indexTwoElements(LINKED_LIST* pHead, const void* lp1, const void* lp2, long *pIdx1, long* pIdx2) {
-	LINKED_LIST* lc = pHead;
-	long 	ln = 0;
-	long    idx1 = -1;
-	long idx2 = -1;
-
-	while (lc) {
-		if ((lc = lc->next) == 0) return 0;
-		if (lc == lp1) {
-			idx1 = ln;
-			if (lc == lp2) {
-				idx2 = ln;
-			}
-			if (idx2 >= 0) {
-				break;
-			}
-		} else if (lc == lp2) {
-			idx2 = ln;
-			if (idx1 >= 0) {
-				break;
-			}
-		}
-		ln++;
-	}
-	*pIdx1 = idx1;
-	*pIdx2 = idx2;
-	return 1;
-}
-
 /*--------------------------------------------------------------------------
  * ll_moveElementToFront()
  * put an element to the top of the linked list

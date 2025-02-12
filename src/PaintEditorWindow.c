@@ -373,7 +373,7 @@ void render_asciiMode(RENDER_CONTEXT* pCtx, RECT* pClip, HBRUSH hBrushBg, int y)
 	lp = ww_getMinLine(wp, min);
 	RECT rect;
 	GetClientRect(wp->ww_handle, &rect);
-	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine);
+	ww_getSelectionLines(wp, &minMarkedLine, &maxMarkedLine, TRUE);
 	int cheight = wp->cheight;
 	for (ln = min; lp && ln <= max && y < pClip->bottom;
 		lp = lp->next, ln++, y = newy) {
@@ -673,6 +673,28 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 	ft_forAllViews(fp, render_repaintLinePointerForWindow, lpWhich);
 }
 
+static BOOL render_findWindowStartEndIndices(WINFO* wp, LINE* lpStart, LINE* lpEnd, long* pIdx1, long* pIdx2) {
+	LINE* lp = ln_gotoWP(wp, wp->minln);
+	if (lp == NULL) {
+		return FALSE;
+	}
+	*pIdx1 = wp->minln;
+	*pIdx2 = wp->maxln;
+	long ln = wp->minln;
+	while (lp && ln <= wp->maxln) {
+		if (lp == lpStart) {
+			*pIdx1 = ln;
+		}
+		if (lp == lpEnd) {
+			*pIdx2 = ln;
+			break;
+		}
+		lp = lp->next;
+		ln++;
+	}
+	return TRUE;
+}
+
 /*--------------------------------------------------------------------------
  * render_repaintLineRange()
  * Send a repaint to a range of lines specified by line pointer. Either repaint
@@ -681,7 +703,8 @@ EXPORT void render_repaintLine(FTABLE *fp, LINE *lpWhich)
 static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
 	long idx1;
 	long idx2;
-	if (!ll_indexTwoElements((LINKED_LIST*)fp->firstl, lpStart, lpEnd, &idx1, &idx2)) {
+
+	if (!render_findWindowStartEndIndices(wp, lpStart, lpEnd, &idx1, &idx2)) {
 		if (wp) {
 			render_repaintForWindow(wp, 0);
 		} else {
