@@ -117,8 +117,7 @@ EXPORT int caret_screen2lineOffset(WINFO *wp, CARET *pCaret) {
 		}
 	}
 	if (lp == NULL) {
-		FTABLE* fp = FTPOI(wp);
-		lp = ln_goto(fp, pCaret->ln);
+		lp = ln_gotoWP(wp, pCaret->ln);
 		if (lp == NULL) {
 			return 0;
 		}
@@ -356,9 +355,8 @@ void caret_moveToLine(WINFO* wp, long ln) {
 EXPORT int caret_updateDueToMouseClick(WINFO *wp, long *ln, long *col, int updateVirtualColumn) {
 	LINE *	lp;
 	int		i;
-	FTABLE* fp = wp->fp;
 
-	if ((lp = ln_goto(fp, *ln)) == 0) {
+	if ((lp = ln_gotoWP(wp, *ln)) == 0) {
 		return 0;
 	}
 
@@ -401,8 +399,10 @@ EXPORT int caret_placeCursorAndValidate(WINFO *wp, long *ln, long offset, long *
 	int			o;
 	FTABLE* fp = wp->fp;
 
-	if ((lp = ln_goto(fp,*ln)) == 0L)
+	lp = ln_gotoWP(wp, *ln);
+	if (lp == 0L) {
 		return 0;
+	}
 
 	o = offset;
 	if (o < 0) {
@@ -457,7 +457,7 @@ EXPORT int caret_placeCursorForFile(WINFO *wp, long ln, long col, long screenCol
  * Adds a secondary caret to a window.
  */
 CARET* caret_addSecondary(WINFO* wp, long ln, long nLineOffset) {
-	LINE* lp = ln_goto(wp->fp, ln);
+	LINE* lp = ln_gotoWP(wp, ln);
 	if (!lp) {
 		return 0;
 	}
@@ -666,9 +666,8 @@ static void caret_advanceSectionUsing(WINFO* wp, long *ln, DIRECTION_OPTION dir,
 	register FTABLE *fp;
 	register long lnr,mul;
 
-	fp  = wp->fp;
 	lnr = *ln;
-	if ((lp = ln_goto(fp,lnr)) == 0)
+	if ((lp = ln_gotoWP(wp,lnr)) == 0)
 		return;
 
 	if (dir > 0 && !start) {

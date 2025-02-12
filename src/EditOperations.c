@@ -1401,14 +1401,14 @@ long long edit_replaceSelectedRange(WINFO* wp, long nLineFrom, long nLineTo, ARR
 	if (!wp || !pLines) {
 		return 0;
 	}
-	FTABLE* fp = wp->fp;
-	LINE* lp = ln_goto(fp, nLineFrom);
+	LINE* lp = ln_gotoWP(wp, nLineFrom);
 	if (!lp || !lp->next) {
 		return 0;
 	}
 	size_t nLines = arraylist_size(pLines);
 	int i = 0;
 	bl_hideSelection(wp, 1);
+	FTABLE* fp = wp->fp;
 	while (i+nLineFrom <= nLineTo || i < nLines) {
 		if (i >= nLines) {
 			LINE* lpnext = lp->next;

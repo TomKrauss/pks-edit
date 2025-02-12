@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.10.1] - 2025-01-27
 
+### Improved
+- We greatly optimized caret navigation and scrolling performance in big,big files (more than 100000 lines).
+  Navigating to a new line in a file with 4.000.000 lines of code took about 400ms on a good machine before
+  and is now as fast as navigating in a small file.
+
 ### Fixed
 - A bug was fixed, which could cause "Reload File" to crash, when there is a non empty selection in a file.
 

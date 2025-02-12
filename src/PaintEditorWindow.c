@@ -329,7 +329,7 @@ LINE* ww_getMinLine(WINFO* wp, int idx) {
 		wp->lpMinln = fp->firstl;
 		wp->cachedLineIndex = 0;
 	} else  if (idx != wp->cachedLineIndex || wp->lpMinln == 0) {
-		wp->lpMinln = ln_goto(wp->fp, idx);
+		wp->lpMinln = ln_gotoWP(wp, idx);
 		wp->cachedLineIndex = idx;
 	}
 	return wp->lpMinln;

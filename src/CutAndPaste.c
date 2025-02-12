@@ -789,7 +789,7 @@ EXPORT int EdMouseMarkParts(WINFO* wp, int type)
 	ln  = wp->caret.ln;
 	col = wp->caret.offset;
 
-	if ((lp = ln_goto(fp,ln)) == 0)
+	if ((lp = ln_gotoWP(wp,ln)) == 0)
 		return 0;
 
 	bl_hideSelectionInCurrentWindow(wp);
@@ -806,8 +806,8 @@ EXPORT int EdMouseMarkParts(WINFO* wp, int type)
 	} else if (type == MOT_PGRPH) {
 		col = caret_advanceParagraph(wp, ln,1,1);
 		ln  = caret_advanceParagraph(wp, col,-1,1);
-		lp  = ln_goto(fp,ln);
-		lp2 = ln_goto(fp,col);
+		lp  = ln_goto(wp,ln);
+		lp2 = ln_goto(wp,col);
 	} else {	/* MOT_TOEND */
 		lp2 = lp->next;
 		if (lp2->next == 0 || colflg) {

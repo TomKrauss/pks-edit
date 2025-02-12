@@ -574,6 +574,17 @@ int ln_joinLines(FTABLE *fp) {
 	return 1;
 }
 
+/*
+ * Optimized version of ln_goto for big files.
+ */
+LINE* ln_gotoWP(WINFO* wp, long l) {
+	if (wp->caret.linePointer != NULL && l > abs(wp->caret.ln - l)) {
+		return ln_relative(wp->caret.linePointer, l - wp->caret.ln);
+	} else {
+		return ln_goto(wp->fp, l);
+	}
+}
+
 /*----------------------------*/
 /* ln_goto()				*/
 /* goto line l in File and return the corresponding line pointer */

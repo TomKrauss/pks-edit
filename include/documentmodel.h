@@ -321,6 +321,11 @@ extern LINE *ln_break(FTABLE *fp, LINE *linep, int col);
 extern LINE *ln_split(FTABLE *fp, LINE *lc, int pos2, int pos1);
 extern LINE *ln_join(FTABLE *fp,LINE *ln1,LINE *ln2,int flg);
 extern int ln_joinLines(FTABLE *fp);
+/*
+ * Optimized version of ln_goto for big files.
+ */
+LINE* ln_gotoWP(WINFO* wp, long l);
+
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);
 extern long ln_cnt(LINE *lps,LINE *lpe);
