@@ -70,7 +70,7 @@ static void argument_openFiles(const char* pszDirectory, const char* pszFilespec
 	if (strchr(pszFilespec, '*') || strchr(pszFilespec, '?')) {
 		_ftw(pszDirectory, argument_open, 999, pszFilespec, NORMALFILE | ARCHIV | WPROTECT, NULL);
 	} else {
-		if (file_exists(pszFilespec) != 0 && pszDirectory[0] != 0) {
+		if (file_exists(pszFilespec) != 0 && pszDirectory[0] != 0 && strcmp(pszDirectory, ".") != 0) {
 			char szDest[EDMAXPATHLEN];
 			string_concatPathAndFilename(szDest, pszDirectory, pszFilespec);
 			xref_openFile(szDest, 0L, (void*)0);
@@ -154,7 +154,7 @@ static int arguments_get(char *args, int (*argfunc)(char *arg))
 		char* d = argument;
 		if (*args == '"') {
 			args++;
-			while(*args && *args != '"') {
+			while(d < dend && *args && *args != '"') {
 				*d++ = *args++;
 			}
 			args++;

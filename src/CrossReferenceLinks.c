@@ -1074,10 +1074,11 @@ void xref_openWindowHistory(LINE *lp) {
 	NAVIGATION_PATTERN* pNavigationPattern = xref_getSearchListFormat();
 	RE_PATTERN *pPattern = xref_initializeNavigationPattern(pNavigationPattern);
 	BOOL bActive;
-	WINFO* pActivate[5];
+	WINFO* pActivate[32];
 	int nActivate = 0;
 	int nFocussed = -1;
 
+	int maxActive = DIM(pActivate);
 	memset(pActivate, 0, sizeof pActivate);
 	while(lp != 0L) {		/* we may skip 1st line ! */
 		if (lp->len && xref_parseNavigationSpec(pNavigationPattern, &spec, pPattern, lp)) {
@@ -1116,13 +1117,12 @@ void xref_openWindowHistory(LINE *lp) {
 			if (bActive || nDisplayMode != -1) {
 				WINFO* wpThis = ww_getCurrentEditorWindow();
 				if (wpThis) {
-					if (bActive) {
+					if (bActive && nActivate < maxActive) {
 						pActivate[nActivate] = wpThis;
 						pActivate[nActivate]->workmode |= WM_PINNED;
 						if (bFocus) {
 							nFocussed = nActivate;
 						}
-						nActivate++;
 					}
 					if (nDisplayMode != -1 && !bClone) {
 						ww_changeDisplayMode(wpThis, nDisplayMode);
