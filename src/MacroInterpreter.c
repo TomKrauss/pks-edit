@@ -670,7 +670,7 @@ static long long cdecl interpreter_callFfi(NATIVE_FUNCTION* pFunc, intptr_t* pSt
 			}
 		}
 	}
-	return (*pFunc->nf_execute)((long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4], (void*)pStack[5]);
+	return (*pFunc->nf_execute)((long long)pStack[0], (long)pStack[1], (void*)pStack[2], (void*)pStack[3], (void*)pStack[4], (void*)pStack[5]);
 }
 
 /*---------------------------------*/
@@ -1289,7 +1289,7 @@ long long macro_executeMacro(WINFO* wp, MACROREF* mp) {
 	COM_1FUNC* cp;
 	long long ret;
 	MACRO macro;
-	_contextWindow = wp;
+	interpreter_setContextWindow(wp);
 	switch (mp->typ) {
 	case CMD_CMDSEQ:
 		cp = &_commandTable[mp->index].c_functionDef;
@@ -1306,7 +1306,7 @@ long long macro_executeMacro(WINFO* wp, MACROREF* mp) {
 		ret = 0;
 		error_displayAlertDialog("Illegal command type to execute.");
 	}
-	_contextWindow = 0;
+	interpreter_setContextWindow(0);
 	return ret;
 }
 

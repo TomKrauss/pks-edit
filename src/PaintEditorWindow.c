@@ -701,8 +701,8 @@ static BOOL render_findWindowStartEndIndices(WINFO* wp, LINE* lpStart, LINE* lpE
  * a specific window (wp != NULL) or all windows for the document fp.
  */
 static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* lpStart, LINE* lpEnd) {
-	long idx1;
-	long idx2;
+	long idx1 = 0;
+	long idx2 = fp->nlines;
 
 	if (wp != NULL && !render_findWindowStartEndIndices(wp, lpStart, lpEnd, &idx1, &idx2)) {
 		if (wp) {

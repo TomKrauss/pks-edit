@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.10.1] - 2025-01-27
 
+Release 2.10.1 is the huge file release fixing some bugs and some performance bottlenecks when working
+with huge files (> 1 Mio lines).
+
 ### Improved
 - We greatly optimized caret navigation and scrolling performance in big,big files (more than 100000 lines).
   Navigating to a new line in a file with 4.000.000 lines of code took about 400ms on a good machine before
@@ -14,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - A bug was fixed, which could cause "Reload File" to crash, when there is a non empty selection in a file.
+- A bug was fixed causing PKS Edit to crash on the first macro execution after a big, big file had been
+  loaded causing an internal pointer overflow in the macro execution engine.
 
 ## [2.10.0] - 2024-10-30
 
