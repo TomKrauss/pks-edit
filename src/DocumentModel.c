@@ -579,14 +579,33 @@ int ln_joinLines(FTABLE *fp) {
  */
 LINE* ln_gotoWP(WINFO* wp, long l) {
 	FTABLE* fp = wp->fp;
+	if (l >= fp->nlines) {
+		return 0;
+	}
 	if (wp->caret.linePointer != NULL && l > abs(wp->caret.ln - l)) {
-		if (l >= fp->nlines) {
-			return 0;
-		}
 		return ln_relative(wp->caret.linePointer, l - wp->caret.ln);
 	} else {
 		return ln_goto(fp, l);
 	}
+}
+
+/*
+ * Optimized version of ln_indexOf for big files. 
+ */
+long ln_indexOfWP(WINFO* wp, LINE* lp) {
+	LINE* lpTest = wp->caret.linePointer;
+	if (lpTest != NULL) {
+		if (lpTest == lp) {
+			return wp->caret.ln;
+		}
+		if (lpTest->next == lp) {
+			return wp->caret.ln+1;
+		}
+		if (lpTest->prev == lp) {
+			return wp->caret.ln - 1;
+		}
+	}
+	return ln_indexOf(wp->fp, lp);
 }
 
 /*----------------------------*/

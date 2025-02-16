@@ -463,8 +463,8 @@ PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pVal
 	long nHigh = nLow;
 	if (wp->blstart && wp->blend) {
 		FTABLE* fp = wp->fp;
-		nLow = ln_indexOf(fp, wp->blstart->m_linePointer);
-		nHigh = ln_indexOf(fp, wp->blend->m_linePointer);
+		nLow = ln_indexOfWP(wp, wp->blstart->m_linePointer);
+		nHigh = ln_indexOfWP(wp, wp->blend->m_linePointer);
 		if (nHigh > nLow && wp->blend->m_column == 0) {
 			nHigh--;
 		}

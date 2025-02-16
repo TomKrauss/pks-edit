@@ -503,7 +503,7 @@ static int bl_placeCursorOnBlockMark(WINFO* wp, MARK *mp) {
 	long newln;
 
 	if (mp != 0) {
-		newln = ln_indexOf(wp->fp,mp->m_linePointer);
+		newln = ln_indexOfWP(wp, mp->m_linePointer);
 		caret_placeCursorAndSavePosition(wp, newln,(long)mp->m_column);
 		return 1;
 	} else {

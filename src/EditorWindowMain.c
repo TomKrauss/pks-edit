@@ -836,7 +836,7 @@ int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex, BOOL bI
 				return TRUE;
 			}
 		}
-		*pFirstIndex = pStartPointer == wp->caret.linePointer ? wp->caret.ln : ln_indexOf(wp->fp, pStartPointer);
+		*pFirstIndex = ln_indexOfWP(wp, pStartPointer);
 		if (pStartPointer == pEndPointer) {
 			*pLastIndex = *pFirstIndex;
 		} else {

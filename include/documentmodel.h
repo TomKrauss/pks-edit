@@ -325,6 +325,10 @@ extern int ln_joinLines(FTABLE *fp);
  * Optimized version of ln_goto for big files.
  */
 LINE* ln_gotoWP(WINFO* wp, long l);
+/*
+ * Optimized version of ln_indexOf for big files.
+ */
+long ln_indexOfWP(WINFO* wp, LINE* lp);
 
 extern LINE *ln_goto(FTABLE *fp,long l);
 extern LINE *ln_relative(LINE *cl, long l);

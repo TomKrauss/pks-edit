@@ -390,8 +390,8 @@ int find_incrementally(char* pszString, int nOptions, int nDirection, BOOL bCont
 	_currentSearchAndReplaceParams.options = nOptions;
 	if (bContinue && ww_hasSelection(wp)) {
 		incrementalStart = (CARET){ .linePointer = wp->blstart->m_linePointer, .offset = wp->blstart->m_column };
-		incrementalStart.ln = ln_indexOf(fp, wp->blstart->m_linePointer);
-	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOf(fp, incrementalStart.linePointer)) < 0) {
+		incrementalStart.ln = ln_indexOfWP(wp, wp->blstart->m_linePointer);
+	} else if (incrementalStart.linePointer == NULL ||(incrementalStart.ln = ln_indexOfWP(wp, incrementalStart.linePointer)) < 0) {
 		incrementalStart = wp->caret;
 	}
 	if (*pszString == 0) {
@@ -747,7 +747,7 @@ REPLACE_TEXT_RESULT edit_replaceText(WINFO* wp, const char* pszSearchPattern, co
 
 	lp  = pMarkStart->m_linePointer;
 	col = pMarkStart->m_column;
-	startln = ln = ln_indexOf(fp,lp);
+	startln = ln = ln_indexOfWP(wp,lp);
 
 	lastfln = wp->caret.ln;
 	lastfcol = wp->caret.offset;
