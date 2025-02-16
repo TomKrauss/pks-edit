@@ -356,14 +356,14 @@ static int dde_initialize(BOOL* pDDEOtherInstanceExists) {
 		pksEditMutex = CreateMutex(0, 0, PKS_EDIT_APPLICATION_ID);
 		*pDDEOtherInstanceExists = FALSE;
 	}
-	result = DdeInitialize(&hDDE, EdDDECallback, 
+	result = DdeInitialize(&hDDE, EdDDECallback,
 		APPCLASS_STANDARD | 
 		CBF_FAIL_SELFCONNECTIONS |
 		CBF_SKIP_DISCONNECTS |
 		CBF_SKIP_REGISTRATIONS, 
 		0);
 	if (result != DMLERR_NO_ERROR) {
-		error_displayAlertDialog("Got error %d initializing DDE");
+		error_displayAlertDialog("Got error %d initializing DDE", GetLastError());
 		hDDE = 0;
 	} else {
 		hszDDEService = DdeCreateStringHandle(hDDE, PKS_EDIT_APPLICATION_ID, CP_WINANSI);
