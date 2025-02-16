@@ -704,7 +704,7 @@ static void render_repaintLineRangeWindowInternal(WINFO* wp, FTABLE* fp, LINE* l
 	long idx1;
 	long idx2;
 
-	if (!render_findWindowStartEndIndices(wp, lpStart, lpEnd, &idx1, &idx2)) {
+	if (wp != NULL && !render_findWindowStartEndIndices(wp, lpStart, lpEnd, &idx1, &idx2)) {
 		if (wp) {
 			render_repaintForWindow(wp, 0);
 		} else {

@@ -1005,27 +1005,23 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, const unsigned 
 
 	for (;;) {
 		q = p;
-		if (t2 >= 0) {
-			while (*p != t1 && *p != t2) {
-				p++;
-			}
-			p++;
-		}
-		else {
-			while (*p++ != t1) {
-				;
-			}
+		while (p < pend && *p++ != t1) {
+			;
 		}
 
 		len = p - q;
-
-		if (cr >= 0 && p > pstart && p[-2] == cr) {
-			len -= 2;
-			flags = 0;
+		if (p < pend) {
+			if (cr >= 0 && p > pstart && p[-2] == cr) {
+				len -= 2;
+				flags = 0;
+			}
+			else {
+				len--;
+				flags = LNNOCR;
+			}
 		}
 		else {
-			len--;
-			flags = LNNOCR;
+			flags = LNNOTERM;
 		}
 
 		/* is this line too long ? */
@@ -1036,7 +1032,7 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, const unsigned 
 			goto createline;
 		}
 
-		if (p > pend) {
+		if (p >= pend) {
 			fp->nlines += nl;
 			return (char*)q;
 		}
