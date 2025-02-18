@@ -367,7 +367,8 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 			}
 		}
 		pend = &bufferStart[got];
-
+		// make sure,the end is always line terminated to make splitting lines faster.
+		pend[1] = doctypes_getDefaultDocumentTypeDescriptor()->nl;
 		if ((q = (*lineExtractedCallback)(par,doctypes_getDefaultDocumentTypeDescriptor(),&bufferStart[-len],pend)) == 0)
 			return 0;
 		if ((len = (int)(pend-q)) != 0) {

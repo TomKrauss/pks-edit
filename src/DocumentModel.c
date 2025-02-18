@@ -1030,8 +1030,12 @@ unsigned char* ln_createMultipleLinesUsingSeparators(FTABLE* fp, const unsigned 
 			}
 		}
 		else {
-			while (p < pend && *p != t1) {
+			// the end has always a terminator.
+			while (*p != t1) {
 				p++;
+			}
+			if (p > pend) {
+				p = pend;
 			}
 		}
 
