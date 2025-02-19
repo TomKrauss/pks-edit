@@ -937,8 +937,15 @@ char* ft_convertToBuffer(const FTABLE* fp, char* lpMem, size_t* pnSize, const LI
 		memcpy(lpMem, lp->lbuf, lp->len);
 		lpMem += lp->len;
 		nSize -= lp->len;
-		if (LINE_HAS_LINE_END(lp) && nl) {
-			if (LINE_HAS_CR(lp) && cr) {
+		const LINE* lpCurr = lp;
+		if ((lp = lp->next) == 0) {
+			break;
+		}
+		if (fp && lp == fp->lastl) {
+			break;
+		}
+		if (LINE_HAS_LINE_END(lpCurr) && nl) {
+			if (LINE_HAS_CR(lpCurr) && cr) {
 				if (nSize <= 0) {
 					break;
 				}
@@ -950,12 +957,6 @@ char* ft_convertToBuffer(const FTABLE* fp, char* lpMem, size_t* pnSize, const LI
 			}
 			*lpMem++ = nl;
 			nSize--;
-		}
-		if ((lp = lp->next) == 0) {
-			break;
-		}
-		if (fp && lp == fp->lastl) {
-			break;
 		}
 	}
 	*pnSize -= nSize;
