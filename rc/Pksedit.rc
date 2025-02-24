@@ -1895,6 +1895,7 @@ BEGIN
                             "!!Segmentation Fault bei der Ausführung von Makro '%s'. Wir empfehlen, die Arbeit zu sichern und PKS Edit zu schließen. Wenn der Fehler reproduzierbar ist, bitte erstelle einen Fehlerbericht unter https://github.com/TomKrauss/pks-edit."
     IDS_HUGE_CLIPBOARD_DO_YOU_WANT_TO_COPY 
                             "Möchtest Du mehr als 1 MByte an Daten auf dem System Clipboard reservieren?"
+    IDS_READING_LARGE_FILE  "Eine große Datei wird gelesen..."
 END
 
 #endif    // Deutsch (Deutschland) resources

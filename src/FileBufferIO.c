@@ -18,7 +18,7 @@
 #include "alloc.h"
 #include "tos.h"
 #include "trace.h"
-#include "trace.h"
+#include "pksrc.h"
 #include "documentmodel.h"
 #include "edierror.h"
 #include "editorconfiguration.h"
@@ -28,7 +28,6 @@
 #include "winfo.h"
 
 #include "pksedit.h"
-#include "editorconfiguration.h"
 #include "edexec.h"
 #include "encryption.h"
 #include "errordialogs.h"
@@ -339,6 +338,9 @@ EXPORT int ft_readDocumentFromFile(int fd, CODE_PAGE_INFO *pCodepage,
 	cflg = _crypting;
 	_crypting = 0;
 	while ((got = Fread(fd,bufferSize,bufferStart)) > 0) {
+		if (progress_cancelMonitor(TRUE)) {
+			break;
+		}
 		if (cflg) {
 			char buf[2] = { 0 };
 			int cont = Fread(fd,1,buf);
@@ -435,6 +437,13 @@ static void ft_handleMagic(int fd, EDIT_CONFIGURATION* documentDescriptor, long*
 	}
 }
 
+static void ft_fileReadComplete() {
+	if (_verbose) {
+		mouse_setDefaultCursor();
+		progress_closeMonitor(1);
+	}
+}
+
 /*--------------------------------------*/
 /* ft_readfile()						*/
 /*--------------------------------------*/
@@ -459,8 +468,10 @@ EXPORT int ft_readfile(FTABLE *fp, EDIT_CONFIGURATION *documentDescriptor, long 
 		fp->flags &= ~F_WATCH_LOGFILE;
 	}
 	buf = _scratchstart;
-	if (_verbose)
+	if (_verbose) {
 		mouse_setBusyCursor();
+		progress_startMonitor(IDS_READING_LARGE_FILE, 500);
+	}
 
 	pExtractFunction = ln_createMultipleLinesFromBuffer;
 	if (documentDescriptor == 0) {
@@ -541,8 +552,10 @@ ret0:			ret = 0;
 		goto ret0;
 
 	if (fp->codepageInfo.cpi_hasUnsupportedChars) {
+		ft_fileReadComplete();
 		error_showErrorById(IDS_UNSUPPORTED_CHARACTERS, string_getBaseFilename(fp->fname));
 	} else if (fp->longLinesSplit > 0 && _verbose) {
+		ft_fileReadComplete();
 		error_showErrorById(IDS_MSGWRAPPEDLINES, string_getBaseFilename(fp->fname));
 		ft_setFlags(fp, fp->flags | F_CHANGEMARK);
 	}
@@ -560,9 +573,7 @@ readerr:
 		}
 		fp->lockFd = fd;
 	}
-	if (_verbose) {
-		mouse_setDefaultCursor();
-	}
+	ft_fileReadComplete();
 	return ret;
 }
 

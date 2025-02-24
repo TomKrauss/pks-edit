@@ -1806,7 +1806,7 @@ BEGIN
     IDS_COMMAND251          "Toggle line selection;Toggle Line Selection"
     IDS_COMMAND252          "Toggle syntax highlighting;Show Syntax Highlighting"
     IDS_COMMAND253          "Move selection or line up;Move Selection Up"
-    IDS_COMMAND254          "Move selection or line down;Move Selection Down"
+    IDS_COMMAND254          "Reading a large file..."
 END
 
 STRINGTABLE
@@ -1826,6 +1826,7 @@ BEGIN
                             "!!Segmentation Fault when executing the macro named '%s'. We recommend to save your work and to exit PKS Edit. If you can reproduce the error, please report it to https://github.com/TomKrauss/pks-edit."
     IDS_HUGE_CLIPBOARD_DO_YOU_WANT_TO_COPY 
                             "Are you sure, you want to leave more than 1 MB of memory on the system clipboard?"
+    IDS_READING_LARGE_FILE  "Reading a large file..."
 END
 
 #endif    // Englisch (USA) resources

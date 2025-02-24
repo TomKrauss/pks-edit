@@ -14,6 +14,7 @@ with huge files (> 1 Mio lines).
 - We greatly optimized caret navigation and scrolling performance in big,big files (more than 100000 lines).
   Navigating to a new line in a file with 4.000.000 lines of code took about 400ms on a good machine before
   and is now as fast as navigating in a small file.
+- PKS Edit will show a progress dialog now, when large files are being read from disc.
 
 ### Fixed
 - A bug was fixed, which could cause "Reload File" to crash, when there is a non empty selection in a file.
