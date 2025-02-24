@@ -582,6 +582,10 @@ LINE* ln_gotoWP(WINFO* wp, long l) {
 	if (l >= fp->nlines) {
 		return 0;
 	}
+	int delta = l - wp->cachedLineIndex;
+	if (wp->lpMinln != NULL && abs(delta) < abs(wp->caret.ln - l)) {
+		return ln_relative(wp->lpMinln, delta);
+	}
 	if (wp->caret.linePointer != NULL && l > abs(wp->caret.ln - l)) {
 		return ln_relative(wp->caret.linePointer, l - wp->caret.ln);
 	} else {

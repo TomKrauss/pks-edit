@@ -779,6 +779,27 @@ void ft_connectViewWithFT(FTABLE* fp, WINFO* wp) {
 	wp->caret.col = 0;
 }
 
+typedef enum SelectionIncludeType {
+	unknown,
+	includes,
+	doesNotInclude
+} SELECTION_INCLUDE_TYPE;
+
+static SELECTION_INCLUDE_TYPE ww_selectionIncludes(LINE* lpFirst, LINE* lpLast, LINE* lp) {
+	int max = 1000;
+	while (lpFirst && max > 0) {
+		if (lp == lpFirst) {
+			return includes;
+		}
+		if (lpFirst == lpLast) {
+			return doesNotInclude;
+		}
+		lpFirst = lpFirst->next;
+		max--;
+	}
+	return unknown;
+}
+
 /*
  * Returns the indices of the first selected line and the last selected line.
  * If no selection exists, return 0 and return -1 in pFirstIndex and pLastIndex.
@@ -791,6 +812,7 @@ int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex, BOOL bI
 		LINE* pEndPointer = wp->blend->m_linePointer;
 		if (bInWIndow) {
 			LINE* lp = ln_gotoWP(wp, wp->minln);
+			LINE* lpMinLn = lp;
 			long ln = wp->minln;
 			*pFirstIndex = ln;
 			*pLastIndex = wp->maxln;
@@ -804,6 +826,18 @@ int ww_getSelectionLines(WINFO* wp, long* pFirstIndex, long* pLastIndex, BOOL bI
 				}
 				lp = lp->next;
 				ln++;
+			}
+			// OK - selection not starting or ending on current page. Let's do a quick check, whether the first line is in the selection range
+			SELECTION_INCLUDE_TYPE result = ww_selectionIncludes(pStartPointer, pEndPointer, lpMinLn);
+			if (result != unknown) {
+				if (result == doesNotInclude) {
+					*pFirstIndex = -1;
+					*pLastIndex = -1;
+					return FALSE;
+				}
+				*pFirstIndex = wp->minln;
+				*pLastIndex = wp->maxln;
+				return TRUE;
 			}
 			FTABLE* fp = wp->fp;
 			if (ln < fp->nlines / 2) {
