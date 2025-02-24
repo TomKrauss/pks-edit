@@ -778,17 +778,19 @@ long long caret_moveAndAddSecondary(MOT_SECONDARY_MOVEMENT mType) {
 		}
 		while (lp && nLine <= wp->maxln) {
 			pMatch = lp->lbuf;
-			while ((pMatch = strstr(pMatch, buf)) != NULL) {
-				int nOffset = (int)(pMatch - lp->lbuf) + nDelta;
-				if (lp != wp->caret.linePointer || nOffset != wp->caret.offset) {
-					char buf2[256];
-					buf2[0] = 0;
-					xref_findIdentifierCloseToCaret(wp, &(CARET) {.linePointer = lp, .offset = nOffset}, buf2, buf2 + sizeof buf2, 0, 0, FI_COMPLETE_WORD);
-					if (strcmp(buf, buf2) == 0) {
-						caret_addSecondary(wp, nLine, nOffset);
+			if (*buf) {
+				while ((pMatch = strstr(pMatch, buf)) != NULL) {
+					int nOffset = (int)(pMatch - lp->lbuf) + nDelta;
+					if (lp != wp->caret.linePointer || nOffset != wp->caret.offset) {
+						char buf2[256];
+						buf2[0] = 0;
+						xref_findIdentifierCloseToCaret(wp, &(CARET) {.linePointer = lp, .offset = nOffset}, buf2, buf2 + sizeof buf2, 0, 0, FI_COMPLETE_WORD);
+						if (strcmp(buf, buf2) == 0) {
+							caret_addSecondary(wp, nLine, nOffset);
+						}
 					}
+					pMatch++;
 				}
-				pMatch++;
 			}
 			lp = lp->next;
 			nLine++;

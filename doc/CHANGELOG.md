@@ -20,6 +20,8 @@ with huge files (> 1 Mio lines).
 - A bug was fixed, which could cause "Reload File" to crash, when there is a non empty selection in a file.
 - A bug was fixed causing PKS Edit to crash on the first macro execution after a big, big file had been
   loaded causing an internal pointer overflow in the macro execution engine.
+- Fixed an endless loop, when one attempted to add secondary carets to empty match positions (e.g. pressing
+  Chift+Ctrl+L on an empty line).
 
 ## [2.10.0] - 2024-10-30
 
