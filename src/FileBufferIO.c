@@ -814,12 +814,14 @@ EXPORT int ft_writefileMode(FTABLE *fp, int flags)
 		ft_forAllViews(fp, render_repaintLineNumbers, NULL);
 		ft_setFlags(fp, fp->flags & ~(F_CHANGEMARK | F_WFORCED));
 		ft_settime(&fp->ti_saved);
-		file_getFileAttributes(fp->fname, &fp->ti_created, &fp->ti_modified, NULL);
 		fp->fileSize = _llseek(fd, 0, SEEK_END);
 	}
 
 wfail1:
 	file_closeFile(&fd);
+	if (!(flags & WFM_AUTOSAVING)) {
+		file_getFileAttributes(fp->fname, &fp->ti_created, &fp->ti_modified, NULL);
+	}
 	if (saveLockFd > 0) {
 		fp->lockFd = file_openFile(fp->fname, FALSE);
 	}
