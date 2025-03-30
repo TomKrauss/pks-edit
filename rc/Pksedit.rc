@@ -1104,7 +1104,7 @@ BEGIN
             VALUE "LegalCopyright", "Mozilla Public License Version 2.0"
             VALUE "OriginalFilename", "pksedit.exe"
             VALUE "ProductName", "PKS Edit"
-            VALUE "ProductVersion", "2.10.1"
+            VALUE "ProductVersion", "PLACEHOLDER"
         END
     END
     BLOCK "VarFileInfo"

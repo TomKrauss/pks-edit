@@ -16,7 +16,7 @@ Name: "{%USERPROFILE}\.pksedit\pks_sys"
 
 [Setup]
 AppName=PKS Edit
-AppVersion=2.10.1
+AppVersion=2.11.0
 WizardStyle=modern
 DefaultDirName={autopf}\pksedit
 UsePreviousAppDir=yes
