@@ -83,9 +83,9 @@ typedef struct tagDIALOG_DESCRIPTOR {
  */
 extern void			dlg_setXDialogParams(DIALOG_DESCRIPTOR* (*func)(int pageIndex), boolean propertySheetFlag);
 
-extern BOOL			DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams);
+extern BOOL			dlg_initFromParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams);
 extern int  		DoDialog(int nId, DLGPROC pDialogProc, DIALOG_DESCRIPTOR *dp);
-extern void 		DlgInitString(HWND hwnd, int item, LPSTR szString, int nMax);
+extern void 		dlg_initString(HWND hwnd, int item, LPSTR szString, int nMax);
 extern INT_PTR CALLBACK dlg_standardDialogProcedure(HWND,UINT,WPARAM,LPARAM);
 /*
  * Default message handling in all PKS Edit dialogs to e.g. support theming.

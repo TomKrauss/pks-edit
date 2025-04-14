@@ -895,7 +895,7 @@ static void winlist_command(HWND hDlg, int nItem,  int nNotify, void *pUser)
 		dlg_getListBoxSelection(hDlg, nItem, &pUser);
 		if (nNotify == LBN_SELCHANGE) {
 			infoFillParams(infoDialListPars, (WINFO *)pUser);
-			DoDlgInitPars(hDlg, infoDialListPars, 9);
+			dlg_initFromParameters(hDlg, infoDialListPars, 9);
 		} else {
 			PostMessage(hDlg, WM_COMMAND, IDOK, 0L);
 		}
@@ -1243,7 +1243,7 @@ static INT_PTR doctype_dialogProcedure(HWND hwnd, UINT message, WPARAM wParam, L
 			if (pActivate->uNewState) {
 				_selectedDocType = (void*)pActivate->lParam;
 				doctypes_fillParameters(doctypes_controlDescriptors, (void*)pActivate->lParam);
-				DoDlgInitPars(hwnd, doctypes_controlDescriptors, NVDOCTYPEPARS);
+				dlg_initFromParameters(hwnd, doctypes_controlDescriptors, NVDOCTYPEPARS);
 			}
 		} else if (((LPNMHDR)lParam)->code == LVN_GETDISPINFO) {
 			NMLVDISPINFO* plvdi = (NMLVDISPINFO*)lParam;

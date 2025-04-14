@@ -907,13 +907,13 @@ static void macro_updateCommentAndName(HWND hwnd)
 	nSelected = macro_getSelectedMacro(hwnd);
 	nIndex = (MACROREFIDX)HIWORD(nSelected);
 	type = (MACROREFTYPE)LOWORD(nSelected);
-	DlgInitString(hwnd, IDD_STRING1, 
+	dlg_initString(hwnd, IDD_STRING1, 
 				mac_name(szName,nIndex,type, (int)sizeof szName), MAC_NAMELEN);
 	if (type == CMD_NAMESPACE) {
-		DlgInitString(hwnd, IDD_STRING2, "", MAC_COMMENTLEN);
+		dlg_initString(hwnd, IDD_STRING2, "", MAC_COMMENTLEN);
 	}
 	else {
-		DlgInitString(hwnd, IDD_STRING2, 
+		dlg_initString(hwnd, IDD_STRING2, 
 			command_getTooltipAndLabel((MACROREF) {.typ = type, .index = nIndex}, szComment, szK), MAC_COMMENTLEN);
 	}
 

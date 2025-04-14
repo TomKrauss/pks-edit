@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 
+### Fixed
+- Window Activation when restoring history file was sometimes wrong in combination with Wysiwyg windows.
+
 ## [2.10.1] - 2025-03-30
 
 Release 2.10.1 is the huge file release fixing some bugs and some performance bottlenecks when working

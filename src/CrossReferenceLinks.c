@@ -1123,6 +1123,7 @@ void xref_openWindowHistory(LINE *lp) {
 						if (bFocus) {
 							nFocussed = nActivate;
 						}
+						nActivate++;
 					}
 					if (nDisplayMode != -1 && !bClone) {
 						ww_changeDisplayMode(wpThis, nDisplayMode);
@@ -1136,7 +1137,7 @@ void xref_openWindowHistory(LINE *lp) {
 		}
 		lp = lp->next;
 	}
-	if (nFocussed >= 0 && nFocussed != nActivate - 1) {
+	if (nFocussed >= 0 && nFocussed != nActivate - 1 && nActivate > 0) {
 		WINFO* pTemp = pActivate[nActivate - 1];
 		pActivate[nActivate - 1] = pActivate[nFocussed];
 		pActivate[nFocussed] = pTemp;

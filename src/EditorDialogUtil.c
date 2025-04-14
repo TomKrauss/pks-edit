@@ -196,9 +196,9 @@ int DoDialog(int nIdDialog, DLGPROC DlgProc, DIALOG_DESCRIPTOR *dp) {
 }
 
 /*--------------------------------------------------------------------------
- * DlgInitString()
+ * dlg_initString()
  */
-void DlgInitString(HWND hDlg, int item, LPSTR szString, int nMax)
+void dlg_initString(HWND hDlg, int item, LPSTR szString, int nMax)
 {
 	SendDlgItemMessage(hDlg, item, EM_LIMITTEXT, nMax, 0L);
 	SetDlgItemText(hDlg,item,szString);
@@ -410,9 +410,9 @@ static int dlg_getRangeForOperation(HWND hwnd)
 }
 
 /*--------------------------------------------------------------------------
- * DoDldInitPars()
+ * dlg_initFromParameters()
  */
-BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
+BOOL dlg_initFromParameters(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 {
 	char 	cbuf[2],numbuf[32];
 	int 	item,*ip;
@@ -460,7 +460,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 			case IDD_STRING1: case IDD_STRING2: case IDD_STRING3:
 			case IDD_STRING4: case IDD_STRING5: case IDD_STRING6:
 			case IDD_STRING7: 
-				DlgInitString(hDlg,item,(LPSTR)ip,dp->did_flagOrSize);
+				dlg_initString(hDlg,item,(LPSTR)ip,dp->did_flagOrSize);
 				break;
 			case IDD_LONG1:
 				sprintf(numbuf,"%ld",*(long*)dp->did_data);
@@ -473,7 +473,7 @@ BOOL DoDlgInitPars(HWND hDlg, DIALOG_ITEM_DESCRIPTOR *dp, int nParams)
 				} else {
 					sprintf(numbuf, "%d", *ip);
 				}
-donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
+donum:			dlg_initString(hDlg,item,numbuf,sizeof numbuf-1);
 				break;
 			case IDD_RNGE:
 				dlg_setRangeForOperation(hDlg,ip,dp->did_flagOrSize);
@@ -491,7 +491,7 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 			case IDD_CHAR:
 				cbuf[0] = *(char*)dp->did_data;
 				cbuf[1] = 0;
-				DlgInitString(hDlg,item,cbuf,sizeof cbuf-1);
+				dlg_initString(hDlg,item,cbuf,sizeof cbuf-1);
 				break;
 			default:
 				if (!ip) {
@@ -509,9 +509,9 @@ donum:			DlgInitString(hDlg,item,numbuf,sizeof numbuf-1);
 }
 
 /*--------------------------------------------------------------------------
- * DlgInit()
+ * dlg_initialize()
  */
-static void DlgInit(HWND hDlg, DIALOG_DESCRIPTOR *dpDialog, BOOL initialFlag) {
+static void dlg_initialize(HWND hDlg, DIALOG_DESCRIPTOR *dpDialog, BOOL initialFlag) {
 	static const int _intFields[] = { IDD_INT1, IDD_INT2, IDD_INT3, IDD_INT4, IDD_INT5 };
 	static const int _spinFields[] = { IDC_SPIN1, IDC_SPIN2, IDC_SPIN3, IDC_SPIN4, IDC_SPIN5 };
 	DIALOG_ITEM_DESCRIPTOR *dp2;
@@ -540,7 +540,7 @@ static void DlgInit(HWND hDlg, DIALOG_DESCRIPTOR *dpDialog, BOOL initialFlag) {
 		hIcon = LoadIcon(hInst, "APP_ICON");
 		SendMessage(hwndControl, STM_SETICON, (WPARAM) hIcon, 0);
 	}
-	if (!DoDlgInitPars(hDlg, dp, nPars) && initialFlag) {
+	if (!dlg_initFromParameters(hDlg, dp, nPars) && initialFlag) {
 		if (!bInPropertySheet) {
 			win_moveWindowToDefaultPosition(hDlg);
 		}
@@ -804,9 +804,9 @@ void dlg_help(void)
 }
 
 /*--------------------------------------------------------------------------
- * dlg_standardDialogProcedure()
+ * dlg_handleNotifyMessages()
  */
-static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
+static BOOL CALLBACK dlg_handleNotifyMessages(HWND hDlg, WPARAM wParam, LPARAM lParam)
 {	LPNMHDR		pNmhdr;
 	INT			idCtrl;
 	HWND		parent;
@@ -822,7 +822,7 @@ static BOOL CALLBACK DlgNotify(HWND hDlg, WPARAM wParam, LPARAM lParam)
 		_dp = _dialogInitParameterCallback(idx);
 		_currentIndex = idx;
 		if (_dp != NULL) {
-			DlgInit(hDlg, _dp, FALSE);
+			dlg_initialize(hDlg, _dp, FALSE);
 		}
 		PropSheet_UnChanged(parent, hDlg);
 		return TRUE;
@@ -922,7 +922,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 			return TRUE;
 		}
 		case WM_NOTIFY:
-			return DlgNotify(hDlg, wParam, lParam);
+			return dlg_handleNotifyMessages(hDlg, wParam, lParam);
 
 		case WM_INITDIALOG:
 			hwndDlg = hDlg;
@@ -930,7 +930,7 @@ INT_PTR CALLBACK dlg_standardDialogProcedure(HWND hDlg, UINT message, WPARAM wPa
 				bPropertySheetMove = FALSE;
 				win_moveWindowToDefaultPosition(GetParent(hDlg));
 			} else if (_dp != NULL) {
-				DlgInit(hDlg, _dp, TRUE);
+				dlg_initialize(hDlg, _dp, TRUE);
 			}
 			if (_dp && _dp->dd_tooltips != NULL) {
 				for (int i = 0; _dp->dd_tooltips[i].m_itemId > 0; i++) {
