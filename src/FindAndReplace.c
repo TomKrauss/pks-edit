@@ -906,18 +906,23 @@ endrep:
 	_playing = splflg;
 
 	if (nReplacements) {
+		BOOL bKeepCaret = nOptions & RE_KEEP_CARET;
 		if (action != REP_COUNT) {
-			BOOL bKeepCaret = nOptions & RE_KEEP_CARET;
 			if (_currentReplacementPattern.lineSplittingNeeded) {
 				caret_placeCursorInCurrentFile(wp, startln,0L);
 				ln = breaklines(fp,0,startln,ln);
 				if (!bKeepCaret || ln == wp->caret.ln) {
 					caret_placeCursorMakeVisibleAndSaveLocation(wp, ln, col);
 				}
+				else {
+					caret_placeCursorMakeVisibleAndSaveLocation(wp, wp->caret.ln, wp->caret.col);
+				}
 				render_repaintAllForFile(fp);
 			} else {
 				if (!bKeepCaret || lastfln == wp->caret.ln) {
 					caret_placeCursorMakeVisibleAndSaveLocation(wp, lastfln, lastfcol);
+				} else {
+					caret_placeCursorMakeVisibleAndSaveLocation(wp, wp->caret.ln, wp->caret.col);
 				}
 				if (scope == RNG_ONCE && action == REP_REPLACE) {
 					render_repaintCurrentLine(wp);
