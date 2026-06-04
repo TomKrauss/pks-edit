@@ -161,9 +161,9 @@ IDENTIFIER_CONTEXT* _currentIdentifierContext;
 
 static char* parser_signatureForType(PKS_VALUE_TYPE type) {
 	char* pSig = "i";
-	if (type == VT_STRING) {
+	if (type == PKS_VT_STRING) {
 		pSig = "s";
-	} else if (type == VT_EDITOR_HANDLE) {
+	} else if (type == PKS_VT_EDITOR_HANDLE) {
 		pSig = "W";
 	}
 	return pSig;
@@ -290,7 +290,7 @@ static void parser_defineVariable(const char* pszName, SYMBOL_TYPE sType, intptr
 	if (pContext && pContext != sym_getGlobalCompilerContext()) {
 		yyerror("Redefinition of variable %s", pszName);
 	}
-	if (sType == VT_STRING && !tVal) {
+	if (sType == PKS_VT_STRING && !tVal) {
 		tVal = (intptr_t)"";
 	}
 	if (_bInHeader) {
@@ -482,7 +482,7 @@ constant_list:
 
 constdef:	{ _bDefiningConst = 1; } variable_identifier T_ASSIGN constant_literal { _bDefiningConst = 0; } 
 			{
-				BOOL bString = ($4.v.type == VT_STRING);
+				BOOL bString = ($4.v.type == PKS_VT_STRING);
 				sym_createSymbol(_currentIdentifierContext, $2.ident.s,
 					S_CONSTANT, $4.v.type, $4.v.data, 0);
 				if ($2.ident.stringIsAlloced) {
@@ -499,7 +499,7 @@ constant_literal:
 			}
 			| T_STRING	{
 				$$.v.data.string = $1.ident.s;
-				$$.v.type = VT_STRING;
+				$$.v.type = PKS_VT_STRING;
 			}
 
 variable_identifier:	
@@ -524,7 +524,7 @@ variable_reference:
 			| T_IDENT	{   
 				yyerror("Using undeclared variable %s", $1.ident.s);
 				// auto-correct by introducing variable
-				sym_createSymbol(_currentIdentifierContext, $1.ident.s, _bInHeader ? S_VARIABLE : S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {0}, 0);
+				sym_createSymbol(_currentIdentifierContext, $1.ident.s, _bInHeader ? S_VARIABLE : S_LOCAL_VARIABLE, PKS_VT_NUMBER, (GENERIC_DATA) {0}, 0);
 				freeitem(&$1.ident.s);
 				$$.ident = $1.ident;
 			}
@@ -543,9 +543,9 @@ macro_declaration: T_IDENT {
 macro_type:	scope T_VOID {
 				$$.ident.scope = $1.ident.scope;
 				$$.ident.arraySize = 0;
-				$$.ident.type = VT_NIL;
+				$$.ident.type = PKS_VT_NIL;
 				if (_bInNativeDefinition) {
-					parser_startNativeMethod(VT_NIL);
+					parser_startNativeMethod(PKS_VT_NIL);
 				}
 			}
 			| 
@@ -609,7 +609,7 @@ argument_declaration: type_name variable_identifier {
 				if (_bInNativeDefinition) {
 					parser_nativeMethodAddParam($1.ident.type, $2.ident.s);
 				} else {
-					sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
+					sym_createSymbol(_currentIdentifierContext, $2.ident.s, S_LOCAL_VARIABLE, PKS_VT_NUMBER, (GENERIC_DATA) {_nparam}, _localVariableIndex);
 					bytecode_defineVariable(_currentBytecodeBuffer, $2.ident.s,C_DEFINE_PARAMETER, $1.ident.type,_nparam, _localVariableIndex++);
 				}
 				freeitem(&$2.ident.s);
@@ -792,7 +792,7 @@ constructor_expression: T_NEW T_TYPE_IDENTIFIER '(' ')' {
 				YY_EMIT(C_PUSH_NEW_INSTANCE, (GENERIC_DATA){$2.ident.type});
 			}
 
-unary_expression:  '!' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
+unary_expression:  '!' binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NOT}); }
 			| '~' binary_expression { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_NOT}); }
 			| '+' binary_expression { $$.v = $2.v; }
 			| '-' variable_reference { _currentBytecodeBuffer->bb_current = bytecode_emitMultiplyWithLiteralExpression(_currentBytecodeBuffer, &$2.v, -1); }
@@ -810,8 +810,8 @@ binary_expression:
 			}
 			| unary_expression
 			| binary_expression '[' expression ']' { YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AT}); }
-			| binary_expression '~' binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
-			| binary_expression T_NMATCH binary_expression   { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
+			| binary_expression '~' binary_expression   { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_MATCH}); }
+			| binary_expression T_NMATCH binary_expression   { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NMATCH}); }
 			| binary_expression '&' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_AND}); }
 			| binary_expression '|' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_OR}); }
 			| binary_expression '+' binary_expression 	{ YY_EMIT(C_BINOP, (GENERIC_DATA){BIN_ADD}); }
@@ -827,22 +827,22 @@ binary_expression:
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, andid, _shortcutJumpLevel,BRA_TOS_IF_FALSE);
 				$$.num = _shortcutJumpLevel++;
 			} binary_expression { 
-				$$.ident.type = VT_BOOLEAN;
+				$$.ident.type = PKS_VT_BOOLEAN;
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, andid, (int)$3.num);
 			}
 			| binary_expression T_OR {
 				bytecode_emitGotoInstruction(_currentBytecodeBuffer, orid, _shortcutJumpLevel,BRA_TOS_IF_TRUE);
 				$$.num = _shortcutJumpLevel++;
 			} binary_expression { 
-				$$.ident.type = VT_BOOLEAN; 
+				$$.ident.type = PKS_VT_BOOLEAN; 
 				bytecode_generateAutoLabelNamePrefix(_currentBytecodeBuffer, orid, (int)$3.num);
 			}
-			| binary_expression '<' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
-			| binary_expression '>' binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
-			| binary_expression T_LE binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
-			| binary_expression T_GE binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
-			| binary_expression T_EQ binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
-			| binary_expression T_NE binary_expression { $$.ident.type = VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
+			| binary_expression '<' binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LT}); }
+			| binary_expression '>' binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GT}); }
+			| binary_expression T_LE binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_LE}); }
+			| binary_expression T_GE binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_GE}); }
+			| binary_expression T_EQ binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_EQ}); }
+			| binary_expression T_NE binary_expression { $$.ident.type = PKS_VT_BOOLEAN; YY_EMIT(C_LOGICAL_OPERATION, (GENERIC_DATA){CT_NE}); }
 			| '(' binary_expression ')'	{ $$.v = $2.v; }
 			| variable_reference assignment_expression {
 				parser_emitAssignment(&$1.ident);
@@ -868,7 +868,7 @@ value:		T_VARIABLE {
 			| T_IDENT {
 				yyerror("Undefined identifier %s", $1.ident.s);
 				parser_emitPushVariable(&$1.ident);
-				$$.ident.type = VT_STRING;  
+				$$.ident.type = PKS_VT_STRING;  
 			}
 
 string:		T_STRING {	$$.ident = $1.ident; }
@@ -911,18 +911,18 @@ case_clause: case_selector stmntlist
 case_selector: T_CASE case_condition ':' 
 			|
 			T_DEFAULT ':' {
-				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NIL, (GENERIC_DATA){.longValue=0});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, PKS_VT_NIL, (GENERIC_DATA){.longValue=0});
 			}
 
 case_condition:
 			integer_literal {
-				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_NUMBER, (GENERIC_DATA){.longValue=$1.v.data.longValue});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, PKS_VT_NUMBER, (GENERIC_DATA){.longValue=$1.v.data.longValue});
 			}
 			| T_STRING {
-				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, PKS_VT_STRING, (GENERIC_DATA){.string=$1.ident.s});
 			}
 			| T_NUM T_DOTDOT T_NUM {
-				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, VT_RANGE, (GENERIC_DATA){.range.r_start=$1.num, .range.r_end=$3.num});
+				bytecode_addSwitchCondition(_currentBytecodeBuffer, _breaklevel, PKS_VT_RANGE, (GENERIC_DATA){.range.r_start=$1.num, .range.r_end=$3.num});
 			}
 
 label:		T_IDENT ':' {
@@ -1174,7 +1174,7 @@ type_name:   T_TYPE_IDENTIFIER {
 				$$.ident.arraySize = 0;
 			}
 			| T_TYPE_IDENTIFIER array_size	{	
-				$$.ident.type = VT_OBJECT_ARRAY;
+				$$.ident.type = PKS_VT_OBJECT_ARRAY;
 				$$.ident.arraySize = $2.ident.arraySize;
 			}
 
@@ -1201,7 +1201,7 @@ integer_literal: T_NUM {
 				$$.v.data.longValue  = $1.num;
 			} 
 			| '-' T_NUM {
-				$$.ident.type = VT_NUMBER;
+				$$.ident.type = PKS_VT_NUMBER;
 				$$.v.type = C_PUSH_LONG_LITERAL; 
 				$$.v.data.longValue  = -$2.num;
 			}
@@ -1218,7 +1218,7 @@ simple_literal:	integer_literal {
 				} else {
 					$$.v = $1.v;
 				}
-				$$.ident.type = VT_NUMBER;
+				$$.ident.type = PKS_VT_NUMBER;
 			}
 			| float_literal { 
 				if (!_bDefiningConst) {
@@ -1226,7 +1226,7 @@ simple_literal:	integer_literal {
 				} else {
 					$$.v = $1.v;
 				}
-				$$.ident.type = VT_FLOAT;
+				$$.ident.type = PKS_VT_FLOAT;
 			}
 			| character_literal { 
 				if (!_bDefiningConst) {
@@ -1234,7 +1234,7 @@ simple_literal:	integer_literal {
 				} else {
 					$$.v = $1.v;
 				}
-				$$.ident.type = VT_CHAR;
+				$$.ident.type = PKS_VT_CHAR;
 			}
 			| boolean_literal { 
 				if (!_bDefiningConst) {
@@ -1242,7 +1242,7 @@ simple_literal:	integer_literal {
 				} else {
 					$$.v = $1.v;
 				}
-				$$.ident.type = VT_BOOLEAN;
+				$$.ident.type = PKS_VT_BOOLEAN;
 			}
 %%
 

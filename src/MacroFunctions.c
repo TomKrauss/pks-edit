@@ -35,7 +35,7 @@
 
 static const char* consoleFileName = "console.log";
 
-static const PKS_VALUE NIL = {.pkv_type = VT_NIL};
+static const PKS_VALUE NIL = {.pkv_type = PKS_VT_NIL};
 
 static int macroc_expectNumberOfArgs(int nExpected, int nArgs, const char* pszFunction) {
 	if (nArgs < nExpected) {
@@ -188,7 +188,7 @@ PKS_VALUE macroc_fileOpen(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int n
 	if (!fp) {
 		return NIL;
 	}
-	return memory_createHandleObject(pContext, VT_FILE, fp);
+	return memory_createHandleObject(pContext, PKS_VT_FILE, fp);
 }
 
 const char* macroc_accessString(PKS_VALUE v, int idx) {
@@ -222,14 +222,14 @@ PKS_VALUE macroc_pathCreateFromSegments(EXECUTION_CONTEXT* pContext, PKS_VALUE* 
 	}
 	PathCanonicalize(_linebuf, pszResult);
 	free(pszResult);
-	return memory_createObject(pContext, VT_STRING, 0, _linebuf);
+	return memory_createObject(pContext, PKS_VT_STRING, 0, _linebuf);
 }
 
 /*
  * Implements the FileReadLine() method, which reads and returns one line of text from a given file (FileReadLine(fp)).
  */
 PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	PKS_VALUE_TYPE t = VT_FILE;
+	PKS_VALUE_TYPE t = PKS_VT_FILE;
 	if (nArgs < 1 || pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileReadLine");
 		return NIL;
@@ -240,7 +240,7 @@ PKS_VALUE macroc_fileReadLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	} else {
 		if (fgets(_linebuf, MAXLINELEN, fp)) {
 			_linebuf[strcspn(_linebuf, "\r\n")] = 0;
-			return memory_createObject(pContext, VT_STRING, 0, _linebuf);
+			return memory_createObject(pContext, PKS_VT_STRING, 0, _linebuf);
 		}
 	}
 	return NIL;
@@ -254,8 +254,8 @@ PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, 
 	if (!macroc_expectNumberOfArgs(2, nArgs, "FileWriteLine")) {
 		return NIL;
 	}
-	PKS_VALUE_TYPE t = VT_FILE;
-	if (pValues[0].pkv_type != t || pValues[1].pkv_type != VT_STRING) {
+	PKS_VALUE_TYPE t = PKS_VT_FILE;
+	if (pValues[0].pkv_type != t || pValues[1].pkv_type != PKS_VT_STRING) {
 		interpreter_raiseError("No file pointer / no string to write passed to FileWriteLine");
 	}
 	else {
@@ -278,7 +278,7 @@ PKS_VALUE macroc_fileWriteLine(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, 
  */
 PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	macroc_expectNumberOfArgs(1, nArgs, "FileClose");
-	PKS_VALUE_TYPE t = VT_FILE;
+	PKS_VALUE_TYPE t = PKS_VT_FILE;
 	if (pValues[0].pkv_type != t) {
 		interpreter_raiseError("No file pointer passed to FileClose");
 	}
@@ -290,7 +290,7 @@ PKS_VALUE macroc_fileClose(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 		}
 	}
 	return (PKS_VALUE) {
-		.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1
+		.pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 1
 	};
 }
 
@@ -303,15 +303,15 @@ PKS_VALUE macroc_indexOf(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, 
 	PKS_VALUE vTarget = pValues[0];
 	PKS_VALUE vOf = pValues[1];
 	int nIndex = -2;
-	if (vTarget.pkv_type == VT_OBJECT_ARRAY) {
+	if (vTarget.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		nIndex = memory_indexOf(vTarget, vOf);
-	} else if (vTarget.pkv_type == VT_STRING) {
+	} else if (vTarget.pkv_type == PKS_VT_STRING) {
 		const char* pszString = memory_accessString(vTarget);
 		const char* pszIndex = 0;
-		if (vOf.pkv_type == VT_STRING) {
+		if (vOf.pkv_type == PKS_VT_STRING) {
 			const char* pszOther = memory_accessString(vOf);
 			pszIndex = strstr(pszString, pszOther);
-		} else if (vOf.pkv_type == VT_CHAR) {
+		} else if (vOf.pkv_type == PKS_VT_CHAR) {
 			pszIndex = strchr(pszString, vOf.pkv_data.uchar);
 		}
 		nIndex = pszIndex ? (int)(pszIndex - pszString) : -1;
@@ -319,7 +319,7 @@ PKS_VALUE macroc_indexOf(EXECUTION_CONTEXT* pContext, const PKS_VALUE* pValues, 
 	if (nIndex == -2) {
 		interpreter_raiseError("Unsupported argument type for IndexOf");
 	}
-	return (PKS_VALUE) {.pkv_type = VT_NUMBER, .pkv_data.intValue = nIndex};
+	return (PKS_VALUE) {.pkv_type = PKS_VT_NUMBER, .pkv_data.intValue = nIndex};
 }
 
 /*
@@ -394,10 +394,10 @@ ARRAY_LIST* macroc_fileListFiles(const char* pszDir, const char* pszPattern) {
  * Returns an array with all window handles.
  */
 PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	PKS_VALUE tResult = memory_createObject(pContext, VT_OBJECT_ARRAY, 5, 0);
+	PKS_VALUE tResult = memory_createObject(pContext, PKS_VT_OBJECT_ARRAY, 5, 0);
 	WINFO* wp = ww_getCurrentEditorWindow();
 	while (wp) {
-		PKS_VALUE vWin = memory_createHandleObject(pContext, VT_EDITOR_HANDLE, wp);
+		PKS_VALUE vWin = memory_createHandleObject(pContext, PKS_VT_EDITOR_HANDLE, wp);
 		memory_addObject(pContext, &tResult, vWin);
 		wp = wp->next;
 	}
@@ -406,10 +406,10 @@ PKS_VALUE edit_getAllEditors(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 
 PKS_VALUE edit_getCaretPosition(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	WINFO* wp = ww_getCurrentEditorWindow();
-	if (nArgs >= 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+	if (nArgs >= 1 && pValues->pkv_type == PKS_VT_EDITOR_HANDLE) {
 		wp = memory_handleForValue(*pValues);
 	}
-	PKS_VALUE vCaret = memory_createObject(pContext, VT_CARET, 3, 0);
+	PKS_VALUE vCaret = memory_createObject(pContext, PKS_VT_CARET, 3, 0);
 	CARET* pCaret = &wp->caret;
 	memory_fillCaret(vCaret, pCaret->ln, pCaret->offset, pCaret->col);
 	return vCaret;
@@ -421,7 +421,7 @@ PKS_VALUE edit_getCaretPosition(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues,
 PKS_VALUE edit_replaceLines(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	WINFO* wp = ww_getCurrentEditorWindow();
 	int nFirst = 0;
-	if (nArgs >= 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+	if (nArgs >= 1 && pValues->pkv_type == PKS_VT_EDITOR_HANDLE) {
 		wp = memory_handleForValue(*pValues);
 		nFirst = 1;
 	}
@@ -429,12 +429,12 @@ PKS_VALUE edit_replaceLines(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int
 	PKS_VALUE range = pValues[nFirst];
 	PKS_VALUE lines = pValues[nFirst+1];
 	long long bRet = 0;
-	if (range.pkv_type == VT_RANGE && lines.pkv_type == VT_OBJECT_ARRAY) {
+	if (range.pkv_type == PKS_VT_RANGE && lines.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		size_t nSize = memory_size(lines);
 		ARRAY_LIST* pStrings = arraylist_create(nSize);
 		for (int i = 0; i < nSize; i++) {
 			PKS_VALUE vElement = memory_getNestedObject(lines, i);
-			if (vElement.pkv_type == VT_STRING) {
+			if (vElement.pkv_type == PKS_VT_STRING) {
 				arraylist_add(pStrings, (void*)memory_accessString(vElement));
 			}
 		}
@@ -443,7 +443,7 @@ PKS_VALUE edit_replaceLines(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int
 	} else {
 		interpreter_raiseError("Expecting range and line array argument in EditorReplaceLines");
 	}
-	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = (int)bRet};
+	return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = (int)bRet};
 }
 
 /*
@@ -453,7 +453,7 @@ PKS_VALUE edit_replaceLines(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int
  */
 PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	WINFO* wp = ww_getCurrentEditorWindow();
-	if (nArgs == 1 && pValues->pkv_type == VT_EDITOR_HANDLE) {
+	if (nArgs == 1 && pValues->pkv_type == PKS_VT_EDITOR_HANDLE) {
 		wp = memory_handleForValue(*pValues);
 	}
 	if (wp == NULL) {
@@ -469,7 +469,7 @@ PKS_VALUE edit_getSelectedLineRange(EXECUTION_CONTEXT* pContext, PKS_VALUE* pVal
 			nHigh--;
 		}
 	}
-	return (PKS_VALUE) { .pkv_type = VT_RANGE, .pkv_data.range.r_start = nLow, .pkv_data.range.r_end = nHigh };
+	return (PKS_VALUE) { .pkv_type = PKS_VT_RANGE, .pkv_data.range.r_start = nLow, .pkv_data.range.r_end = nHigh };
 }
 
 /*

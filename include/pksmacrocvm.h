@@ -64,20 +64,20 @@ typedef union uGENERIC_DATA {
 
 // Must match the corresponding symbol types in symbols.h
 typedef enum {
-	VT_NIL = 0,
-	VT_BOOLEAN = 1,
-	VT_NUMBER = 2,
-	VT_STRING = 3,
-	VT_FLOAT = 4,
-	VT_CHAR = 5,
-	VT_RANGE = 6,
-	VT_OBJECT_ARRAY = 7,
-	VT_MAP = 8,
-	VT_AUTO = 9,
-	VT_FILE = 10,
-	VT_MAP_ENTRY = 11,
-	VT_EDITOR_HANDLE = 12,							// Editor window handle
-	VT_CARET = 13									// Editor caret position
+	PKS_VT_NIL = 0,
+	PKS_VT_BOOLEAN = 1,
+	PKS_VT_NUMBER = 2,
+	PKS_VT_STRING = 3,
+	PKS_VT_FLOAT = 4,
+	PKS_VT_CHAR = 5,
+	PKS_VT_RANGE = 6,
+	PKS_VT_OBJECT_ARRAY = 7,
+	PKS_VT_MAP = 8,
+	PKS_VT_AUTO = 9,
+	PKS_VT_FILE = 10,
+	PKS_VT_MAP_ENTRY = 11,
+	PKS_VT_EDITOR_HANDLE = 12,							// Editor window handle
+	PKS_VT_CARET = 13									// Editor caret position
 } PKS_VALUE_TYPE;
 
 #define PKS_TYPE_FILE		"FILE"
@@ -130,7 +130,7 @@ typedef struct tagPKS_TYPE_DESCRIPTOR {
 	TYPE_CALLBACKS	ptd_callbacks;
 } PKS_TYPE_DESCRIPTOR;
 
-#define IS_NIL(v)			v.pkv_type == VT_NIL
+#define IS_NIL(v)			v.pkv_type == PKS_VT_NIL
 
 typedef struct tagIDENTIFIER_CONTEXT IDENTIFIER_CONTEXT;
 

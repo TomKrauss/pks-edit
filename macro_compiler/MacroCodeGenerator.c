@@ -223,10 +223,10 @@ static char* _caseLabelId = "%case%";
  * Calculate the number range of a value.
  */
 static void bytecode_calculateRange(PKS_VALUE_TYPE t, GENERIC_DATA data, int* pLow, int* pHigh) {
-	if (t == VT_NUMBER) {
+	if (t == PKS_VT_NUMBER) {
 		*pLow = *pHigh = data.intValue;
 	}
-	else if (t == VT_RANGE) {
+	else if (t == PKS_VT_RANGE) {
 		*pLow = data.range.r_start;
 		*pHigh = data.range.r_end;
 	}
@@ -243,12 +243,12 @@ void bytecode_addSwitchCondition(BYTECODE_BUFFER* pBuffer, int aLevel, PKS_VALUE
 	int i = 0;
 	for (; i < _currentSwitchValue; i++) {
 		PKS_VALUE vExist = _switchValues[i].sl_value;
-		if (vExist.pkv_type == VT_NIL) {
+		if (vExist.pkv_type == PKS_VT_NIL) {
 			// Insert switch condition always before default condition
 			break;
 		}
-		if (t == VT_STRING) {
-			if (vExist.pkv_type == VT_STRING && strcmp(vExist.pkv_data.string, data.string) == 0) {
+		if (t == PKS_VT_STRING) {
+			if (vExist.pkv_type == PKS_VT_STRING && strcmp(vExist.pkv_data.string, data.string) == 0) {
 				yyerror("Illegal redefinition of case label value %s", data.string);
 			}
 		} else {
@@ -286,20 +286,20 @@ void bytecode_flushSwitchTable(BYTECODE_BUFFER* pBuffer, int aLevel) {
 	for (int i = 0; i < _currentSwitchValue; i++) {
 		PKS_VALUE v = _switchValues[i].sl_value;
 		int nLabelIndex = _switchValues[i].sl_index;
-		if (v.pkv_type == VT_NIL) {
+		if (v.pkv_type == PKS_VT_NIL) {
 			// default case
 			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, nLabelIndex, BRA_ALWAYS);
 		} else {
-			if (v.pkv_type == VT_RANGE) {
+			if (v.pkv_type == PKS_VT_RANGE) {
 				// TODO: we could introduce a PUS_RANGE Operation to handle this more efficiently.
 				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = v.pkv_data.range.r_start });
 				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = v.pkv_data.range.r_end });
 				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_BINOP, (GENERIC_DATA) { BIN_RANGE });
 			}
 			else {
-				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, v.pkv_type == VT_STRING ? C_PUSH_STRING_LITERAL : C_PUSH_INTEGER_LITERAL, v.pkv_data);
+				pBuffer->bb_current = bytecode_emitInstruction(pBuffer, v.pkv_type == PKS_VT_STRING ? C_PUSH_STRING_LITERAL : C_PUSH_INTEGER_LITERAL, v.pkv_data);
 			}
-			if (v.pkv_type == VT_STRING) {
+			if (v.pkv_type == PKS_VT_STRING) {
 				free(v.pkv_data.string);
 			}
 			bytecode_emitGotoInstruction(pBuffer, _caseLabelId, nLabelIndex, BRA_CASE);
@@ -360,7 +360,7 @@ unsigned char* bytecode_emitIncrementExpression(BYTECODE_BUFFER* pBuffer, char* 
 		pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_VARIABLE, (GENERIC_DATA) { .string = pszName });
 	}
 	pBuffer->bb_current = bytecode_emitInstruction(pBuffer, C_PUSH_INTEGER_LITERAL, (GENERIC_DATA) { .intValue = nIncrement });
-	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, BIN_ADD, VT_NUMBER);
+	pBuffer->bb_current = bytecode_emitBinaryOperation(pBuffer, BIN_ADD, PKS_VT_NUMBER);
 	if (bLocalVar) {
 		return bytecode_emitLocalAssignment(pBuffer, nHeapIndex);
 	}

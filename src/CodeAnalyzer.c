@@ -86,7 +86,7 @@ typedef enum JSON_GRAMMAR_STATES {
 /*
  * Calculate the lexical start state at a given line.
  */
-extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
+extern LEXICAL_CONTEXT highlight_getLexicalContextFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 typedef struct tagANALYZER_PARSING_CONTEXT {
 	int apc_grammarState;		// next state for further processing
@@ -401,8 +401,8 @@ static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANAL
 	LINE* lp = wp->caret.linePointer;
 	LEXICAL_ELEMENT lexicalElements[MAX_LEXICAL_ELEMENT];
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
-	LEXICAL_STATE lexicalState = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
-	int nElements = grammar_parse(pGrammar, lexicalElements, lexicalState, lp->lbuf, lp->len, &detectedEnd);
+	LEXICAL_CONTEXT lexicalContext = highlight_getLexicalContextFor(wp->highlighter, wp, lp);
+	int nElements = grammar_parse(pGrammar, lexicalElements, lexicalContext == LC_START ? INITIAL : CUSTOM_STATE, lp->lbuf, lp->len, &detectedEnd);
 	int nOffset = 0;
 	int state = 0;
 	int nParamIndex = 0;
@@ -477,7 +477,7 @@ static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANAL
 			}
 		}
 	}
-	for (PKS_VALUE_TYPE vt = VT_MAP_ENTRY; ; vt++) {
+	for (PKS_VALUE_TYPE vt = PKS_VT_MAP_ENTRY; ; vt++) {
 		if (!types_existsType(vt)) {
 			break;
 		}
@@ -510,7 +510,7 @@ static void analyzer_getMacrocCompletions(WINFO* wp, ANALYZER_MATCH fMatch, ANAL
 			});
 		}
 	}
-	for (PKS_VALUE_TYPE vt = VT_NIL; types_existsType(vt); vt++) {
+	for (PKS_VALUE_TYPE vt = PKS_VT_NIL; types_existsType(vt); vt++) {
 		const char* pName = types_nameFor(vt);
 		if (fMatch(pContext, pName)) {
 			fCallback(&(ANALYZER_CALLBACK_PARAM) { 

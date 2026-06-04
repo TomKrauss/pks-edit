@@ -111,7 +111,7 @@ int types_register(int nPreferredIndex, PKS_TYPE_DESCRIPTOR *pTemplate) {
 		}
 		free((char*)pDescriptor->ptd_documentation);
 		pDescriptor->ptd_documentation = 0;
-		if (t <= VT_EDITOR_HANDLE) {
+		if (t <= PKS_VT_EDITOR_HANDLE) {
 			// For default PKS Edit types - ensure proper properties.
 			pTemplate->ptd_isValueType = pDescriptor->ptd_isValueType;
 			pTemplate->ptd_hasDefaultValue = pDescriptor->ptd_hasDefaultValue;
@@ -183,7 +183,7 @@ static void file_close(PKS_VALUE v) {
 	FILE* fp = (FILE*)TOP_DATA_POINTER(memory_getNestedObjectPointer(v, 0));
 	if (fp) {
 		fclose(fp);
-		memory_setNestedObject(v, 0, (PKS_VALUE) {.pkv_type = VT_NIL});
+		memory_setNestedObject(v, 0, (PKS_VALUE) {.pkv_type = PKS_VT_NIL});
 	}
 }
 
@@ -201,40 +201,40 @@ void types_registerDefaultTypes() {
 	if (_maxTypeIndex > 0) {
 		return;
 	}
-	types_register(VT_NIL, &(PKS_TYPE_DESCRIPTOR) { .ptd_name = "#undefined#", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_BOOLEAN, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "boolean", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_NUMBER, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "int", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_STRING, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "string", .ptd_isValueType = 0, .ptd_hasDefaultValue = 1});
-	types_register(VT_FLOAT, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "float", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_CHAR, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "char", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_RANGE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "range", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
-	types_register(VT_FILE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_FILE, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, 
+	types_register(PKS_VT_NIL, &(PKS_TYPE_DESCRIPTOR) { .ptd_name = "#undefined#", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_BOOLEAN, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "boolean", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_NUMBER, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "int", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_STRING, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "string", .ptd_isValueType = 0, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_FLOAT, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "float", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_CHAR, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "char", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_RANGE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "range", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_OBJECT_ARRAY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "#array#", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_MAP, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "map", .ptd_isValueType = 0, .ptd_hasDynamicSize = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_AUTO, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = "auto", .ptd_isValueType = 1, .ptd_hasDefaultValue = 1});
+	types_register(PKS_VT_FILE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_FILE, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0, 
 		.ptd_isHandleType = 1,
 		.ptd_callbacks = {
 			.tc_close = (T_FINALIZER)file_close
 		}});
 	TYPE_PROPERTY_DESCRIPTOR mapDescriptors[] = {
-			{.tpd_type = VT_STRING, .tpd_name = "key"},
-			{.tpd_type = VT_AUTO, .tpd_name = "value"},
+			{.tpd_type = PKS_VT_STRING, .tpd_name = "key"},
+			{.tpd_type = PKS_VT_AUTO, .tpd_name = "value"},
 	};
-	types_register(VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
+	types_register(PKS_VT_MAP_ENTRY, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_MAP_ENTRY, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_elements.ptd_properties = mapDescriptors, .ptd_numberOfProperties = DIM(mapDescriptors)
 	});
-	types_register(VT_EDITOR_HANDLE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_EDITOR, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
+	types_register(PKS_VT_EDITOR_HANDLE, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_EDITOR, .ptd_isValueType = 0, .ptd_objectSize = 1, .ptd_hasDefaultValue = 0,
 		.ptd_isHandleType = 1,
 		.ptd_callbacks = {
 			.tc_handleFromMacroMemory = ww_winfoFromWorkwinHandle,
 			.tc_handleToMacroMemory = types_toHwnd,
 	}});
 	TYPE_PROPERTY_DESCRIPTOR caretDescriptors[] = {
-			{.tpd_type = VT_INT, .tpd_name = "line"},
-			{.tpd_type = VT_INT, .tpd_name = "offset"},
-			{.tpd_type = VT_INT, .tpd_name = "column"},
+			{.tpd_type = PKS_VT_NUMBER, .tpd_name = "line"},
+			{.tpd_type = PKS_VT_NUMBER, .tpd_name = "offset"},
+			{.tpd_type = PKS_VT_NUMBER, .tpd_name = "column"},
 	};
-	types_register(VT_CARET, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_CARET, .ptd_isValueType = 0, .ptd_objectSize = 3, .ptd_hasDefaultValue = 0,
+	types_register(PKS_VT_CARET, &(PKS_TYPE_DESCRIPTOR) {.ptd_name = PKS_TYPE_CARET, .ptd_isValueType = 0, .ptd_objectSize = 3, .ptd_hasDefaultValue = 0,
 		.ptd_elements.ptd_properties = caretDescriptors, .ptd_numberOfProperties = DIM(caretDescriptors)
 	});
 }
@@ -250,10 +250,10 @@ int types_existsType(PKS_VALUE_TYPE t) {
  * Returns the name of a given PKSMacroC value type.
  */
 const char* types_nameFor(PKS_VALUE_TYPE t) {
-	if (t == VT_NIL) {
+	if (t == PKS_VT_NIL) {
 		return "void";
 	}
-	if (t == VT_OBJECT_ARRAY) {
+	if (t == PKS_VT_OBJECT_ARRAY) {
 		return "string[]";
 	}
 	PKS_TYPE_DESCRIPTOR* pDescriptor = t>=0 && t < MAX_TYPES ? _typeDescriptors[t] : 0;
@@ -372,7 +372,7 @@ PKS_TYPE_DESCRIPTOR* types_getTypeDescriptor(const char* pszTypeName) {
 int types_getEnumDescriptorForEnumPrefix(const char* pszPrefix, PARAMETER_ENUM_VALUE** pValues, int* pCount, PKS_VALUE_TYPE* pType) {
 	PKS_VALUE_TYPE t;
 
-	for (t = VT_FILE; t < _maxTypeIndex; t++) {
+	for (t = PKS_VT_FILE; t < _maxTypeIndex; t++) {
 		PKS_TYPE_DESCRIPTOR* pDescriptor = _typeDescriptors[t];
 		if (pDescriptor != 0 && pDescriptor->ptd_isEnumType && pDescriptor->ptd_numberOfProperties > 0) {
 			if (string_startsWith(pDescriptor->ptd_elements.ptd_enumValues[0].pev_name, pszPrefix)) {

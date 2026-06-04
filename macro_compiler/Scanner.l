@@ -542,16 +542,16 @@ retIdent:			yystralloc(&yylval, yytext);
 						goto retIdent;
 					}
 					switch (VALUE_TYPE(sym)) {
-					case VT_NUMBER: 
+					case PKS_VT_NUMBER: 
 						yylval.num = sym.s.symbol.s_data.longValue;
 						return T_NUM;
-					case VT_FLOAT:
+					case PKS_VT_FLOAT:
 						yylval.v.data.doubleValue = sym.s.symbol.s_data.doubleValue;
 						return T_FLOATING_POINT_NUMBER;
-					case VT_CHAR:
+					case PKS_VT_CHAR:
 						yylval.num = sym.s.symbol.s_data.uchar;
 						return T_CHARACTER;
-					case VT_STRING:
+					case PKS_VT_STRING:
 						yystralloc(&yylval, (char *)VALUE(sym));
 						return T_STRING;
 					default: yyerror("Unsupported constant type %d", VALUE_TYPE(sym));

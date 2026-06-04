@@ -78,10 +78,10 @@ static int sym_destroyEntry(intptr_t tKey, intptr_t tValue) {
 	char* pszKey = (char*)tKey;
 	if (sym->s_type != S_RUNTIME_VALUE && sym->s_type != S_TYPE_IDENTIFIER) {
 		PKS_VALUE_TYPE vt = sym->s.symbol.s_valueType;
-		if (vt == VT_STRING) {
+		if (vt == PKS_VT_STRING) {
 			free(sym->s.symbol.s_data.string);
 		}
-		else if (vt == VT_OBJECT_ARRAY) {
+		else if (vt == PKS_VT_OBJECT_ARRAY) {
 			arraylist_destroyStringList(sym->s.symbol.s_data.stringList);
 		}
 	}
@@ -234,13 +234,13 @@ static int sym_insert(IDENTIFIER_CONTEXT* pContext, const char *key, SYMBOL vVal
 int sym_createSymbol(IDENTIFIER_CONTEXT* pContext, char *name, SYMBOL_TYPE stType, PKS_VALUE_TYPE stValueType, GENERIC_DATA value, int nVariableOffset) {
 	SYMBOL sSymbol = { .s_type = stType, .s.symbol.s_valueType = stValueType};
 	if (stType != S_TYPE_IDENTIFIER) {
-		if (stValueType == VT_STRING) {
+		if (stValueType == PKS_VT_STRING) {
 			if ((sSymbol.s.symbol.s_data.string = _strdup(value.string)) == 0) {
 				return 0;
 			}
 			sSymbol.s.symbol.s_pointer = TRUE;
 		}
-		else if (stType == VT_OBJECT_ARRAY) {
+		else if (stValueType == PKS_VT_OBJECT_ARRAY) {
 			if (value.stringList) {
 				void* pClone = arraylist_cloneStringList(value.stringList);
 				if (!pClone) {

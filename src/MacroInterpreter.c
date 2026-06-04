@@ -80,7 +80,7 @@ static ARRAY_LIST* _contextStack;
 static EXECUTION_CONTEXT* _currentExecutionContext;
 static jmp_buf _currentJumpBuffer;
 static COM_FORM* _currentFormInstruction;
-static const PKS_VALUE NIL = { .pkv_type = VT_NIL };
+static const PKS_VALUE NIL = { .pkv_type = PKS_VT_NIL };
 
 /*
  * An error has occurred during execution of a macro. Display a descriptive error and abort the execution.
@@ -128,29 +128,29 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 
 	switch (typ) {
 	case C_FORM_START:
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = (long long)pInstructionPointer};
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = (long long)pInstructionPointer};
 	case C_PUSH_BOOLEAN_LITERAL:
-		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val};
+		return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val};
 	case C_PUSH_SMALL_INT_LITERAL:
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_LOCAL_VARIABLE:
 		return pContext->ec_localVariables[((COM_CHAR1*)pInstructionPointer)->val];
 	case C_PUSH_CHARACTER_LITERAL:
-		return (PKS_VALUE) { .pkv_type = VT_CHAR, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_CHAR, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_INTEGER_LITERAL:
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = ((COM_INT1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = ((COM_INT1*)pInstructionPointer)->val };
 	case C_PUSH_LONG_LITERAL:
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = ((COM_LONG1*)pInstructionPointer)->val };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = ((COM_LONG1*)pInstructionPointer)->val };
 	case C_PUSH_FLOAT_LITERAL: {
 		double dDouble = ((COM_FLOAT1*)pInstructionPointer)->val;
-		return (PKS_VALUE) { .pkv_type = VT_FLOAT, .pkv_data.doubleValue = dDouble };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_FLOAT, .pkv_data.doubleValue = dDouble };
 	}
 	case C_PUSH_NEW_INSTANCE: {
 		PKS_VALUE_TYPE t = ((COM_INT1*)pInstructionPointer)->c_valueType;
 		return memory_createObject(pContext, t, types_getObjectSize(t), 0);
 	}
 	case C_PUSH_STRING_LITERAL:
-		return memory_createObject(pContext, VT_STRING, 0, ((COM_STRING1*)pInstructionPointer)->s);
+		return memory_createObject(pContext, PKS_VT_STRING, 0, ((COM_STRING1*)pInstructionPointer)->s);
 	case C_PUSH_VARIABLE:
 		return sym_getVariable(sym_getGlobalContext(), ((COM_STRING1*)pInstructionPointer)->s);
 	default:
@@ -269,33 +269,33 @@ PKS_VALUE interpreter_registerType(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValu
 	}
 	types_register(-1, &descriptor);
 	free(descriptor.ptd_elements.ptd_enumValues);
-	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1 };
+	return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 1 };
 }
 /*
  * Implements the size() method used to determine the length of a string or the size of an array or object.
  */
 PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	if (nArgs < 1) {
-		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	PKS_VALUE v = pValues[0];
-	if (v.pkv_type == VT_RANGE) {
+	if (v.pkv_type == PKS_VT_RANGE) {
 		int nCount = (v.pkv_data.range.r_end - v.pkv_data.range.r_start + 1);
 		int nDelta = v.pkv_data.range.r_increment;
 		if (nDelta > 1) {
 			nCount /= nDelta;
 		}
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nCount };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = nCount };
 	}
 	size_t nLen = memory_size(v);
-	return (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = nLen };
+	return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = nLen };
 }
 
 /*
  * Implements the CreateArray() method used when arrays are created: [...].
  */
 PKS_VALUE interpreter_createArray(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	PKS_VALUE vArray = memory_createObject(pContext, VT_OBJECT_ARRAY, nArgs, 0);
+	PKS_VALUE vArray = memory_createObject(pContext, PKS_VT_OBJECT_ARRAY, nArgs, 0);
 	for (int i = 0; i < nArgs; i++) {
 		memory_setNestedObject(vArray, i, pValues[i]);
 	}
@@ -306,7 +306,7 @@ PKS_VALUE interpreter_createArray(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValue
  * Implements the CreateMap() method used when maps are created: ´{"x": x}.
  */
 PKS_VALUE interpreter_createMap(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
-	PKS_VALUE vArray = memory_createObject(pContext, VT_MAP, nArgs, 0);
+	PKS_VALUE vArray = memory_createObject(pContext, PKS_VT_MAP, nArgs, 0);
 	for (int i = 0; i < nArgs; i += 2) {
 		memory_atPutObject(vArray, pValues[i], pValues[i+1]);
 	}
@@ -318,43 +318,43 @@ PKS_VALUE interpreter_createMap(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues,
  */
 PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	if (nArgs < 3) {
-		return (PKS_VALUE) { .pkv_type=VT_BOOLEAN, .pkv_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type=PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	int nCaretVarHeapOffset = pValues[0].pkv_data.intValue;
 	int nResultVarOffset = pValues[1].pkv_data.intValue;
 	PKS_VALUE v = pValues[2];
 	int idxLast;
-	if (v.pkv_type == VT_RANGE) {
+	if (v.pkv_type == PKS_VT_RANGE) {
 		idxLast = v.pkv_data.range.r_end + 1;
 	}
-	else if (v.pkv_type == VT_STRING || v.pkv_type == VT_OBJECT_ARRAY) {
+	else if (v.pkv_type == PKS_VT_STRING || v.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		idxLast = (int)memory_size(v);
 	} else {
-		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	if (nCaretVarHeapOffset >= pContext->ec_localVariableCount) {
 		interpreter_raiseError("Wrong heap variable access at offset %d", nCaretVarHeapOffset);
 	}
 	PKS_VALUE caretV = pContext->ec_localVariables[nCaretVarHeapOffset];
-	if (caretV.pkv_type != VT_NUMBER) {
-		caretV = (PKS_VALUE){.pkv_type = VT_NUMBER, .pkv_data.intValue = 0};
+	if (caretV.pkv_type != PKS_VT_NUMBER) {
+		caretV = (PKS_VALUE){.pkv_type = PKS_VT_NUMBER, .pkv_data.intValue = 0};
 	}
 	int idx = caretV.pkv_data.intValue;
-	if (v.pkv_type == VT_RANGE) {
+	if (v.pkv_type == PKS_VT_RANGE) {
 		int nMult = v.pkv_data.range.r_increment > 0 ? v.pkv_data.range.r_increment : 1;
 		idx = v.pkv_data.range.r_start + (nMult*idx);
 	}
 	if (idx >= idxLast) {
 		pContext->ec_localVariables[nCaretVarHeapOffset] = (PKS_VALUE){ 0 };
-		return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0 };
+		return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
 	PKS_VALUE vResult;
-	if (v.pkv_type == VT_RANGE) {
-		vResult = (PKS_VALUE){.pkv_type = VT_NUMBER, .pkv_data.intValue = idx };
-	} else if (v.pkv_type == VT_OBJECT_ARRAY) {
+	if (v.pkv_type == PKS_VT_RANGE) {
+		vResult = (PKS_VALUE){.pkv_type = PKS_VT_NUMBER, .pkv_data.intValue = idx };
+	} else if (v.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		vResult = memory_getNestedObject(v, idx);
 	} else {		// string
-		vResult = (PKS_VALUE){.pkv_type = VT_CHAR, .pkv_data.uchar = memory_accessString(v)[idx] };
+		vResult = (PKS_VALUE){.pkv_type = PKS_VT_CHAR, .pkv_data.uchar = memory_accessString(v)[idx] };
 	}
 	if (nResultVarOffset >= pContext->ec_localVariableCount) {
 		interpreter_raiseError("Wrong heap variable access at offset %d", nResultVarOffset);
@@ -363,7 +363,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	caretV.pkv_data.intValue++;
 	pContext->ec_localVariables[nCaretVarHeapOffset] = caretV;
 
-	return (PKS_VALUE) { .pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 1 };
+	return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 1 };
 }
 
 /*
@@ -385,15 +385,15 @@ PKS_VALUE interpreter_typeOf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, in
 PKS_VALUE interpreter_sprintf(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	char buf[1024];
 
-	if (nArgs < 1 || pValues->pkv_type != VT_STRING) {
-		return (PKS_VALUE) { .pkv_type = VT_NUMBER, 0 };
+	if (nArgs < 1 || pValues->pkv_type != PKS_VT_STRING) {
+		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, 0 };
 	}
 	const char* pszFormat = memory_accessString(pValues[0]);
 	union U_ARG_VALUE* values = calloc(nArgs, sizeof (* values));
 	for (int i = 1; i < nArgs; i++) {
-		if (pValues[i].pkv_type == VT_FLOAT) {
+		if (pValues[i].pkv_type == PKS_VT_FLOAT) {
 			values[i - 1].v_d = pValues[i].pkv_data.doubleValue;
-		} else if (pValues[i].pkv_type == VT_STRING) {
+		} else if (pValues[i].pkv_type == PKS_VT_STRING) {
 			values[i - 1].v_s = (char*)memory_accessString(pValues[i]);
 		} else {
 			values[i - 1].v_l = (long)pValues[i].pkv_data.longValue;
@@ -412,7 +412,7 @@ PKS_VALUE interpreter_popStackValue(EXECUTION_CONTEXT* pContext) {
 	if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 		return *--pContext->ec_stackCurrent;
 	}
-	return (PKS_VALUE) {.pkv_data = 0, .pkv_type = VT_NUMBER};
+	return (PKS_VALUE) {.pkv_data = 0, .pkv_type = PKS_VT_NUMBER};
 }
 
 /*
@@ -422,7 +422,7 @@ PKS_VALUE interpreter_peekStackValue(EXECUTION_CONTEXT* pContext) {
 	if (pContext->ec_stackCurrent > pContext->ec_stackFrame) {
 		return pContext->ec_stackCurrent[-1];
 	}
-	return (PKS_VALUE) { .pkv_data = 0, .pkv_type = VT_NUMBER };
+	return (PKS_VALUE) { .pkv_data = 0, .pkv_type = PKS_VT_NUMBER };
 }
 
 /*
@@ -442,7 +442,7 @@ int interpreter_pushValueOntoStack(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue
  * be released later.
  */
 PKS_VALUE interpreter_allocateString(EXECUTION_CONTEXT* pContext, const char* pszSource) {
-	return memory_createObject(pContext, VT_STRING, 0, pszSource);
+	return memory_createObject(pContext, PKS_VT_STRING, 0, pszSource);
 }
 
 /*
@@ -720,7 +720,7 @@ long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
  * Return a value created by a native function
  */
 static void interpreter_returnNativeFunctionResult(EXECUTION_CONTEXT* pContext, PARAMETER_TYPE typ, intptr_t v) {
-	PKS_VALUE_TYPE vt = VT_NUMBER;
+	PKS_VALUE_TYPE vt = PKS_VT_NUMBER;
 
 	if (typ == PARAM_TYPE_STRING) {
 		// (A) strings are not(!) allocated by caller. Caller returns a static buffer or so.
@@ -728,12 +728,12 @@ static void interpreter_returnNativeFunctionResult(EXECUTION_CONTEXT* pContext, 
 		return;
 	} else if (typ == PARAM_TYPE_STRING_ARRAY) {
 		// (A) string arrays will always be allocated by caller - array list including nested elements
-		interpreter_pushValueOntoStack(pContext, memory_createObject(pContext, VT_OBJECT_ARRAY, 0, (const void*)v));
+		interpreter_pushValueOntoStack(pContext, memory_createObject(pContext, PKS_VT_OBJECT_ARRAY, 0, (const void*)v));
 		arraylist_destroyStringList((ARRAY_LIST*)v);
 		return;
 	}
 	else if (typ == PARAM_TYPE_EDITOR_WINDOW) {
-		interpreter_pushValueOntoStack(pContext, memory_createHandleObject(pContext, VT_EDITOR_HANDLE, (void*)v));
+		interpreter_pushValueOntoStack(pContext, memory_createHandleObject(pContext, PKS_VT_EDITOR_HANDLE, (void*)v));
 		return;
 	}
 	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = vt, .pkv_data.longValue = v });
@@ -786,12 +786,12 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		if (typ == C_MACRO_REF_LOCAL) {
 			int idx = ((COM_MAC*)pInstructionPointer)->heapIndex;
 			v = pContext->ec_localVariables[idx];
-			if (v.pkv_type != VT_STRING) {
+			if (v.pkv_type != PKS_VT_STRING) {
 				interpreter_raiseError("Illegal reference to macro through instancevar %d", idx);
 			}
 		} else {
 			v = sym_getVariable(sym_getGlobalContext(), (char*)pszMacro);
-			if (v.pkv_type != VT_STRING) {
+			if (v.pkv_type != PKS_VT_STRING) {
 				interpreter_raiseError("Illegal reference to macro function named %s", pszMacro);
 			}
 		}
@@ -836,11 +836,11 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 			PKS_VALUE v = tempStack[nParametersPassed-i-1];
 			PARAMETER_TYPE_DESCRIPTOR pdt = function_getParameterTypeDescriptor(fup, idxParam++);
 			if (pdt.pt_type == PARAM_TYPE_STRING) {
-				v = interpreter_coerce(pContext, v, VT_STRING);
+				v = interpreter_coerce(pContext, v, PKS_VT_STRING);
 			}
 			if (pdt.pt_type == PARAM_TYPE_EDITOR_WINDOW) {
 				WINFO* wp;
-				if (v.pkv_type == VT_EDITOR_HANDLE) {
+				if (v.pkv_type == PKS_VT_EDITOR_HANDLE) {
 					wp = memory_handleForValue(v);
 				} else {
 					// assume, that no editor handle param had been passed - use the default editor.
@@ -851,7 +851,7 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 					interpreter_raiseError("Null editor handle passed to MacroC function");
 				}
 				*functionParameters++ = (intptr_t)wp;
-			} else if (v.pkv_type == VT_STRING) {
+			} else if (v.pkv_type == PKS_VT_STRING) {
 				*functionParameters++ = (intptr_t)memory_accessString(v);
 			} else {
 				*functionParameters++ = v.pkv_data.intValue;
@@ -925,14 +925,14 @@ static void interpreter_assignOffset(EXECUTION_CONTEXT* pContext) {
 	PKS_VALUE v = interpreter_popStackValue(pContext);
 	PKS_VALUE vOffset = interpreter_popStackValue(pContext);
 	PKS_VALUE target = interpreter_popStackValue(pContext);
-	if (target.pkv_type == VT_MAP) {
+	if (target.pkv_type == PKS_VT_MAP) {
 		memory_atPutObject(target, vOffset, v);
 	}
 	else {
-		if (target.pkv_type != VT_OBJECT_ARRAY && !types_isStructuredType(target.pkv_type)) {
+		if (target.pkv_type != PKS_VT_OBJECT_ARRAY && !types_isStructuredType(target.pkv_type)) {
 			interpreter_raiseError("Illegal target object of type %s for offset assignment.", types_nameFor(target.pkv_type));
 		}
-		int nIndex = interpreter_coerce(pContext, vOffset, VT_NUMBER).pkv_data.intValue;
+		int nIndex = interpreter_coerce(pContext, vOffset, PKS_VT_NUMBER).pkv_data.intValue;
 		if (nIndex < 0) {
 			interpreter_raiseError("Illegal negative index %d to assign element of type %s.", nIndex, types_nameFor(target.pkv_type));
 		}
@@ -959,12 +959,12 @@ static PKS_VALUE interpreter_getParameterStackValue(EXECUTION_CONTEXT* pContext,
  * Compare two values and return 1 if they are identical.
  */
 static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE nCaseLabelValue, PKS_VALUE v2) {
-	if (nCaseLabelValue.pkv_type == VT_STRING) {
-		v2 = interpreter_coerce(pContext, v2, VT_STRING);
+	if (nCaseLabelValue.pkv_type == PKS_VT_STRING) {
+		v2 = interpreter_coerce(pContext, v2, PKS_VT_STRING);
 		return strcmp(memory_accessString(nCaseLabelValue), memory_accessString(v2)) == 0;
 	}
-	v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
-	if (nCaseLabelValue.pkv_type == VT_RANGE) {
+	v2 = interpreter_coerce(pContext, v2, PKS_VT_NUMBER);
+	if (nCaseLabelValue.pkv_type == PKS_VT_RANGE) {
 		return nCaseLabelValue.pkv_data.range.r_start <= v2.pkv_data.intValue && nCaseLabelValue.pkv_data.range.r_end >= v2.pkv_data.intValue;
 	}
 	return nCaseLabelValue.pkv_data.intValue == v2.pkv_data.intValue;
@@ -975,7 +975,7 @@ static int interpreter_testCaseLabelMatch(EXECUTION_CONTEXT* pContext, PKS_VALUE
  */
 static int interpreter_spread(EXECUTION_CONTEXT* pContext) {
 	PKS_VALUE v = interpreter_peekStackValue(pContext);
-	if (v.pkv_type != VT_OBJECT_ARRAY) {
+	if (v.pkv_type != PKS_VT_OBJECT_ARRAY) {
 		interpreter_raiseError("Illegal object type %s for spread operator.", types_nameFor(v.pkv_type));
 	}
 	interpreter_popStackValue(pContext);
@@ -1025,17 +1025,17 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 					continue;
 				case BRA_IF_FALSE:
 					stackTop = interpreter_popStackValue(pContext);
-					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					stackTop = interpreter_coerce(pContext, stackTop, PKS_VT_BOOLEAN);
 					val = !stackTop.pkv_data.booleanValue;
 					break;
 				case BRA_TOS_IF_FALSE:
 					stackTop = interpreter_peekStackValue(pContext);
-					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					stackTop = interpreter_coerce(pContext, stackTop, PKS_VT_BOOLEAN);
 					val = !stackTop.pkv_data.booleanValue;
 					break;
 				case BRA_TOS_IF_TRUE:
 					stackTop = interpreter_peekStackValue(pContext);
-					stackTop = interpreter_coerce(pContext, stackTop, VT_BOOLEAN);
+					stackTop = interpreter_coerce(pContext, stackTop, PKS_VT_BOOLEAN);
 					val = stackTop.pkv_data.booleanValue;
 					break;
 				case BRA_CASE: {
@@ -1101,12 +1101,12 @@ static int macro_interpretByteCodesContext(EXECUTION_CONTEXT* pContext, MACRO* m
 		case C_DEFINE_PARAMETER: {
 			PKS_VALUE value = interpreter_getParameterStackValue(pContext, (int)((COM_DEFINE_SYMBOL*)cp)->value);
 			// automatic type coercion of parameter types.
-			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->vartype == VT_STRING) {
+			if (!value.pkv_type && ((COM_DEFINE_SYMBOL*)cp)->vartype == PKS_VT_STRING) {
 				// TODO: this is a hack - if the parameter was not passed we need to define the symbol and assign it a NIL value,
 				// which is currently not supported. So convert to false to allow us for testing, whether the parameter was passed.
-				value = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = 0};
+				value = (PKS_VALUE){.pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0};
 			}
-			else if (((COM_DEFINE_SYMBOL*)cp)->vartype != VT_AUTO) {
+			else if (((COM_DEFINE_SYMBOL*)cp)->vartype != PKS_VT_AUTO) {
 				value = interpreter_coerce(pContext, value, ((COM_DEFINE_SYMBOL*)cp)->vartype);
 			}
 			int idx = ((COM_DEFINE_SYMBOL*)cp)->heapIndex;

@@ -223,16 +223,16 @@ int decompile_getLocalVariableInfo(MACRO* mp, TYPE_PROPERTY_DESCRIPTOR* pDescrip
  * Print a value for the purpose of debugging or decompilation into the destination buffer.
  */
 void decompile_printValue(char* pszBuf, size_t nMaxChars, PKS_VALUE v) {
-	if (v.pkv_type == VT_BOOLEAN) {
+	if (v.pkv_type == PKS_VT_BOOLEAN) {
 		strcpy(pszBuf, v.pkv_data.booleanValue ? "true" : "false");
 	}
-	else if (v.pkv_type == VT_FLOAT) {
+	else if (v.pkv_type == PKS_VT_FLOAT) {
 		sprintf(pszBuf, "%lf", v.pkv_data.doubleValue);
 	}
-	else if (v.pkv_type == VT_STRING) {
+	else if (v.pkv_type == PKS_VT_STRING) {
 		const char* pString = v.pkv_managed ? memory_accessString(v) : v.pkv_data.string;
 		sprintf(pszBuf, "\"%.*s\"", (int)nMaxChars-4, decompile_quoteString(pString));
-	} else if (v.pkv_type == VT_OBJECT_ARRAY) {
+	} else if (v.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		size_t nLen = memory_size(v);
 		*pszBuf = 0;
 		for (int i = 0; i < nLen; i++) {
@@ -249,7 +249,7 @@ void decompile_printValue(char* pszBuf, size_t nMaxChars, PKS_VALUE v) {
 			}
 			strcat(pszBuf, szTemp2);
 		}
-	} else if (v.pkv_type == VT_MAP) {
+	} else if (v.pkv_type == PKS_VT_MAP) {
 		// TODO: print contents
 		sprintf(pszBuf, "map(size=%d)", memory_size(v));
 	} else if (types_isStructuredType(v.pkv_type)) {
@@ -331,13 +331,13 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 			break;
 		case C_PUSH_FLOAT_LITERAL:
 			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
-				.pkv_type = VT_FLOAT, .pkv_data.doubleValue = ((COM_FLOAT1*)sp)->val
+				.pkv_type = PKS_VT_FLOAT, .pkv_data.doubleValue = ((COM_FLOAT1*)sp)->val
 			});
 			stringbuf_appendString(pBuf, szTemp);
 			return 1;
 		case C_PUSH_BOOLEAN_LITERAL:
 			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
-				.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = ((COM_CHAR1*)sp)->val
+				.pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = ((COM_CHAR1*)sp)->val
 			});
 			stringbuf_appendString(pBuf, szTemp);
 			return 1;
@@ -353,7 +353,7 @@ static int decompile_printParameter(STRING_BUF* pBuf, unsigned char *sp, PARAMET
 			break;
 		case C_PUSH_STRING_LITERAL:
 			decompile_printValue(szTemp, sizeof szTemp, (PKS_VALUE) {
-				.pkv_type = VT_STRING, .pkv_data.string = ((COM_STRING1*)sp)->s
+				.pkv_type = PKS_VT_STRING, .pkv_data.string = ((COM_STRING1*)sp)->s
 			});
 			stringbuf_appendString(pBuf, szTemp);
 			return 1;

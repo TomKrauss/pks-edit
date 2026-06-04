@@ -1497,6 +1497,20 @@ static void xref_urlEncode(char* pszDest, char* pszSource) {
 }
 
 /*
+ * Opens the Windows Explorer in the current directory (the directory in which the edited file is located).
+ */
+long long EdOpenExplorerInCurrentDirectory() {
+	char dirname[MAX_PATH];
+	FTABLE* fp = ft_getCurrentDocument();
+
+	if (fp == 0) {
+		return 0;
+	}
+	string_splitFilename(fp->fname, dirname, NULL, 0);
+	xref_shellExecute(dirname);
+	return 1;
+}
+/*
  * Perform a google / bing / duckduck go / ... search for the current word or selection.
  */
 int EdFindOnInternet(WINFO* wp) {

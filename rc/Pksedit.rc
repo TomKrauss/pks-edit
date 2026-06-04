@@ -1569,7 +1569,7 @@ BEGIN
     IDS_COMMAND5            "÷ffnet die vorletzte geschlossene Datei;÷ffnen letzte Datei 2"
     IDS_COMMAND6            "÷ffnet die vorvorletzte geschlossene Datei;÷ffnen letzte Datei 3"
     IDS_COMMAND7            "÷ffnet die drittletzte geschlossene Datei;÷ffnen letzte Datei 4"
-    IDS_COMMAND8            "÷ffnet die viertletzte geschlossene Datei;÷ffnen letzte Datei 5"
+    IDS_COMMAND8            "÷ffnet den Windows Explorer im aktuellen Verzeichnis;Windows Explorer"
     IDS_COMMAND9            "Schlieﬂt das Bearbeitungsfenster;Fenster schlieﬂen"
     IDS_COMMAND10           "Sichert den Text und schlieﬂt das Bearbeitungsfenster;Sichern & Schlieﬂen"
     IDS_COMMAND11           "Sichert den Text unter neuem Namen;Sichern unter..."

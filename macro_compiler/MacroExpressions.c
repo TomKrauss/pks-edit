@@ -37,23 +37,23 @@ int macro_isParameterStringType(unsigned char typ) {
 }
 
 static void interpreter_printString(char* pTargetBuf, size_t nSize, PKS_VALUE nValue) {
-	if (nValue.pkv_type == VT_FLOAT) {
+	if (nValue.pkv_type == PKS_VT_FLOAT) {
 		sprintf(pTargetBuf, "%.2lf", nValue.pkv_data.doubleValue);
 	}
-	else if (nValue.pkv_type == VT_CHAR) {
+	else if (nValue.pkv_type == PKS_VT_CHAR) {
 		sprintf(pTargetBuf, "%c", nValue.pkv_data.uchar);
 	}
-	else if (nValue.pkv_type == VT_BOOLEAN) {
+	else if (nValue.pkv_type == PKS_VT_BOOLEAN) {
 		sprintf(pTargetBuf, "%s", nValue.pkv_data.booleanValue ? "true" : "false");
 	}
-	else if (nValue.pkv_type == VT_STRING) {
+	else if (nValue.pkv_type == PKS_VT_STRING) {
 		const char* pszS = memory_accessString(nValue);
 		size_t nLen = memory_size(nValue);
 		if (nLen +3 < nSize) {
 			strcpy(pTargetBuf, pszS);
 		}
 	}
-	else if (nValue.pkv_type == VT_OBJECT_ARRAY) {
+	else if (nValue.pkv_type == PKS_VT_OBJECT_ARRAY) {
 		interpreter_asString(pTargetBuf, &pTargetBuf[nSize], nValue);
 	}
 	else {
@@ -93,8 +93,8 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 	if (nValue.pkv_type == tTargetType) {
 		return nValue;
 	}
-	if (tTargetType == VT_FLOAT) {
-		if (nValue.pkv_type == VT_STRING) {
+	if (tTargetType == PKS_VT_FLOAT) {
+		if (nValue.pkv_type == PKS_VT_STRING) {
 			double d;
 			if (sscanf(memory_accessString(nValue), "%lf", &d) < 1) {
 				d = 0;
@@ -103,22 +103,22 @@ PKS_VALUE interpreter_coerce(EXECUTION_CONTEXT* pContext, PKS_VALUE nValue, PKS_
 		}
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.doubleValue = (double)nValue.pkv_data.longValue };
 	}
-	if (tTargetType == VT_NUMBER) {
-		if (nValue.pkv_type == VT_STRING) {
+	if (tTargetType == PKS_VT_NUMBER) {
+		if (nValue.pkv_type == PKS_VT_STRING) {
 			return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.longValue = number((char*)memory_accessString(nValue)) };
 		}
-		if (nValue.pkv_type == VT_FLOAT) {
+		if (nValue.pkv_type == PKS_VT_FLOAT) {
 			return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.longValue = (long long)nValue.pkv_data.doubleValue };
 		}
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.longValue = nValue.pkv_data.longValue };
 	}
-	if (tTargetType == VT_BOOLEAN) {
+	if (tTargetType == PKS_VT_BOOLEAN) {
 		if (types_isHandleType(nValue.pkv_type)) {
 			return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.booleanValue = memory_handleForValue(nValue) != 0 };
 		}
 		return (PKS_VALUE) { .pkv_type = tTargetType, .pkv_data.booleanValue = nValue.pkv_data.longValue != 0 };
 	}
-	if (tTargetType == VT_STRING) {
+	if (tTargetType == PKS_VT_STRING) {
 		char buf[200];
 		interpreter_printString(buf, sizeof buf, nValue);
 		return interpreter_allocateString(pContext, buf);
@@ -173,10 +173,10 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 		v2 = v1;
 		v1 = interpreter_popStackValue(pContext);
 	} else {
-		v1 = (PKS_VALUE){.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = v1.pkv_data.longValue != 0};
+		v1 = (PKS_VALUE){.pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = v1.pkv_data.longValue != 0};
 		v2 = v1;
 	}
-	if (v1.pkv_type != VT_STRING && !CT_IS_LOGICAL(op)) {
+	if (v1.pkv_type != PKS_VT_STRING && !CT_IS_LOGICAL(op)) {
 		if (v1.pkv_type == v2.pkv_type && types_isHandleType(v1.pkv_type)) {
 			void* p1 = memory_handleForValue(v1);
 			void* p2 = memory_handleForValue(v2);
@@ -189,8 +189,8 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 			}
 		} else {
 			long long r1, r2;
-			v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
-			v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
+			v1 = interpreter_coerce(pContext, v1, PKS_VT_NUMBER);
+			v2 = interpreter_coerce(pContext, v2, PKS_VT_NUMBER);
 			r1 = v1.pkv_data.longValue;
 			r2 = v2.pkv_data.longValue;
 			switch(op) {
@@ -203,10 +203,10 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 				default   : goto notimpl;
 			}
 		}
-	} else if (v1.pkv_type == VT_STRING) {
+	} else if (v1.pkv_type == PKS_VT_STRING) {
 		int r1;
-		v1 = interpreter_coerce(pContext, v1, VT_STRING);
-		v2 = interpreter_coerce(pContext, v2, VT_STRING);
+		v1 = interpreter_coerce(pContext, v1, PKS_VT_STRING);
+		v2 = interpreter_coerce(pContext, v2, PKS_VT_STRING);
 		unsigned const char* s1, * s2;
 		s1 = memory_accessString(v1);
 		s2 = memory_accessString(v2);
@@ -225,11 +225,11 @@ int interpreter_testExpression(EXECUTION_CONTEXT* pContext, COM_BINOP *sp) {
 notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
 		}
 	} else {
-		v1 = interpreter_coerce(pContext, v1, VT_BOOLEAN);
+		v1 = interpreter_coerce(pContext, v1, PKS_VT_BOOLEAN);
 		BOOL bBool1 = v1.pkv_data.booleanValue;
 		BOOL bBool2;
 		if (!CT_IS_UNARY(op)) {
-			v2 = interpreter_coerce(pContext, v2, VT_BOOLEAN);
+			v2 = interpreter_coerce(pContext, v2, PKS_VT_BOOLEAN);
 			bBool2 = v2.pkv_data.booleanValue;
 		}
 		switch (op) {
@@ -238,7 +238,7 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
 		default: goto notimpl;
 		}
 	}
-	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.pkv_type = VT_BOOLEAN, .pkv_data.booleanValue = bResult});
+	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = bResult});
 	return 1;
 }
 
@@ -247,9 +247,9 @@ notimpl:		interpreter_raiseError("Test: Operator 0x%x not implemented",op);
  */
 static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
 	char *buf;
-	v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
+	v1 = interpreter_coerce(pContext, v1, PKS_VT_NUMBER);
 	int l1 = v1.pkv_data.intValue;
-	int nMult = v2.pkv_type == VT_CHAR ? 1 : (int)memory_size(v2);
+	int nMult = v2.pkv_type == PKS_VT_CHAR ? 1 : (int)memory_size(v2);
 	buf = calloc(1, (size_t)l1*nMult+5);
 	if (!buf) {
 		interpreter_raiseError("out of memory");
@@ -257,7 +257,7 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
 	}
 	char* d = buf;
 	for (int i = 0; i < l1; i++) {
-		if (v2.pkv_type == VT_CHAR) {
+		if (v2.pkv_type == PKS_VT_CHAR) {
 			*d++ = v2.pkv_data.uchar;
 		}
 		else {
@@ -274,14 +274,14 @@ static void interpreter_evaluateMultiplicationWithStrings(EXECUTION_CONTEXT* pCo
  * Create a range.
  */
 static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, PKS_VALUE v2) {
-	int nEnd = interpreter_coerce(pContext, v2, VT_NUMBER).pkv_data.intValue;
-	if (v1.pkv_type == VT_RANGE) {
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = VT_RANGE, .pkv_data.range.r_start = v1.pkv_data.range.r_start, 
+	int nEnd = interpreter_coerce(pContext, v2, PKS_VT_NUMBER).pkv_data.intValue;
+	if (v1.pkv_type == PKS_VT_RANGE) {
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = PKS_VT_RANGE, .pkv_data.range.r_start = v1.pkv_data.range.r_start, 
 			.pkv_data.range.r_end = v1.pkv_data.range.r_end, .pkv_data.range.r_increment = nEnd });
 	}
 	else {
-		int nStart = interpreter_coerce(pContext, v1, VT_NUMBER).pkv_data.intValue;
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = VT_RANGE, .pkv_data.range.r_start = nStart, .pkv_data.range.r_end = nEnd });
+		int nStart = interpreter_coerce(pContext, v1, PKS_VT_NUMBER).pkv_data.intValue;
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = PKS_VT_RANGE, .pkv_data.range.r_start = nStart, .pkv_data.range.r_end = nEnd });
 	}
 }
 
@@ -291,7 +291,7 @@ static void interpreter_createRange(EXECUTION_CONTEXT* pContext, PKS_VALUE v1, P
 static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext, int bOperation, PKS_VALUE vSource, PKS_VALUE vIndex) {
 	size_t nMax = memory_size(vSource);
 	if (bOperation == BIN_ADD) {
-		if (vIndex.pkv_type == VT_OBJECT_ARRAY) {
+		if (vIndex.pkv_type == PKS_VT_OBJECT_ARRAY) {
 			nMax = (int)memory_size(vIndex);
 			for (int i = 0; i < nMax; i++) {
 				memory_addObject(pContext, &vSource, memory_getNestedObject(vIndex, i));
@@ -302,14 +302,14 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		interpreter_pushValueOntoStack(pContext, vSource);
 		return;
 	}
-	if (vIndex.pkv_type == VT_RANGE) {
+	if (vIndex.pkv_type == PKS_VT_RANGE) {
 		int idxStart = vIndex.pkv_data.range.r_start;
 		int idxEnd = vIndex.pkv_data.range.r_end;
 		int iIncr = vIndex.pkv_data.range.r_increment;
 		if (iIncr <= 0) {
 			iIncr = 1;
 		}
-		PKS_VALUE vResult = memory_createObject(pContext, VT_OBJECT_ARRAY, (idxEnd-idxStart)/iIncr +1, 0);
+		PKS_VALUE vResult = memory_createObject(pContext, PKS_VT_OBJECT_ARRAY, (idxEnd-idxStart)/iIncr +1, 0);
 		while (idxStart <= idxEnd && idxStart < nMax) {
 			memory_addObject(pContext, &vResult, memory_getNestedObject(vSource, idxStart));
 			idxStart += iIncr;
@@ -318,7 +318,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		return;
 	}
 	else {
-		vIndex = interpreter_coerce(pContext, vIndex, VT_NUMBER);
+		vIndex = interpreter_coerce(pContext, vIndex, PKS_VT_NUMBER);
 		int nIndex = vIndex.pkv_data.intValue;
 		if (nIndex >= 0 && nIndex < nMax) {
 			interpreter_pushValueOntoStack(pContext, memory_getNestedObject(vSource, nIndex));
@@ -326,7 +326,7 @@ static void interpreter_extractArrayElementsAndPush(EXECUTION_CONTEXT* pContext,
 		}
 	}
 	interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { 
-			.pkv_type = VT_NUMBER, .pkv_data.intValue = 0 });
+			.pkv_type = PKS_VT_NUMBER, .pkv_data.intValue = 0 });
 }
 
 /*--------------------------------------------------------------------------
@@ -343,7 +343,7 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 	}
 	v1 = interpreter_popStackValue(pContext);
 	v2 = (PKS_VALUE) {
-		.pkv_type = VT_NIL
+		.pkv_type = PKS_VT_NIL
 
 	};
 	op = sp->op;
@@ -364,27 +364,27 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 		interpreter_createRange(pContext, v1, v2);
 		return;
 	}
-	if (op == BIN_MUL && (v2.pkv_type == VT_CHAR || v2.pkv_type == VT_STRING)) {
+	if (op == BIN_MUL && (v2.pkv_type == PKS_VT_CHAR || v2.pkv_type == PKS_VT_STRING)) {
 		interpreter_evaluateMultiplicationWithStrings(pContext, v1, v2);
 		return;
 	}
-	if (op == BIN_AT && v2.pkv_type == VT_NUMBER && v1.pkv_type != VT_STRING) {
+	if (op == BIN_AT && v2.pkv_type == PKS_VT_NUMBER && v1.pkv_type != PKS_VT_STRING) {
 		int nIndex = v2.pkv_data.intValue;
 		interpreter_pushValueOntoStack(pContext, memory_getNestedObject(v1, nIndex));
 		return;
 	}
-	if (v1.pkv_type == VT_OBJECT_ARRAY && ((op == BIN_AT && (v2.pkv_type == VT_NUMBER || v2.pkv_type == VT_RANGE)) || (op == BIN_ADD))) {
+	if (v1.pkv_type == PKS_VT_OBJECT_ARRAY && ((op == BIN_AT && (v2.pkv_type == PKS_VT_NUMBER || v2.pkv_type == PKS_VT_RANGE)) || (op == BIN_ADD))) {
 		interpreter_extractArrayElementsAndPush(pContext, op, v1, v2);
 		return;
 	}
-	if (v1.pkv_type == VT_MAP && op == BIN_AT && v2.pkv_type == VT_STRING) {
+	if (v1.pkv_type == PKS_VT_MAP && op == BIN_AT && v2.pkv_type == PKS_VT_STRING) {
 		interpreter_pushValueOntoStack(pContext, memory_atObject(v1, v2));
 		return;
 	}
-	if (v1.pkv_type != VT_STRING && v2.pkv_type != VT_STRING) {
-		if (v1.pkv_type == VT_FLOAT || v2.pkv_type == VT_FLOAT) {
-			v1 = interpreter_coerce(pContext, v1, VT_FLOAT);
-			v2 = interpreter_coerce(pContext, v2, VT_FLOAT);
+	if (v1.pkv_type != PKS_VT_STRING && v2.pkv_type != PKS_VT_STRING) {
+		if (v1.pkv_type == PKS_VT_FLOAT || v2.pkv_type == PKS_VT_FLOAT) {
+			v1 = interpreter_coerce(pContext, v1, PKS_VT_FLOAT);
+			v2 = interpreter_coerce(pContext, v2, PKS_VT_FLOAT);
 			// one operand at least is numeric - force numeric calculations
 			double d1 = v1.pkv_data.doubleValue;
 			double d2 = v2.pkv_data.doubleValue;
@@ -405,11 +405,11 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 				interpreter_raiseError("Binary operator: ~ OP %c not implemented for float numbers", op);
 				d1 = 0;
 			}
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.pkv_type = VT_FLOAT, .pkv_data.doubleValue = d1});
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) {.pkv_type = PKS_VT_FLOAT, .pkv_data.doubleValue = d1});
 			return;
 		}
-		v1 = interpreter_coerce(pContext, v1, VT_NUMBER);
-		v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
+		v1 = interpreter_coerce(pContext, v1, PKS_VT_NUMBER);
+		v2 = interpreter_coerce(pContext, v2, PKS_VT_NUMBER);
 		long long		r1;
 		long long		r2;
 		// one operand at least is numeric - force numeric calculations
@@ -444,16 +444,16 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			interpreter_raiseError("Binary operator: ~ OP %c not implemented",op);
 			r1 = 0;
 		}
-		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = VT_NUMBER, .pkv_data.longValue = r1 });
+		interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = r1 });
 		return;
 	}
 	unsigned const char* p1;
 	unsigned const char* p2;
-	v1 = interpreter_coerce(pContext, v1, VT_STRING);
+	v1 = interpreter_coerce(pContext, v1, PKS_VT_STRING);
 	p1 = memory_accessString(v1);
 	if (op == BIN_AT) {
 		size_t nLen = strlen(p1);
-		if (v2.pkv_type == VT_RANGE) {
+		if (v2.pkv_type == PKS_VT_RANGE) {
 			int n1 = v2.pkv_data.range.r_start;
 			int n2 = v2.pkv_data.range.r_end;
 			if (n1 < 0 || n1 > n2 || n2 > nLen) {
@@ -467,17 +467,17 @@ void interpreter_evaluateBinaryExpression(EXECUTION_CONTEXT* pContext, COM_BINOP
 			buf[nLen] = 0;
 			interpreter_pushValueOntoStack(pContext, interpreter_allocateString(pContext, buf));
 		} else {
-			v2 = interpreter_coerce(pContext, v2, VT_NUMBER);
+			v2 = interpreter_coerce(pContext, v2, PKS_VT_NUMBER);
 			int nIndex = v2.pkv_data.intValue;
 			if (nIndex < 0 || nIndex >= nLen) {
 				interpreter_raiseError("Index %d out of range for string %s", nIndex, p1);
 			}
 			char nResult = p1[nIndex];
-			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = VT_CHAR, .pkv_data.uchar = nResult });
+			interpreter_pushValueOntoStack(pContext, (PKS_VALUE) { .pkv_type = PKS_VT_CHAR, .pkv_data.uchar = nResult });
 		}
 		return;
 	}
-	v2 = interpreter_coerce(pContext, v2, VT_STRING);
+	v2 = interpreter_coerce(pContext, v2, PKS_VT_STRING);
 	p2 = memory_accessString(v2);
 	*buf = 0;
 	switch(op) {

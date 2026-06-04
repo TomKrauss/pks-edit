@@ -59,7 +59,7 @@ typedef struct tagTEMPLATE_ACTION {
 /*
  * Calculate the lexical start state at a given line.
  */
-extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
+extern LEXICAL_CONTEXT highlight_getLexicalContextFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 // forward declaration.
 static STRING_BUF* template_expandCodeTemplate(WINFO* wp, TEMPLATE_ACTION* pTAction, int nIndent, const unsigned char* pszSelected, 
@@ -399,7 +399,7 @@ int template_expandAbbreviation(WINFO* wp, LINE* lp, int offs) {
 	}
 	if (up->action == UA_ABBREV) {
 		if (up->uc_pattern.lexicalContexts) {
-			LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+			LEXICAL_CONTEXT lcStart = highlight_getLexicalContextFor(wp->highlighter, wp, lp);
 			LEXICAL_CONTEXT lcContext = grammar_getLexicalContextAt(pGrammar, lcStart, lp->lbuf, lp->len, offs);
 			if ((up->uc_pattern.lexicalContexts & lcContext) == 0) {
 				return 0;

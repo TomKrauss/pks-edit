@@ -51,6 +51,7 @@ EdBlockWrite(long ), bl_cutOrCopy(long ), EdBlockPaste(long ), bl_hideSelectionI
 EdSyncSelectionWithCaret(long ), bl_cutLines(long ), EdLineDelete(long ), bl_destroyAll(long ),
 EdKeycodeInsert(long ), EdCharInsert(long ), EdFormatText(long ),
 EdSearchListRead(long ), EdErrorListRead(long ),
+EdOpenExplorerInCurrentDirectory(),
 EdMacrosEdit(long ), doctypes_saveToFile(long ),
 EdTagfileRead(long ), EdSetMultiplier(long ), EdGetMultiplier(long), EdReplaceTabs(long ),
 EdParaGotoBegin(long ), edit_shiftSelection(int aDirection),
@@ -320,6 +321,7 @@ NATIVE_FUNCTION _functionTable[MAX_NATIVE_FUNCTIONS] = {
 {/*171*/(long long (*)())theme_reloadThemes, -1, 0, "ReloadThemes", NULL, "i" },
 {/*172*/(long long (*)())edit_setCaret, -1, 0, "EditorSetCaret", NULL, "iWii" },
 {/*173*/(long long (*)())edit_getCaretPosition, -1, 0, "EditorGetCaretPosition", NULL, "P" },
+{/*174*/  EdOpenExplorerInCurrentDirectory, -1, EW_NEEDSCURRF, "EdOpenExplorerInCurrentDirectory", NULL,  "i" },
 0
 };
 
@@ -378,7 +380,7 @@ COMMAND _commandTable[] = {
 5, C_1FUNC, 58 /* EdEditFile */, 							1, OPEN_FILE_NO_FILE_SELECTION|OPEN_HISTORY|0x1000, "open-history1",
 6, C_1FUNC, 58 /* EdEditFile */, 							1, OPEN_FILE_NO_FILE_SELECTION|OPEN_HISTORY|0x2000, "open-history2",
 7, C_1FUNC, 58 /* EdEditFile */, 							1, OPEN_FILE_NO_FILE_SELECTION|OPEN_HISTORY|0x3000, "open-history3",
-8, C_1FUNC, 58 /* EdEditFile */, 							1, OPEN_FILE_NO_FILE_SELECTION|OPEN_HISTORY|0x4000, "open-history4",
+8, C_0FUNC, 174 /* EdSaveAllFiles*/, 						1, 0, "open-explorer-in-current-directory",
 9, C_1FUNC, 64 /* EdSaveFile */, 							1, SAV_QUIT , "quit-file",
 10, C_1FUNC, 64 /* EdSaveFile */, 							1, SAV_QUIT|SAV_SAVE, "save-file-and-close",
 11, C_1FUNC, 64 /* EdSaveFile */, 							1, SAV_SAVE|SAV_AS, "save-file-as",

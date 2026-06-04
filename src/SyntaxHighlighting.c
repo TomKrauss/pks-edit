@@ -264,7 +264,7 @@ HIGHLIGHTER* highlight_createHighlighter(GRAMMAR* pGrammar) {
 /*
  * Calculate the lexical start state at a given line. 
  */
-LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp) {
+LEXICAL_CONTEXT highlight_getLexicalContextFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp) {
 	long nLine = ln_indexOfWP(wp, lp);
 	FTABLE* fp = wp->fp;
 	highlight_adjustCachedLineWindow(pHighlighter, fp, nLine);

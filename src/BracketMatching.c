@@ -47,7 +47,7 @@ extern int	edit_calculateTabs2Columns(INDENTATION *pIndent, int tabs);
 /*
  * Calculate the lexical start state at a given line.
  */
-extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
+extern LEXICAL_CONTEXT highlight_getLexicalContextFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 extern PASTELIST 	*_esclist[];
 
@@ -81,7 +81,7 @@ static BOOL uc_matchBracket(GRAMMAR* pGrammar, LINE* pLine, int nOffset, UC_MATC
 		}
 		bMatch = TRUE;
 	}
-	// TODO: determine start state using LEXICAL_CONTEXT lcStart = highlight_getLexicalStartStateFor() ... would
+	// TODO: determine start state using LEXICAL_CONTEXT lcStart = highlight_getLexicalContextFor() ... would
 	// better help to eliminate multiline comment matches.
 	if (bMatch &&  grammar_getLexicalContextAt(pGrammar, LC_START, pLine->lbuf, pLine->len, nOffset) == LC_START) {
 		pMatched->pPattern = pPattern;

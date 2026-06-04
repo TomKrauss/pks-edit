@@ -151,9 +151,9 @@ PARAMETER_TYPE_DESCRIPTOR function_getParameterTypeDescriptor(NATIVE_FUNCTION* e
 	}
 notfound:
 	switch (tType) {
-	case PARAM_TYPE_EDITOR_WINDOW: nPksValueType = VT_EDITOR_HANDLE; break;
-	case PARAM_TYPE_INT: nPksValueType = VT_NUMBER; break;
-	default: nPksValueType = VT_STRING; break;
+	case PARAM_TYPE_EDITOR_WINDOW: nPksValueType = PKS_VT_EDITOR_HANDLE; break;
+	case PARAM_TYPE_INT: nPksValueType = PKS_VT_NUMBER; break;
+	default: nPksValueType = PKS_VT_STRING; break;
 	}
 	return (PARAMETER_TYPE_DESCRIPTOR) {
 		.pt_type = tType,

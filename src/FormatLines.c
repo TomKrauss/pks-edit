@@ -64,7 +64,7 @@ struct tagFORMATTER {
 /*
  * Calculate the lexical start state at a given line.
  */
-extern LEXICAL_CONTEXT highlight_getLexicalStartStateFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
+extern LEXICAL_CONTEXT highlight_getLexicalContextFor(HIGHLIGHTER* pHighlighter, WINFO* wp, LINE* lp);
 
 /*
  * Wrapping test for ascii type documents
@@ -399,7 +399,7 @@ static LINE* format_otherInto(FORMATTER* pFormatter, FORMATTER_PARAM* fparam, LI
 
 	char chSpace = ft_getSpaceFillCharacter(wp);
 	int nCurrentScreenIndent = -1;
-	fparam->fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	fparam->fparam_context = highlight_getLexicalContextFor(wp->highlighter, wp, lp);
 	grammar_getCommentDescriptor(pGrammar, &fparam->fparam_cd);
 	while (lp) {
 		if (pFormatter->f_treatAsEmpty(pFormatter, lp)) {
@@ -608,7 +608,7 @@ static FORMATTER* format_initParams(WINFO* wp, LINE* lp, FORMATTER_PARAM *pParam
 
 	memset(pParams, 0, sizeof *pParams);
 	pParams->fparam_wp = wp;
-	pParams->fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	pParams->fparam_context = highlight_getLexicalContextFor(wp->highlighter, wp, lp);
 	FTABLE* fp = wp->fp;
 	GRAMMAR* pGrammar = fp->documentDescriptor->grammar;
 	grammar_getCommentDescriptor(pGrammar, &pParams->fparam_cd);
@@ -659,7 +659,7 @@ int format_calculateIndentationDelta(WINFO* wp, LINE* lp) {
 	FORMATTER_PARAM fparam;
 	FORMATTER* pFormatter = format_initParams(wp, lp, &fparam);
 
-	fparam.fparam_context = highlight_getLexicalStartStateFor(wp->highlighter, wp, lp);
+	fparam.fparam_context = highlight_getLexicalContextFor(wp->highlighter, wp, lp);
 	return pFormatter->f_calculateIndentationDelta(pFormatter, &fparam, lp->lbuf, lp->len);
 }
 

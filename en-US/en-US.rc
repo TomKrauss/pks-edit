@@ -1500,7 +1500,7 @@ BEGIN
     IDS_COMMAND5            "Opens the second last file closed;Open last file 2"
     IDS_COMMAND6            "Opens the third last file closed;Open last file 3"
     IDS_COMMAND7            "Opens the fourth last file closed;Open last file 4"
-    IDS_COMMAND8            "Opens the fifth last file closed;Open last file 5"
+    IDS_COMMAND8            "Opens the Explorer in the current directory;Open Explorer"
     IDS_COMMAND9            "Closes one editor window;Close Window"
     IDS_COMMAND10           "Saves the text and closes the editor window;Save & Close"
     IDS_COMMAND11           "Save the text under a new file name;Save as..."
