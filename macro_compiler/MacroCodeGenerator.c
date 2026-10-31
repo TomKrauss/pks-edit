@@ -467,13 +467,13 @@ void bytecode_optimizeInstructions(BYTECODE_BUFFER* pBuffer) {
 							bOptimizeMore = 1;
 						}
 						int nDeltaOptimized = (int)((pSource - pSourceStart) - (pTarget - pTargetStart));
+						memcpy(pTarget, pSource, pBuffer->bb_current - pTarget);
+						pBuffer->bb_current -= nDeltaOptimized;
 						bytecode_updateBranchOffsets(pBuffer, pSourceStart, nDeltaOptimized);
+						pSource = pTarget;
 						continue;
 					}
 				}
-			}
-			if (pTarget != pSource) {
-				memcpy(pTarget, pSource, nSize);
 			}
 			pSource += nSize;
 			pTarget += nSize;

@@ -91,7 +91,7 @@ void interpreter_raiseError(const char* pFormat, ...) {
 	va_list ap;
 
 	va_start(ap, pFormat);
-	vsprintf(szBuffer, pFormat, ap);
+	vsnprintf(szBuffer, sizeof szBuffer, pFormat, ap);
 	va_end(ap);
 	if (_currentExecutionContext == 0) {
 		error_showMessage(szBuffer);
@@ -125,6 +125,7 @@ static WINFO* interpreter_getCurrentEditorWindow() {
  */
 static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsigned char* pInstructionPointer) {
 	unsigned char typ = *pInstructionPointer;
+	char offset;
 
 	switch (typ) {
 	case C_FORM_START:
@@ -134,7 +135,12 @@ static PKS_VALUE interpreter_getValueForOpCode(EXECUTION_CONTEXT* pContext, unsi
 	case C_PUSH_SMALL_INT_LITERAL:
 		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_LOCAL_VARIABLE:
-		return pContext->ec_localVariables[((COM_CHAR1*)pInstructionPointer)->val];
+		offset = ((COM_CHAR1*)pInstructionPointer)->val;
+		if (offset < 0 || offset >= pContext->ec_localVariableCount) {
+			interpreter_raiseError("Illegal local variable access at offset %d", offset);
+			return NIL;
+		}
+		return pContext->ec_localVariables[offset];
 	case C_PUSH_CHARACTER_LITERAL:
 		return (PKS_VALUE) { .pkv_type = PKS_VT_CHAR, .pkv_data.uchar = ((COM_CHAR1*)pInstructionPointer)->val };
 	case C_PUSH_INTEGER_LITERAL:
@@ -247,7 +253,7 @@ PKS_VALUE interpreter_registerType(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValu
 	}
 	int nProps = pValues[3].pkv_data.intValue;
 	int nIdx = 4;
-	if (nIdx + nProps * 3 != nArgs) {
+	if (nProps < 0 ||nIdx + nProps * 3 != nArgs) {
 		interpreter_raiseError("Illegal type registration - wrong number of params");
 		return NIL;
 	}
@@ -280,11 +286,12 @@ PKS_VALUE interpreter_size(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int 
 	}
 	PKS_VALUE v = pValues[0];
 	if (v.pkv_type == PKS_VT_RANGE) {
-		int nCount = (v.pkv_data.range.r_end - v.pkv_data.range.r_start + 1);
-		int nDelta = v.pkv_data.range.r_increment;
+		int nDelta = abs(v.pkv_data.range.r_increment);
+		int nCount = abs(v.pkv_data.range.r_end - v.pkv_data.range.r_start);
 		if (nDelta > 1) {
 			nCount /= nDelta;
 		}
+		nCount += 1;
 		return (PKS_VALUE) { .pkv_type = PKS_VT_NUMBER, .pkv_data.longValue = nCount };
 	}
 	size_t nLen = memory_size(v);
@@ -307,7 +314,7 @@ PKS_VALUE interpreter_createArray(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValue
  */
 PKS_VALUE interpreter_createMap(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, int nArgs) {
 	PKS_VALUE vArray = memory_createObject(pContext, PKS_VT_MAP, nArgs, 0);
-	for (int i = 0; i < nArgs; i += 2) {
+	for (int i = 0; i < nArgs-1; i += 2) {
 		memory_atPutObject(vArray, pValues[i], pValues[i+1]);
 	}
 	return vArray;
@@ -332,7 +339,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	} else {
 		return (PKS_VALUE) { .pkv_type = PKS_VT_BOOLEAN, .pkv_data.booleanValue = 0 };
 	}
-	if (nCaretVarHeapOffset >= pContext->ec_localVariableCount) {
+	if (nCaretVarHeapOffset >= pContext->ec_localVariableCount || nCaretVarHeapOffset < 0) {
 		interpreter_raiseError("Wrong heap variable access at offset %d", nCaretVarHeapOffset);
 	}
 	PKS_VALUE caretV = pContext->ec_localVariables[nCaretVarHeapOffset];
@@ -341,7 +348,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	}
 	int idx = caretV.pkv_data.intValue;
 	if (v.pkv_type == PKS_VT_RANGE) {
-		int nMult = v.pkv_data.range.r_increment > 0 ? v.pkv_data.range.r_increment : 1;
+		int nMult = v.pkv_data.range.r_increment != 0 ? v.pkv_data.range.r_increment : 1;
 		idx = v.pkv_data.range.r_start + (nMult*idx);
 	}
 	if (idx >= idxLast) {
@@ -356,7 +363,7 @@ PKS_VALUE interpreter_foreach(EXECUTION_CONTEXT* pContext, PKS_VALUE* pValues, i
 	} else {		// string
 		vResult = (PKS_VALUE){.pkv_type = PKS_VT_CHAR, .pkv_data.uchar = memory_accessString(v)[idx] };
 	}
-	if (nResultVarOffset >= pContext->ec_localVariableCount) {
+	if (nResultVarOffset < 0 || nResultVarOffset >= pContext->ec_localVariableCount) {
 		interpreter_raiseError("Wrong heap variable access at offset %d", nResultVarOffset);
 	}
 	pContext->ec_localVariables[nResultVarOffset] = vResult;
@@ -610,11 +617,21 @@ static int interpreter_isFunctionEnabled(int nf_flags, int (*nf_checkEnabled)(in
 	return 1;
 }
 
+NATIVE_FUNCTION* interpreter_getFunctionByIndex(int num) {
+	if (num < 0 || num >= MAX_NATIVE_FUNCTIONS) {
+		return NULL;
+	}
+	return &_functionTable[num];
+}
+
 /*--------------------------------------------------------------------------
  * interpreter_canExecuteFunction()
  */
 int interpreter_canExecuteNativeFunction(int num, long long pParam, int warn) {
-	NATIVE_FUNCTION *	fup = &_functionTable[num];
+	NATIVE_FUNCTION *	fup = interpreter_getFunctionByIndex(num);
+	if (fup == NULL) {
+		return 0;
+	}
 	intptr_t stack[4];
 	PARAMETER_TYPE_DESCRIPTOR pd1;
 	stack[0] = pParam;
@@ -677,11 +694,11 @@ static long long cdecl interpreter_callFfi(NATIVE_FUNCTION* pFunc, intptr_t* pSt
 /* interpreter_executeFunction()					*/
 /*---------------------------------*/
 long long cdecl interpreter_executeFunction(int num, intptr_t *stack) {
-	NATIVE_FUNCTION *	fup = &_functionTable[num];
+	NATIVE_FUNCTION *	fup = interpreter_getFunctionByIndex(num);
 	long long 	ret = 0;
 	int			i;
 
-	if (!interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, stack, 1)) {
+	if (fup == NULL || !interpreter_isFunctionEnabled(fup->nf_flags, fup->nf_checkEnabled, stack, 1)) {
 		return 0;
 	}
 
@@ -779,12 +796,19 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	functionParameters = nativeStack;
 	const char* pszMacro = ((COM_MAC*)pInstructionPointer)->name;
 	funcnum = pInstructionPointer->funcnum;
-	NATIVE_FUNCTION* fup = &_functionTable[funcnum];
+	NATIVE_FUNCTION* fup = interpreter_getFunctionByIndex(funcnum);
+	if (fup == NULL) {
+		interpreter_raiseError("Function not found: %d", funcnum);
+		return 0;
+	}
 	bNativeCall = typ != C_MACRO && typ != C_MACRO_REF && typ != C_MACRO_REF_LOCAL;
 	if (typ == C_MACRO_REF || typ == C_MACRO_REF_LOCAL) {
 		PKS_VALUE v;
 		if (typ == C_MACRO_REF_LOCAL) {
 			int idx = ((COM_MAC*)pInstructionPointer)->heapIndex;
+			if (idx < 0 || idx >= pContext->ec_localVariableCount) {
+				interpreter_raiseError("Illegal local variable access at offset %d", idx);
+			}
 			v = pContext->ec_localVariables[idx];
 			if (v.pkv_type != PKS_VT_STRING) {
 				interpreter_raiseError("Illegal reference to macro through instancevar %d", idx);
@@ -823,7 +847,11 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 	}
 
 	if (bNativeCall && !_currentFormInstruction) {
-		fup = &_functionTable[funcnum];
+		fup = interpreter_getFunctionByIndex(funcnum);
+		if (fup == NULL) {
+			interpreter_raiseError("Function not found: %d", funcnum);
+			return 0;
+		}
 		int i;
 		if (nParametersPassed > DIM(tempStack)) {
 			nParametersPassed = DIM(tempStack);
@@ -859,7 +887,11 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 		}
 	}
 	if (bNativeCall) {
-		fup = &_functionTable[funcnum];
+		fup = interpreter_getFunctionByIndex(funcnum);
+		if (fup == NULL) {
+			interpreter_raiseError("Function not found: %d", funcnum);
+			return 0;
+		}
 		char* sp = (char*)pInstructionPointer;
 		char* sp2 = sp + interpreter_getParameterSize(typ, sp + 1);
 		if (*sp2 == C_FORM_START) {
@@ -874,10 +906,16 @@ static intptr_t interpreter_doMacroFunctions(EXECUTION_CONTEXT* pContext, COM_1F
 			for (int i = 0; i < nParametersPassed; i++) {
 				pStack[nParametersPassed -i-1] = interpreter_popStackValue(pContext);
 			}
-			NATIVE_FUNCTION* fup = &_functionTable[funcnum];
+			fup = interpreter_getFunctionByIndex(funcnum);
+			if (fup == NULL) {
+				interpreter_raiseError("Function not found: %d", funcnum);
+				free(pStack);
+				return 0;
+			}
 			returnValue = ((PKS_VALUE (*)())fup->nf_execute)(pContext, pStack, nParametersPassed);
 			// TODO: memory leak, if an exception occurs during execute
 			free(pStack);
+			rc = 1;
 		} else {
 			PKS_VALUE* pOld = pContext->ec_stackFrame;
 			pContext->ec_stackFrame = pContext->ec_stackCurrent - nParametersPassed;
@@ -1260,8 +1298,11 @@ long long macro_executeMacroByIndex(int macroindex) {
 
 			}
 			default:
-				if ((mp = macro_getByIndex(macroindex)) == 0)
+				if ((mp = macro_getByIndex(macroindex)) == 0) {
+					_multiplier = 1;
+					_playing = 0;
 					return 0;
+				}
 				mpNamespace = macro_getNamespaceByIdx(mp->mc_namespaceIdx);
 				if (mpNamespace && !mpNamespace->mc_isInitialized) {
 					if (!interpreter_initializeNamespace(mpNamespace, FALSE)) {

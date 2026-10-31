@@ -269,8 +269,8 @@ static void Test-ForLoop() {
 		}
 	}
 	AssertEquals(15, count);
-	for (int i = 0; i < 1000; i++) {
-		if (i >= 100) {
+	for (int j = 0; j < 1000; j++) {
+		if (j >= 100) {
 			count++;
 		} else {
 			count += 2;
@@ -472,6 +472,7 @@ static void Test-Ranges() {
 	}
 	AssertEquals(3, count, "Range iteration with increment");
 	AssertEquals(27, breakVal, "Values produced by range iteration with increment");
+	AssertEquals(4, size(0..6..2), "Wrong range size calculation.");
 }
 
 
@@ -571,7 +572,13 @@ static void Test-Size() {
 	r = 1..5;
 	AssertEquals(5, size(r));
 	r = 1..5..2;
-	AssertEquals(2, size(r));
+	AssertEquals(3, size(r), "Size of 1..5..2");
+	r = 1..6..2;
+	AssertEquals(3, size(r), "Size of 1..6..2");
+	r = 1..10..3;
+	AssertEquals(4, size(r), "Size of 1..10..3");
+	r = -1..-10..-3;
+	AssertEquals(4, size(r), "Size of -1..-10..-3");
 	AssertEquals(2, size(e));
 }
 
